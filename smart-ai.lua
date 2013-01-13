@@ -1986,7 +1986,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 	if null_card then null_card = sgs.Card_Parse(null_card) else return end
 	if (from and from:isDead()) or (to and to:isDead()) then return nil end
 	if self:needBear() then return nil end
-	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 6 then return nil end
+	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 then return nil end
 
 	if ( to:hasSkill("wuyan") or ((self:getDamagedEffects(to) or to:getHp()>getBestHp(to)) and self:isFriend(to)) )
 			and (trick:isKindOf("Duel") or trick:isKindOf("FireAttack") or trick:isKindOf("AOE")) then
@@ -2307,7 +2307,7 @@ function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	if target and target:hasSkill("jueqing") then return end
 	if self:needBear() and self.player:getLostHp() < 2 then return "." end
 	if self.player:hasSkill("zili") and not self.player:hasSkill("paiyi") and self.player:getLostHp() < 2 then return "." end
-	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 6 and self.player:getHp() > 2 then return "." end
+	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 and self.player:getHp() > 2 then return "." end
 	if self.player:hasSkill("tianxiang") then
 		local dmgStr = {damage = 1, nature = 0}
 		local willTianxiang = sgs.ai_skill_use["@@tianxiang"](self, dmgStr)
@@ -4012,8 +4012,8 @@ end
 function SmartAI:useTrickCard(card, use)
 	if self.player:hasSkill("chengxiang") and self.player:getHandcardNum() < 8 and card:getNumber() < 7 then return end
 	if self:needBear() and not ("amazing_grace|ex_nihilo|snatch|iron_chain"):match(card:objectName()) then return end
-	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 6 then
-		if not (card:isKindOf("AOE") or card:isKindOf("DelayedTrick")) then return end
+	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 then
+		if not (card:isKindOf("AOE") or card:isKindOf("DelayedTrick") or card:isKindOf("IronChain")) then return end
 	end
 	if self:needRende() then return end
 	if card:isKindOf("AOE") then

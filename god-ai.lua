@@ -742,7 +742,7 @@ end
 table.insert(sgs.ai_choicemade_filter.cardUsed, shenfen_filter)
 
 sgs.ai_use_value.ShenfenCard = 8
-sgs.ai_use_priority.ShenfenCard = 4.2
+sgs.ai_use_priority.ShenfenCard = 6.1
 sgs.ai_card_intention.ShenfenCard = function(card, from, tos, source)
 	 sgs.shenfensource = nil
 end

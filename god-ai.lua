@@ -266,6 +266,7 @@ local yeyan_skill={}
 yeyan_skill.name = "yeyan"
 table.insert(sgs.ai_skills, yeyan_skill)
 yeyan_skill.getTurnUseCard=function(self)
+	if self.player:getRole() == "lord" and (self.enemies > 1 or sgs.turncount == 1) then return end
 	if self.player:getMark("@flame") == 0 then return end
 	if self.player:getHandcardNum() >= 4 then
 		local spade, club, heart, diamond
@@ -721,14 +722,14 @@ sgs.ai_skill_use_func.ShenfenCard=function(card,use,self)
 			good = good - 1
 		end
 		if enemy:hasSkill("guixin") and enemy:getHp()>1 then good = good - 1 end
-		if enemy:hasSkill("ganglie") then good = good - 1 end
-		if enemy:hasSkill("xuehen") then good = good - 1 end
+		if enemy:hasSkill("ganglie") and enemy:getHp()>1 then good = good - 1 end
+		if enemy:hasSkill("xuehen") and enemy:getHp()>1 then good = good - 1 end
 		if self:isEquip("SilverLion", enemy) and enemy:getHp()>1 and enemy:isWounded() then good = good - 0.5 end
 	end
 	
-	good = good - (friendscards - enemiescards)/2
+	good = good - (friendscards - enemiescards)/4
 	
-	self.player:speak("ShenfenCard:good is"..good)
+	self.player:speak("ShenfenCard:good is "..good)
 	if good >0 and self.player:getMark("@wrath") >5 then 
 		use.card = card		
 	end	
@@ -742,7 +743,7 @@ end
 table.insert(sgs.ai_choicemade_filter.cardUsed, shenfen_filter)
 
 sgs.ai_use_value.ShenfenCard = 8
-sgs.ai_use_priority.ShenfenCard = 6.1
+sgs.ai_use_priority.ShenfenCard = 9.3
 sgs.ai_card_intention.ShenfenCard = function(card, from, tos, source)
 	 sgs.shenfensource = nil
 end

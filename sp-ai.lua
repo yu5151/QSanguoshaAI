@@ -24,8 +24,8 @@ function sgs.ai_slash_prohibit.weidi(self, to, card)
 	end
 end
 --[[
-	¼¼ÄÜ£ºÓ¹ËÁ£¨ÆúÅÆ²¿·Ö£©
-	±¸×¢£ºÎªÁË½â¾ö³¡ÉÏÓĞ¹Å¶§µ¶Ê±Æú°×ÒøÊ¨×ÓµÄÎÊÌâ¶øÖØĞ´´ËÆúÅÆ·½°¸¡£
+	æŠ€èƒ½ï¼šåº¸è‚†ï¼ˆå¼ƒç‰Œéƒ¨åˆ†ï¼‰
+	å¤‡æ³¨ï¼šä¸ºäº†è§£å†³åœºä¸Šæœ‰å¤é”­åˆ€æ—¶å¼ƒç™½é“¶ç‹®å­çš„é—®é¢˜è€Œé‡å†™æ­¤å¼ƒç‰Œæ–¹æ¡ˆã€‚
 ]]--
 sgs.ai_skill_discard.yongsi = function(self, discard_num, min_num, optional, include_equip)
 	self:assignKeep(self.player:getHp(),true)
@@ -54,7 +54,7 @@ sgs.ai_skill_discard.yongsi = function(self, discard_num, min_num, optional, inc
 								return 6
 							end
 						else
-							break --ÒòÎªÖ»ÓĞÒ»°Ñ¹Å¶§µ¶£¬¼ì²âµ½ÓĞÈË×°±¸ÁË£¬ÆäËûÈË¾Í²»»áÔÙ×°±¸ÁË£¬´ËÊ±¿ÉÌø³ö¼ì²â¡£
+							break --å› ä¸ºåªæœ‰ä¸€æŠŠå¤é”­åˆ€ï¼Œæ£€æµ‹åˆ°æœ‰äººè£…å¤‡äº†ï¼Œå…¶ä»–äººå°±ä¸ä¼šå†è£…å¤‡äº†ï¼Œæ­¤æ—¶å¯è·³å‡ºæ£€æµ‹ã€‚
 						end
 					end
 				end

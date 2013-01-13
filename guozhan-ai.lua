@@ -81,15 +81,8 @@ sgs.ai_skill_playerchosen.gzshushen2 = function(self, targets)
 end
 
 sgs.ai_skill_invoke.gzshenzhi = function(self, data)
-    local cards= sgs.QList2Table(self.player:getHandcards())                               ---jjr
-	local peachnum = 0
-	for i = 1, #cards, 1 do		
-		if cards[i]:isKindOf("Peach") then
-			peachnum = peachnum+1
-		end
-	end
-	if peachnum > 0 then return false end
-	return self.player:getHandcardNum() >= self.player:getHp() and self.player:isWounded()
+	return self.player:getHandcardNum() >= self.player:getHp() and self.player:getHandcardNum() <= self.player:getHp() + math.max(3, self.player:getHp())
+			and self.player:getLostHp() > 0 and self:getCardsNum("Peach") == 0
 end
 
 sgs.ai_chaofeng.gzganfuren = 3

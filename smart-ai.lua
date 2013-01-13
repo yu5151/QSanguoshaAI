@@ -3146,12 +3146,18 @@ end
 function SmartAI:getRetrialCardId(cards, judge)
 	local can_use = {}
 	for _, card in ipairs(cards) do
-		if self:isFriend(judge.who) and judge:isGood(card) and not (self:getFinalRetrial() == 2 and card:isKindOf("Peach")) then
-			table.insert(can_use, card)
+		if self:isFriend(judge.who) then
+			if judge:isGood(card) and not (self:getFinalRetrial() == 2 and card:isKindOf("Peach")) then
+				table.insert(can_use, card)
+			elseif judge.who:hasSkill("hongyan") and card:getSuit() == 0 and judge.reason == "indulgence" then
+				table.insert(can_use, card)
+			end
 		elseif self:isEnemy(judge.who) and not judge:isGood(card) and not (self:getFinalRetrial() == 2 and card:isKindOf("Peach")) then
+			if judge.who:hasSkill("hongyan") and card:getSuit() == 0 or judge.reason == "indulgence" then return end
 			table.insert(can_use, card)
 		end
 	end
+
 
 	if next(can_use) then
 		self:sortByKeepValue(can_use)

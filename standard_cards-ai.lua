@@ -507,9 +507,9 @@ sgs.ai_use_priority.Slash = 2.4
 
 function SmartAI:useCardPeach(card, use)
     local mustusepeach = false
-    if not self.player:isWounded() then return end
+    if not self.player:isWounded() then self.player:speak("我才不会说我有桃不吃->1") return end
     if self.player:hasSkill("longhun") and not self.player:isLord() and
-        math.min(self.player:getMaxCards(), self.player:getHandcardNum()) + self.player:getCards("e"):length() > 3 then return end
+        math.min(self.player:getMaxCards(), self.player:getHandcardNum()) + self.player:getCards("e"):length() > 3 then self.player:speak("我才不会说我有桃不吃->2") return end
     local peaches = 0
     local cards = self.player:getHandcards()
     cards = sgs.QList2Table(cards)
@@ -517,7 +517,7 @@ function SmartAI:useCardPeach(card, use)
         if card:isKindOf("Peach") then peaches = peaches+1 end
     end
     if self.player:isLord() and (self.player:hasSkill("hunzi") and not self.player:hasSkill("yingzi")) 
-        and self.player:getHp() < 4 and self.player:getHp() > peaches then return end
+        and self.player:getHp() < 4 and self.player:getHp() > peaches then self.player:speak("我才不会说我有桃不吃->3") return end
     for _, enemy in ipairs(self.enemies) do
         if (self:hasSkills(sgs.drawpeach_skill,enemy) and self.player:getHandcardNum() < 3) then
             mustusepeach = true
@@ -525,54 +525,61 @@ function SmartAI:useCardPeach(card, use)
     end
 	
 	if self.player:hasSkill("rende") and #self.friends_noself>0 then
+		self.player:speak("我才不会说我有桃不吃->4")
 		return
 	end
 
 	if mustusepeach or (self.player:hasSkill("buqu") and self.player:getHp()<1) or peaches > self.player:getHp() then
 		use.card = card
+		self.player:speak("我要吃桃->1")
 		return 
 	end
 	
 	if self:getOverflow() <=0 and #self.friends_noself>0 then
+		self.player:speak("我才不会说我有桃不吃->5")
 		return
 	end
 	
 	if self.player:hasSkill("kuanggu") and not self.player:hasSkill("jueqing") and self.player:getLostHp()==1 and self.player:getOffensiveHorse() then
+		self.player:speak("我才不会说我有桃不吃->6")
 		return
 	end
 
-	if self.player:getHp() > getBestHp(self.player) then return end
+	if self.player:getHp() > getBestHp(self.player) then self.player:speak("我才不会说我有桃不吃->7") return end
     
 	local lord= self.room:getLord()
 	if self:isFriend(lord) and lord:getHp() <= 2 and not lord:hasSkill("buqu") then 
-		if self.player:isLord() then use.card = card end
+		if self.player:isLord() then use.card = card self.player:speak("我要吃桃->2") end
 		return 
 	end
 
 	self:sort(self.friends, "hp")
 	if self.friends[1]:objectName()==self.player:objectName() or self.player:getHp()<2 then
 		use.card = card
+		self.player:speak("我要吃桃->3")
 		return		
 	end
 
 	if #self.friends>1 and self.friends[2]:getHp()<3 and not self.friends[2]:hasSkill("buqu") and self:getOverflow() < 1 then
+		self.player:speak("我才不会说我有桃不吃->8")
 		return
 	end
 
     if self.player:hasSkill("jieyin") and self:getOverflow() > 0 then
         self:sort(self.friends, "hp")
         for _, friend in ipairs(self.friends) do
-            if friend:isWounded() and friend:isMale() then return end
+            if friend:isWounded() and friend:isMale() then self.player:speak("我才不会说我有桃不吃->9") return end
         end
     end
         
     if self.player:hasSkill("ganlu") and not self.player:hasUsed("GanluCard") then
         local dummy_use = {isDummy = true}
         self:useSkillCard(sgs.Card_Parse("@GanluCard=."),dummy_use)
-        if dummy_use.card then return end
+        if dummy_use.card then self.player:speak("我才不会说我有桃不吃->10") return end
     end
 
     use.card = card
+	self.player:speak("我要吃桃->4")
 end
 
 sgs.ai_card_intention.Peach = -120
@@ -895,7 +902,7 @@ sgs.ai_skill_cardask.aoe = function(self, data, pattern, target, name)
 	if menghuo and aoe:isKindOf("SavageAssault") then attacker = menghuo end
 	if self:getDamagedEffects(self.player,attacker) or self.player:getHp()>getBestHp(self.player) then return "." end
 
-    if target:hasSkill("wuyan") and not (menghuo and aoe:isKindOf("SavageAssault")) then return "." end
+    if target and target:hasSkill("wuyan") and not (menghuo and aoe:isKindOf("SavageAssault")) then return "." end
 
     if self.player:hasSkill("jianxiong") and self:getAoeValue(aoe) > -10 and
         (self.player:getHp()>1 or self:getAllPeachNum()>0) and not self.player:containsTrick("indulgence") then return "." end

@@ -3148,19 +3148,20 @@ end
 function SmartAI:getRetrialCardId(cards, judge)
 	local can_use = {}
 	for _, card in ipairs(cards) do
-		if self:isFriend(judge.who) then
-			if judge:isGood(card) and not (self:getFinalRetrial() == 2 and card:isKindOf("Peach")) then
+		if self:isFriend(judge.who) and not (self.player:hasSkill("hongyan") and not judge.who:hasSkill("hongyan") and card:getSuit() == sgs.Card_Heart and card:isModified() and judge.reason == "indulgence") then 
+			if judge:isGood(card) and not (self:getFinalRetrial() == 2 and card:isKindOf("Peach")) then				
 				table.insert(can_use, card)
-			elseif judge.who:hasSkill("hongyan") and card:getSuit() == 0 and judge.reason == "indulgence" then
+			elseif judge.who:hasSkill("hongyan") and card:getRealCard():getSuit() == sgs.Card_Spade and judge.reason == "indulgence" then
 				table.insert(can_use, card)
 			end
-		elseif self:isEnemy(judge.who) and not judge:isGood(card) and not (self:getFinalRetrial() == 2 and card:isKindOf("Peach")) then
-			if judge.who:hasSkill("hongyan") and card:getSuit() == 0 or judge.reason == "indulgence" then return end
+		elseif self:isEnemy(judge.who) and (not judge.who:hasSkill("hongyan") or card:getRealCard():getSuit() ~= sgs.Card_Spade or judge.reason ~= "indulgence") then
+			if not judge:isGood(card) and not (self:getFinalRetrial() == 2 and card:isKindOf("Peach")) then
 			table.insert(can_use, card)
+			elseif self.player:hasSkill("hongyan") and not judge.who:hasSkill("hongyan") and card:getSuit() == sgs.Card_Heart and card:isModified() and judge.reason == "indulgence" then
+				table.insert(can_use, card)
+			end
 		end
 	end
-
-
 	if next(can_use) then
 		self:sortByKeepValue(can_use)
 		return can_use[1]:getEffectiveId()

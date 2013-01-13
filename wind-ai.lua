@@ -376,8 +376,8 @@ end
 
 sgs.xiaoqiao_suit_value = 
 {
-	spade = 6,
-	heart = 6
+	spade = 4.9,
+	heart = 4.9
 }
 
 table.insert(sgs.ai_global_flags, "questioner")

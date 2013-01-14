@@ -1722,7 +1722,9 @@ function SmartAI:filterEvent(event, player, data)
 				intention = -30
 			end
 			
-			if from then sgs.updateIntention(from, to, intention) end
+			if damage.transfer or damage.chain then intention = 0 end
+			
+			if from and intention~=0 then sgs.updateIntention(from, to, intention) end
 		end
 	elseif event == sgs.CardUsed then
 		local struct = data:toCardUse()

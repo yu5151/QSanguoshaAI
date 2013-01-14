@@ -721,7 +721,7 @@ sgs.ai_skill_cardask["blade-slash"] = function(self, data, pattern, target)
         return "."
     end
     for _, slash in ipairs(self:getCards("Slash")) do
-        if self:slashIsEffective(slash, target) then 
+        if self:slashIsEffective(slash, target) and (self:isWeak(target) or self:getOverflow()>0) then
             return slash:toString()
         end 
     end

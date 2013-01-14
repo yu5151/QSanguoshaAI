@@ -2432,6 +2432,12 @@ function sgs.ai_cardneed.equip(to, card, self)
 	end
 end
 
+function sgs.ai_cardneed.weapon(to, card, self)
+	if not to:containsTrick("indulgence") then
+		return card:isKindOf("Weapon")
+	end
+end
+
 
 function SmartAI:getEnemyNumBySeat(from, to)
 	local players = sgs.QList2Table(global_room:getAlivePlayers())

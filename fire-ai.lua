@@ -187,6 +187,8 @@ sgs.ai_card_intention.QiangxiCard = 80
 
 sgs.dynamic_value.damage_card.QiangxiCard = true
 
+sgs.ai_cardneed.qiangxi = sgs.ai_cardneed.weapon
+
 sgs.ai_chaofeng.dianwei = 2
 
 local huoji_skill={}

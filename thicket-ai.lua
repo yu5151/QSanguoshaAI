@@ -184,6 +184,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 			   not (enemy:getCards("he"):length() < x or sgs.getDefense(enemy) < 3)) then
 				self.yinghun = enemy
 				self.yinghunchoice = "d1tx"
+				self.player:setFlags("yinghun_to_enemy")
 				break
 			end
 		end
@@ -194,6 +195,12 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 	else
 		return "."
 	end
+end
+
+function sgs.ai_card_intention.YinghunCard(card, from, tos, source)
+	local intention = -80
+	if from:hasFlag("yinghun_to_enemy") then intention = -intention end
+	sgs.updateIntention(from, tos[1], intention)
 end
 
 local function getLowerBoundOfHandcard(self)

@@ -81,7 +81,8 @@ sgs.ai_skill_playerchosen.gzshushen2 = function(self, targets)
 end
 
 sgs.ai_skill_invoke.gzshenzhi = function(self, data)
-	return self.player:getHandcardNum() > self.player:getLostHp() and self.player:isWounded()
+	return self.player:getHandcardNum() >= self.player:getHp() and self.player:getHandcardNum() <= self.player:getHp() + math.max(3, self.player:getHp())
+			and self.player:getLostHp() > 0 and self:getCardsNum("Peach") == 0
 end
 
 sgs.ai_chaofeng.gzganfuren = 3

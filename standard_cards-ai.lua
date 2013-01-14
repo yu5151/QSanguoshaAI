@@ -963,15 +963,11 @@ end
 sgs.ai_use_priority.GodSalvation = 3.9
 sgs.dynamic_value.benefit.GodSalvation = true
 
-local function factorial(n)
-    if n <= 0.1 then return 1 end
-    return n*factorial(n-1)
-end
 
 function SmartAI:useCardDuel(duel, use)
     if self.player:hasSkill("wuyan") then return end
     if self.player:hasSkill("noswuyan") then return end
-    self:sort(self.enemies,"defenseSlash")
+    self:sort(self.enemies,"hp")
     local enemies = self:exclude(self.enemies, duel)
     local friends = self:exclude(self.friends_noself, duel)
     local n1 = self:getCardsNum("Slash")
@@ -992,7 +988,11 @@ function SmartAI:useCardDuel(duel, use)
     end
 	
     for _, enemy in ipairs(enemies) do
-        if self:objectiveLevel(enemy) > 3 and canUseDuelTo(enemy) and not self:cantbeHurt(enemy) and n1>=getCardsNum("Slash",enemy) and sgs.isGoodTarget(enemy,enemies) then
+		local useduel 
+		local n2 =getCardsNum("Slash",enemy)
+		useduel = n1>=n2 or self.player:getHp()>getBestHp(self.player) or self:getDamagedEffects(self.player,enemy) or (n2<1 and sgs.isGoodHp(self.player))
+		useduel = useduel and not enemy:getHp()>getBestHp(enemy) and not self:getDamagedEffects(enemy,self.player)
+        if self:objectiveLevel(enemy) > 3 and canUseDuelTo(enemy) and not self:cantbeHurt(enemy) and useduel and sgs.isGoodTarget(enemy,enemies) then
             use.card = duel
             if use.to then
                 use.to:append(enemy)

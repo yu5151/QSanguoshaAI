@@ -3398,13 +3398,14 @@ function getCardsNum(class_name, player)
 	local diamondcard = 0
 	local clubcard = 0
 	local slashjink = 0
+	local current=global_room:getCurrent()
 
 	if not player then
 		return #getCards(class_name, player)
 	else		
 		for _, card in ipairs(cards) do
-			local flag=string.format("%s_%s_%s","visible",global_room:getCurrent():objectName(),player:objectName())
-			if card:hasFlag("visible") or card:hasFlag(flag) then
+			local flag=string.format("%s_%s_%s","visible",current:objectName(),player:objectName())
+			if card:hasFlag("visible") or card:hasFlag(flag) or current:objectName()==player:objectName() then
 				shownum = shownum + 1
 				if card:isKindOf(class_name) then
 					num = num + 1

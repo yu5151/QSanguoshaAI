@@ -952,6 +952,8 @@ sgs.ai_skill_use_func.KurouCard=function(card,use,self)
     use.card=card
 end
 
+sgs.ai_use_priority.KurouCard = 6.8
+
 sgs.ai_chaofeng.huanggai = 3
 
 local fanjian_skill={}

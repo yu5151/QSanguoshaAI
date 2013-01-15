@@ -313,8 +313,19 @@ sgs.ai_skill_choice.fuzuo = function(self , choices)
 	end
 	return "cancel"
 end
---sgs.ai_skill_cardask["@fuzuo_card"] = function(self, data, pattern, target)
---end
+sgs.ai_skill_cardask["@fuzuo_card"] = function(self, data, pattern, target)
+	local handcards = self.player:getHandcards()
+	local cards = {}
+	for _,card in sgs.qlist(handcards) do
+		local point = card:getNumber()
+		if point > 1 and point < 8 then
+			table.insert(cards, card)
+		end
+	end
+	self:sortByKeepValue(cards)
+	local fzcard = cards[1]
+	return fzcard:getEffectiveId()
+end
 --[[
 	技能：尽瘁
 	描述：当你死亡时，可令一名角色摸取或者弃置三张牌 

@@ -514,7 +514,7 @@ function SmartAI:useCardYanxiaoCard(card, use)
 	end
 end
 
-sgs.ai_use_priority.YanxiaoCard = 3.9
+sgs.ai_use_priority.YanxiaoCard = 0.1
 sgs.ai_card_intention.YanxiaoCard = -80
 
 local yanxiao_skill={}
@@ -817,3 +817,6 @@ sgs.ai_skill_playerchosen.xuehen = function(self, targets)
 		end 
 	end
 end
+
+sgs.ai_suit_priority.jie= "club|spade|diamond|heart"
+sgs.ai_suit_priority.yanxiao= "club|spade|heart|diamond"

@@ -439,3 +439,6 @@ sgs.dongzhuo_suit_value =
 {
 	spade = 5,
 }
+
+sgs.ai_suit_priority.jiuchi= "diamond|heart|club|spade"
+sgs.ai_suit_priority.duanliang= "club|spade|diamond|heart"

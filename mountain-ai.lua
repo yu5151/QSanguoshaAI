@@ -336,6 +336,8 @@ sgs.ai_skill_use_func.JixiCard = function(card, use, self)
 	use.card = sgs.Card_Parse("@JixiCard=.")
 end
 
+sgs.ai_use_priority.JixiCard = 9.7
+
 sgs.ai_skill_askforag.jixi = function(self, card_ids)
 	self.jixi=card_ids[math.random(1,#card_ids)]
 	return self.jixi
@@ -760,4 +762,8 @@ function sgs.ai_skill_choice.huashen(self, choices)
 	if #choices > 0 then
 		return choices[math.random(1,#choices)]
 	end
+end
+
+sgs.ai_suit_priority.jiang=function(self,card) 
+	return (card:isKindOf("Slash") or card:isKindOf("Duel")) and "diamond|heart|club|spade" or "club|spade|diamond|heart"
 end

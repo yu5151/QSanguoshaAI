@@ -517,3 +517,8 @@ sgs.yuji_suit_value =
 {
 	heart = 5
 }
+
+
+sgs.ai_suit_priority.guidao= "diamond|heart|club|spade"
+sgs.ai_suit_priority.hongyan= "club|diamond|spade|heart"
+sgs.ai_suit_priority.guhuo= "club|spade|diamond|heart"

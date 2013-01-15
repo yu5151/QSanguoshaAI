@@ -405,6 +405,8 @@ sgs.ai_skill_cardask["@bifa-give"] = function(self, data)
 	return "."
 end
 
+sgs.ai_card_intention.BifaCard = 80
+
 local songci_skill={}
 songci_skill.name="songci"
 table.insert(sgs.ai_skills, songci_skill)

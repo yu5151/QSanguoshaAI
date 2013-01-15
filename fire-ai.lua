@@ -498,3 +498,7 @@ sgs.ai_skill_invoke.mengjin = function(self, data)
 	local effect = data:toSlashEffect()
 	return not self:isFriend(effect.to)
 end
+
+sgs.ai_suit_priority.lianhuan= "club|diamond|heart|spade"
+sgs.ai_suit_priority.huoji= "club|spade|diamond|heart"
+sgs.ai_suit_priority.kanpo= "diamond|heart|club|spade"

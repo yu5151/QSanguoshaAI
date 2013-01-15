@@ -63,6 +63,7 @@ sgs.ai_skill_choice.jujian = function(self, choices)
 end
 
 sgs.ai_card_intention.JujianCard = -100
+sgs.ai_use_priority.JujianCard = 4.5
 
 sgs.xushu_keep_value = 
 {
@@ -274,7 +275,7 @@ sgs.ai_skill_use["@@xuanfeng"] = function(self, prompt)
 	self:sort(self.enemies, "defenseSlash")
 	
 	local first_index, second_index
-	for i=1, #self.enemies-1 do
+	for i=1, #self.enemies do
 		if not self.enemies[i]:isNude() then
 			if not first_index then
 				first_index = i

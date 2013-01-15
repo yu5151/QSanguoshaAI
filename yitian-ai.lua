@@ -6,12 +6,12 @@ local function findPlayerForModifyKingdom(self, players)
 
 	for _, player in sgs.qlist(players) do
 		if not player:isLord() or player:hasLordSkill("weidai") then
-			if  sgs.evaluateRoleTrends(player) == "loyalist" then
+			if  sgs.evaluateRoleTrends(player) == "loyalist" and not self:hasSkills("huashen|liqian",player) then
 				local sameKingdom = player:getKingdom() == lord:getKingdom() 
 				if isGood ~= sameKingdom then
 					return player
 				end
-			elseif lord:hasLordSkill("xueyi") and not player:isLord() then
+			elseif lord:hasLordSkill("xueyi") and not player:isLord() and not self:hasSkills("huashen|liqian",player) then
 				local isQun = player:getKingdom() == "qun"
 				if isGood ~= isQun then
 					return player
@@ -29,7 +29,7 @@ local function chooseKingdomForPlayer(self, to_modify)
 			return lord:getKingdom()
 		else
 			-- find a kingdom that is different from the lord
-			local kingdoms = {"wei", "shu", "wu", "qun"}
+			local kingdoms = {"qun","wei", "shu", "wu"}
 			for _, kingdom in ipairs(kingdoms) do
 				if lord:getKingdom() ~= kingdom then
 					return kingdom
@@ -42,7 +42,7 @@ local function chooseKingdomForPlayer(self, to_modify)
 		return "qun"
 	end
 
-	return "wei"
+	return "qun"
 end
 
 sgs.ai_skill_choice.weiwudi_guixin = function(self, choices)
@@ -144,32 +144,72 @@ end
 
 sgs.ai_skill_invoke.jueji = true
 
-sgs.ai_skill_use["@@jueji"]=function(self,prompt)
-	local target
-	local handcard
-	if not self.enemies then return end
-	for _, enemy in ipairs(self.enemies) do
-		if not target or (enemy:getHandcardNum()<handcard and enemy:getHandcardNum()>0 and not (enemy:getHandcardNum()==1 and self:hasSkills(sgs.need_kongcheng,enemy))) then
-			target=enemy
-			handcard=enemy:getHandcardNum()
+local jueji_skill={}
+jueji_skill.name="jueji"
+table.insert(sgs.ai_skills,jueji_skill)
+jueji_skill.getTurnUseCard=function(self)
+	if not self.player:hasUsed("JuejiCard") and not self.player:isKongcheng() then return sgs.Card_Parse("@JuejiCard=.") end
+end
+
+sgs.ai_skill_use_func.JuejiCard=function(card,use,self)
+	local zhugeliang = self.room:findPlayerBySkillName("kongcheng")
+	if zhugeliang and self:isFriend(zhugeliang) and zhugeliang:getHandcardNum() == 1 and zhugeliang:objectName()~=self.player:objectName() then
+		local cards = sgs.QList2Table(self.player:getHandcards())
+		self:sortByUseValue(cards,true)
+		use.card = sgs.Card_Parse("@JuejiCard=" .. cards[1]:getId())
+		if use.to then use.to:append(zhugeliang) end
+		return
+	end
+	
+	self:sort(self.enemies, "handcard")
+	local max_card = self:getMaxCard()
+	local max_point = max_card:getNumber()
+	
+	if self:hasSkills(sgs.need_kongcheng, self.player) and self.player:getHandcardNum()==1 then
+		for _, enemy in ipairs(self.enemies) do
+			if not enemy:isKongcheng() then
+				use.card = sgs.Card_Parse("@JuejiCard=" .. max_card:getId())
+				if use.to then use.to:append(enemy) end
+				return
+			end
 		end
 	end
-	if not target or handcard==0 or self.player:getHandcardNum()==0 then return "." end
-	local max_point=self:getMaxCard():getNumber()
-	local poss=((max_point-1)/13)^handcard
-	if math.random()>poss then return "." end
-	local cards=self.player:getHandcards()
-	cards = sgs.QList2Table(cards)
-	local top_value=0
-	for _, hcard in ipairs(cards) do
-		if not hcard:isKindOf("Jink") then
-			if self:getUseValue(hcard) > top_value then	top_value = self:getUseValue(hcard) end
+	if  #self.enemies > 1 then
+		
+		for _, enemy in ipairs(self.enemies) do
+			if not (self:hasSkills(sgs.need_kongcheng, enemy) and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and not enemy:hasSkill("tuntian") then
+				local enemy_max_card = self:getMaxCard(enemy)
+				local allknown = 0
+				if self:getKnownNum(enemy) == enemy:getHandcardNum() then
+					allknown = allknown + 1
+				end
+				if (enemy_max_card and max_point > enemy_max_card:getNumber() and allknown > 0)
+					or (enemy_max_card and max_point > enemy_max_card:getNumber() and allknown < 1 and max_point > 10) 
+					or (not enemy_max_card and max_point > 10) then
+					use.card = sgs.Card_Parse("@JuejiCard=" .. max_card:getId())
+					if use.to then use.to:append(enemy) end
+					return
+				end
+			end
 		end
 	end
-	if top_value >= 4.7 then return "." else return "@JuejiCard=" .. self:getMaxCard():getEffectiveId() .. "->" .. target:objectName() end
+	local cards = sgs.QList2Table(self.player:getHandcards())
+	self:sortByUseValue(cards, true)
+	if (self:getUseValue(cards[1]) >= 6 or self:getKeepValue(cards[1]) >= 6) and not (self.player:getHandcardNum() > self.player:getHp()) then return end
+
+		for _, enemy in ipairs(self.enemies) do
+			if not (self:hasSkills(sgs.need_kongcheng, enemy) and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and not enemy:hasSkill("tuntian") then
+				use.card = sgs.Card_Parse("@JuejiCard=" .. cards[1]:getId())
+				if use.to then use.to:append(enemy) end
+				return
+			end
+		end	
 end
 
 sgs.ai_card_intention.JuejiCard = 30
+sgs.ai_use_priority.JuejiCard=2.35
+sgs.ai_cardneed.jueji = sgs.ai_cardneed.bignumber
+sgs.dynamic_value.control_card.JuejiCard = true
 
 function sgs.ai_skill_pindian.jueji(minusecard, self, requestor, maxcard)
 	if self:isFriend(requestor) then return end
@@ -394,7 +434,14 @@ sgs.ai_use_priority.GuihanCard = 8
 
 sgs.ai_skill_invoke.caizhaoji_hujia = function(self, data)
 	local zhangjiao = self.room:findPlayerBySkillName("guidao")
-	if zhangjiao and self:isEnemy(zhangjiao) and zhangjiao:getCards("he"):length()>2 then return false end
+	if zhangjiao and self:isEnemy(zhangjiao) then 
+	        if not zhangjiao:getCards("e"):isEmpty() then
+		   for _, card in sgs.qlist(zhangjiao:getCards("e")) do
+			if card:isBlack() then return false end
+		   end
+	        end
+	    return zhangjiao:getHandcardNum() <= 2
+	end
 	return true
 end
 
@@ -430,7 +477,7 @@ function sgs.ai_skill_invoke.shaoying(self, data)
 			if card:isBlack() then return false end
 		end
 	end
-	return zhangjiao:getHandcardNum() <= 1
+	return zhangjiao:getHandcardNum() <= 2
 end
 
 sgs.ai_skill_playerchosen.shaoying = function(self, targets)
@@ -584,7 +631,7 @@ sgs.ai_skill_use_func.YisheCard=function(card,use,self)
 		local cards=self.player:getHandcards()
 		cards=sgs.QList2Table(cards)
 		local usecards={}
-		local discards = self:askForDiscard("gamerule", math.min(self:getOverflow(),5-#usecards))
+		local discards = self:askForDiscard("yishe", math.min(self:getOverflow(),5-#usecards), math.min(self:getOverflow(),5-#usecards))
 		for _,card in ipairs(discards) do
 			table.insert(usecards,card)
 		end
@@ -634,6 +681,9 @@ sgs.ai_skill_use_func.YisheAskCard=function(card,use,self)
 		return
 	end
 end
+
+sgs.ai_chaofeng.zhanggongqi = 4
+sgs.ai_use_priority.YisheAskCard = 9.1
 
 sgs.ai_skill_invoke.zhenwei = true
 
@@ -721,4 +771,4 @@ sgs.ai_skill_use_func.TaichenCard=function(card,use,self)
 	end
 end
 
-sgs.ai_cardneed.taichen = sgs.ai_cardneed.equip
+sgs.ai_cardneed.taichen = sgs.ai_cardneed.weapon

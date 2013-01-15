@@ -1495,6 +1495,7 @@ function SmartAI:updateAlivePlayerRoles()
 	end
 	for _, aplayer in sgs.qlist(self.room:getOtherPlayers(self.room:getLord())) do
 		--[[小场景报错：attempt to perform arithmetic on field '?' (a nil value)]]--
+		-- 好像是因为1号位不是主公
 		sgs.current_mode_players[aplayer:getRole()] = sgs.current_mode_players[aplayer:getRole()] + 1
 	end
 	
@@ -1720,6 +1721,13 @@ function SmartAI:filterEvent(event, player, data)
 			(getCardsNum("Jink", to)>0 or (to:getArmor() and to:getArmor():objectName() == "EightDiagram"))
 			and (to:getHandcardNum()>2 or from:getState() == "robot") then
 			sgs.ai_leiji_effect = true
+		end
+		if card:isKindOf("SongciCard") and from and to then
+			if to:getHandcardNum() > to:getHp() then
+				sgs.updateIntention(from, to, 100)
+			elseif to:getHandcardNum() < to:getHp() then
+				sgs.updateIntention(from, to, -100)
+			end
 		end
 	elseif event == sgs.Damaged then
 		local damage = data:toDamage()
@@ -2453,6 +2461,12 @@ end
 function sgs.ai_cardneed.equip(to, card, self)
 	if not to:containsTrick("indulgence") then
 		return card:getTypeId() == sgs.Card_Equip
+	end
+end
+
+function sgs.ai_cardneed.weapon(to, card, self)
+	if not to:containsTrick("indulgence") then
+		return card:isKindOf("Weapon")
 	end
 end
 

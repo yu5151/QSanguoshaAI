@@ -26,6 +26,7 @@ sgs.role_evaluation = 		{}
 sgs.ai_keep_value = 		{}
 sgs.ai_use_value = 			{}
 sgs.ai_use_priority = 		{}
+sgs.ai_suit_priority = 		{}
 sgs.ai_chaofeng = 			{}
 sgs.ai_global_flags = 		{}
 sgs.ai_skill_invoke = 		{}
@@ -322,7 +323,7 @@ function SmartAI:getUseValue(card)
 	if card:getClassName() == "LuaSkillCard" and card:isKindOf("LuaSkillCard") then
 		v = sgs.ai_use_value[card:objectName()] or 0
 	end
-	
+	if self.player:getPhase()==sgs.Player_Play then v = self:adjustUsePriority(card, v) end
 	return v
 end
 
@@ -330,7 +331,7 @@ function SmartAI:getUsePriority(card)
 	local class_name = card:getClassName()
 	local v = 0
 	if card:isKindOf("EquipCard") then
-		if self:hasSkills(sgs.lose_equip_skill) then return 10 end
+		if self:hasSkills(sgs.lose_equip_skill) then return 15 end
 		if card:isKindOf("Armor") and not self.player:getArmor() then v = 6
 		elseif card:isKindOf("Weapon") and not self.player:getWeapon() then v = 5.7
 		elseif card:isKindOf("DefensiveHorse") and not self.player:getDefensiveHorse() then v = 5.8
@@ -339,40 +340,40 @@ function SmartAI:getUsePriority(card)
 		return v
 	end
 
-	if self.player:hasSkill("wuyan") then
-		if card:isKindOf("Slash") then
-			v = 4
-
-		elseif card:isKindOf("Duel") or card:isKindOf("FireAttack") or card:isKindOf("ArcheryAttack") or card:isKindOf("SavageAssault") then v = 0
-		end
-		if v then return v else return sgs.ai_use_priority[class_name] end
-	end
-	if self.player:hasSkill("noswuyan") then
-		if card:isKindOf("Slash") then
-			v = 4
-
-		elseif card:isKindOf("Collateral") or card:isKindOf("Dismantlement") or card:isKindOf("Snatch") or card:isKindOf("IronChain") then v = 0
-		end
-		if v then return v else return sgs.ai_use_priority[class_name] end
-	end
-	if self.player:hasSkill("qingnang") then
-		if card:isKindOf("Dismantlement") then v = 3.8
-		elseif card:isKindOf("Collateral") then v = 3.9
-		end
-		if v then return v else return sgs.ai_use_priority[class_name] end
-	end
-	if self.player:hasSkill("rende") then
-		if card:isKindOf("ExNihilo") then v = 8.9 end
-		return v or sgs.ai_use_priority[class_name]
-	end
-
 	v = sgs.ai_use_priority[class_name] or 0
+
+	if not self:hasTrickEffective(card) then v = 0 end
 	
 	if card:getClassName() == "LuaSkillCard" and card:isKindOf("LuaSkillCard") then
 		v = sgs.ai_use_priority[card:objectName()] or 0
 	end
 
 	if card:isKindOf("Slash") and (card:getSuit() == sgs.Card_NoSuit) then v = v-0.1 end
+	return self:adjustUsePriority(card, v)	
+end
+
+function SmartAI:adjustUsePriority(card,v)
+	local suits={"club","spade","diamond","heart"}
+	for _, askill in sgs.qlist(self.player:getVisibleSkillList()) do
+		local callback = sgs.ai_suit_priority[askill:objectName()]
+		if type(callback) == "function" then
+			suits =callback(self,card):split("|")
+			break
+		elseif type(callback) == "string" then
+			suits = callback:split("|")
+			break
+		end
+	end
+	
+	table.insert(suits,"no_suit")
+	if card:isKindOf("Slash") then	v = (card:isKindOf("ThunderSlash") or card:isKindOf("FireSlash")) and 2.5 or 2.6 end	
+
+	local suits_value={}
+	for index,suit in ipairs(suits) do
+		suits_value[suit] = 10 - index*2 
+	end
+	v = v + suits_value[card:getSuitString()] / 100
+	v = v + (13 - card:getNumber()) / 1000
 	return v
 end
 
@@ -392,6 +393,7 @@ function SmartAI:getDynamicUsePriority(card)
 		self:useSkillCard(card, dummy_use)
 	end
 
+	--[[
 	local good_null, bad_null = 0, 0
 	for _, friend in ipairs(self.friends) do
 		good_null = good_null + getCardsNum("Nullification", friend)
@@ -512,6 +514,26 @@ function SmartAI:getDynamicUsePriority(card)
 		if use_card:isKindOf("ShenfenCard") then  value = 10 end
 		if use_card:isKindOf("FireAttack") then value = 6 end
 
+	end
+	]]
+
+	local value = self:getUsePriority(card)
+	if dummy_use.card then
+		local use_card = dummy_use.card
+		local card_name = use_card:getClassName()
+
+		if use_card:getSkillName() == "wusheng" and
+			sgs.Sanguosha:getCard(use_card:getEffectiveId()):isKindOf("GaleShell") and
+			self:isEquip("GaleShell") then
+			value = value + 10
+		end
+
+		if use_card:isKindOf("AmazingGrace") then
+			local zhugeliang = self.room:findPlayerBySkillName("kongcheng")
+			if zhugeliang and self:isEnemy(zhugeliang) and zhugeliang:isKongcheng() and self.player:canSlash(zhugeliang, nil, true) then
+				value = sgs.ai_use_priority.NatureSlash + 0.1
+			end
+		end		
 	end
 
 	return value
@@ -2961,8 +2983,9 @@ function SmartAI:getTurnUse()
 	for _,card in ipairs(cards) do
 		local dummy_use = {}
 		dummy_use.isDummy = true
+		--[[
 		local hp = self.player:getHp() 
-		if self.player:hasSkill("benghuai") and hp>4 then hp = 4 end
+		if self.player:hasSkill("benghuai") and hp>4 then hp = 4 end		
 		if not self:hasSkills(sgs.need_kongcheng) then
 			if (i >= (self.player:getHandcardNum()-hp+self.retain)) and (self:getUseValue(card) < self.retain_thresh) then
 				return turnUse
@@ -2972,6 +2995,7 @@ function SmartAI:getTurnUse()
 				return turnUse
 			end
 		end
+		]]
 
 		local type = card:getTypeId()
 		self["use" .. sgs.ai_type_name[type + 1] .. "Card"](self, card, dummy_use)
@@ -2991,14 +3015,16 @@ function SmartAI:getTurnUse()
 				end
 				if card:isKindOf("OffensiveHorse") then self.predictNewHorse = true end
 				if card:objectName() == "Crossbow" then slashAvail = 100 end
+				--[[
 				if card:isKindOf("Snatch") then i = i-1 end
 				if card:isKindOf("Peach") then i = i+2 end
 				if card:isKindOf("Collateral") then i = i-1 end
 				if card:isKindOf("AmazingGrace") then i = i-1 end
 				if card:isKindOf("ExNihilo") then i = i-2 end
+				]]
 				table.insert(turnUse,card)
 			end
-			i = i+1
+			--i = i+1
 		end
 	end
 
@@ -3015,6 +3041,8 @@ function SmartAI:activate(use)
 	local msg="优先级:"
 	for _, card in ipairs(cards) do
 		local item= card:getTypeId() == sgs.Card_Skill and card:getClassName() or card:getLogName()
+		local priority = self:getDynamicUsePriority(card)
+		item = item .. "("..priority..")"
 		msg = msg .. item ..", "
 	end
 	self.player:speak(msg)

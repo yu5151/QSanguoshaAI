@@ -583,6 +583,7 @@ sgs.ai_choicemade_filter.cardResponsed["@jijiang-slash"] = function(player, prom
 end
 
 sgs.ai_skill_cardask["@jijiang-slash"] = function(self)
+	if not sgs.jijiangsource then sgs.jijiangsource = self.room:getLord() end
     if not self:isFriend(sgs.jijiangsource) then return "." end
     if self:needBear() then return "." end
     if not sgs.jijiangtarget or (sgs.jijiangtarget and #sgs.jijiangtarget==0) then
@@ -1297,7 +1298,7 @@ sgs.ai_skill_use_func.QingnangCard=function(card,use,self)
 	end    
 end
 
-sgs.ai_use_priority.QingnangCard = 4.2
+sgs.ai_use_priority.QingnangCard = 2.2
 sgs.ai_card_intention.QingnangCard = -100
 
 sgs.dynamic_value.benefit.QingnangCard = true
@@ -1483,4 +1484,10 @@ end
 sgs.dynamic_value.damage_card.LijianCard = true
 
 sgs.ai_chaofeng.diaochan = 4
+
+sgs.ai_suit_priority.jijiu= "club|spade|diamond|heart"
+sgs.ai_suit_priority.guose= "club|spade|heart|diamond"
+sgs.ai_suit_priority.qixi= "diamond|heart|club|spade"
+sgs.ai_suit_priority.qingguo= "diamond|heart|club|spade"
+sgs.ai_suit_priority.wusheng= "club|spade|diamond|heart"
 

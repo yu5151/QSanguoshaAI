@@ -63,6 +63,7 @@ sgs.ai_skill_choice.jujian = function(self, choices)
 end
 
 sgs.ai_card_intention.JujianCard = -100
+sgs.ai_use_priority.JujianCard = 4.5
 
 sgs.xushu_keep_value = 
 {

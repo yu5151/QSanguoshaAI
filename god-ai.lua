@@ -877,3 +877,5 @@ sgs.ai_skill_use["@zhiheng"]=function(self,prompt)
 	if dummy_use.card then return (dummy_use.card):toString() .. "->." end
 	return "."
 end
+
+sgs.ai_suit_priority.wushen= "club|spade|diamond|heart"

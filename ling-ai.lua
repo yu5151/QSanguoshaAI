@@ -191,3 +191,5 @@ sgs.ai_skill_discard.neoganglie = function(self, discard_num, min_num, optional,
 	end	
 	return to_discard
 end
+
+sgs.ai_suit_priority.yishi= "club|spade|diamond|heart"

@@ -761,3 +761,7 @@ function sgs.ai_skill_choice.huashen(self, choices)
 		return choices[math.random(1,#choices)]
 	end
 end
+
+sgs.ai_suit_priority.jiang=function(self,card) 
+	return (card:isKindOf("Slash") or card:isKindOf("Duel")) and "diamond|heart|club|spade" or "club|spade|diamond|heart"
+end

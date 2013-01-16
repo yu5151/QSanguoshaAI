@@ -357,7 +357,7 @@ end
 		target：伤害目标
 		source：伤害来源
 		count：伤害点数
-	返回值：table类型，包含6个项目：
+	返回值：table类型，包含8个项目：
 		第一项：对target一方带来的翻面人数
 		第二项：对target一方带来的等价翻回人数
 		第三项：伤害后target一方正面向上的人数

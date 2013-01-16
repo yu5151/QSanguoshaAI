@@ -493,7 +493,7 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
             if self:isEquip("Axe", target) then
                 if self:hasSkills(sgs.lose_equip_skill, target) and target:getEquips():length() > 1 then return "." end
                 if target:getHandcardNum() - target:getHp() > 2 then return "." end
-            elseif self:isEquip("Blade", target) then
+            elseif self:isEquip("Blade", target) and not effect.slash:hasFlag("drank") and not ( effect.slash:isKindOf("FireSlash") and ( self:isEquip("Vine", self.player) or self.player:getMark("@gale") > 0 ) ) then
                 if self:getCardsNum("Jink") <= getCardsNum("Slash", target) then return "." end
             end
         end

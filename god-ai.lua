@@ -565,7 +565,7 @@ wuqian_skill.getTurnUseCard=function(self)
 	self:sort(self.enemies, "hp")
 	local has_enemy
 	for _, enemy in ipairs(self.enemies) do
-		if enemy:getHp() <= 2 and getCardsNum("Jink", enemy) < 2 and self.player:distanceTo(enemy) <= self.player:getAttackRange() then 
+		if enemy:getHp() <= 2 and getCardsNum("Jink", enemy) < 2 and enemy:getHandcardNum() > 0 and self.player:distanceTo(enemy) <= self.player:getAttackRange() then 
 			has_enemy = enemy break end
 	end
 

@@ -1,3 +1,4 @@
+--ÀÖ½ø
 sgs.ai_skill_invoke.gzxiaoguo = function(self, data)
     local tar
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
@@ -10,10 +11,8 @@ sgs.ai_skill_invoke.gzxiaoguo = function(self, data)
 	if tar and self:isEnemy(tar) and x>0 and not (self.player:getHandcardNum() == 1 and 
 	    x ==1 ) then
 	    return true
-	end
-	
+	end	
 	return false
-
 end
 
 sgs.ai_skill_cardask["@gzxiaoguo"]=function(self, data)
@@ -51,6 +50,9 @@ sgs.ai_skill_cardask["@gzxiaoguoresponse"]=function(self, data)
 	return "."
 end
 
+sgs.ai_skillInvoke_intention.gzxiaoguo = 80
+
+--¸Ê·òÈË
 sgs.ai_skill_invoke.gzshushen = function(self, data)
     for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 	    if self:isFriend(player) then
@@ -80,6 +82,8 @@ sgs.ai_skill_playerchosen.gzshushen2 = function(self, targets)
 	return target
 end
 
+sgs.ai_playerchosen_intention.gzshushen = -60
+
 sgs.ai_skill_invoke.gzshenzhi = function(self, data)
 	return self.player:getHandcardNum() >= self.player:getHp() and self.player:getHandcardNum() <= self.player:getHp() + math.max(3, self.player:getHp())
 			and self.player:getLostHp() > 0 and self:getCardsNum("Peach") == 0
@@ -87,15 +91,16 @@ end
 
 sgs.ai_chaofeng.gzganfuren = 3
 
-local gzduoshi_skill={}
-gzduoshi_skill.name="gzduoshi"
-table.insert(sgs.ai_skills,gzduoshi_skill)
-gzduoshi_skill.getTurnUseCard=function(self,inclusive)
-	if self.player:hasUsed("#gzduoshicard") then return nil end
-	return sgs.Card_Parse("#gzduoshicard:.:")
+--Â½Ñ·
+local gzdushi_skill={}
+gzdushi_skill.name="gzdushi"
+table.insert(sgs.ai_skills,gzdushi_skill)
+gzdushi_skill.getTurnUseCard=function(self,inclusive)
+	if self.player:hasUsed("#gzdushicard") then return nil end
+	return sgs.Card_Parse("#gzdushicard:.:")
 end
 
-sgs.ai_skill_use_func["#gzduoshicard"]=function(card,use,self)
+sgs.ai_skill_use_func["#gzdushicard"]=function(card,use,self)
     local cc
 	local pp
 	if self.player:getHandcardNum() >= 2 then
@@ -116,23 +121,17 @@ sgs.ai_skill_use_func["#gzduoshicard"]=function(card,use,self)
 		end
 	end
 	if cc and pp then
-	    use.card = sgs.Card_Parse("#gzduoshicard:"..cc:getId()..":")
+	    use.card = sgs.Card_Parse("#gzdushicard:"..cc:getId()..":")
 		if use.to then use.to:append(pp) end
 		return
 	end
 end
 
-sgs.ai_use_value.gzduoshi = 4
-sgs.ai_use_priority.gzduoshi = 4
+sgs.ai_use_value.gzdushicard = 5
+sgs.ai_use_priority.gzdushicard = 2.61
+sgs.ai_card_intention.gzdushicard =  -81
 
-sgs.ai_skill_choice.gzmingshi = function(self, choices)
-    local splayer=self.room:findPlayerBySkillName("gzmingshi")
-    if not self:isEnemy(splayer) then
-	    return "mingshicancel"
-	end
-	return "mingshishow"
-end
-
+--¶¡·î
 sgs.ai_skill_invoke.gzduanbing = function(self, data)
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if not self:isFriend(player) and player:hasFlag("duanbingslash") then
@@ -153,6 +152,7 @@ sgs.ai_skill_playerchosen.gzduanbing = function(self, targets)
 	return target
 end
 
+sgs.ai_playerchosen_intention.gzduanbing = 60
 
 local gzfenxunvs_skill={}
 gzfenxunvs_skill.name="gzfenxunvs"
@@ -194,7 +194,27 @@ sgs.ai_skill_use_func["#gzfenxuncard"]=function(card,use,self)
 	end
 end
 
+sgs.ai_use_value.gzfenxuncard = 5
+sgs.ai_use_priority.gzfenxuncard = 2.61
+sgs.ai_card_intention.gzfenxuncard =  70
 sgs.ai_chaofeng.gzdingfeng = 2
+
+--¿×ÈÚ
+sgs.ai_skill_choice.gzmingshi = function(self, choices)
+    local splayer=self.room:findPlayerBySkillName("gzmingshi")
+    if not self:isEnemy(splayer) then
+	    return "mingshicancel"
+	end
+	return "mingshishow"
+end
+
+sgs.ai_skillChoice_intention.gzmingshi = function(from, to, answer)
+	local room = from:getRoom()
+	local konglong = room:findPlayerBySkillName("gzmingshi")
+	if answer == "mingshishow" and konglong then
+		sgs.updateIntention(konglong, from, 80)
+	end
+end
 
 sgs.ai_skill_invoke.gzlirang = function(self, data)
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
@@ -219,8 +239,10 @@ sgs.ai_skill_playerchosen.gzlirang = function(self, targets)
 	return target
 end
 
+sgs.ai_playerchosen_intention.gzlirang = -60
 sgs.ai_chaofeng.gzkongrong = 4
 
+--·áÌï
 sgs.ai_skill_invoke.gzsijian = function(self, data)
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if not self:isFriend(player) then
@@ -242,6 +264,9 @@ sgs.ai_skill_playerchosen.gzsijian = function(self, targets)
 	return target
 end
 
+sgs.ai_playerchosen_intention.gzsijian = 80
+
+--¼ÍÁé
 sgs.ai_skill_invoke.gzshuangren = function(self, data)
     local ph
 	local mch
@@ -275,13 +300,15 @@ sgs.ai_skill_playerchosen.gzshuangren = function(self, targets)
 	return target
 end
 
+sgs.ai_playerchosen_intention.gzshuangren = 80
+
 sgs.ai_chaofeng.gzjiling = 4
 
 sgs.ai_skill_invoke.gzhuoshui = function(self, data)
 	return true
 end
 
-sgs.ai_skill_choice.gzkuangfu = function(self, choices)
+sgs.ai_skill_choice.gzhuoshui = function(self, choices)
 	local str = choices
 	choices = str:split("+")
 	if self.player:getHp() < 1 and str:matchOne("buqu") then return "buqu" end
@@ -352,6 +379,10 @@ sgs.ai_skill_use_func["#gzqingchengcard"]=function(card,use,self)
 	end
 end
 
+sgs.ai_use_value.gzqingchengcard = 7
+sgs.ai_use_priority.gzqingchengcard = 7
+sgs.ai_card_intention.gzqingchengcard = 100
+
 sgs.ai_chaofeng.gzzoushi = 2
 
 local gzxiongyi_skill={}
@@ -386,6 +417,11 @@ sgs.ai_skill_use_func["#gzxiongyicard"]=function(card,use,self)
 	return
 end
 
+sgs.ai_use_value.gzxiongyicard = 7
+sgs.ai_use_priority.gzxiongyicard = 7
+sgs.ai_card_intention.gzxiongyicard = -100
+
+--ÉÏ½«ÅË·ï
 sgs.ai_skill_invoke.gzkuangfu = function(self, data)
     local damage = data:toDamage()
 	
@@ -401,4 +437,13 @@ end
 
 sgs.ai_skill_choice.gzkuangfu = function(self, choices)
 	return "kuangfuget"
+end
+
+sgs.ai_cardChosen_intention.gzkuangfu = function(from, to, card_id)
+	if not sgs.gzkuangfu_to then return end
+	local room = from:getRoom()
+	local isSilverLion = sgs.Sanguosha:getCard(card_id):isKindOf("SilverLion") 
+	local intention = isSilverLion and 0 or 80
+	sgs.updateIntention(from, sgs.gzkuangfu_to, intention)
+	sgs.gzkuangfu_to = nil
 end

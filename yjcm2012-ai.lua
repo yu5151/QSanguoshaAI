@@ -44,6 +44,8 @@ sgs.ai_skill_playerchosen.miji = function(self, targets)
 	end
 end
 
+sgs.ai_playerchosen_intention.miji = -80
+
 sgs.ai_skill_choice.jiangchi = function(self, choices)
 	local target = 0
 	local goodtarget = 0

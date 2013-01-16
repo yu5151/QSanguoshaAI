@@ -22,6 +22,9 @@ end
 sgs.ais = {}
 sgs.ai_card_intention = 	{}
 sgs.ai_playerchosen_intention = {}
+sgs.ai_skillInvoke_intention = {}
+sgs.ai_skillChoice_intention = {}
+sgs.ai_cardChosen_intention = {}
 sgs.role_evaluation = 		{}
 sgs.ai_keep_value = 		{}
 sgs.ai_use_value = 			{}
@@ -61,8 +64,9 @@ sgs.ai_choicemade_filter = 	{
 	cardResponsed = 		{},
 	skillInvoke = 			{},
 	skillChoice = 			{},
-	Nullification = 		{},
-	playerChosen =			{}
+	Nullification = 			{},
+	playerChosen =		{},
+	cardChosen =			{}
 }
 
 sgs.card_lack =             {}
@@ -1637,6 +1641,50 @@ sgs.ai_choicemade_filter.playerChosen.general = function(from, promptlist)
 	end
 end
 
+sgs.ai_choicemade_filter.skillInvoke.general = function(from, promptlist)
+	local reason = string.gsub(promptlist[2], "%-", "_")
+	local to = global_room:getCurrent()
+	local callback = sgs.ai_skillInvoke_intention[reason]
+	if callback then 
+		if type(callback) == "number" and promptlist[3] == "yes" and to:objectName() ~= from:objectName() then
+			sgs.updateIntention(from, to, sgs.ai_skillInvoke_intention[reason])			
+		elseif type(callback) == "function" then
+			local yesorno = promptlist[3]
+			callback(from, to, yesorno)
+			-- from->发动技能的玩家，to->正在进行回合的玩家 ，yesorno->询问是否发动技能的选择
+		end
+	end
+end
+
+sgs.ai_choicemade_filter.skillChoice.general = function(from, promptlist)
+	local reason = string.gsub(promptlist[2], "%-", "_")
+	local callback = sgs.ai_skillChoice_intention[reason] 
+	local to = global_room:getCurrent()
+	if callback and to then 
+		if type(callback) == "number" and to:objectName() ~= from:objectName() then
+			sgs.updateIntention(from, to, sgs.ai_skillChoice_intention[reason])
+		elseif type(callback) == "function" then
+			local answer = promptlist[3]
+			callback(from, to, answer)
+			-- from->选择选项的玩家，to->正在进行回合的玩家，answer->askForChoice时选择的选项
+		end
+	end
+end
+
+sgs.ai_choicemade_filter.cardChosen.general = function(from, promptlist)
+	local reason = string.gsub(promptlist[2], "%-", "_")
+	local callback = sgs.ai_cardChosen_intention[reason] 
+	local to = global_room:getCurrent()
+	if callback and to then 
+		if type(callback) == "number" and to:objectName() ~= from:objectName() then
+			sgs.updateIntention(from, to, sgs.ai_cardChosen_intention[reason])
+		elseif type(callback) == "function" then
+			local card_id = promptlist[3]
+			callback(from, to, card_id)
+		end
+	end	
+end
+
 function SmartAI:filterEvent(event, player, data)
 	if not sgs.recorder then
 		sgs.recorder = self
@@ -1717,11 +1765,15 @@ function SmartAI:filterEvent(event, player, data)
 				sgs.updateIntention(from, to, 80)
 			end
 		end
-		if card:isKindOf("Slash") and to:hasSkill("leiji") and 
-			(getCardsNum("Jink", to)>0 or (to:getArmor() and to:getArmor():objectName() == "EightDiagram"))
-			and (to:getHandcardNum()>2 or from:getState() == "robot") then
-			sgs.ai_leiji_effect = true
-		end
+		if card:isKindOf("Slash") then
+			if to:hasSkill("leiji") and 
+				(getCardsNum("Jink", to)>0 or (to:getArmor() and to:getArmor():objectName() == "EightDiagram"))
+				and (to:getHandcardNum()>2 or from:getState() == "robot") then
+				sgs.ai_leiji_effect = true
+			elseif from and from:hasSkill("gzkuangfu") then				
+				sgs.gzkuangfu_to = to
+			end
+		end		
 		if card:isKindOf("SongciCard") and from and to then
 			if to:getHandcardNum() > to:getHp() then
 				sgs.updateIntention(from, to, 100)
@@ -4324,7 +4376,6 @@ function getBestHp(player)
 end
 
 dofile "lua/ai/debug-ai.lua"
-dofile "lua/ai/imagine-ai.lua" --场景模拟
 dofile "lua/ai/standard_cards-ai.lua"
 dofile "lua/ai/maneuvering-ai.lua"
 dofile "lua/ai/standard-ai.lua"

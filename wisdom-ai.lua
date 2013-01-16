@@ -1,6 +1,6 @@
 --[[
-	¼¼ÄÜ£ºÙÆ°Á
-	ÃèÊö£º³öÅÆ½×¶Î£¬Äã¿ÉÒÔÑ¡ÔñÁ½ÕÅÊÖÅÆ±³ÃæÏòÉÏÒÆ³öÓÎÏ·£¬Ö¸¶¨Ò»Ãû½ÇÉ«£¬±»Ö¸¶¨µÄ½ÇÉ«µ½ÏÂ¸ö»ØºÏ¿ªÊ¼½×¶ÎÊ±£¬Ìø¹ıÃşÅÆ½×¶Î£¬µÃµ½ÄãËùÒÆ³öÓÎÏ·µÄÁ½ÕÅÅÆ¡£Ã¿½×¶ÎÏŞÒ»´Î 
+	æŠ€èƒ½ï¼šå€¨å‚²
+	æè¿°ï¼šå‡ºç‰Œé˜¶æ®µï¼Œä½ å¯ä»¥é€‰æ‹©ä¸¤å¼ æ‰‹ç‰ŒèƒŒé¢å‘ä¸Šç§»å‡ºæ¸¸æˆï¼ŒæŒ‡å®šä¸€åè§’è‰²ï¼Œè¢«æŒ‡å®šçš„è§’è‰²åˆ°ä¸‹ä¸ªå›åˆå¼€å§‹é˜¶æ®µæ—¶ï¼Œè·³è¿‡æ‘¸ç‰Œé˜¶æ®µï¼Œå¾—åˆ°ä½ æ‰€ç§»å‡ºæ¸¸æˆçš„ä¸¤å¼ ç‰Œã€‚æ¯é˜¶æ®µé™ä¸€æ¬¡ 
 ]]--
 local juao_skill={}
 juao_skill.name = "juao"
@@ -16,7 +16,7 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 	local givecard = {}
 	local cards = self.player:getHandcards()
 	for _, friend in ipairs(self.friends_noself) do
-		if friend:getHp() == 1 then
+		if friend:getHp() == 1 then --é˜Ÿå‹å¿«æ­»äº†
 			for _, hcard in sgs.qlist(cards) do
 				if hcard:isKindOf("Analeptic") or hcard:isKindOf("Peach") then
 					table.insert(givecard, hcard:getId())
@@ -25,12 +25,15 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 					table.insert(givecard, hcard:getId())
 				elseif #givecard == 2 then
 					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
-					if use.to then use.to:append(friend) end
+					if use.to then 
+						use.to:append(friend) 
+						self.player:speak("é¡¶ä½ï¼Œä½ çš„å¿«é€’é©¬ä¸Šå°±åˆ°äº†ã€‚")
+					end
 					return
 				end
 			end
 		end
-		if friend:hasSkill("jizhi") then
+		if friend:hasSkill("jizhi") then --é˜Ÿå‹æœ‰é›†æ™º
 			for _, hcard in sgs.qlist(cards) do
 				if hcard:isKindOf("TrickCard") and not hcard:isKindOf("DelayedTrick") then
 					table.insert(givecard, hcard:getId())
@@ -44,7 +47,7 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 				end
 			end
 		end
-		if friend:hasSkill("leiji") then
+		if friend:hasSkill("leiji") then --é˜Ÿå‹æœ‰é›·å‡»
 			for _, hcard in sgs.qlist(cards) do
 				if hcard:getSuit() == sgs.Card_Spade or hcard:isKindOf("Jink") then
 					table.insert(givecard, hcard:getId())
@@ -53,12 +56,15 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 					table.insert(givecard, hcard:getId())
 				elseif #givecard == 2 then
 					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
-					if use.to then use.to:append(friend) end
+					if use.to then 
+						use.to:append(friend) 
+						self.player:speak("æˆ‘çŸ¥é“ä½ æœ‰ä»€ä¹ˆç‰Œï¼Œå“¼å“¼ã€‚")
+					end
 					return
 				end
 			end
 		end
-		if friend:hasSkill("xiaoji") then
+		if friend:hasSkill("xiaoji") or friend:hasSkill("xuanfeng") then --é˜Ÿå‹æœ‰æ­å§¬ï¼ˆæ—‹é£ï¼‰
 			for _, hcard in sgs.qlist(cards) do
 				if hcard:isKindOf("EquipCard") then
 					table.insert(givecard, hcard:getId())
@@ -75,7 +81,7 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 	end
 	givecard = {}
 	for _, enemy in ipairs(self.enemies) do
-		if enemy:getHp() == 1 then
+		if enemy:getHp() == 1 then --æ•Œäººå¿«æ­»äº†
 			for _, hcard in sgs.qlist(cards) do
 				if hcard:isKindOf("Disaster") then
 					table.insert(givecard, hcard:getId())
@@ -88,9 +94,41 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 					return
 				elseif #givecard == 2 then
 					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
-					if use.to then use.to:append(enemy) end
+					if use.to then 
+						use.to:append(enemy) 
+						self.player:speak("å’±æœ€æ“…é•¿è½äº•ä¸‹çŸ³äº†ã€‚")
+					end
 					return
 				else
+				end
+			end
+		end
+		if enemy:hasSkill("yongsi") then --æ•Œäººæœ‰åº¸è‚†
+			local players = self.room:getAlivePlayers()
+			local extra = self:KingdomsCount(players) --é¢å¤–æ‘¸ç‰Œçš„æ•°ç›®
+			if enemy:getCardCount(true) <= extra then --å¦‚æœæ•Œäººå¿«è£¸å¥”äº†
+				for _,hcard in sgs.qlist(cards) do
+					if hcard:isKindOf("Disaster") then
+						table.insert(givecard, hcard:getId())
+					end
+					if #givecard == 1 and givecard[1] ~= hcard:getId() then
+						if not hcard:isKindOf("Peach") and not hcard:isKindOf("ExNihilo") then
+							table.insert(givecard, hcard:getId())
+							use.card = sgs.Card_Parse("@JuaoCard="..table.concat(givecard, "+"))
+							if use.to then
+								use.to:append(enemy)
+							end
+							return 
+						end
+					end
+					if #givecard == 2 then
+						use.card = sgs.Card_Parse("@JuaoCard="..table.concat(givecard, "+"))
+						if use.to then
+							use.to:append(enemy)
+							enemy:speak("ä½ ç»™æˆ‘ç­‰ç€ï¼")
+						end
+						return 
+					end
 				end
 			end
 		end
@@ -109,8 +147,8 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 	end
 end
 --[[
-	¼¼ÄÜ£ºÌ°À·
-	ÃèÊö£ºÃ¿µ±ÄãÊÜµ½Ò»´ÎÉËº¦£¬¿ÉÓëÉËº¦À´Ô´½øĞĞÆ´µã£ºÈôÄãÓ®£¬Äã»ñµÃÁ½ÕÅÆ´µãÅÆ 
+	æŠ€èƒ½ï¼šè´ªå©ª
+	æè¿°ï¼šæ¯å½“ä½ å—åˆ°ä¸€æ¬¡ä¼¤å®³ï¼Œå¯ä¸ä¼¤å®³æ¥æºè¿›è¡Œæ‹¼ç‚¹ï¼šè‹¥ä½ èµ¢ï¼Œä½ è·å¾—ä¸¤å¼ æ‹¼ç‚¹ç‰Œ 
 ]]--
 sgs.ai_skill_invoke.tanlan = function(self, data)
 	local damage = data:toDamage()
@@ -124,24 +162,28 @@ sgs.ai_skill_invoke.tanlan = function(self, data)
 	end
 end
 --[[
-	¼¼ÄÜ£ºÒì²Å
-	ÃèÊö£ºÃ¿µ±ÄãÊ¹ÓÃÒ»ÕÅ·ÇÑÓÊ±Àà½õÄÒÊ±(ÔÚËü½áËãÖ®Ç°)£¬¿ÉÁ¢¼´¶Ô¹¥»÷·¶Î§ÄÚµÄ½ÇÉ«Ê¹ÓÃÒ»ÕÅ¡¾É±¡¿ 
+	æŠ€èƒ½ï¼šå¼‚æ‰
+	æè¿°ï¼šæ¯å½“ä½ ä½¿ç”¨ä¸€å¼ éå»¶æ—¶ç±»é”¦å›Šæ—¶(åœ¨å®ƒç»“ç®—ä¹‹å‰)ï¼Œå¯ç«‹å³å¯¹æ”»å‡»èŒƒå›´å†…çš„è§’è‰²ä½¿ç”¨ä¸€å¼ ã€æ€ã€‘ 
 ]]--
 sgs.ai_skill_invoke.yicai = function(self, data)
 	for _, enemy in ipairs(self.enemies) do
-		if self.player:canSlash(enemy, true) and self:getCardsNum("Slash") > 0 then return true end
+		if self.player:canSlash(enemy, nil, true) then
+			if self:getCardsNum("Slash") > 0 then 
+				return true 
+			end
+		end
 	end
 end
 --[[
-	¼¼ÄÜ£º±±·¥£¨Ëø¶¨¼¼£©
-	ÃèÊö£ºµ±ÄãÊ§È¥×îºóÒ»ÕÅÊÖÅÆÊ±£¬ÊÓÎª¶Ô¹¥»÷·¶Î§ÄÚµÄÒ»Ãû½ÇÉ«Ê¹ÓÃÁËÒ»ÕÅ¡¾É±¡¿
+	æŠ€èƒ½ï¼šåŒ—ä¼ï¼ˆé”å®šæŠ€ï¼‰
+	æè¿°ï¼šå½“ä½ å¤±å»æœ€åä¸€å¼ æ‰‹ç‰Œæ—¶ï¼Œè§†ä¸ºå¯¹æ”»å‡»èŒƒå›´å†…çš„ä¸€åè§’è‰²ä½¿ç”¨äº†ä¸€å¼ ã€æ€ã€‘
 ]]--
 sgs.ai_skill_playerchosen.beifa = sgs.ai_skill_playerchosen.zero_card_as_slash
 
 sgs.ai_chaofeng.wisjiangwei = 2
 --[[
-	¼¼ÄÜ£ººóÔ®
-	ÃèÊö£º³öÅÆ½×¶Î£¬Äã¿ÉÒÔÆúÖÃÁ½ÕÅÊÖÅÆ£¬Ö¸¶¨Ò»ÃûÆäËû½ÇÉ«ÃşÁ½ÕÅÅÆ£¬Ã¿½×¶ÎÏŞÒ»´Î 
+	æŠ€èƒ½ï¼šåæ´
+	æè¿°ï¼šå‡ºç‰Œé˜¶æ®µï¼Œä½ å¯ä»¥å¼ƒç½®ä¸¤å¼ æ‰‹ç‰Œï¼ŒæŒ‡å®šä¸€åå…¶ä»–è§’è‰²æ‘¸ä¸¤å¼ ç‰Œï¼Œæ¯é˜¶æ®µé™ä¸€æ¬¡ 
 ]]--
 local houyuan_skill={}
 houyuan_skill.name="houyuan"
@@ -167,23 +209,34 @@ sgs.ai_skill_use_func.HouyuanCard = function(card, use, self)
 	local target
 	local max_x = 20
 	for _, friend in ipairs(self.friends_noself) do
-		local x = friend:getHandcardNum()
-		if x < max_x then
-			max_x = x
-			target = friend
+		if not friend:hasSkill("manjuan") then --ä¸èƒ½å¯¹æ¼«å·é˜Ÿå‹å‘åŠ¨
+			local x = friend:getHandcardNum()
+			if x < max_x then
+				max_x = x
+				target = friend
+			end
 		end
 	end
-	if use.to then use.to:append(target) end
-	use.card = card
-	return
+	local cards = self.player:getCards("h")
+	cards = sgs.QList2Table(cards)
+	self:sortByUseValue(cards, true)
+	local usecards = {cards[1]:getId(), cards[2]:getId()}
+	if not cards[1]:isKindOf("ExNihilo") then
+		if use.to and target then
+			use.to:append(target)
+		end
+		use.card = sgs.Card_Parse("@HouyuanCard=" .. table.concat(usecards, "+"))
+		self.player:speak("æœ‰ä½ è¿™æ ·å‡ºè¿œé—¨ä¸å¸¦ç²®é£Ÿçš„ä¹ˆï¼Ÿæ¥å¥½äº†ï¼")
+	end
+	return 
 end
 
 sgs.ai_card_intention.HouyuanCard = -70
 
 sgs.ai_chaofeng.wisjiangwan = 6
 --[[
-	¼¼ÄÜ£º°ÔÍõ
-	ÃèÊö£ºµ±ÄãÊ¹ÓÃµÄ¡¾É±¡¿±»¡¾ÉÁ¡¿ÏìÓ¦Ê±£¬Äã¿ÉÒÔºÍ¶Ô·½Æ´µã£ºÈôÄãÓ®£¬¿ÉÒÔÑ¡Ôñ×î¶àÁ½¸öÄ¿±ê½ÇÉ«£¬ÊÓÎª¶ÔÆä·Ö±ğÊ¹ÓÃÁËÒ»ÕÅ¡¾É±¡¿
+	æŠ€èƒ½ï¼šéœ¸ç‹
+	æè¿°ï¼šå½“ä½ ä½¿ç”¨çš„ã€æ€ã€‘è¢«ã€é—ªã€‘å“åº”æ—¶ï¼Œä½ å¯ä»¥å’Œå¯¹æ–¹æ‹¼ç‚¹ï¼šè‹¥ä½ èµ¢ï¼Œå¯ä»¥é€‰æ‹©æœ€å¤šä¸¤ä¸ªç›®æ ‡è§’è‰²ï¼Œè§†ä¸ºå¯¹å…¶åˆ†åˆ«ä½¿ç”¨äº†ä¸€å¼ ã€æ€ã€‘
 ]]--
 sgs.ai_skill_invoke.bawang = function(self, data)
 	local effect = data:toSlashEffect()
@@ -217,8 +270,8 @@ end
 
 sgs.ai_card_intention.BawangCard = sgs.ai_card_intention.ShensuCard
 --[[
-	¼¼ÄÜ£ºÎ£´ù£¨Ö÷¹«¼¼£©
-	ÃèÊö£ºµ±ÄãĞèÒªÊ¹ÓÃÒ»ÕÅ¡¾¾Æ¡¿Ê±£¬ËùÓĞÎâÊÆÁ¦½ÇÉ«°´ĞĞ¶¯Ë³ĞòÒÀ´ÎÑ¡ÔñÊÇ·ñ´ò³öÒ»ÕÅºÚÌÒ2~9µÄÊÖÅÆ£¬ÊÓÎªÄãÊ¹ÓÃÁËÒ»ÕÅ¡¾¾Æ¡¿£¬Ö±µ½ÓĞÒ»Ãû½ÇÉ«»òÃ»ÓĞÈÎºÎ½ÇÉ«¾ö¶¨Èç´Ë×öÊ±ÎªÖ¹ 
+	æŠ€èƒ½ï¼šå±æ®†ï¼ˆä¸»å…¬æŠ€ï¼‰
+	æè¿°ï¼šå½“ä½ éœ€è¦ä½¿ç”¨ä¸€å¼ ã€é…’ã€‘æ—¶ï¼Œæ‰€æœ‰å´åŠ¿åŠ›è§’è‰²æŒ‰è¡ŒåŠ¨é¡ºåºä¾æ¬¡é€‰æ‹©æ˜¯å¦æ‰“å‡ºä¸€å¼ é»‘æ¡ƒ2~9çš„æ‰‹ç‰Œï¼Œè§†ä¸ºä½ ä½¿ç”¨äº†ä¸€å¼ ã€é…’ã€‘ï¼Œç›´åˆ°æœ‰ä¸€åè§’è‰²æˆ–æ²¡æœ‰ä»»ä½•è§’è‰²å†³å®šå¦‚æ­¤åšæ—¶ä¸ºæ­¢ 
 ]]--
 sgs.ai_skill_use["@@weidai"] = function(self, prompt)
 	return "@WeidaiCard=.->."
@@ -245,13 +298,15 @@ end
 
 sgs.ai_chaofeng.wissunce = 1
 --[[
-	¼¼ÄÜ£ºÁıÂç
-	ÃèÊö£º»ØºÏ½áÊø½×¶Î¿ªÊ¼Ê±£¬Äã¿ÉÒÔÑ¡ÔñÒ»ÃûÆäËû½ÇÉ«ÃşÈ¡ÓëÄãÆúÅÆ½×¶ÎÆúÅÆÊıÁ¿ÏàÍ¬µÄÅÆ 
+	æŠ€èƒ½ï¼šç¬¼ç»œ
+	æè¿°ï¼šå›åˆç»“æŸé˜¶æ®µå¼€å§‹æ—¶ï¼Œä½ å¯ä»¥é€‰æ‹©ä¸€åå…¶ä»–è§’è‰²æ‘¸å–ä¸ä½ å¼ƒç‰Œé˜¶æ®µå¼ƒç‰Œæ•°é‡ç›¸åŒçš„ç‰Œ 
 ]]--
 sgs.ai_skill_playerchosen.longluo = function(self, targets)
 	for _, player in sgs.qlist(targets) do
 		if self:isFriend(player) and player:getHp() > player:getHandcardNum() then
-			return player
+			if not player:hasSkill("manjuan") then --å¯¹æ¼«å·é˜Ÿå‹æ— æ•ˆ
+				return player
+			end
 		end
 	end
 	return self.friends_noself[1]
@@ -263,27 +318,29 @@ sgs.ai_skill_invoke.longluo = function(self, data)
 	return #self.friends > 1
 end
 --[[
-	¼¼ÄÜ£º¸¨×ô
-	ÃèÊö£ºµ±ÓĞ½ÇÉ«Æ´µãÊ±£¬Äã¿ÉÒÔ´ò³öÒ»ÕÅµãÊıĞ¡ÓÚ8µÄÊÖÅÆ£¬ÈÃÆäÖĞÒ»Ãû½ÇÉ«µÄÆ´µãÅÆ¼ÓÉÏÕâÕÅÅÆµãÊıµÄ¶ş·ÖÖ®Ò»£¨ÏòÏÂÈ¡Õû£©
+	æŠ€èƒ½ï¼šè¾…ä½
+	æè¿°ï¼šå½“æœ‰è§’è‰²æ‹¼ç‚¹æ—¶ï¼Œä½ å¯ä»¥æ‰“å‡ºä¸€å¼ ç‚¹æ•°å°äº8çš„æ‰‹ç‰Œï¼Œè®©å…¶ä¸­ä¸€åè§’è‰²çš„æ‹¼ç‚¹ç‰ŒåŠ ä¸Šè¿™å¼ ç‰Œç‚¹æ•°çš„äºŒåˆ†ä¹‹ä¸€ï¼ˆå‘ä¸‹å–æ•´ï¼‰
 ]]--
 sgs.ai_skill_choice.fuzuo = function(self , choices)
-	--ÅÅ³ı²»ÄÜ·¢¶¯¼¼ÄÜµÄÇéĞÎ
+	--æ’é™¤ä¸èƒ½å‘åŠ¨æŠ€èƒ½çš„æƒ…å½¢
 	if self.player:isKongcheng() then
+		self.player:speak("ç©ºåŸçœ‹å¥½æˆï¼Œå‘µå‘µã€‚")
 		return "cancel"
 	end
 	local flag = true
 	local handcards = self.player:getHandcards()
 	for _,card in sgs.qlist(handcards) do
 		local point = card:getNumber()
-		if point > 1 and point < 8 then --ÒòÎªÊÇÏòÏÂÈ¡Õû£¬ËùÒÔ¿ÉÓÃ·¶Î§ÊÇ2¡«7¡£
+		if point > 1 and point < 8 then --å› ä¸ºæ˜¯å‘ä¸‹å–æ•´ï¼Œæ‰€ä»¥å¯ç”¨èŒƒå›´æ˜¯2ï½7ã€‚
 			flag = false
 			break
 		end
 	end
-	if flag then --Ã»ÓĞµãÊıĞ¡ÓÚ8µÄÊÖÅÆ
+	if flag then --æ²¡æœ‰ç‚¹æ•°å°äº8çš„æ‰‹ç‰Œ
+		self.player:speak("åˆ«çœ‹æˆ‘ï¼Œæ‰‹é‡Œæ˜¯çœŸæ²¡è´§â€¦â€¦")
 		return "cancel"
 	end
-	--ÏÖÔÚchoicesÓ¦¸ÃÊÇ"nameA+nameB+cancel"ĞÎÊ½µÄ£¬ÏÂÃæ¿ªÊ¼»ñÈ¡¾ßÌåÑ¡Ïî
+	--ç°åœ¨choicesåº”è¯¥æ˜¯"nameA+nameB+cancel"å½¢å¼çš„ï¼Œä¸‹é¢å¼€å§‹è·å–å…·ä½“é€‰é¡¹
 	local nameA = ""
 	local nameB = ""
 	local fromPosA = -1
@@ -297,12 +354,14 @@ sgs.ai_skill_choice.fuzuo = function(self , choices)
 		if fromPosB > toPosA and toPosB == fromPosB then
 			nameB = string.sub(choices, toPosA+1, toPosB-1)
 		else
+			self.player:speak("å‘¼å«ç¨‹åºå‘˜ï¼æˆ‘çš„AIåˆå‡ºé”™äº†ï¼")
 			return "cancel"
 		end
 	else
+		self.player:speak("å‘¼å«ç¨‹åºå‘˜ï¼æˆ‘çš„AIåˆå‡ºé”™äº†ï¼")
 		return "cancel"
 	end
-	--ÏÖÔÚÑ¡ÏîÄÚÈİÒÑ¾­È·¶¨ÎªnameAºÍnameB£¬¿ÉÒÔÅĞ¶Ï½øĞĞ¸¨×ôµÄÄ¿±êÁË
+	--ç°åœ¨é€‰é¡¹å†…å®¹å·²ç»ç¡®å®šä¸ºnameAå’ŒnameBï¼Œå¯ä»¥åˆ¤æ–­è¿›è¡Œè¾…ä½çš„ç›®æ ‡äº†
 	for _,p in pairs(self.friends) do
 		if p:getGeneralName() == nameA then
 			return nameA
@@ -311,6 +370,7 @@ sgs.ai_skill_choice.fuzuo = function(self , choices)
 			return nameB
 		end
 	end
+	self.player:speak("ä½ ä»¬çˆ±è°èµ¢è°èµ¢ã€‚")
 	return "cancel"
 end
 sgs.ai_skill_cardask["@fuzuo_card"] = function(self, data, pattern, target)
@@ -327,8 +387,8 @@ sgs.ai_skill_cardask["@fuzuo_card"] = function(self, data, pattern, target)
 	return fzcard:getEffectiveId()
 end
 --[[
-	¼¼ÄÜ£º¾¡´á
-	ÃèÊö£ºµ±ÄãËÀÍöÊ±£¬¿ÉÁîÒ»Ãû½ÇÉ«ÃşÈ¡»òÕßÆúÖÃÈıÕÅÅÆ 
+	æŠ€èƒ½ï¼šå°½ç˜
+	æè¿°ï¼šå½“ä½ æ­»äº¡æ—¶ï¼Œå¯ä»¤ä¸€åè§’è‰²æ‘¸å–æˆ–è€…å¼ƒç½®ä¸‰å¼ ç‰Œ 
 ]]--
 sgs.ai_skill_invoke.jincui = function(self, data)
 	return true
@@ -351,8 +411,8 @@ end
 
 sgs.ai_chaofeng.wiszhangzhao = -1
 --[[
-	¼¼ÄÜ£º°Ôµ¶
-	ÃèÊö£ºµ±Äã³ÉÎªºÚÉ«µÄ¡¾É±¡¿Ä¿±êÊ±£¬Äã¿ÉÒÔ¶ÔÄã¹¥»÷·¶Î§ÄÚµÄÒ»ÃûÆäËû½ÇÉ«Ê¹ÓÃÒ»ÕÅ¡¾É±¡¿ 
+	æŠ€èƒ½ï¼šéœ¸åˆ€
+	æè¿°ï¼šå½“ä½ æˆä¸ºé»‘è‰²çš„ã€æ€ã€‘ç›®æ ‡æ—¶ï¼Œä½ å¯ä»¥å¯¹ä½ æ”»å‡»èŒƒå›´å†…çš„ä¸€åå…¶ä»–è§’è‰²ä½¿ç”¨ä¸€å¼ ã€æ€ã€‘ 
 ]]--
 sgs.ai_skill_invoke.badao = function(self, data)
 	for _, enemy in ipairs(self.enemies) do
@@ -360,8 +420,8 @@ sgs.ai_skill_invoke.badao = function(self, data)
 	end
 end
 --[[
-	¼¼ÄÜ£ºÊ¶ÆÆ
-	ÃèÊö£ºÈÎÒâ½ÇÉ«ÅĞ¶¨½×¶ÎÅĞ¶¨Ç°£¬Äã¿ÉÒÔÆúÖÃÁ½ÕÅÅÆ£¬»ñµÃ¸Ã½ÇÉ«ÅĞ¶¨ÇøÀïµÄËùÓĞÅÆ 
+	æŠ€èƒ½ï¼šè¯†ç ´
+	æè¿°ï¼šä»»æ„è§’è‰²åˆ¤å®šé˜¶æ®µåˆ¤å®šå‰ï¼Œä½ å¯ä»¥å¼ƒç½®ä¸¤å¼ ç‰Œï¼Œè·å¾—è¯¥è§’è‰²åˆ¤å®šåŒºé‡Œçš„æ‰€æœ‰ç‰Œ 
 ]]--
 sgs.ai_skill_invoke.shipo = function(self, data)
 	local target = data:toPlayer()
@@ -373,8 +433,8 @@ end
 
 sgs.ai_chaofeng.tianfeng = -3
 --[[
-	¼¼ÄÜ£ºÊÚÒµ
-	ÃèÊö£º³öÅÆ½×¶Î£¬Äã¿ÉÒÔÆúÖÃÒ»ÕÅºìÉ«ÊÖÅÆ£¬Ö¸¶¨×î¶àÁ½ÃûÆäËû½ÇÉ«¸÷ÃşÒ»ÕÅÅÆ 
+	æŠ€èƒ½ï¼šæˆä¸š
+	æè¿°ï¼šå‡ºç‰Œé˜¶æ®µï¼Œä½ å¯ä»¥å¼ƒç½®ä¸€å¼ çº¢è‰²æ‰‹ç‰Œï¼ŒæŒ‡å®šæœ€å¤šä¸¤åå…¶ä»–è§’è‰²å„æ‘¸ä¸€å¼ ç‰Œ 
 ]]--
 local shouye_skill={}
 shouye_skill.name = "shouye"
@@ -408,11 +468,15 @@ end
 
 sgs.ai_card_intention.ShouyeCard = -70
 --[[
-	¼¼ÄÜ£ºÊ¦¶÷
-	ÃèÊö£ºÆäËû½ÇÉ«Ê¹ÓÃ·ÇÑÓÊ±½õÄÒÊ±£¬¿ÉÒÔÈÃÄãÃşÒ»ÕÅÅÆ
+	æŠ€èƒ½ï¼šå¸ˆæ©
+	æè¿°ï¼šå…¶ä»–è§’è‰²ä½¿ç”¨éå»¶æ—¶é”¦å›Šæ—¶ï¼Œå¯ä»¥è®©ä½ æ‘¸ä¸€å¼ ç‰Œ
 ]]--
 sgs.ai_skill_invoke.shien = function(self, data)
-	return self:isFriend(data:toPlayer())
+	local target = data:toPlayer()
+	if target and target:isAlive() then 
+		return self:isFriend(target)
+	end
+	return false
 end
 
 sgs.ai_chaofeng.wisshuijing = 5

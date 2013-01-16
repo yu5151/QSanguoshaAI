@@ -16,7 +16,7 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 	local givecard = {}
 	local cards = self.player:getHandcards()
 	for _, friend in ipairs(self.friends_noself) do
-		if friend:getHp() == 1 then
+		if friend:getHp() == 1 then --队友快死了
 			for _, hcard in sgs.qlist(cards) do
 				if hcard:isKindOf("Analeptic") or hcard:isKindOf("Peach") then
 					table.insert(givecard, hcard:getId())
@@ -25,12 +25,15 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 					table.insert(givecard, hcard:getId())
 				elseif #givecard == 2 then
 					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
-					if use.to then use.to:append(friend) end
+					if use.to then 
+						use.to:append(friend) 
+						self.player:speak("顶住，你的快递马上就到了。")
+					end
 					return
 				end
 			end
 		end
-		if friend:hasSkill("jizhi") then
+		if friend:hasSkill("jizhi") then --队友有集智
 			for _, hcard in sgs.qlist(cards) do
 				if hcard:isKindOf("TrickCard") and not hcard:isKindOf("DelayedTrick") then
 					table.insert(givecard, hcard:getId())
@@ -44,7 +47,7 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 				end
 			end
 		end
-		if friend:hasSkill("leiji") then
+		if friend:hasSkill("leiji") then --队友有雷击
 			for _, hcard in sgs.qlist(cards) do
 				if hcard:getSuit() == sgs.Card_Spade or hcard:isKindOf("Jink") then
 					table.insert(givecard, hcard:getId())
@@ -53,12 +56,15 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 					table.insert(givecard, hcard:getId())
 				elseif #givecard == 2 then
 					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
-					if use.to then use.to:append(friend) end
+					if use.to then 
+						use.to:append(friend) 
+						self.player:speak("我知道你有什么牌，哼哼。")
+					end
 					return
 				end
 			end
 		end
-		if friend:hasSkill("xiaoji") then
+		if friend:hasSkill("xiaoji") or friend:hasSkill("xuanfeng") then --队友有枭姬（旋风）
 			for _, hcard in sgs.qlist(cards) do
 				if hcard:isKindOf("EquipCard") then
 					table.insert(givecard, hcard:getId())
@@ -75,7 +81,7 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 	end
 	givecard = {}
 	for _, enemy in ipairs(self.enemies) do
-		if enemy:getHp() == 1 then
+		if enemy:getHp() == 1 then --敌人快死了
 			for _, hcard in sgs.qlist(cards) do
 				if hcard:isKindOf("Disaster") then
 					table.insert(givecard, hcard:getId())
@@ -88,9 +94,41 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 					return
 				elseif #givecard == 2 then
 					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
-					if use.to then use.to:append(enemy) end
+					if use.to then 
+						use.to:append(enemy) 
+						self.player:speak("咱最擅长落井下石了。")
+					end
 					return
 				else
+				end
+			end
+		end
+		if enemy:hasSkill("yongsi") then --敌人有庸肆
+			local players = self.room:getAlivePlayers()
+			local extra = self:KingdomsCount(players) --额外摸牌的数目
+			if enemy:getCardCount(true) <= extra then --如果敌人快裸奔了
+				for _,hcard in sgs.qlist(cards) do
+					if hcard:isKindOf("Disaster") then
+						table.insert(givecard, hcard:getId())
+					end
+					if #givecard == 1 and givecard[1] ~= hcard:getId() then
+						if not hcard:isKindOf("Peach") and not hcard:isKindOf("ExNihilo") then
+							table.insert(givecard, hcard:getId())
+							use.card = sgs.Card_Parse("@JuaoCard="..table.concat(givecard, "+"))
+							if use.to then
+								use.to:append(enemy)
+							end
+							return 
+						end
+					end
+					if #givecard == 2 then
+						use.card = sgs.Card_Parse("@JuaoCard="..table.concat(givecard, "+"))
+						if use.to then
+							use.to:append(enemy)
+							enemy:speak("你给我等着！")
+						end
+						return 
+					end
 				end
 			end
 		end
@@ -171,15 +209,26 @@ sgs.ai_skill_use_func.HouyuanCard = function(card, use, self)
 	local target
 	local max_x = 20
 	for _, friend in ipairs(self.friends_noself) do
-		local x = friend:getHandcardNum()
-		if x < max_x then
-			max_x = x
-			target = friend
+		if not friend:hasSkill("manjuan") then --不能对漫卷队友发动
+			local x = friend:getHandcardNum()
+			if x < max_x then
+				max_x = x
+				target = friend
+			end
 		end
 	end
-	if use.to then use.to:append(target) end
-	use.card = card
-	return
+	local cards = self.player:getCards("h")
+	cards = sgs.QList2Table(cards)
+	self:sortByUseValue(cards, true)
+	local usecards = {cards[1]:getId(), cards[2]:getId()}
+	if not cards[1]:isKindOf("ExNihilo") then
+		if use.to and target then
+			use.to:append(target)
+		end
+		use.card = sgs.Card_Parse("@HouyuanCard=" .. table.concat(usecards, "+"))
+		self.player:speak("有你这样出远门不带粮食的么？接好了！")
+	end
+	return 
 end
 
 sgs.ai_card_intention.HouyuanCard = -70
@@ -255,7 +304,9 @@ sgs.ai_chaofeng.wissunce = 1
 sgs.ai_skill_playerchosen.longluo = function(self, targets)
 	for _, player in sgs.qlist(targets) do
 		if self:isFriend(player) and player:getHp() > player:getHandcardNum() then
-			return player
+			if not player:hasSkill("manjuan") then --对漫卷队友无效
+				return player
+			end
 		end
 	end
 	return self.friends_noself[1]

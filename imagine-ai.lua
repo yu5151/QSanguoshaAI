@@ -607,7 +607,7 @@ function SmartAI:DamageResult(target, source, nature, card, chained)
 	return result
 end
 --[[
-	函数名：
+	函数名：tdr
 	功能：测试DamageResult函数的结果
 	参数表：result（待测试的结果）
 	返回值：无
@@ -636,4 +636,26 @@ function SmartAI:tdr(result, source, target)
 	room:writeToConsole(string.format("	turnDelt: %d", result[7]))
 	room:writeToConsole("********END*********")
 	room:writeToConsole("--------------------")
+end
+--[[
+	函数名：KingdomsCount
+	功能：统计指定范围内出现的势力数目
+	参数表：players（QList<Player*>类型，表示待统计的范围）
+	返回值：一个整数，表示范围内出现的势力的数目
+]]--
+function SmartAI:KingdomsCount(players)
+	local kingdoms = {}
+	for _,p in sgs.qlist(players) do
+		local kingdom = p:getKingdom()
+		local flag = true
+		for _,k in pairs(kingdoms) do
+			if k == kingdoms then
+				flag = false
+			end
+		end
+		if flag then
+			table.insert(kingdoms, kingdom)
+		end
+	end
+	return #kingdoms
 end

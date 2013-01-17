@@ -485,7 +485,6 @@ sgs.ai_skill_invoke.caizhaoji_hujia = function(self, data)
 	    return zhangjiao:getHandcardNum() <= 2
 	end
 	if not self.player:faceUp() then return true end
-
 	local invokeNum = self.player:getMark("caizhaoji_hujia")
 	if invokeNum < 2 then 
 		self.room:setPlayerMark(self.player, "caizhaoji_hujia",invokeNum + 1) 

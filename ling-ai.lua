@@ -105,25 +105,73 @@ sgs.ai_skill_invoke.zhongyi = function(self, data)
 end
 
 sgs.ai_skill_invoke.zhulou = function(self, data)
+	local weaponnum = 0
+	for _, card in sgs.qlist(self.player:getCards("h")) do
+		if card:isKindOf("Weapon") then
+			weaponnum = weaponnum + 1
+		end
+	end
+
+	if weaponnum > 0 then return true end
+		
 	if self.player:getHandcardNum() < 3 and self.player:getHp() > 2 then
 		return true
 	end
+
+        if self.player:getHp() < 3 and self.player:getWeapon() then
+	        return true
+	end
+
 	return false
 end
 
-sgs.ai_skill_cardask["@zhulou-discard"] = function(self, data)
+sgs.ai_skill_choice.zhulou = function(self, choices)
+	local weaponnum = 0
+	local weapon_card
+
 	for _, card in sgs.qlist(self.player:getCards("he")) do
-		if card:isKindOf("Weapon") and not self.player:hasEquip(card) then 
-			return "$" .. card:getEffectiveId()
+		if card:isKindOf("Weapon") then
+			weapon_card = card
+			weaponnum = weaponnum + 1
 		end
 	end
-	for _, card in sgs.qlist(self.player:getCards("he")) do
-		if card:isKindOf("Weapon") then 
-			return "$" .. card:getEffectiveId()
-		end
+	if weaponnum > 0 then
+		return "throw"
+	else 
+		return "losehp"
 	end
-	return "."
 end
+
+sgs.ai_skill_cardask["@zhulou-discard"] =  function(self, data)
+      local weapon_card
+      for _, card in sgs.qlist(self.player:getCards("he")) do
+		if card:isKindOf("Weapon") then
+			weapon_card = card
+		end
+	end
+
+	return "$" .. weapon_card:getEffectiveId()
+end
+
+sgs.ai_cardneed.zhulou = sgs.ai_cardneed.weapon
+
+sgs.neo_gongsunzan_keep_value = 
+{
+	Peach = 6,
+	Jink = 5.1,
+	Crossbow = 5,
+	Blade = 5,
+	Spear = 5,
+	DoubleSword =5,
+	QinggangSword=5,
+	Axe=5,
+	KylinBow=5,
+	Halberd=5,
+	IceSword=5,
+	Fan=5,
+	MoonSpear=5,
+	GudingBlade=5
+}
 
 function sgs.ai_skill_invoke.neojushou(self, data)
 	if not self.player:faceUp() then return true end

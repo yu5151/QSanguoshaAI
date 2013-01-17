@@ -477,26 +477,46 @@ sgs.ai_use_priority.GuihanCard = 8
 sgs.ai_skill_invoke.caizhaoji_hujia = function(self, data)
 	local zhangjiao = self.room:findPlayerBySkillName("guidao")
 	if zhangjiao and self:isEnemy(zhangjiao) then 
-	        if not zhangjiao:getCards("e"):isEmpty() then
-		   for _, card in sgs.qlist(zhangjiao:getCards("e")) do
-			if card:isBlack() then return false end
-		   end
-	        end
+		if not zhangjiao:getCards("e"):isEmpty() then
+			for _, card in sgs.qlist(zhangjiao:getCards("e")) do
+				if card:isBlack() then return false end
+			end
+		end
 	    return zhangjiao:getHandcardNum() <= 2
 	end
-	if not self.player:faceUp() then return true end
+	if not self.player:faceUp() then 
+		return true 
+	end
 	local invokeNum = self.player:getMark("caizhaoji_hujia")
-	if invokeNum < 2 then 
-		self.room:setPlayerMark(self.player, "caizhaoji_hujia",invokeNum + 1) 
+	if invokeNum < 2 then
+		self.room:setPlayerMark(self.player, "caizhaoji_hujia", invokeNum + 1)
 		return true
-	else		
+	else
 		return false
 	end
+	--[[
+	if invokeNum ~= 2 then 
+		self.room:setPlayerMark(self.player, "caizhaoji_hujia", invokeNum + 1) 
+		return true
+	else
+		if self:hasSkills("hongyan|zhenlie|jiushi|toudu|guicai|huanshi", self.player) then
+			self.room:setPlayerMark(self.player, "caizhaoji_hujia", invokeNum + 1) 
+			return true
+		end
+		for _,p in pairs(self.friends_noself) do
+			if self:hasSkills("fangzhu|jilve|guicai|huanshi", p) then
+				self.room:setPlayerMark(self.player, "caizhaoji_hujia", invokeNum + 1) 
+				return true 
+			end
+		end
+		return false
+	end
+	]]--
 end
 
-sgs.ai_event_callback[sgs.EventPhaseEnd].caizhaoji_hujia=function(self,player,data)
+sgs.ai_event_callback[sgs.EventPhaseEnd].caizhaoji_hujia = function(self, player, data)
 	if player:getPhase() == sgs.Player_Finish then
-		self.room:setPlayerMark(player, "caizhaoji_hujia",0) 
+		self.room:setPlayerMark(player, "caizhaoji_hujia", 0) 
 	end
 end
 --[[
@@ -549,6 +569,7 @@ sgs.ai_skill_playerchosen.shaoying = function(self, targets)
 	
 	if #tos > 0 then
 		tos = self:SortByAtomDamageCount(tos, self.player, sgs.DamageStruct_Fire, nil)
+		tos[1]:speak("有人趁火打劫啊！快去报警啊！")
 		return tos[1]
 	end
 end
@@ -676,27 +697,6 @@ end
 function sgs.ai_skill_use_func.XunzhiCard(card, use)
 	use.card = card
 end
-
-sgs.ai_choicemade_filter.playerChosen.general = function(from, promptlist)
-	if from and from:hasSkill("xunzhi") then
-		return "wolong"
-	else
-		if from:objectName() == promptlist[3] then return end
-		local reason = string.gsub(promptlist[2], "%-", "_")
-		local to
-		for _, p in sgs.qlist(from:getRoom():getAlivePlayers()) do
-			if p:objectName() == promptlist[3] then to = p break end
-		end
-		local callback = sgs.ai_playerchosen_intention[reason]
-		if callback then
-			if type(callback) == "number" then
-				sgs.updateIntention(from, to, sgs.ai_playerchosen_intention[reason])
-			elseif type(callback) == "function" then
-				callback(from, to)
-			end
-		end
-	end
-end
 --[[
 	技能：毒士
 	描述：杀死你的角色获得崩坏技能直到游戏结束 
@@ -715,10 +715,46 @@ sgs.ai_skill_invoke.zhenggong  = true
 	描述：当你的武将牌背面向上时若受到伤害，你可以弃置一张手牌并将你的武将牌翻面，视为对一名其他角色使用了一张【杀】
 ]]--
 sgs.ai_skill_invoke.toudu = function(self, data)
-	return #self.enemies>0
+	if #self.enemies > 0 then
+		return true
+	end
+	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+	for _,p in pairs(self.friends_noself) do --实在没办法了，如果杀无效，也可以对自己的队友发动
+		if not self:slashProhibit(slash, p) then
+			if not self:slashIsEffective(slash, target) then
+				return true
+			end
+		end
+	end
+	return false
 end
 
-sgs.ai_skill_playerchosen.toudu = sgs.ai_skill_playerchosen.zero_card_as_slash
+sgs.ai_skill_playerchosen.toudu = function(self, targets)
+    local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+	local targetlist = {}
+	for _,p in sgs.qlist(targets) do
+		if not self:slashProhibit(slash, p) then
+			table.insert(targetlist, p)
+		end
+	end
+    self:sort(targetlist, "defenseSlash")
+    for _, target in ipairs(targetlist) do
+        if self:isEnemy(target) then
+			if self:slashIsEffective(slash, target) then
+				if sgs.isGoodTarget(target, targetlist) then
+					self.player:speak("嘿！没想到吧？")
+					return target
+				end
+			end
+        end
+    end
+    for i=#targetlist, 1, -1 do
+        if sgs.isGoodTarget(targetlist[i], targetlist) then
+            return targetlist[i]
+        end
+    end
+    return targetlist[#targetlist]
+end
 --[[
 	技能：义舍
 	描述：出牌阶段，你可将任意数量手牌正面朝上移出游戏称为“米”（至多存在五张）或收回；其他角色在其出牌阶段可选择一张“米”询问你，若你同意，该角色获得这张牌，每阶段限两次 
@@ -791,7 +827,9 @@ sgs.ai_use_priority.YisheAskCard = 9.1
 	技能：镇威
 	描述：你的【杀】被手牌中的【闪】抵消时，可立即获得该【闪】。 
 ]]--
-sgs.ai_skill_invoke.zhenwei = true
+sgs.ai_skill_invoke.zhenwei = function(self, data)
+	return not self:needKongcheng(self.player) 
+end
 --[[
 	技能：倚天
 	描述：当你对曹操造成伤害时，可令该伤害-1 

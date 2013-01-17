@@ -178,7 +178,32 @@ end
 	技能：北伐（锁定技）
 	描述：当你失去最后一张手牌时，视为对攻击范围内的一名角色使用了一张【杀】
 ]]--
-sgs.ai_skill_playerchosen.beifa = sgs.ai_skill_playerchosen.zero_card_as_slash
+sgs.ai_skill_playerchosen.beifa = function(self, targets)
+    local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+	local targetlist = {}
+	for _,p in sgs.qlist(targets) do
+		if not self:slashProhibit(slash, p) then
+			table.insert(targetlist, p)
+		end
+	end
+    self:sort(targetlist, "defenseSlash")
+    for _, target in ipairs(targetlist) do
+        if self:isEnemy(target) then
+			if self:slashIsEffective(slash, target) then
+				if sgs.isGoodTarget(target, targetlist) then
+					self.player:speak("嘿！没想到吧？")
+					return target
+				end
+			end
+        end
+    end
+    for i=#targetlist, 1, -1 do
+        if sgs.isGoodTarget(targetlist[i], targetlist) then
+            return targetlist[i]
+        end
+    end
+    return targetlist[#targetlist]
+end
 
 sgs.ai_chaofeng.wisjiangwei = 2
 --[[

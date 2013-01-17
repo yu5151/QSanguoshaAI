@@ -370,7 +370,7 @@ function SmartAI:adjustUsePriority(card,v)
 	end
 	
 	table.insert(suits,"no_suit")
-	if card:isKindOf("Slash") then	v = (card:isKindOf("ThunderSlash") or card:isKindOf("FireSlash")) and 2.5 or 2.6 end	
+	--if card:isKindOf("Slash") then	v = (card:isKindOf("ThunderSlash") or card:isKindOf("FireSlash")) and 2.5 or 2.6 end
 
 	local suits_value={}
 	for index,suit in ipairs(suits) do

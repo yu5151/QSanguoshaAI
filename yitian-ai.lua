@@ -442,8 +442,23 @@ sgs.ai_skill_invoke.caizhaoji_hujia = function(self, data)
 	        end
 	    return zhangjiao:getHandcardNum() <= 2
 	end
-	return true
+	if not self.player:faceUp() then return true end
+	
+	local invokeNum = self.player:getMark("caizhaoji_hujia")
+	if invokeNum < 2 then 
+		self.room:setPlayerMark(self.player, "caizhaoji_hujia",invokeNum + 1) 
+		return true
+	else		
+		return false
+	end
 end
+
+sgs.ai_event_callback[sgs.EventPhaseEnd].caizhaoji_hujia=function(self,player,data)
+	if player:getPhase() == sgs.Player_Finish then
+		self.room:setPlayerMark(player, "caizhaoji_hujia",0) 
+	end
+end
+
 
 function sgs.ai_skill_choice.shenjun(self, choices)
 	local gender

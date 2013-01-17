@@ -1,8 +1,14 @@
+--[[
+	技能：归心
+	描述：回合结束阶段，你可以做以下二选一：
+		1. 永久改变一名其他角色的势力
+		2. 永久获得一项未上场或已死亡角色的主公技。(获得后即使你不是主公仍然有效) 
+]]--
 sgs.ai_skill_invoke.weiwudi_guixin = true
 
-local function findPlayerForModifyKingdom(self, players)
+local function findPlayerForModifyKingdom(self, players) --从目标列表中选择一名用于修改势力
 	local lord = self.room:getLord()
-	local isGood = self:isFriend(lord)
+	local isGood = self:isFriend(lord) --自己是否为忠方
 
 	for _, player in sgs.qlist(players) do
 		if not player:isLord() or player:hasLordSkill("weidai") then
@@ -21,7 +27,7 @@ local function findPlayerForModifyKingdom(self, players)
 	end
 end
 
-local function chooseKingdomForPlayer(self, to_modify)
+local function chooseKingdomForPlayer(self, to_modify) --选择合适的势力以修改目标势力
 	local lord = self.room:getLord()
 	local isGood = self:isFriend(lord)
 	if  sgs.evaluateRoleTrends(to_modify) == "loyalist" or sgs.evaluateRoleTrends(to_modify) == "renegade" then
@@ -46,12 +52,12 @@ local function chooseKingdomForPlayer(self, to_modify)
 end
 
 sgs.ai_skill_choice.weiwudi_guixin = function(self, choices)
-	if choices == "wei+shu+wu+qun" then
+	if choices == "wei+shu+wu+qun" then --选择势力
 		local to_modify = self.room:getTag("Guixin2Modify"):toPlayer()
 		return chooseKingdomForPlayer(self, to_modify)
 	end
 
-	if choices ~= "modify+obtain" then
+	if choices ~= "modify+obtain" then --选择主公技
 		if choices:match("xueyi") and not self.room:getLieges("qun", self.player):isEmpty() then return "xueyi" end
 		if choices:match("weidai") and self:isWeak() then return "weidai" end
 		if choices:match("ruoyu") then return "ruoyu" end
@@ -59,7 +65,7 @@ sgs.ai_skill_choice.weiwudi_guixin = function(self, choices)
 		return choice_table[math.random(1,#choice_table)]
 	end
 
-	-- two choices: modify and obtain
+	-- two choices: modify and obtain --选择技能项
 	if self.player:getRole() == "renegade" or self.player:getRole() == "lord" then
 		return "obtain"
 	end
@@ -87,11 +93,14 @@ sgs.ai_skill_choice.weiwudi_guixin = function(self, choices)
 	end
 end
 
-sgs.ai_skill_playerchosen.weiwudi_guixin = function(self, players)
+sgs.ai_skill_playerchosen.weiwudi_guixin = function(self, players) --选择修改势力的目标
 	local player = findPlayerForModifyKingdom(self, players)
 	return player or players:first()
 end
-
+--[[
+	技能：称象
+	描述：每当你受到1次伤害，你可打出X张牌（X小于等于3），它们的点数之和与造成伤害的牌的点数相等，你可令X名角色各恢复1点体力（若其满体力则摸2张牌）
+]]--
 sgs.ai_skill_use["@@chengxiang"]=function(self,prompt)
 	local prompts=prompt:split(":")
 	assert(prompts[1]=="@chengxiang-card")
@@ -141,7 +150,10 @@ sgs.ai_card_intention.ChengxiangCard = sgs.ai_card_intention.QingnangCard
 function sgs.ai_cardneed.chengxiang(to, card, self)
 	return card:getNumber()<8 and self:getUseValue(card)<6 and to:hasSkill("chengxiang") and to:getHandcardNum() < 12
 end
-
+--[[
+	技能：绝汲
+	描述：出牌阶段，你可以和一名角色拼点：若你赢，你获得对方的拼点牌，并可立即再次与其拼点，如此反复，直到你没赢或不愿意继续拼点为止。每阶段限一次。 
+]]--
 sgs.ai_skill_invoke.jueji = true
 
 local jueji_skill={}
@@ -215,7 +227,10 @@ function sgs.ai_skill_pindian.jueji(minusecard, self, requestor, maxcard)
 	if self:isFriend(requestor) then return end
 	if (maxcard:getNumber()/13)^requestor:getHandcardNum() <= 0.6 then return minusecard end
 end
-
+--[[
+	技能：围堰
+	描述：你可以将你的摸牌阶段当作出牌阶段，出牌阶段当作摸牌阶段执行 
+]]--
 sgs.ai_skill_invoke.lukang_weiyan = function(self, data)
 	local handcard = self.player:getHandcardNum()
 	local max_card = self.player:getMaxCards()
@@ -227,7 +242,16 @@ sgs.ai_skill_invoke.lukang_weiyan = function(self, data)
 		return handcard < max_card or #(self:getTurnUse()) == 0
 	end
 end
-
+--[[
+	技能：五灵
+	描述：回合开始阶段，你可选择一种五灵效果发动，该效果对场上所有角色生效
+		该效果直到你的下回合开始为止，你选择的五灵效果不可与上回合重复
+		[风]场上所有角色受到的火焰伤害+1
+		[雷]场上所有角色受到的雷电伤害+1
+		[水]场上所有角色使用桃时额外回复1点体力
+		[火]场上所有角色受到的伤害均视为火焰伤害
+		[土]场上所有角色每次受到的属性伤害至多为1 
+]]--
 sgs.ai_skill_choice.wuling = function(self, choices)
 	if choices:match("water") then
 		self:sort(self.friends, "hp")
@@ -277,14 +301,21 @@ sgs.ai_skill_choice.wuling = function(self, choices)
 	local choices_table = choices:split("+")
 	return choices_table[math.random(1, #choices_table)]
 end
-
+--[[
+	技能：连理
+	描述：回合开始阶段开始时，你可以选择一名男性角色，你和其进入连理状态直到你的下回合开始：该角色可以帮你出闪，你可以帮其出杀 
+]]--
 sgs.ai_skill_use["@@lianli"] = function(self, prompt)
 	self:sort(self.friends)
 	
-	for _, friend in ipairs(self.friends) do
+	for _, friend in ipairs(self.friends_noself) do --优先考虑与队友连理
 		if friend:getGeneral():isMale() then
 			return "@LianliCard=.->" .. friend:objectName()
 		end
+	end
+	
+	if self.player:getGeneral():isMale() then --双将时可以和自己连理
+		return "@LianliCard=.->"..self.player:objectName()
 	end
 	
 	return "."	
@@ -293,7 +324,7 @@ end
 sgs.ai_card_intention.LianliCard = -80
 
 table.insert(sgs.ai_global_flags, "lianlisource")
-sgs.ai_skill_invoke.lianli_slash = function(self, data)
+sgs.ai_skill_invoke.lianli_slash = function(self, data) --CardAsk
 	return self:getCardsNum("Slash")==0
 end
 
@@ -334,15 +365,17 @@ end
 
 local lianli_slash_skill={name="lianli-slash"}
 table.insert(sgs.ai_skills, lianli_slash_skill)
-lianli_slash_skill.getTurnUseCard = function(self)
+lianli_slash_skill.getTurnUseCard = function(self) --考虑主动使用连理杀
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-	if self.player:getMark("@tied")>0 and slash:isAvailable(self.player) then return sgs.Card_Parse("@LianliSlashCard=.") end
+	if self.player:getMark("@tied")>0 and slash:isAvailable(self.player) then 
+		return sgs.Card_Parse("@LianliSlashCard=.") 
+	end
 end
 
 sgs.ai_skill_use_func.LianliSlashCard = function(card, use, self)
 	if self.player:hasUsed("LianliSlashCard") and not sgs.lianlislash then return end
-	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-	self:useBasicCard(slash, use)
+	--local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+	--self:useBasicCard(slash, use)
 	if use.card then use.card = card end
 end
 
@@ -369,10 +402,16 @@ sgs.ai_skill_cardask["@lianli-slash"] = function(self)
 	if not self:isFriend(target) then return "." end
 	return self:getCardId("Slash") or "."
 end
-
+--[[
+	技能：同心
+	描述：处于连理状态的两名角色，每受到一点伤害，你可以令你们两人各摸一张牌 
+]]--
 sgs.ai_skill_invoke.tongxin = true
 
-
+--[[
+	技能：归汉
+	描述：出牌阶段，你可以主动弃置两张相同花色的红色手牌，和你指定的一名其他存活角色互换位置。每阶段限一次 
+]]--
 local guihan_skill = {name = "guihan"}
 table.insert(sgs.ai_skills, guihan_skill)
 function guihan_skill.getTurnUseCard(self)
@@ -431,7 +470,10 @@ function sgs.ai_skill_use_func.GuihanCard(card, use, self)
 end
 
 sgs.ai_use_priority.GuihanCard = 8
-
+--[[
+	技能：胡笳
+	描述：回合结束阶段开始时，你可以进行判定：若为红色，立即获得此牌，如此往复，直到出现黑色为止，连续发动3次后武将翻面 
+]]--
 sgs.ai_skill_invoke.caizhaoji_hujia = function(self, data)
 	local zhangjiao = self.room:findPlayerBySkillName("guidao")
 	if zhangjiao and self:isEnemy(zhangjiao) then 
@@ -442,9 +484,26 @@ sgs.ai_skill_invoke.caizhaoji_hujia = function(self, data)
 	        end
 	    return zhangjiao:getHandcardNum() <= 2
 	end
-	return true
+	if not self.player:faceUp() then return true end
+
+	local invokeNum = self.player:getMark("caizhaoji_hujia")
+	if invokeNum < 2 then 
+		self.room:setPlayerMark(self.player, "caizhaoji_hujia",invokeNum + 1) 
+		return true
+	else		
+		return false
+	end
 end
 
+sgs.ai_event_callback[sgs.EventPhaseEnd].caizhaoji_hujia=function(self,player,data)
+	if player:getPhase() == sgs.Player_Finish then
+		self.room:setPlayerMark(player, "caizhaoji_hujia",0) 
+	end
+end
+--[[
+	技能：神君
+	描述：游戏开始时，你必须选择自己的性别。回合开始阶段开始时，你必须倒转性别，异性角色对你造成的非雷电属性伤害无效 
+]]--
 function sgs.ai_skill_choice.shenjun(self, choices)
 	local gender
 	if sgs.isRolePredictable() then
@@ -460,7 +519,10 @@ function sgs.ai_skill_choice.shenjun(self, choices)
 	if self.player:getSeat() < self.room:alivePlayerCount()/2 then gender = not gender end
 	if gender then return "male" else return "female" end
 end
-
+--[[
+	技能：烧营
+	描述：当你对一名不处于连环状态的角色造成一次火焰伤害时，你可选择一名其距离为1的另外一名角色并进行一次判定：若判定结果为红色，则你对选择的角色造成一点火焰伤害 
+]]--
 function sgs.ai_skill_invoke.shaoying(self, data)
 	local damage = data:toDamage()
 	local enemynum = 0
@@ -487,11 +549,14 @@ sgs.ai_skill_playerchosen.shaoying = function(self, targets)
 	end 
 	
 	if #tos > 0 then
-		self:sort(tos, "hp")
+		tos = self:SortByAtomDamageCount(tos, self.player, sgs.DamageStruct_Fire, nil)
 		return tos[1]
 	end
 end
-
+--[[
+	技能：共谋
+	描述：回合结束阶段开始时，可指定一名其他角色：其在摸牌阶段摸牌后，须给你X张手牌（X为你手牌数与对方手牌数的较小值），然后你须选择X张手牌交给对方 
+]]--
 sgs.ai_skill_invoke.gongmou = true
 
 sgs.ai_skill_playerchosen.gongmou = function(self,choices)
@@ -513,7 +578,10 @@ sgs.ai_skill_discard.gongmou = function(self, discard_num, optional, include_equ
 	
 	return to_discard
 end
-
+--[[
+	技能：乐学
+	描述：出牌阶段，可令一名有手牌的其他角色展示一张手牌，若为基本牌或非延时锦囊，则你可将与该牌同花色的牌当作该牌使用或打出直到回合结束；若为其他牌，则立刻被你获得。每阶段限一次 
+]]--
 sgs.ai_cardshow.lexue = function(self, requestor)
 	local cards = self.player:getHandcards()
 	if self:isFriend(requestor) then
@@ -588,7 +656,10 @@ sgs.ai_skill_use_func.LexueCard = function(card, use, self)
 end
 
 sgs.ai_use_priority.LexueCard = 10
-
+--[[
+	技能：殉志
+	描述：出牌阶段，你可以摸三张牌并变身为其他未上场或已阵亡的蜀势力角色，回合结束后你立即死亡 
+]]--
 local xunzhi_skill = {name = "xunzhi"}
 table.insert(sgs.ai_skills, xunzhi_skill)
 function xunzhi_skill.getTurnUseCard(self)
@@ -607,19 +678,52 @@ function sgs.ai_skill_use_func.XunzhiCard(card, use)
 	use.card = card
 end
 
+sgs.ai_choicemade_filter.playerChosen.general = function(from, promptlist)
+	if from and from:hasSkill("xunzhi") then
+		return "wolong"
+	else
+		if from:objectName() == promptlist[3] then return end
+		local reason = string.gsub(promptlist[2], "%-", "_")
+		local to
+		for _, p in sgs.qlist(from:getRoom():getAlivePlayers()) do
+			if p:objectName() == promptlist[3] then to = p break end
+		end
+		local callback = sgs.ai_playerchosen_intention[reason]
+		if callback then
+			if type(callback) == "number" then
+				sgs.updateIntention(from, to, sgs.ai_playerchosen_intention[reason])
+			elseif type(callback) == "function" then
+				callback(from, to)
+			end
+		end
+	end
+end
+--[[
+	技能：毒士
+	描述：杀死你的角色获得崩坏技能直到游戏结束 
+]]--
 function sgs.ai_slash_prohibit.dushi(self, to)
 	if self:isFriend(to) and self:isWeak(to) then return true end
 	return self.player:isLord() and self:isWeak(enemy)
 end
-
+--[[
+	技能：争功
+	描述：其他角色的回合开始前，若你的武将牌正面向上，你可以将你的武将牌翻面并立即进入你的回合，你的回合结束后，进入该角色的回合 
+]]--
 sgs.ai_skill_invoke.zhenggong  = true
-
+--[[
+	技能：偷渡
+	描述：当你的武将牌背面向上时若受到伤害，你可以弃置一张手牌并将你的武将牌翻面，视为对一名其他角色使用了一张【杀】
+]]--
 sgs.ai_skill_invoke.toudu = function(self, data)
 	return #self.enemies>0
 end
 
 sgs.ai_skill_playerchosen.toudu = sgs.ai_skill_playerchosen.zero_card_as_slash
-
+--[[
+	技能：义舍
+	描述：出牌阶段，你可将任意数量手牌正面朝上移出游戏称为“米”（至多存在五张）或收回；其他角色在其出牌阶段可选择一张“米”询问你，若你同意，该角色获得这张牌，每阶段限两次 
+]]--
 local yishe_skill={name="yishe"}
 table.insert(sgs.ai_skills,yishe_skill)
 yishe_skill.getTurnUseCard = function(self)
@@ -684,14 +788,23 @@ end
 
 sgs.ai_chaofeng.zhanggongqi = 4
 sgs.ai_use_priority.YisheAskCard = 9.1
-
+--[[
+	技能：镇威
+	描述：你的【杀】被手牌中的【闪】抵消时，可立即获得该【闪】。 
+]]--
 sgs.ai_skill_invoke.zhenwei = true
-
+--[[
+	技能：倚天
+	描述：当你对曹操造成伤害时，可令该伤害-1 
+]]--
 sgs.ai_skill_invoke.yitian = function(self, data)
 	local damage = data:toDamage()
 	return self:isFriend(damage.to)
 end
-
+--[[
+	技能：抬榇
+	描述：出牌阶段，你可以自减1点体力或弃置一张武器牌，弃置你攻击范围内的一名角色区域的两张牌。每回合中，你可以多次使用抬榇 
+]]--
 local taichen_skill={}
 taichen_skill.name="taichen"
 table.insert(sgs.ai_skills,taichen_skill)

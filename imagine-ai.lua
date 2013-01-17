@@ -659,3 +659,43 @@ function SmartAI:KingdomsCount(players)
 	end
 	return #kingdoms
 end
+--[[
+	函数名：SortByAtomDamageCount
+	功能：按单体伤害对一组目标进行排序
+	参数表：
+		targets：目标列表，table类型
+		source：伤害来源
+		nature：伤害属性，取值为：
+			一般伤害：sgs.DamageStruct_Normal（默认值）
+			火焰伤害：sgs.DamageStruct_Fire
+			雷电伤害：sgs.DamageStruct_Thunder
+		card：伤害所用卡牌，默认值为nil（没有卡牌）
+		inverse：排序顺序，取值为：
+			true：按从小到大的顺序排序
+			false：按从大到小的顺序排序（默认值）
+	返回值：table类型，表示排序结果。
+]]--
+function SmartAI:SortByAtomDamageCount(targets, source, nature, card, inverse)
+	if not nature then
+		nature = sgs.DamageStruct_Normal
+	end
+	local compare_func = function(a,b)
+		local damageA = self:AtomDamageCount(a, source, nature, card)
+		local damageB = self:AtomDamageCount(b, source, nature, card)
+		if damageA == damageB then
+			if inverse then
+				return a:getHp() >= b:getHp()
+			else
+				return a:getHp() <= b:getHp()
+			end
+		else
+			if inverse then
+				return damageA < damageB
+			else
+				return damageA > damageB
+			end
+		end
+	end
+	table.sort(targets, compare_func)
+	return targets
+end

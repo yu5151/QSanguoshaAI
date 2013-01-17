@@ -1,10 +1,10 @@
-sgs.ai_debug_func[sgs.EventPhaseStart]=function(self, player, data)
+sgs.ai_debug_func[sgs.EventPhaseStart].debugfunc=function(self, player, data)
     if player:getPhase()== sgs.Player_Start then
         debugFunc(self, self.room, player, data)
      end
 end
 
-sgs.ai_debug_func[sgs.CardUsed]=function(self, player, data)
+sgs.ai_debug_func[sgs.CardUsed].debugfunc=function(self, player, data)
     local card= data:toCardUse().card
     if card:isKindOf("Peach") or card:isKindOf("Nullification") then
         debugFunc(self, self.room, player, data)

@@ -87,7 +87,7 @@ function sgs.ai_armor_value.Vine(player, self)
 
 	for _, enemy in ipairs(self:getEnemies(player)) do
 		if (enemy:canSlash(player) and self:isEquip("Fan",enemy)) or self:hasSkills("huoji|shaoying", enemy) then return -1 end
-		if getCardsNum("FireSlash", enemy) or getCardsNum("FireAttack",enemy) then return -1 end
+		if getKnownCard(enemy, "FireSlash", true)>=1 or getKnownCard(enemy, "FireAttack", true)>=1 then return -1 end
 	end
 
 	if #(self:getEnemies(player))<3 or player:getHp()<=2 then return 3 end
@@ -351,11 +351,18 @@ sgs.ai_use_priority.IronChain = 8.5
 
 sgs.dynamic_value.benefit.IronChain = true
 
+sgs.ai_event_callback[sgs.ChoiceMade].fireattack=function(self,player,data)
+	local datastr= data:toString()	
+	if string.match(datastr,"cardResponsed")  and  string.match(datastr,"@fire%-attack") and string.match(datastr,"_nil_") then
+		player:setFlags("fireAttackFailed")
+	end
+end
+
 function SmartAI:useCardFireAttack(fire_attack, use)  
 	if self.player:hasSkill("wuyan") then return end
 	if self.player:hasSkill("noswuyan") then return end
 	if self.player:hasSkill("ayshuiyong") then return end  --ecup
-	if self.player:hasFlag("fireAttackFailed") then return end
+	if self.player:hasFlag("fireAttackFailed") and self:getOverflow()<=0 and not self:hasSkills("jizhi") then return end
 
 	local lack = {
 		spade = true,

@@ -69,12 +69,18 @@ sgs.ai_choicemade_filter = 	{
 	cardChosen =			{}
 }
 
-sgs.card_lack =             {}
-sgs.ai_need_damaged =       {}
-sgs.ai_debug_func = 	    {}
-sgs.ai_chat_func = 	    {}
-sgs.ai_event_callback = 	{}
+sgs.card_lack =				{}
+sgs.ai_need_damaged =		{}
+sgs.ai_debug_func =			{}
+sgs.ai_chat_func =			{}
+sgs.ai_event_callback =		{}
 sgs.processvalue = {loyalist ="忠大优", dilemma="纠结", loyalish="忠小优" , rebelish="反小优", rebel="反大优",neutral= "平衡"}
+
+for i=sgs.NonTrigger, sgs.NumOfEvents, 1 do
+	sgs.ai_debug_func[i]	={}
+	sgs.ai_chat_func[i]		={}
+	sgs.ai_event_callback[i]={}
+end
 
 function setInitialTables()
 	sgs.current_mode_players = 	{loyalist = 0, rebel = 0, renegade = 0}
@@ -1689,17 +1695,24 @@ function SmartAI:filterEvent(event, player, data)
 	if not sgs.recorder then
 		sgs.recorder = self
 	end
-    if sgs.debugmode and player:objectName()==self.player:objectName() and sgs.ai_debug_func[event] and type(sgs.ai_debug_func[event])=="function" then
-        sgs.ai_debug_func[event](self,player,data)
-    end
-	
-    if player:objectName()==self.player:objectName() and sgs.ai_chat_func[event] and type(sgs.ai_chat_func[event])=="function" then
-        sgs.ai_chat_func[event](self,player,data)
+    if player:objectName()==self.player:objectName() then		
+		if sgs.debugmode and type(sgs.ai_debug_func[event])=="table" then
+			for _,callback in pairs(sgs.ai_debug_func[event]) do
+				if type(callback)=="function" then callback(self,player,data) end
+			end
+		end
+		if type(sgs.ai_chat_func[event])=="table" then
+			for _,callback in pairs(sgs.ai_chat_func[event]) do
+				if type(callback)=="function" then callback(self,player,data) end
+			end
+		end
+		if type(sgs.ai_event_callback[event])=="table" then
+			for _,callback in pairs(sgs.ai_event_callback[event]) do
+				if type(callback)=="function" then callback(self,player,data) end
+			end
+		end
     end
 
-    if player:objectName()==self.player:objectName() and sgs.ai_event_callback[event] and type(sgs.ai_event_callback[event])=="function" then
-        sgs.ai_event_callback[event](self,player,data)
-    end
 
 	sgs.lastevent = event
 	sgs.lasteventdata = eventdata
@@ -1939,13 +1952,6 @@ function SmartAI:filterEvent(event, player, data)
             logmsg("ai.html","<meta charset='utf-8'/>")
         end
 
-	end
-end
-
-sgs.ai_event_callback[sgs.ChoiceMade]=function(self,player,data)
-	local datastr= data:toString()	
-	if string.match(datastr,"cardResponsed")  and  string.match(datastr,"@fire%-attack") and string.match(datastr,"_nil_") then
-		player:setFlags("fireAttackFailed")
 	end
 end
 
@@ -3049,19 +3055,6 @@ function SmartAI:getTurnUse()
 	for _,card in ipairs(cards) do
 		local dummy_use = {}
 		dummy_use.isDummy = true
-		--[[
-		local hp = self.player:getHp() 
-		if self.player:hasSkill("benghuai") and hp>4 then hp = 4 end		
-		if not self:hasSkills(sgs.need_kongcheng) then
-			if (i >= (self.player:getHandcardNum()-hp+self.retain)) and (self:getUseValue(card) < self.retain_thresh) then
-				return turnUse
-			end
-
-			if (i >= (self.player:getHandcardNum()-hp)) and (self:getUseValue(card) < 8.5) and self.harsh_retain then
-				return turnUse
-			end
-		end
-		]]
 
 		local type = card:getTypeId()
 		self["use" .. sgs.ai_type_name[type + 1] .. "Card"](self, card, dummy_use)
@@ -3081,13 +3074,6 @@ function SmartAI:getTurnUse()
 				end
 				if card:isKindOf("OffensiveHorse") then self.predictNewHorse = true end
 				if card:objectName() == "Crossbow" then slashAvail = 100 end
-				--[[
-				if card:isKindOf("Snatch") then i = i-1 end
-				if card:isKindOf("Peach") then i = i+2 end
-				if card:isKindOf("Collateral") then i = i-1 end
-				if card:isKindOf("AmazingGrace") then i = i-1 end
-				if card:isKindOf("ExNihilo") then i = i-2 end
-				]]
 				table.insert(turnUse,card)
 			end
 			--i = i+1

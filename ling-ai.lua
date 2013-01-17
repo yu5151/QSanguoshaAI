@@ -125,23 +125,6 @@ sgs.ai_skill_invoke.zhulou = function(self, data)
 	return false
 end
 
-sgs.ai_skill_choice.zhulou = function(self, choices)
-	local weaponnum = 0
-	local weapon_card
-
-	for _, card in sgs.qlist(self.player:getCards("he")) do
-		if card:isKindOf("Weapon") then
-			weapon_card = card
-			weaponnum = weaponnum + 1
-		end
-	end
-	if weaponnum > 0 then
-		return "throw"
-	else 
-		return "losehp"
-	end
-end
-
 sgs.ai_skill_cardask["@zhulou-discard"] =  function(self, data)
       local weapon_card
       for _, card in sgs.qlist(self.player:getCards("he")) do

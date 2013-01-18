@@ -159,7 +159,7 @@ sgs.ai_skill_askforag.manjuan = function(self, card_ids)
 	end
 	for _, card in ipairs(cards) do
 		if card:isKindOf("Snatch") then
-			if #self.enemies > 0 then --½©Ê¬Ä£Ê½Ê×»ØºÏÒ»Ö÷ÆßÖÒ£¬Ã»ÓĞµĞÈË£¬´ËÊ±self.enemies[1]Îªnil¡£
+			if #self.enemies > 0 then --åƒµå°¸æ¨¡å¼é¦–å›åˆä¸€ä¸»ä¸ƒå¿ ï¼Œæ²¡æœ‰æ•Œäººï¼Œæ­¤æ—¶self.enemies[1]ä¸ºnilã€‚
 				self:sort(self.enemies,"defense")
 				if sgs.getDefense(self.enemies[1]) >= 8 then self:sort(self.enemies, "threat") end
 				local enemies = self:exclude(self.enemies, card)
@@ -284,7 +284,7 @@ end
 sgs.ai_skill_use_func.TanhuCard = function(card, use, self)
 	local max_card = self:getMaxCard()
 	local max_point = max_card:getNumber()
-	local ptarget = self:getPriorTarget() --ÔÚ#self.enemies == 0Ê±£¨½©Ê¬Ä£Ê½Ê×»ØºÏÒ»Ö÷ÆßÖÒ£©·µ»Ønil
+	local ptarget = self:getPriorTarget() --åœ¨#self.enemies == 0æ—¶ï¼ˆåƒµå°¸æ¨¡å¼é¦–å›åˆä¸€ä¸»ä¸ƒå¿ ï¼‰è¿”å›nil
 	if not ptarget then
 		return "."
 	end

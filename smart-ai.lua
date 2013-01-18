@@ -263,7 +263,7 @@ function SmartAI:getKeepValue(card,kept)
 		value = sgs[self.player:getGeneralName().."_suit_value"][suit_string]
 	end
 	newvalue = sgs.ai_keep_value[class_name] or 0
-	for _,acard in ipairs(kept) do
+	for _,acard in ipairs(kept) do --此处应该是table，结果却是bool，请求支援。
 		if acard:getClassName() == card:getClassName() then newvalue = newvalue - 1.2
 		elseif acard:isKindOf("Slash") and card:isKindOf("Slash") then newvalue = newvalue - 1
 		end
@@ -2017,6 +2017,9 @@ function SmartAI:askForChoice(skill_name, choices, data)
 end
 
 function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_equip)
+	if not min_num then 
+		min_num = 0 
+	end
 	local callback = sgs.ai_skill_discard[reason]
 	self:assignKeep(self.player:getHp(),true)
 	if type(callback) == "function" then

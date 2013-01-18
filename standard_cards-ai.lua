@@ -920,12 +920,14 @@ sgs.ai_keep_value.Nullification = 3
 sgs.ai_use_value.Nullification = 8
 
 function SmartAI:useCardAmazingGrace(card, use)
-    if #self.friends >= #self.enemies or (self:hasSkills(sgs.need_kongcheng) and self.player:getHandcardNum() == 1)
-        or self.player:hasSkill("jizhi") then
-        use.card = card
-    elseif self.player:hasSkill("noswuyan") then
-        use.card = card
-    end
+	local canuse = true
+	if self.player:getRole() == "loyalist" and self.player:getSeat() == 2 and sgs.turncount == 1 or self.player:getRole() == "lord" and sgs.turncount == 0 then canuse = false self.player:speak(canuse) end	
+	if ( #self.friends >= #self.enemies or (self:hasSkills(sgs.need_kongcheng) and self.player:getHandcardNum() == 1)
+		or self.player:hasSkill("jizhi") ) and canuse then
+		use.card = card
+	elseif self.player:hasSkill("noswuyan") then
+		use.card = card
+	end
 end
 
 sgs.ai_use_value.AmazingGrace = 3
@@ -1556,3 +1558,180 @@ end
 sgs.dynamic_value.lucky_chance.Lightning = true
 
 sgs.ai_keep_value.Lightning = -1
+
+sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
+	
+	local canNullification
+	local e_Nullification, f_Nullification = 0, 0
+	for _, enemy in ipairs(self.enemies) do
+		e_Nullification = e_Nullification + getCardsNum("Nullification",enemy) 
+	end
+	for _, friend in ipairs(self.friends) do
+		f_Nullification = f_Nullification + getCardsNum("Nullification",friend) 
+	end	
+	 canNullification = f_Nullification > e_Nullification
+	
+	local nextplayercanuse
+	local nextp = self.player:getNextAlive()		
+	if self:isFriend(nextp) and sgs.turncount > 1 then
+		local Snatch_count = self.player:distanceTo(nextp) == 1 and self:getCardsNum("Snatch")  or 0
+		self.player:speak("Snatch_count is "..Snatch_count)
+		if not nextp:containsTrick("indulgence") or canNullification or nextp:containsTrick("YanxiaoCard") then
+			nextplayercanuse = true
+		elseif self:getCardsNum("Dismantlement") + Snatch_count + f_Nullification - e_Nullification > 0 then
+			nextplayercanuse = true
+		end
+	end	
+	for _, enemy in ipairs(self.enemies) do
+		if enemy:hasSkill("lihun") and enemy:faceUp() and not nextp:faceUp() and nextp:getHandcardNum() > 4 then
+			nextplayercanuse = false
+		end
+	end
+	
+	local cards = {}
+	local trickcard = {}
+	local hasjink
+	for _, card_id in ipairs(card_ids) do
+		local acard = sgs.Sanguosha:getCard(card_id)
+		if acard:isKindOf("Jink") then hasjink = true end
+		table.insert(cards, acard)
+		if acard:isKindOf("TrickCard") then
+			table.insert(trickcard , acard)
+		end
+	end	
+	
+	local overflow = true
+	if self.player:objectName() == self.room:getCurrent():objectName() or self.player:getHandcardNum() + 2 <= self.player:getMaxCards() then
+		overflow = false
+	end
+	
+	local nextisfriend = 0
+	local aplayer = self.player:getNextAlive()
+	for i =1, self.player:aliveCount() do
+		if self:isFriend(aplayer) then
+			aplayer = aplayer:getNextAlive()
+			nextisfriend = nextisfriend + 1
+		end
+	end
+	
+---------------
+	
+	local needbuyi
+	for _, friend in ipairs(self.friends) do
+		if friend:hasSkill("buyi") and self.player:getHp() == 1 then
+			needbuyi = true
+		end
+	end
+	if needbuyi then
+		local maxvaluecard, minvaluecard
+		local maxvalue, minvalue = -100, 100
+		for _, bycard in ipairs(cards) do
+			if not bycard:isKindOf("BasicCard") then
+				local value = self:getUseValue(bycard)
+				if value > maxvalue then maxvaluecard = bycard end
+				if value < minvalue then minvaluecard = bycard end
+			end
+		end
+		if self:isFriend(nextp) and minvaluecard and ( not nextp:containsTrick("indulgence") or nextp:containsTrick("YanxiaoCard") or canNullification ) then
+			return minvaluecard:getEffectiveId()
+		end
+		if maxvaluecard then
+			return maxvaluecard:getEffectiveId()
+		end
+	end
+	
+	for _, card in ipairs(cards) do
+		if card:isKindOf("ExNihilo") then
+			if not self.player:containsTrick("indulgence") or self.player:containsTrick("YanxiaoCard")  or canNullification then 
+				return card:getEffectiveId()
+			elseif self.player:containsTrick("indulgence") and not nextplayercanuse then
+				return card:getEffectiveId()
+			end
+		end
+	end	
+	
+	local friendneedpeach, peach
+	for _, card in ipairs(cards) do
+		if card:isKindOf("Peach") and self:isFriend(nextp) and nextplayercanuse then
+			peach = card:getEffectiveId()
+			if not self.player:isWounded() and nextp:isWounded() then
+				friendneedpeach = true
+			elseif self.player:getLostHp() < self:getCardsNum("Peach") and self:getCardsNum("Peach") > 1 then
+				friendneedpeach = true
+			end
+		end
+	end	
+	if not friendneedpeach and peach then return peach end
+	
+	for _, card in ipairs(cards) do
+		if not (self:isWeak() and self:getCardsNum("Jink") == 0 and hasjink) and card:isKindOf("Nullification") and ( self:getCardsNum("Nullification") < 2 or not nextplayercanuse ) then 
+			return card:getEffectiveId()
+		end
+	end	
+	
+	local snatch, dismantlement, indulgence, supplyshortage, collatera, aoe, fireattack
+	for _, card in ipairs(cards) do
+		for _, enemy in ipairs(self.enemies) do
+			if card:isKindOf("Snatch") and self:hasTrickEffective(card,enemy) and self.player:distanceTo(enemy) == 1 and not enemy:isKongcheng() then
+				snatch = card:getEffectiveId()
+			elseif not enemy:isKongcheng() and card:isKindOf("Dismantlement") and self:hasTrickEffective(card,enemy) then
+				dismantlement = card:getEffectiveId()
+			elseif card:isKindOf("Indulgence") and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("Indulgence") then
+				indulgence = card:getEffectiveId()
+			elseif card:isKindOf("SupplyShortage")	and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("SupplyShortage") then
+				supplyshortage = card:getEffectiveId()
+			elseif card:isKindOf("Collatera") and self:hasTrickEffective(card,enemy) and enemy:getWeapon() then
+				collatera = card:getEffectiveId()
+			elseif card:isKindOf("AOE") then
+				local good = self:getAoeValue(card)
+				if good > 0 or ( self:hasSkills("jianxiong|luanji|manjuan",self.player) and good > -10 ) then
+					aoe = card:getEffectiveId()
+				end
+			elseif card:isKindOf("FireAttack") and self:hasTrickEffective(card,enemy) and ( enemy:getHp() == 1 or self:isEquip("Vine", enemy) or enemy:getMark("@wind") > 0 ) then
+				local suits= {spade, heart, club, diamond}
+				local suitnum = 0
+				for _, hcard in ipairs(self.player:getHandcards()) do
+					if hcard:getSuit() == sgs.Card_Spade then
+						spade = true
+					elseif hcard:getSuit() == sgs.Card_Heart then
+						heart = true
+					elseif hcard:getSuit() == sgs.Card_Club then
+						club = true
+					elseif hcard:getSuit() == sgs.Card_Diamond then
+						diamond = true
+					end
+				end
+				for k, hassuit in pairs(suits) do
+					if hassuit then suitnum = suitnum + 1 end
+				end
+				self.player:speak("suitnum is "..suitnum)
+				if suitnum >=3 or (suitnum >= 2 and enemy:getHandcardNum() == 1 ) then
+					fireattack = card:getEffectiveId()
+				end						
+			end
+		end
+	end
+	if snatch or dismantlement or indulgence or supplyshortage or collatera or aoe or fireattack then 
+		if not self.player:containsTrick("indulgence") or canNullification or self.player:containsTrick("YanxiaoCard") or not nextplayercanuse then		
+			return snatch or dismantlement or indulgence or supplyshortage or collatera or aoe or fireattack
+		end
+		if #trickcard > nextisfriend + 1 and nextplayercanuse then
+			return fireattack or aoe or collatera or supplyshortage or indulgence or dismantlement or snatch
+		end
+	end
+	
+	for _, card in ipairs(cards) do
+		if card:isKindOf("AOE") and (not self.player:containsTrick("indulgence") or canNullification or self.player:containsTrick("YanxiaoCard") or not nextplayercanuse ) and not (self:isWeak() and self:getCardsNum("Jink") == 0 and hasjink) then
+			local good = self:getAoeValue(card)
+			if good > 0 or ( self:hasSkills("jianxiong|luanji|manjuan",self.player) and good > -10 ) then		
+				return card:getEffectiveId() 
+			end
+		end	
+	end	
+	
+	self:sortByCardNeed(cards)
+	return cards[#cards]:getEffectiveId()
+
+end
+
+

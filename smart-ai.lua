@@ -720,15 +720,23 @@ function SmartAI:sortByDynamicUsePriority(cards)
 	table.sort(cards, compare_func)
 end
 
-function SmartAI:sortByCardNeed(cards)
+function SmartAI:sortByCardNeed(cards, inverse)
 	local compare_func = function(a,b)
 		local value1 = self:cardNeed(a)
 		local value2 = self:cardNeed(b)
-
-		if value1 ~= value2 then
-			return value1 < value2
+		
+		if not inverse then
+			if value1 ~= value2 then
+				return value1 < value2
+			else
+				return a:getNumber() > b:getNumber()
+			end
 		else
-			return a:getNumber() > b:getNumber()
+			if value1 ~= value2 then
+				return value1 > value2
+			else
+				return a:getNumber() > b:getNumber()
+			end
 		end
 	end
 

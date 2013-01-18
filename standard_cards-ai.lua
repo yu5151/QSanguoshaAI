@@ -921,7 +921,7 @@ sgs.ai_use_value.Nullification = 8
 
 function SmartAI:useCardAmazingGrace(card, use)
 	local canuse = true
-	if self.player:getRole() == "loyalist" and self.player:getSeat() == 2 and sgs.turncount == 1 or self.player:getRole() == "lord" and sgs.turncount == 0 then canuse = false self.player:speak(canuse) end	
+	if self.player:getRole() == "loyalist" and self.player:getSeat() == 2 and sgs.turncount == 1 or self.player:getRole() == "lord" and sgs.turncount == 0 then canuse = false end	
 	if ( #self.friends >= #self.enemies or (self:hasSkills(sgs.need_kongcheng) and self.player:getHandcardNum() == 1)
 		or self.player:hasSkill("jizhi") ) and canuse then
 		use.card = card
@@ -1574,8 +1574,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	local nextplayercanuse
 	local nextp = self.player:getNextAlive()		
 	if self:isFriend(nextp) and sgs.turncount > 1 then
-		local Snatch_count = self.player:distanceTo(nextp) == 1 and self:getCardsNum("Snatch")  or 0
-		self.player:speak("Snatch_count is "..Snatch_count)
+		local Snatch_count = self.player:distanceTo(nextp) == 1 and self:getCardsNum("Snatch") or 0		
 		if not nextp:containsTrick("indulgence") or canNullification or nextp:containsTrick("YanxiaoCard") then
 			nextplayercanuse = true
 		elseif self:getCardsNum("Dismantlement") + Snatch_count + f_Nullification - e_Nullification > 0 then
@@ -1650,26 +1649,37 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		end
 	end	
 	
-	local friendneedpeach, peach
+	local friendneedpeach , peach
+	local peachnum = 0
+	if nextplayercanuse then
+		self.player:speak("nextplayercanuse")
+		if ( not self.player:isWounded() and nextp:isWounded() or self.player:getLostHp() < self:getCardsNum("Peach") and self:getCardsNum("Peach") > 0 ) then		
+			friendneedpeach = true
+		end
+	end
 	for _, card in ipairs(cards) do
-		if card:isKindOf("Peach") and self:isFriend(nextp) and nextplayercanuse then
+		if card:isKindOf("Peach") then
 			peach = card:getEffectiveId()
-			if not self.player:isWounded() and nextp:isWounded() then
-				friendneedpeach = true
-			elseif self.player:getLostHp() < self:getCardsNum("Peach") and self:getCardsNum("Peach") > 1 then
-				friendneedpeach = true
+			peachnum = peachnum + 1
+		end
+	end
+	if ( not friendneedpeach and peach ) or peachnum > 1 then self.player:speak("choicepeach") return peach end
+	
+	if ( self:isWeak() or self:getCardsNum("Jink") == 0 ) and hasjink then
+		for _, card in ipairs(cards) do
+			if card:isKindOf("Jink") then
+				return card:getEffectiveId()
 			end
 		end
-	end	
-	if not friendneedpeach and peach then return peach end
+	end
 	
 	for _, card in ipairs(cards) do
-		if not (self:isWeak() and self:getCardsNum("Jink") == 0 and hasjink) and card:isKindOf("Nullification") and ( self:getCardsNum("Nullification") < 2 or not nextplayercanuse ) then 
+		if card:isKindOf("Nullification") and ( self:getCardsNum("Nullification") < 2 or not nextplayercanuse ) then 
 			return card:getEffectiveId()
 		end
 	end	
 	
-	local snatch, dismantlement, indulgence, supplyshortage, collatera, aoe, fireattack
+	local snatch, dismantlement, indulgence, supplyshortage, collatera, duel, aoe, fireattack
 	for _, card in ipairs(cards) do
 		for _, enemy in ipairs(self.enemies) do
 			if card:isKindOf("Snatch") and self:hasTrickEffective(card,enemy) and self.player:distanceTo(enemy) == 1 and not enemy:isKongcheng() then
@@ -1682,6 +1692,8 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 				supplyshortage = card:getEffectiveId()
 			elseif card:isKindOf("Collatera") and self:hasTrickEffective(card,enemy) and enemy:getWeapon() then
 				collatera = card:getEffectiveId()
+			elseif card:isKindOf("Duel") and self:getCardsNum("Slash") > getCardsNum("Slash", enemy) then
+				duel = card:getEffectiveId()
 			elseif card:isKindOf("AOE") then
 				local good = self:getAoeValue(card)
 				if good > 0 or ( self:hasSkills("jianxiong|luanji|manjuan",self.player) and good > -10 ) then
@@ -1690,7 +1702,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 			elseif card:isKindOf("FireAttack") and self:hasTrickEffective(card,enemy) and ( enemy:getHp() == 1 or self:isEquip("Vine", enemy) or enemy:getMark("@wind") > 0 ) then
 				local suits= {spade, heart, club, diamond}
 				local suitnum = 0
-				for _, hcard in ipairs(self.player:getHandcards()) do
+				for _, hcard in sgs.qlist(self.player:getHandcards()) do
 					if hcard:getSuit() == sgs.Card_Spade then
 						spade = true
 					elseif hcard:getSuit() == sgs.Card_Heart then
@@ -1711,27 +1723,32 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 			end
 		end
 	end
-	if snatch or dismantlement or indulgence or supplyshortage or collatera or aoe or fireattack then 
+	if snatch or dismantlement or indulgence or supplyshortage or collatera or duel or aoe or fireattack then 
 		if not self.player:containsTrick("indulgence") or canNullification or self.player:containsTrick("YanxiaoCard") or not nextplayercanuse then		
-			return snatch or dismantlement or indulgence or supplyshortage or collatera or aoe or fireattack
+			return snatch or dismantlement or indulgence or supplyshortage or collatera or duel or aoe or fireattack
 		end
 		if #trickcard > nextisfriend + 1 and nextplayercanuse then
-			return fireattack or aoe or collatera or supplyshortage or indulgence or dismantlement or snatch
+			return fireattack or aoe or duel or collatera or supplyshortage or indulgence or dismantlement or snatch
 		end
 	end
 	
 	for _, card in ipairs(cards) do
-		if card:isKindOf("AOE") and (not self.player:containsTrick("indulgence") or canNullification or self.player:containsTrick("YanxiaoCard") or not nextplayercanuse ) and not (self:isWeak() and self:getCardsNum("Jink") == 0 and hasjink) then
+		if card:isKindOf("AOE") and (not self.player:containsTrick("indulgence") or canNullification or self.player:containsTrick("YanxiaoCard") or not nextplayercanuse ) then
 			local good = self:getAoeValue(card)
 			if good > 0 or ( self:hasSkills("jianxiong|luanji|manjuan",self.player) and good > -10 ) then		
 				return card:getEffectiveId() 
 			end
-		end	
-	end	
+		end
+	end
 	
-	self:sortByCardNeed(cards)
-	return cards[#cards]:getEffectiveId()
-
+	self:sortByCardNeed(cards, true)
+	for _, card in ipairs(cards) do
+		if not card:isKindOf("TrickCard") and not card:isKindOf("Peach") then 
+			return card:getEffectiveId()
+		end
+	end
+	
+	return cards[1]:getEffectiveId()
 end
 
 

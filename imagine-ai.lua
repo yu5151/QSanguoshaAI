@@ -699,3 +699,51 @@ function SmartAI:SortByAtomDamageCount(targets, source, nature, card, inverse)
 	table.sort(targets, compare_func)
 	return targets
 end
+--[[
+	函数名：qvt
+	功能：测试QVariant中的数据类型
+	参数表：data，QVariant类型，表示待测试的数据
+	返回值：一个字符串，表示数据类型
+]]--
+function SmartAI:qvt(data)
+	if not data then
+		return "nil"
+	elseif data:toDamage() and data:toDamage().to then
+			return "Damage"
+	elseif data:toCardEffect() and data:toCardEffect().card then
+		return "CardEffect"
+	elseif data:toSlashEffect() and data:toSlashEffect().slash then
+		return "SlashEffect"
+	elseif data:toCardUse() and data:toSlashEffect().card then
+		return "CardUse"
+	elseif data:toCard() and data:toCard():getSuit() then
+		return "Card"
+	elseif data:toPlayer() and data:toPlayer():getHp() then
+		return "Player"
+	elseif data:toDying() and data:toDying().who then
+		return "Dying"
+	elseif data:toDamageStar() and data:toDamageStar().to then
+		return "DamageStart"
+	elseif data:toRecover() and data:toRecover().recover then
+		return "Recover"
+	elseif data:toJudge() and data:toJudge().who then
+		return "Judge"
+	elseif data:toPindian() and data:toPindian().from then
+		return "Pindian"
+	elseif data:toPhaseChange() and data:toPhaseChange().to then
+		return "PhaseChange"
+	elseif data:toMoveOneTime() and data:toMoveOneTime().card_ids then
+		return "MoveOneTime"
+	elseif data:toResponsed() and data:toResponsed().m_who then
+		return "Responsed"
+	elseif data:toInt() then
+		return "Int"
+	elseif data:toString() then
+		return "String"
+	elseif data:toStringList() then
+		return "StringList"
+	elseif data:toBool() ~= nil then
+		return "Bool"
+	end
+	return "Unknown"
+end

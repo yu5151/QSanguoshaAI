@@ -3197,6 +3197,8 @@ function SmartAI:canRetrial(player)
 		return player:getHandcardNum() > 0
 	elseif player:hasSkill("jilve") then
 		return player:getHandcardNum() > 0 and player:getMark("@bear") > 0
+	elseif player:hasSkill("huanshi") then
+		return not player:isNude()
 	end		
 end
 
@@ -4362,6 +4364,7 @@ function getBestHp(player)
 end
 
 dofile "lua/ai/debug-ai.lua"
+dofile "lua/ai/imagine-ai.lua"
 dofile "lua/ai/standard_cards-ai.lua"
 dofile "lua/ai/maneuvering-ai.lua"
 dofile "lua/ai/standard-ai.lua"

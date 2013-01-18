@@ -443,7 +443,7 @@ sgs.ai_chaofeng.wiszhangzhao = -1
 ]]--
 sgs.ai_skill_invoke.badao = function(self, data)
 	for _, enemy in ipairs(self.enemies) do
-		if self.player:canSlash(enemy, true) and self:getCardsNum("Slash") > 0 then return true end
+		if self.player:canSlash(enemy, nil, true) and self:getCardsNum("Slash") > 0 then return true end
 	end
 end
 --[[

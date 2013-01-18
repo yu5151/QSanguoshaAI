@@ -159,12 +159,14 @@ sgs.ai_skill_askforag.manjuan = function(self, card_ids)
 	end
 	for _, card in ipairs(cards) do
 		if card:isKindOf("Snatch") then
-			self:sort(self.enemies,"defense")
-			if sgs.getDefense(self.enemies[1]) >= 8 then self:sort(self.enemies, "threat") end
-			local enemies = self:exclude(self.enemies, card)
-			for _,enemy in ipairs(enemies) do
-				if self:hasTrickEffective(card, enemy) then
-					return card:getEffectiveId()
+			if #self.enemies > 0 then --僵尸模式首回合一主七忠，没有敌人，此时self.enemies[1]为nil。
+				self:sort(self.enemies,"defense")
+				if sgs.getDefense(self.enemies[1]) >= 8 then self:sort(self.enemies, "threat") end
+				local enemies = self:exclude(self.enemies, card)
+				for _,enemy in ipairs(enemies) do
+					if self:hasTrickEffective(card, enemy) then
+						return card:getEffectiveId()
+					end
 				end
 			end
 		end
@@ -282,7 +284,10 @@ end
 sgs.ai_skill_use_func.TanhuCard = function(card, use, self)
 	local max_card = self:getMaxCard()
 	local max_point = max_card:getNumber()
-	local ptarget = self:getPriorTarget()
+	local ptarget = self:getPriorTarget() --在#self.enemies == 0时（僵尸模式首回合一主七忠）返回nil
+	if not ptarget then
+		return "."
+	end
 	local slashcount = self:getCardsNum("Slash")
 	if max_card:isKindOf("Slash") then slashcount = slashcount - 1 end
 	if not ptarget:isKongcheng() and slashcount > 0 and self.player:canSlash(ptarget, nil, true) 

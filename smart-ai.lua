@@ -2306,9 +2306,15 @@ function SmartAI:askForCardChosen(who, flags, reason)
 		end
 
 		if flags:match("e") then
-			if self:isEquip("Crossbow",who) then
+			if self:isEquip("Crossbow",who) then 
+			--注意，如果没装备诸葛连弩，只是拥有技能咆哮的话，self:isEquip("Crossbow", who)也会返回true。
 				for _, friend in ipairs(self.friends) do
-					if who:distanceTo(friend) <= 1 then return who:getWeapon():getId() end
+					if who:distanceTo(friend) <= 1 then 
+						local weapon = who:getWeapon()
+						if weapon then --真的有诸葛连弩（而不是咆哮）
+							return weapon:getId() 
+						end
+					end
 				end
 			end
 

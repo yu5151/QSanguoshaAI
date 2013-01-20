@@ -30,7 +30,7 @@ sgs.ai_skill_invoke.huanshi = function(self, data) --询问诸葛瑾是否发动
 		self:sortByKeepValue(cards)
 		for _,c in pairs(cards) do
 			if c:isRed() then
-				if self:getKeepValue(c, true) < 1.5 then
+				if self:getKeepValue(c) < 1.5 then
 					return true
 				end
 			end

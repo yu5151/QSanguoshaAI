@@ -126,14 +126,14 @@ sgs.ai_skill_discard.qiaobian = function(self, discard_num, min_num, optional, i
 	table.insert(to_discard, card:getEffectiveId())
 	current_phase = self.player:getMark("qiaobianPhase")
 	if current_phase == sgs.Player_Judge then
-        if not self.player:containsTrick("YanxiaoCard") then
-            if (self.player:containsTrick("supply_shortage") and self.player:getHp() > self.player:getHandcardNum()) or
-                (self.player:containsTrick("indulgence") and self.player:getHandcardNum() > self.player:getHp()-1) or
-                (self.player:containsTrick("lightning") and not self:hasWizard(self.friends) and self:hasWizard(self.enemies)) or
-                (self.player:containsTrick("lightning") and #self.friends > #self.enemies) then
-                return to_discard
-            end
-        end
+		if not self.player:containsTrick("YanxiaoCard") then
+			if (self.player:containsTrick("supply_shortage") and self.player:getHp() > self.player:getHandcardNum()) or
+				(self.player:containsTrick("indulgence") and self.player:getHandcardNum() > self.player:getHp()-1) or
+				(self.player:containsTrick("lightning") and not self:hasWizard(self.friends) and self:hasWizard(self.enemies)) or
+				(self.player:containsTrick("lightning") and #self.friends > #self.enemies) then
+				return to_discard
+			end
+		end
 	elseif current_phase == sgs.Player_Draw then
 		local cardstr = sgs.ai_skill_use["@@tuxi"](self, "@tuxi")
 		if cardstr:match("->") then

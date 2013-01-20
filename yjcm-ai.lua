@@ -472,7 +472,7 @@ sgs.ai_skill_choice.mingce = function(self, choices)
 	local chengong = self.room:findPlayerBySkillName("mingce")
 	if chengong and not self:isFriend(chengong) then return "draw" end
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-    self:sort(self.enemies, "defense")
+	self:sort(self.enemies, "defense")
 	for _, enemy in ipairs(self.enemies) do
 		if self.player:canSlash(enemy) and not self:slashProhibit(slash ,enemy) and sgs.getDefenseSlash(enemy)<=2 then return "use" end
 	end
@@ -593,15 +593,15 @@ end
 sgs.ai_cardneed.xianzhen=function(to, card, self)
 	local cards = to:getHandcards()
 	local has_big = false
-    for _, c in sgs.qlist(cards) do
-        local flag=string.format("%s_%s_%s","visible",self.room:getCurrent():objectName(),to:objectName())
-        if c:hasFlag("visible") or c:hasFlag(flag) then
-            if c:getNumber()>10 then
+	for _, c in sgs.qlist(cards) do
+		local flag=string.format("%s_%s_%s","visible",self.room:getCurrent():objectName(),to:objectName())
+		if c:hasFlag("visible") or c:hasFlag(flag) then
+			if c:getNumber()>10 then
 				has_big=true
 				break
 			end
-        end
-    end
+		end
+	end
 	if not has_big then
 		return hcard:getNumber() > 10
 	else

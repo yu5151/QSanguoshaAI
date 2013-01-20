@@ -1,49 +1,49 @@
 --乐进
 sgs.ai_skill_invoke.gzxiaoguo = function(self, data)
-    local tar
+	local tar
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-	    if player:getPhase() ~= sgs.Player_NotActive then
-	        tar = player
+		if player:getPhase() ~= sgs.Player_NotActive then
+			tar = player
 			break
 		end
 	end
 	local x = self:getCardsNum("Jink", self.player) + self:getCardsNum("Slash", self.player) + self:getCardsNum("Analeptic", self.player)
 	if tar and self:isEnemy(tar) and x>0 and not (self.player:getHandcardNum() == 1 and 
-	    x ==1 ) then
-	    return true
+		x ==1 ) then
+		return true
 	end	
 	return false
 end
 
 sgs.ai_skill_cardask["@gzxiaoguo"]=function(self, data)
-    local cards = sgs.QList2Table(self.player:getHandcards())
+	local cards = sgs.QList2Table(self.player:getHandcards())
 	self:sortByKeepValue(cards)
 	for _, c in ipairs(cards) do
 		if c:isKindOf("BasicCard") and not c:isKindOf("Peach") then
-		    return c:getId()
+			return c:getId()
 		end
 	end
 	return "."
 end
 
 sgs.ai_skill_cardask["@gzxiaoguoresponse"]=function(self, data)
-    local cards = sgs.QList2Table(self.player:getHandcards())
+	local cards = sgs.QList2Table(self.player:getHandcards())
 	self:sortByKeepValue(cards)
 	local equips = self.player:getEquips()
 	if not self.player:getEquips():isEmpty() then
-	    for _, equip in sgs.qlist(equips) do
-		    if equip:isKindOf("SilverLion") then
-			    return equip:getId()
+		for _, equip in sgs.qlist(equips) do
+			if equip:isKindOf("SilverLion") then
+				return equip:getId()
 			end
 		end
 	end
 	for _, c in ipairs(cards) do
 		if c:isKindOf("EquipCard") or c:isKindOf("TrickCard") then
-		    return c:getId()
+			return c:getId()
 		end
 	end
 	if not self.player:getEquips():isEmpty() then
-	    for _, equip in sgs.qlist(equips) do
+		for _, equip in sgs.qlist(equips) do
 			return equip:getId()
 		end
 	end
@@ -54,9 +54,9 @@ sgs.ai_skillInvoke_intention.gzxiaoguo = 80
 
 --甘夫人
 sgs.ai_skill_invoke.gzshushen = function(self, data)
-    for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-	    if self:isFriend(player) then
-	        return true
+	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+		if self:isFriend(player) then
+			return true
 		end
 	end
 	return false
@@ -101,7 +101,7 @@ gzduoshi_skill.getTurnUseCard=function(self,inclusive)
 end
 
 sgs.ai_skill_use_func["#gzduoshicard"]=function(card,use,self)
-    local cc
+	local cc
 	local pp
 	if self.player:getHandcardNum() >= 2 then
 		local cards = self.player:getHandcards()
@@ -109,19 +109,19 @@ sgs.ai_skill_use_func["#gzduoshicard"]=function(card,use,self)
 		self:sortByKeepValue(cards)
 		for _, fcard in ipairs(cards) do
 			if fcard:isRed() and not fcard:isKindOf("ExNihilo") and not fcard:isKindOf("Peach") then
-			    cc = fcard
+				cc = fcard
 				break
 			end
 		end
 	end
 	for _,p in ipairs(self.friends_noself) do
-	    if p:getHandcardNum() >= 2 then
-		    pp = p
+		if p:getHandcardNum() >= 2 then
+			pp = p
 			break
 		end
 	end
 	if cc and pp then
-	    use.card = sgs.Card_Parse("#gzduoshicard:"..cc:getId()..":")
+		use.card = sgs.Card_Parse("#gzduoshicard:"..cc:getId()..":")
 		if use.to then use.to:append(pp) end
 		return
 	end
@@ -163,7 +163,7 @@ gzfenxunvs_skill.getTurnUseCard=function(self,inclusive)
 end
 
 sgs.ai_skill_use_func["#gzfenxuncard"]=function(card,use,self)
-    local cc
+	local cc
 	local pp
 	if self.player:getHandcardNum() >= 3 then
 		local cards = self.player:getHandcards()
@@ -171,7 +171,7 @@ sgs.ai_skill_use_func["#gzfenxuncard"]=function(card,use,self)
 		self:sortByKeepValue(cards)
 		for _, fcard in ipairs(cards) do
 			if not fcard:isKindOf("ExNihilo") and not fcard:isKindOf("Peach") then
-			    cc = fcard
+				cc = fcard
 				break
 			end
 		end
@@ -179,16 +179,16 @@ sgs.ai_skill_use_func["#gzfenxuncard"]=function(card,use,self)
 	self:sort(self.enemies, "defense")
 	local x = 0
 	for _,p in ipairs(self.enemies) do
-	    if not player:distanceTo(p)==1 then
-		     x = x+1
+		if not player:distanceTo(p)==1 then
+			 x = x+1
 		
-	    else
-		    pp = p
+		else
+			pp = p
 			break
 		end
 	end
 	if cc and pp and x == 0 then
-	    use.card = sgs.Card_Parse("#gzfenxuncard:"..cc:getId()..":")
+		use.card = sgs.Card_Parse("#gzfenxuncard:"..cc:getId()..":")
 		if use.to then use.to:append(pp) end
 		return
 	end
@@ -201,9 +201,9 @@ sgs.ai_chaofeng.gzdingfeng = 2
 
 --孔融
 sgs.ai_skill_choice.gzmingshi = function(self, choices)
-    local splayer=self.room:findPlayerBySkillName("gzmingshi")
-    if not self:isEnemy(splayer) then
-	    return "mingshicancel"
+	local splayer=self.room:findPlayerBySkillName("gzmingshi")
+	if not self:isEnemy(splayer) then
+		return "mingshicancel"
 	end
 	return "mingshishow"
 end
@@ -228,7 +228,7 @@ sgs.ai_skill_invoke.gzlirang = function(self, data)
 end
 
 sgs.ai_skill_askforag.gzlirang = function(self, card_ids)
-    return card_ids[1]
+	return card_ids[1]
 end
 
 sgs.ai_skill_playerchosen.gzlirang = function(self, targets)
@@ -258,9 +258,9 @@ sgs.ai_skill_playerchosen.gzsijian = function(self, targets)
 	local target
 	self:sort(self.enemies, "defense")
 	for _, player in ipairs(self.enemies) do
-	    if not (player:isKongcheng() and player:getEquips():isEmpty()) then
-		    target = player
-		    break
+		if not (player:isKongcheng() and player:getEquips():isEmpty()) then
+			target = player
+			break
 		end
 	end
 	return target
@@ -270,7 +270,7 @@ sgs.ai_playerchosen_intention.gzsijian = 80
 
 --纪灵
 sgs.ai_skill_invoke.gzshuangren = function(self, data)
-    local ph
+	local ph
 	local mch
 	local ch
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
@@ -279,10 +279,10 @@ sgs.ai_skill_invoke.gzshuangren = function(self, data)
 		end
 	end
 	if self:getMaxCard():getNumber() >= 10 then
-	    mch = true
+		mch = true
 	end
 	if self.player:getHandcardNum() - 1 <= self.player:getHp() then
-	    ch = true
+		ch = true
 	end
 	if ch and ph then return true end
 	if ph and mch then return true end
@@ -293,10 +293,10 @@ sgs.ai_skill_playerchosen.gzshuangren = function(self, targets)
 	local target
 	self:sort(self.enemies, "defense")
 	for _, player in ipairs(self.enemies) do
-	    if not player:isKongcheng() and not (self:isEquip("Vine", player) 
+		if not player:isKongcheng() and not (self:isEquip("Vine", player) 
 		and not (self:isEquip("QinggangSword", self.player) or self:isEquip("Fan", self.player))) then
-		    target = player
-		    break
+			target = player
+			break
 		end
 	end
 	return target
@@ -346,20 +346,20 @@ end
 	-- local dskill = {}
 	-- for _, askill in ipairs(("tuxi|guose|qingnang|lijian|haoshi|dimeng"):split("|")) do
 		-- if str:matchOne(askill) then 
-		    -- table.insert(gskill,askill)
+			-- table.insert(gskill,askill)
 		-- end
 	-- end
 	-- for _, askill in ipairs(("rende|jijiu|qingnang|buqu|duanchang|huilei|zhuiyi|yibu|jiushi"):split("|")) do
 		-- if str:matchOne(askill) then 
-		    -- table.insert(dskill,askill)
+			-- table.insert(dskill,askill)
 		-- end
 	-- end
 	-- if self.player:getHp() >= 2 and #gskill ~= 0 then
-	    -- return gskill[math.random(1,#gskill)]
+		-- return gskill[math.random(1,#gskill)]
 	-- elseif self.player:getHp() <= 1 and #dskill ~= 0 then
-	    -- return dskill[math.random(1,#dskill)]
+		-- return dskill[math.random(1,#dskill)]
 	-- else
-	    -- return choices[math.random(1,#choices)]
+		-- return choices[math.random(1,#choices)]
 	-- end
 -- end
 
@@ -371,7 +371,7 @@ gzqingcheng_skill.getTurnUseCard=function(self,inclusive)
 end
 
 sgs.ai_skill_use_func["#gzqingchengcard"]=function(card,use,self)
-    local cc
+	local cc
 	local pp
 	local lion
 	local cards = self.player:getCards("he")
@@ -383,11 +383,11 @@ sgs.ai_skill_use_func["#gzqingchengcard"]=function(card,use,self)
 		break
 	end
 	if self:isEquip("SilverLion", self.player) then
-	    for _, equip in ipairs(cards) do
-		    if equip:isKindOf("SilverLion") then
-			    cc = equip
+		for _, equip in ipairs(cards) do
+			if equip:isKindOf("SilverLion") then
+				cc = equip
 				lion = true
-			    break
+				break
 			end
 		end
 	end
@@ -398,12 +398,12 @@ sgs.ai_skill_use_func["#gzqingchengcard"]=function(card,use,self)
 		break
 	end
 	if cc and pp and lion then
-	    use.card = sgs.Card_Parse("#gzqingchengcard:"..cc:getId()..":")
+		use.card = sgs.Card_Parse("#gzqingchengcard:"..cc:getId()..":")
 		if use.to then use.to:append(pp) end
 		return
 	end
 	if cc and pp and sgs.getDefense(pp) < 6 and (self:hasSkills(sgs.masochism_skill,pp) or self:hasSkills(sgs.exclusive_skill,pp))then
-	    use.card = sgs.Card_Parse("#gzqingchengcard:"..cc:getId()..":")
+		use.card = sgs.Card_Parse("#gzqingchengcard:"..cc:getId()..":")
 		if use.to then use.to:append(pp) end
 		return
 	end
@@ -415,19 +415,19 @@ local gzxiongyi_skill={}
 gzxiongyi_skill.name="gzxiongyi"
 table.insert(sgs.ai_skills,gzxiongyi_skill)
 gzxiongyi_skill.getTurnUseCard=function(self,inclusive)
-    if self.player:getMark("@xiongyi") == 0 then return nil end
+	if self.player:getMark("@xiongyi") == 0 then return nil end
 	return sgs.Card_Parse("#gzxiongyicard:.:")
 end
 
 sgs.ai_skill_use_func["#gzxiongyicard"]=function(card,use,self)
-    if self.player:getHp() *2 + self.player:getHandcardNum() >7 then return end
+	if self.player:getHp() *2 + self.player:getHandcardNum() >7 then return end
 	targets = {}
 	local y = 0
 	local x=self.player:aliveCount()
 	local n=math.max(2,x%2+x/2)
 	for _,p in ipairs(self.friends) do
-	    if y >= n then
-		    break
+		if y >= n then
+			break
 		end
 		table.insert(targets, p)
 		y = y+1
@@ -436,8 +436,8 @@ sgs.ai_skill_use_func["#gzxiongyicard"]=function(card,use,self)
 	--return str
 	use.card = sgs.Card_Parse("#gzxiongyicard:.:")
 	if use.to then
-    	for _, pp in  ipairs(targets) do 
-		    use.to:append(pp) 
+		for _, pp in  ipairs(targets) do 
+			use.to:append(pp) 
 		end
 	end
 	return
@@ -449,12 +449,12 @@ sgs.ai_card_intention.gzxiongyicard = -100
 
 --上将潘凤
 sgs.ai_skill_invoke.gzkuangfu = function(self, data)
-    local damage = data:toDamage()
+	local damage = data:toDamage()
 	if self:isEnemy(damage.to) then
 		return true
 	end
 	if self:isFriend(damage.to) and self:isEquip("SilverLion", damage.to) then
-	    return true
+		return true
 	end
 	
 	return false

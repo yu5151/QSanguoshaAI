@@ -482,7 +482,7 @@ sgs.ai_skill_invoke.caizhaoji_hujia = function(self, data)
 				if card:isBlack() then return false end
 			end
 		end
-	    return zhangjiao:getHandcardNum() <= 2
+		return zhangjiao:getHandcardNum() <= 2
 	end
 	if not self.player:faceUp() then 
 		return true 
@@ -730,30 +730,30 @@ sgs.ai_skill_invoke.toudu = function(self, data)
 end
 
 sgs.ai_skill_playerchosen.toudu = function(self, targets)
-    local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	local targetlist = {}
 	for _,p in sgs.qlist(targets) do
 		if not self:slashProhibit(slash, p) then
 			table.insert(targetlist, p)
 		end
 	end
-    self:sort(targetlist, "defenseSlash")
-    for _, target in ipairs(targetlist) do
-        if self:isEnemy(target) then
+	self:sort(targetlist, "defenseSlash")
+	for _, target in ipairs(targetlist) do
+		if self:isEnemy(target) then
 			if self:slashIsEffective(slash, target) then
 				if sgs.isGoodTarget(target, targetlist) then
 					self.player:speak("嘿！没想到吧？")
 					return target
 				end
 			end
-        end
-    end
-    for i=#targetlist, 1, -1 do
-        if sgs.isGoodTarget(targetlist[i], targetlist) then
-            return targetlist[i]
-        end
-    end
-    return targetlist[#targetlist]
+		end
+	end
+	for i=#targetlist, 1, -1 do
+		if sgs.isGoodTarget(targetlist[i], targetlist) then
+			return targetlist[i]
+		end
+	end
+	return targetlist[#targetlist]
 end
 --[[
 	技能：义舍

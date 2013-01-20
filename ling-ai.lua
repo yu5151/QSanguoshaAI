@@ -118,16 +118,16 @@ sgs.ai_skill_invoke.zhulou = function(self, data)
 		return true
 	end
 
-        if self.player:getHp() < 3 and self.player:getWeapon() then
-	        return true
+		if self.player:getHp() < 3 and self.player:getWeapon() then
+			return true
 	end
 
 	return false
 end
 
 sgs.ai_skill_cardask["@zhulou-discard"] =  function(self, data)
-      local weapon_card
-      for _, card in sgs.qlist(self.player:getCards("he")) do
+	  local weapon_card
+	  for _, card in sgs.qlist(self.player:getCards("he")) do
 		if card:isKindOf("Weapon") then
 			weapon_card = card
 		end
@@ -167,11 +167,11 @@ end
 sgs.ai_skill_invoke.neoganglie = function(self, data)
 	local target = data:toPlayer()
 	if not self:isFriend(target) then
-        if (self:hasSkills(sgs.masochism_skill,target) or self:getDamagedEffects(target,self.player)) and target:getHandcardNum()<=1 then return false end
+		if (self:hasSkills(sgs.masochism_skill,target) or self:getDamagedEffects(target,self.player)) and target:getHandcardNum()<=1 then return false end
 		self.room:setPlayerFlag(target, "ganglie_target")
 		return true
-    else
-        if self:getDamagedEffects(target,self.player) then 
+	else
+		if self:getDamagedEffects(target,self.player) then 
 			sgs.ai_ganglie_effect = string.format("%s_%s_%d",self.player:objectName(), target:objectName(),sgs.turncount) 
 			return true 
 		end
@@ -196,7 +196,7 @@ sgs.ai_skill_choice.neoganglie = function(self, choices)
 			self.room:setPlayerFlag(target, "-ganglie_target")
 		end
 	end
-    if self:getDamagedEffects(target,self.player) and self:isFriend(target) then return "damage" end
+	if self:getDamagedEffects(target,self.player) and self:isFriend(target) then return "damage" end
 
 	if (self:hasSkills(sgs.masochism_skill,target) or self:getDamagedEffects(target,self.player)) and target:getHandcardNum() > 1 then
 		return "throw"

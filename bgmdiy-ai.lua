@@ -21,11 +21,11 @@ sgs.ai_skill_use_func["#fuluancard"]=function(card,use,self)
 						second_card = scard
 						second_found = true
 						for _, tcard in ipairs(cards) do
-					        if first_card ~= tcard and second_card ~= tcard and tcard:getSuitString() == first_card:getSuitString() and 
-						        not tcard:isKindOf("ExNihilo") then
-						        third_card = tcard
-						        third_found = true
-						        break
+							if first_card ~= tcard and second_card ~= tcard and tcard:getSuitString() == first_card:getSuitString() and 
+								not tcard:isKindOf("ExNihilo") then
+								third_card = tcard
+								third_found = true
+								break
 							end
 						end
 						if third_card then break end
@@ -40,17 +40,17 @@ sgs.ai_skill_use_func["#fuluancard"]=function(card,use,self)
 	self:sort(self.enemies, "defense")
 	local first_id,second_id,third_id = first_card:getId(),second_card:getId(),third_card:getId()
 	for _,p in ipairs(self.friends_noself) do
-	    if self.player:inMyAttackRange(p) and not p:faceUp() then
-		    use.card = sgs.Card_Parse("#fuluancard:"..first_id.."+"..second_id.."+"..third_id..":")
-		    if use.to then use.to:append(p) end
-		    return
+		if self.player:inMyAttackRange(p) and not p:faceUp() then
+			use.card = sgs.Card_Parse("#fuluancard:"..first_id.."+"..second_id.."+"..third_id..":")
+			if use.to then use.to:append(p) end
+			return
 		end
 	end
 	for _,p in ipairs(self.enemies) do
-	    if self.player:inMyAttackRange(p) and p:faceUp() then
-		    use.card = sgs.Card_Parse("#fuluancard:"..first_id.."+"..second_id.."+"..third_id..":")
-		    if use.to then use.to:append(p) end
-		    return
+		if self.player:inMyAttackRange(p) and p:faceUp() then
+			use.card = sgs.Card_Parse("#fuluancard:"..first_id.."+"..second_id.."+"..third_id..":")
+			if use.to then use.to:append(p) end
+			return
 		end
 	end
 end
@@ -64,15 +64,15 @@ sgs.ai_skill_invoke.zhaoxin = function(self, data)
 	local target
 	self:sort(self.enemies,"defense")
 	for _,enemy in ipairs(self.enemies) do
-	    local amr=enemy:getArmor()
-	    if  not (amr and amr:isKindOf("Vine")) and self.player:inMyAttackRange(enemy) and not
-            (enemy:hasSkill("kongcheng") and enemy:isKongcheng()) and not self:slashProhibit(nil, enemy) then
-		    target = enemy
+		local amr=enemy:getArmor()
+		if  not (amr and amr:isKindOf("Vine")) and self.player:inMyAttackRange(enemy) and not
+			(enemy:hasSkill("kongcheng") and enemy:isKongcheng()) and not self:slashProhibit(nil, enemy) then
+			target = enemy
 			break
-	    end
+		end
 	end
 	if target then
-	    self.room:setPlayerFlag(target, "zhaoxin_target")
+		self.room:setPlayerFlag(target, "zhaoxin_target")
 		return true
 	end
 	return false
@@ -92,81 +92,81 @@ end
 sgs.ai_skill_invoke.langgu = function(self, data)
 	local damage = data:toDamage()
 	if damage.from and self:isEnemy(damage.from) then
-	    return true
+		return true
 	end
 	return false
 end
 
 sgs.ai_skill_askforag.langgu = function(self, card_ids)
-    local cards = {}
+	local cards = {}
 	for _, card_id in ipairs(card_ids) do
 		table.insert(cards, sgs.Sanguosha:getCard(card_id))
 	end
 	for _,acard in ipairs(cards) do
-	    local suit = acard:getSuitString()
+		local suit = acard:getSuitString()
 		if self.player:hasFlag(suit) then
-	        return acard:getEffectiveId()
+			return acard:getEffectiveId()
 		end
 	end
 	return -1
 end
 
 sgs.ai_skill_cardask["@langgu"]=function(self, data)
-    return "."
+	return "."
 end
 
 sgs.ai_skill_use["@@huangen"] = function(self, prompt)
-    local targets = {}
-    if self.player:hasFlag("god_salvation") then
-	    self:sort(self.enemies, "hp")
-	    for _, enemy in ipairs(self.enemies) do
-	    	if #targets < self.player:getHp() and enemy:hasFlag("huangen") and enemy:isWounded() then 
-		    	table.insert(targets, enemy)
-		    end
-	    end
+	local targets = {}
+	if self.player:hasFlag("god_salvation") then
+		self:sort(self.enemies, "hp")
+		for _, enemy in ipairs(self.enemies) do
+			if #targets < self.player:getHp() and enemy:hasFlag("huangen") and enemy:isWounded() then 
+				table.insert(targets, enemy)
+			end
+		end
 	elseif self.player:hasFlag("amazing_grace") then
-	    local total = self.room:alivePlayerCount()
+		local total = self.room:alivePlayerCount()
 		local usefrom = self.room:getCurrent()
 		if usefrom then
-		    local templist = {}
+			local templist = {}
 			local tempplayer = usefrom
 			for i = 1,total,1 do
-			    table.insert(templist, tempplayer)
+				table.insert(templist, tempplayer)
 				tempplayer = tempplayer:getNextAlive()
 			end
 			for j=1,total,1 do
-			    if #targets < self.player:getHp() and templist[j]:hasFlag("huangen") then 
-		    	    if not self:isFriend(templist[j]) then
-				        table.insert(targets, templist[j])
+				if #targets < self.player:getHp() and templist[j]:hasFlag("huangen") then 
+					if not self:isFriend(templist[j]) then
+						table.insert(targets, templist[j])
 					else
-					    break
+						break
 					end
 				end
-		    end
+			end
 			for k=1,total,1 do
-			    if #targets < self.player:getHp() and templist[total-j+1]:hasFlag("huangen") then 
-		    	    if self:isFriend(templist[total-k+1]) then
-				        table.insert(targets, templist[total-k+1])
+				if #targets < self.player:getHp() and templist[total-j+1]:hasFlag("huangen") then 
+					if self:isFriend(templist[total-k+1]) then
+						table.insert(targets, templist[total-k+1])
 					else
-					    break
+						break
 					end
 				end
-		    end
+			end
 		end
 	else
-	    self:sort(self.friends, "defense")
-	    for _, friend in ipairs(self.friends) do
-	    	if #targets < self.player:getHp() and friend:hasFlag("huangen") then 
-		    	table.insert(targets, friend)
-		    end
-	    end
+		self:sort(self.friends, "defense")
+		for _, friend in ipairs(self.friends) do
+			if #targets < self.player:getHp() and friend:hasFlag("huangen") then 
+				table.insert(targets, friend)
+			end
+		end
 	end
 	if #targets == 0 then
-	    return "."
+		return "."
 	end
 	local targetsname = {}
 	for i=1,#targets,1 do
-	    table.insert(targetsname, targets[i]:objectName())
+		table.insert(targetsname, targets[i]:objectName())
 	end
 	local str = "#huangencard:.:->"..table.concat(targetsname,"+")
 	return str
@@ -174,7 +174,7 @@ end
 
 --hantong discard from pile
 sgs.ai_skill_askforag.hantong = function(self, card_ids)
-    return card_ids[1]
+	return card_ids[1]
 end
 
 --hantong jijiang viewasskill
@@ -190,18 +190,18 @@ hantong_skill.getTurnUseCard=function(self,inclusive)
 	end
 	if cannot == true then return end
 	if ((self.player:canSlashWithoutCrossbow()) or (self.player:getWeapon() and self.player:getWeapon():getClassName() == "Crossbow")) and (not self.player:getPile("hantongpile"):isEmpty() or self.player:hasFlag("hantongjijiang")) then
-	    return sgs.Card_Parse("#hantongcard:.:")
+		return sgs.Card_Parse("#hantongcard:.:")
 	end
 end
 
 sgs.ai_skill_use_func["#hantongcard"]=function(card,use,self)
 	self:sort(self.enemies,"defense")
 	for _,enemy in ipairs(self.enemies) do
-	    if self.player:inMyAttackRange(enemy) and not (enemy:hasSkill("kongcheng") and enemy:isKongcheng())
-     		and not self:slashProhibit(nil, enemy) then
-		    use.card = sgs.Card_Parse("#hantongcard:.:")
-		    if use.to then use.to:append(enemy) end
-		    return
+		if self.player:inMyAttackRange(enemy) and not (enemy:hasSkill("kongcheng") and enemy:isKongcheng())
+	 		and not self:slashProhibit(nil, enemy) then
+			use.card = sgs.Card_Parse("#hantongcard:.:")
+			if use.to then use.to:append(enemy) end
+			return
 		end
 	end
 end
@@ -220,9 +220,9 @@ end
 
 --hantong xueyi
 sgs.ai_skill_invoke.xueyi = function(self, data)
-    local qunnum=0
+	local qunnum=0
 	for _,p in sgs.qlist(self.room:getOtherPlayers(player)) do		
-	    if(p:getKingdom() == "qun") then
+		if(p:getKingdom() == "qun") then
 			qunnum=qunnum+1
 		end
 	end
@@ -230,18 +230,18 @@ sgs.ai_skill_invoke.xueyi = function(self, data)
 end
 
 sgs.ai_skill_use["@@diyyicong"] = function(self, prompt)
-    local t,j,zero,one,two = 0,0,0,0,0
+	local t,j,zero,one,two = 0,0,0,0,0
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
 
 	for _, c in ipairs(cards) do
-	    t = t+1
+		t = t+1
 		if c:isKindOf("Jink") or c:isKindOf("Analeptic") or c:isKindOf("Peach") then
-		    j = j+1
+			j = j+1
 		end
 	end
 	for _, p in ipairs(self.enemies) do
-	    if p:distanceTo(self.player) <= p:getAttackRange() then 
+		if p:distanceTo(self.player) <= p:getAttackRange() then 
 			zero = zero+1
 		end
 		if p:distanceTo(self.player)+1 <= p:getAttackRange() then 
@@ -253,21 +253,21 @@ sgs.ai_skill_use["@@diyyicong"] = function(self, prompt)
 	end
 	self:sortByKeepValue(cards)
 	if t == 0 then
-	    return "."
+		return "."
 	elseif t == 1 then
-	    if j == 0 and one < zero then
-		    return "#diyyicongcard:".. cards[1]:getId()..":->."
+		if j == 0 and one < zero then
+			return "#diyyicongcard:".. cards[1]:getId()..":->."
 		end
 	elseif t ==2 then
-	    if j == 0 and two == 0 and one > two then
-		    return "#diyyicongcard:".. cards[1]:getId().."+"..cards[2]:getId()..":->."
-	    end
+		if j == 0 and two == 0 and one > two then
+			return "#diyyicongcard:".. cards[1]:getId().."+"..cards[2]:getId()..":->."
+		end
 		if one < zero then 
-	        return "#diyyicongcard:".. cards[1]:getId()..":->."
+			return "#diyyicongcard:".. cards[1]:getId()..":->."
 		end
 	else
-	    if j==0 and two == 0 and one > two then
-		    return "#diyyicongcard:".. cards[1]:getId().."+"..cards[2]:getId()..":->."
+		if j==0 and two == 0 and one > two then
+			return "#diyyicongcard:".. cards[1]:getId().."+"..cards[2]:getId()..":->."
 		end
 		return "#diyyicongcard:".. cards[1]:getId()..":->."
 	end

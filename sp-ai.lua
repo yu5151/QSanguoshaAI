@@ -431,7 +431,7 @@ sgs.ai_skill_use_func.SongciCard = function(card,use,self)
 	for _, enemy in ipairs(self.enemies) do
 		if enemy:getMark("@songci") == 0 and enemy:getHandcardNum() > enemy:getHp() and not enemy:isNude() then
 			if not ((self:hasSkills(sgs.lose_equip_skill, enemy) and enemy:getEquips():length() > 0) 
-			        or (self:isEquip("SilverLion", enemy) and enemy:isWounded())) then
+					or (self:isEquip("SilverLion", enemy) and enemy:isWounded())) then
 				use.card = sgs.Card_Parse("@SongciCard=.")
 				if use.to then use.to:append(enemy) end
 				return

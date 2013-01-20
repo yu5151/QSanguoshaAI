@@ -31,7 +31,7 @@ function speakTrigger(card,from,to,event)
 end
 
 sgs.ai_chat_func[sgs.SlashEffected].blindness=function(self, player, data)
-    local effect= data:toSlashEffect()
+	local effect= data:toSlashEffect()
 	local chat ={"队长，是我，别开枪，自己人.",
 				"尼玛你杀我，你真是夏侯惇啊",
 				"盲狙一时爽啊, 我泪奔啊",
@@ -63,7 +63,7 @@ sgs.ai_chat_func[sgs.SlashEffected].blindness=function(self, player, data)
 end
 
 sgs.ai_chat_func[sgs.Death].stupid_lord=function(self, player, data)
-    local damage=data:toDamageStar()
+	local damage=data:toDamageStar()
 	local chat ={"2B了吧，老子这么忠还杀我",
 				"主要臣死，臣不得不死",
 				"房主下盘T了这个主，拉黑不解释",
@@ -77,7 +77,7 @@ sgs.ai_chat_func[sgs.Death].stupid_lord=function(self, player, data)
 end
 
 sgs.ai_chat_func[sgs.Dying].fuck_renegade=function(self, player, data)
-    local damage=data:toDamageStar()
+	local damage=data:toDamageStar()
 	local chat ={"小内，你还不跳啊，要崩盘吧",
 				"9啊，不9就输了",
 				"999...999...",

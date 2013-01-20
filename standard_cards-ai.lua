@@ -1675,7 +1675,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 			peachnum = peachnum + 1
 		end
 	end
-	if ( not friendneedpeach and peach ) or peachnum > 1 then self.player:speak("choicepeach") return peach end
+	if ( not friendneedpeach and peach ) or peachnum > 1 then return peach end
 	
 	if ( self:isWeak() or self:getCardsNum("Jink") == 0 ) and hasjink then
 		for _, card in ipairs(cards) do

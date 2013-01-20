@@ -3858,7 +3858,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 	end
 
 	if self:aoeIsEffective(card, to) then
-		if to:getHp() > 1 or (getCardsNum("Peach", to) + getCardsNum("Analeptic", to) > 0) then
+		if sgs.isGoodHp(to) then
 			if to:hasSkill("yiji") or to:hasSkill("jianxiong") then
 				value = value + 20
 			end
@@ -3893,22 +3893,15 @@ function SmartAI:getAoeValueTo(card, to , from)
 			value = value -30
 		end
 
-		if self:isFriend(from, to) then
-			if (to:isLord() or from:isLord()) and not (to:hasSkill("buqu") and to:getPile("buqu"):length() < 5) then
-				if to:getHp() <= 1 and getCardsNum("Peach", from) == 0 and sj_num == 0 then
-					if sgs.evaluatePlayerRole(to) == "renegade" then
-						value = value - 50
-					else
-						value = value - 150
-					end
-				end
-			end
-			value = value + getCardsNum("Peach", from) * 2
-		elseif sgs.evaluatePlayerRole(to) == "rebel" or (to:isLord() and sgs.evaluatePlayerRole(from) == "rebel") then
-			if to:getHp() <= 1 and getCardsNum("Peach", to) == 0 and sj_num == 0 then
-				value = value - 50
-			end
-		end
+        if to:isLord() and sgs.isLordInDanger() and not sgs.isGoodHp(to) and sj_num < 1 then
+            value = value + ( self:isFriend(to) and -150 or 100 )
+        end
+
+        if sgs.evaluatePlayerRole(to) == "rebel" and not sgs.isGoodHp(to) and sj_num < 1 then
+            value = value + ( self:isFriend(to) and 10 or 40 )
+        end
+
+		
 	else
 		value = value + 20
 	end
@@ -3945,7 +3938,7 @@ function SmartAI:getAoeValue(card, player)
 
 	
 	if player:hasSkill("jizhi") then
-		good = good + 40
+		good = good + 20
 	end
 	return good - bad
 end

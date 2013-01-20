@@ -2759,7 +2759,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	for _, friend in ipairs(self.friends_noself) do
 		if not self:needKongcheng(friend) then
 			for _, hcard in ipairs(cardtogive) do
-				if self:getOverflow()>0 or self:getHandcardNum()>3 then
+				if self:getOverflow()>0 or self.player:getHandcardNum()>3 then
 					return hcard, friend
 				end
 			end

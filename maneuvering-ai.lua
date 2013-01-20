@@ -14,7 +14,7 @@ end
 
 sgs.ai_card_intention.FireSlash = sgs.ai_card_intention.Slash
 
-sgs.ai_use_value.FireSlash = 4.4
+sgs.ai_use_value.FireSlash = 4.5
 sgs.ai_keep_value.FireSlash = 2.6
 sgs.ai_use_priority.FireSlash = 2.5
 

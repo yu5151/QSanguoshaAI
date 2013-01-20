@@ -512,6 +512,18 @@ function SmartAI:useCardPeach(card, use)
     if self.player:hasSkill("longhun") and not self.player:isLord() and
         math.min(self.player:getMaxCards(), self.player:getHandcardNum()) + self.player:getCards("e"):length() > 3 then self.player:speak("我才不会说我有桃不吃->2") return end
     local peaches = 0
+	if self.player:hasSkill("yongsi") and self.player:isWounded() then
+		local kingdoms = {}
+		local kingdomnum = 0
+		for _,ap in sgs.qlist(self.room:getAlivePlayers()) do
+			if not kingdoms[ap:getKingdom()] then
+				kingdoms[ap:getKingdom()]=true
+				kingdomnum = kingdomnum+1
+			end
+		end
+		if self.player:getCardCount(true) <= kingdomnum then use.card = card self.player:speak("牌不够把桃子吃了") end
+	end
+	
     local cards = self.player:getHandcards()
     cards = sgs.QList2Table(cards)
     for _,card in ipairs(cards) do
@@ -1652,7 +1664,6 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	local friendneedpeach , peach
 	local peachnum = 0
 	if nextplayercanuse then
-		self.player:speak("nextplayercanuse")
 		if ( not self.player:isWounded() and nextp:isWounded() or self.player:getLostHp() < self:getCardsNum("Peach") and self:getCardsNum("Peach") > 0 ) then		
 			friendneedpeach = true
 		end
@@ -1716,13 +1727,13 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 				for k, hassuit in pairs(suits) do
 					if hassuit then suitnum = suitnum + 1 end
 				end
-				self.player:speak("suitnum is "..suitnum)
 				if suitnum >=3 or (suitnum >= 2 and enemy:getHandcardNum() == 1 ) then
 					fireattack = card:getEffectiveId()
 				end						
 			end
 		end
 	end
+	
 	if snatch or dismantlement or indulgence or supplyshortage or collatera or duel or aoe or fireattack then 
 		if not self.player:containsTrick("indulgence") or canNullification or self.player:containsTrick("YanxiaoCard") or not nextplayercanuse then		
 			return snatch or dismantlement or indulgence or supplyshortage or collatera or duel or aoe or fireattack

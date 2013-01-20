@@ -1,4 +1,4 @@
---¿÷Ω¯
+--‰πêËøõ
 sgs.ai_skill_invoke.gzxiaoguo = function(self, data)
     local tar
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
@@ -52,7 +52,7 @@ end
 
 sgs.ai_skillInvoke_intention.gzxiaoguo = 80
 
---∏ ∑Ú»À
+--ÁîòÂ§´‰∫∫
 sgs.ai_skill_invoke.gzshushen = function(self, data)
     for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 	    if self:isFriend(player) then
@@ -91,16 +91,16 @@ end
 
 sgs.ai_chaofeng.gzganfuren = 3
 
---¬Ω—∑
-local gzdushi_skill={}
-gzdushi_skill.name="gzdushi"
-table.insert(sgs.ai_skills,gzdushi_skill)
-gzdushi_skill.getTurnUseCard=function(self,inclusive)
-	if self.player:hasUsed("#gzdushicard") then return nil end
-	return sgs.Card_Parse("#gzdushicard:.:")
+--ÈôÜÈÄä
+local gzduoshi_skill={}
+gzduoshi_skill.name="gzduoshi"
+table.insert(sgs.ai_skills,gzduoshi_skill)
+gzduoshi_skill.getTurnUseCard=function(self,inclusive)
+	if self.player:hasUsed("#gzduoshicard") then return nil end
+	return sgs.Card_Parse("#gzduoshicard:.:")
 end
 
-sgs.ai_skill_use_func["#gzdushicard"]=function(card,use,self)
+sgs.ai_skill_use_func["#gzduoshicard"]=function(card,use,self)
     local cc
 	local pp
 	if self.player:getHandcardNum() >= 2 then
@@ -121,17 +121,17 @@ sgs.ai_skill_use_func["#gzdushicard"]=function(card,use,self)
 		end
 	end
 	if cc and pp then
-	    use.card = sgs.Card_Parse("#gzdushicard:"..cc:getId()..":")
+	    use.card = sgs.Card_Parse("#gzduoshicard:"..cc:getId()..":")
 		if use.to then use.to:append(pp) end
 		return
 	end
 end
 
-sgs.ai_use_value.gzdushicard = 5
-sgs.ai_use_priority.gzdushicard = 2.61
-sgs.ai_card_intention.gzdushicard =  -81
+sgs.ai_use_value.gzduoshicard = 5
+sgs.ai_use_priority.gzduoshicard = 2.61
+sgs.ai_card_intention.gzduoshicard =  -81
 
---∂°∑Ó
+--‰∏ÅÂ•â
 sgs.ai_skill_invoke.gzduanbing = function(self, data)
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if not self:isFriend(player) and player:hasFlag("duanbingslash") then
@@ -199,7 +199,7 @@ sgs.ai_use_priority.gzfenxuncard = 2.61
 sgs.ai_card_intention.gzfenxuncard =  70
 sgs.ai_chaofeng.gzdingfeng = 2
 
---ø◊»⁄
+--Â≠îËûç
 sgs.ai_skill_choice.gzmingshi = function(self, choices)
     local splayer=self.room:findPlayerBySkillName("gzmingshi")
     if not self:isEnemy(splayer) then
@@ -212,7 +212,9 @@ sgs.ai_skillChoice_intention.gzmingshi = function(from, to, answer)
 	local room = from:getRoom()
 	local konglong = room:findPlayerBySkillName("gzmingshi")
 	if answer == "mingshishow" and konglong then
-		sgs.updateIntention(konglong, from, 80)
+		sgs.updateIntention(from, konglong, 80)
+	elseif answer == "mingshicancel" and konglong then
+		sgs.updateIntention(from, konglong, -40)
 	end
 end
 
@@ -242,7 +244,7 @@ end
 sgs.ai_playerchosen_intention.gzlirang = -60
 sgs.ai_chaofeng.gzkongrong = 4
 
---∑·ÃÔ
+--‰∏∞Áî∞
 sgs.ai_skill_invoke.gzsijian = function(self, data)
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if not self:isFriend(player) then
@@ -266,7 +268,7 @@ end
 
 sgs.ai_playerchosen_intention.gzsijian = 80
 
---ºÕ¡È
+--Á∫™ÁÅµ
 sgs.ai_skill_invoke.gzshuangren = function(self, data)
     local ph
 	local mch
@@ -305,33 +307,61 @@ sgs.ai_playerchosen_intention.gzshuangren = 80
 sgs.ai_chaofeng.gzjiling = 4
 
 sgs.ai_skill_invoke.gzhuoshui = function(self, data)
-	return true
+	if not self.player:faceUp() or not self:isWeak() then
+		self:sort(self.friends_noself, "defense")
+		for _,friend in ipairs(self.friends_noself) do
+			if not friend:faceUp() then
+				self.gzhuoshui_target = friend
+				break
+			end
+		end	
+		if self.gzhuoshui_target then return true end
+		
+		self:sort(self.enemies)
+		for _,enemy in ipairs(self.enemies) do
+			if enemy:faceUp() then
+				self.gzhuoshui_target = enemy
+				break
+			end
+		end
+		if self.gzhuoshui_target then return true end	
+	end	
 end
 
-sgs.ai_skill_choice.gzhuoshui = function(self, choices)
-	local str = choices
-	choices = str:split("+")
-	if self.player:getHp() < 1 and str:matchOne("buqu") then return "buqu" end
-	local gskill = {}
-	local dskill = {}
-	for _, askill in ipairs(("tuxi|guose|qingnang|lijian|haoshi|dimeng"):split("|")) do
-		if str:matchOne(askill) then 
-		    table.insert(gskill,askill)
-		end
-	end
-	for _, askill in ipairs(("rende|jijiu|qingnang|buqu|duanchang|huilei|zhuiyi|yibu|jiushi"):split("|")) do
-		if str:matchOne(askill) then 
-		    table.insert(dskill,askill)
-		end
-	end
-	if self.player:getHp() >= 2 and #gskill ~= 0 then
-	    return gskill[math.random(1,#gskill)]
-	elseif self.player:getHp() <= 1 and #dskill ~= 0 then
-	    return dskill[math.random(1,#dskill)]
-	else
-	    return choices[math.random(1,#choices)]
-	end
+sgs.ai_skill_playerchosen.gzhuoshui = function(self, targets)	
+	return self.gzhuoshui_target
 end
+
+sgs.ai_playerchosen_intention.gzhuoshui = function(from , to)
+	local intention = to:faceUp() and 80 or - 80
+	sgs.updateIntention(from , to , intention)
+end
+
+-- ËÄÅÁâàÈÇπÊ∞èÁöÑÁ•∏Ê∞¥
+-- sgs.ai_skill_choice.gzhuoshui = function(self, choices)
+	-- local str = choices
+	-- choices = str:split("+")
+	-- if self.player:getHp() < 1 and str:matchOne("buqu") then return "buqu" end
+	-- local gskill = {}
+	-- local dskill = {}
+	-- for _, askill in ipairs(("tuxi|guose|qingnang|lijian|haoshi|dimeng"):split("|")) do
+		-- if str:matchOne(askill) then 
+		    -- table.insert(gskill,askill)
+		-- end
+	-- end
+	-- for _, askill in ipairs(("rende|jijiu|qingnang|buqu|duanchang|huilei|zhuiyi|yibu|jiushi"):split("|")) do
+		-- if str:matchOne(askill) then 
+		    -- table.insert(dskill,askill)
+		-- end
+	-- end
+	-- if self.player:getHp() >= 2 and #gskill ~= 0 then
+	    -- return gskill[math.random(1,#gskill)]
+	-- elseif self.player:getHp() <= 1 and #dskill ~= 0 then
+	    -- return dskill[math.random(1,#dskill)]
+	-- else
+	    -- return choices[math.random(1,#choices)]
+	-- end
+-- end
 
 local gzqingcheng_skill={}
 gzqingcheng_skill.name="gzqingcheng"
@@ -379,12 +409,8 @@ sgs.ai_skill_use_func["#gzqingchengcard"]=function(card,use,self)
 	end
 end
 
-sgs.ai_use_value.gzqingchengcard = 7
-sgs.ai_use_priority.gzqingchengcard = 7
-sgs.ai_card_intention.gzqingchengcard = 100
-
 sgs.ai_chaofeng.gzzoushi = 2
-
+--È©¨ËÖæ
 local gzxiongyi_skill={}
 gzxiongyi_skill.name="gzxiongyi"
 table.insert(sgs.ai_skills,gzxiongyi_skill)
@@ -421,10 +447,9 @@ sgs.ai_use_value.gzxiongyicard = 7
 sgs.ai_use_priority.gzxiongyicard = 7
 sgs.ai_card_intention.gzxiongyicard = -100
 
---…œΩ´≈À∑Ô
+--‰∏äÂ∞ÜÊΩòÂá§
 sgs.ai_skill_invoke.gzkuangfu = function(self, data)
     local damage = data:toDamage()
-	
 	if self:isEnemy(damage.to) then
 		return true
 	end

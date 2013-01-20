@@ -109,3 +109,7 @@ sgs.ai_card_intention.HongyuanCard = function(card, from, tos, source)
 		sgs.updateIntention(from, to, -80)
 	end
 end
+
+sgs.ai_suit_priority.mingzhe=function(self)	
+	return self.player:getPhase()==sgs.Player_NotActive and "diamond|heart|club|spade" or "club|spade|diamond|heart"
+end

@@ -485,7 +485,7 @@ sgs.ai_skill_use_func.RendeCard = function(card, use, self)
     local name = self.player:objectName()
     local card, friend = self:getCardNeedPlayer(cards)
     if card and friend then
-		if not self.player:getHandcards():contains(card) then return end
+		if friend:objectName()==self.player:objectName() or not self.player:getHandcards():contains(card) then return end
         use.card = sgs.Card_Parse("@RendeCard=" .. card:getId())
         if use.to then use.to:append(friend) end
         return
@@ -662,10 +662,34 @@ wusheng_skill.getTurnUseCard=function(self,inclusive)
     end
 end
 
-function sgs.ai_cardneed.paoxiao(to, card)
-    if not to:containsTrick("indulgence") then
-        return card:isKindOf("Slash")
-    end
+function sgs.ai_cardneed.paoxiao(to, card, self)
+	local cards = to:getHandcards()
+	local has_weapon = to:getWeapon() and not to:getWeapon():isKindOf("Crossbow")
+	local slash_num = 0
+	for _, c in sgs.qlist(cards) do
+		local flag=string.format("%s_%s_%s","visible",self.room:getCurrent():objectName(),to:objectName())
+		if c:hasFlag("visible") or c:hasFlag(flag) then
+			if c:isKindOf("Weapon") and not c:isKindOf("Crossbow") then
+				has_weapon=true
+			end
+			if c:isKindOf("Slash") then slash_num = slash_num +1 end
+		end
+	end
+
+	if not has_weapon then
+		return card:isKindOf("Weapon") and not card:isKindOf("Crossbow")
+	else
+		return self:isEquip("Spear", to) or card:isKindOf("Slash") or (slash_num>1 and card:isKindOf("Analeptic"))
+	end
+end
+
+function sgs.ai_cardneed.jizhi(to, card)
+	return card:isNDTrick()
+end
+
+
+function sgs.ai_cardneed.zhiheng(to, card)
+    return not card:isKindOf("Jink")
 end
 
 sgs.zhangfei_keep_value = 

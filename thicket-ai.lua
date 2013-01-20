@@ -230,6 +230,11 @@ local function getBeggar(self)
 	end
 end
 
+function sgs.ai_cardneed.haoshi(to, card, self)
+	return not to:containsTrick("supply_shortage") or to:containsTrick("YanxiaoCard")	
+end
+
+
 sgs.ai_skill_invoke.haoshi = function(self, data)
 	if self.player:getHandcardNum() <= 1 and not self.player:hasSkill("yongsi") then
 		return true

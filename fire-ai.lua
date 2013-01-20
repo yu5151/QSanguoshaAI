@@ -461,6 +461,10 @@ sgs.ai_skill_invoke.shuangxiong=function(self,data)
 	return self.player:getHandcardNum()>=self.player:getHp() and target > 0
 end
 
+sgs.ai_cardneed.shuangxiong=function(to, card, self)
+	return not to:containsTrick("supply_shortage") or to:containsTrick("YanxiaoCard")	
+end
+
 local shuangxiong_skill={}
 shuangxiong_skill.name="shuangxiong"
 table.insert(sgs.ai_skills,shuangxiong_skill)

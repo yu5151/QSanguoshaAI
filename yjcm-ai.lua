@@ -591,7 +591,25 @@ sgs.ai_skill_use_func.XianzhenCard=function(card,use,self)
 	end
 end
 
-sgs.ai_cardneed.xianzhen = sgs.ai_cardneed.bignumber
+sgs.ai_cardneed.xianzhen=function(to, card, self)
+	local cards = to:getHandcards()
+	local has_big = false
+    for _, c in sgs.qlist(cards) do
+        local flag=string.format("%s_%s_%s","visible",self.room:getCurrent():objectName(),to:objectName())
+        if c:hasFlag("visible") or c:hasFlag(flag) then
+            if c:getNumber()>10 then
+				has_big=true
+				break
+			end
+        end
+    end
+	if not has_big then
+		return hcard:getNumber() > 10
+	else
+		return hcard:isKindOf("Slash") or hcard:isKindOf("Analeptic")
+	end
+end
+
 function sgs.ai_skill_pindian.xianzhen(minusecard, self, requestor)
 	if self:isFriend(requestor) then return end
 	if requestor:getHandcardNum() <= 2 then return minusecard end

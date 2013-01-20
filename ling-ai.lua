@@ -97,11 +97,25 @@ function sgs.ai_skill_suit.neofanjian()
 	local map = {0, 0, 1, 2, 2, 3, 3, 3}
 	return map[math.random(1,8)]
 end
-sgs.ai_skill_invoke.zhongyi = function(self, data)
+sgs.ai_skill_invoke.yishi = function(self, data)
 	local damage = data:toDamage()
 	local target = damage.to
-	if self:isFriend(target) then return false end
-	return target:getCards("e"):length() > 0 
+	local judge_card = target:getCards("j")
+	if self:isFriend(target) then
+	    if judge_card and judge_card:length() > 0 then return true end
+	    if not (target:getHp()>2 and target:hasSkill("yiji")) 
+	       and not (target:hasSkill("longhun") and target:getHp()>1 and target:getCards("he"):length()>2)
+	       and not (target:getHp()>2 and target:hasSkill("guixin") and self.room:alivePlayerCount() > 2)
+	      then return true
+	    end
+	else
+		if damage.card:hasFlag("drank") then return false end
+		if self:isWeak(target) then return false end
+		if target:getArmor() and self:evaluateArmor(target:getArmor(), target)>3 and not self:isEquip("Vine", target) then return true end
+		if target:hasSkill("tuntian") then return false end
+		if self:hasSkills(sgs.need_kongcheng, target) then return false end
+		return false
+	end 
 end
 
 sgs.ai_skill_invoke.zhulou = function(self, data)

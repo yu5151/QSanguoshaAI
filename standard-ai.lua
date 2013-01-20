@@ -486,7 +486,17 @@ sgs.ai_skill_use_func.RendeCard = function(card, use, self)
     local card, friend = self:getCardNeedPlayer(cards)
     if card and friend then
 		if friend:objectName()==self.player:objectName() or not self.player:getHandcards():contains(card) then return end
-        use.card = sgs.Card_Parse("@RendeCard=" .. card:getId())
+        if friend:hasSkill("enyuan") and #cards>=2 then
+            self:sortByUseValue(cards,true)
+            for i = 1, #cards, 1 do
+                if cards[i]:getId()~=card:getId() then
+                    use.card = sgs.Card_Parse("@RendeCard=" .. card:getId() .. "+" .. cards[i]:getId())
+                    break
+                end
+            end
+        else
+            use.card = sgs.Card_Parse("@RendeCard=" .. card:getId())
+        end
         if use.to then use.to:append(friend) end
         return
     end
@@ -731,16 +741,25 @@ function sgs.ai_cardneed.qingguo(to, card)
 end
 
 function sgs.ai_cardneed.guicai(to, card, self)
+    local flag1="lightning_judge_" .. self.player:objectName()
+    local flag2="supply_shortage_judge_" .. self.player:objectName()
+    local flag3="indulgence_judge_" .. self.player:objectName()
 	for _, player in ipairs(self.room:getAlivePlayers()) do
-        if self:getFinalRetrial(to) ==1 then 
-                if player:containsTrick("lightning") and not player:containsTrick("YanxiaoCard") then
-                    return card:getSuit() == sgs.Card_Spade and card:getNumber()>=2 and card:getNumber()<=9 and not to:hasSkill("hongyan")
+        if self:getFinalRetrial(to) ==1 then
+                if player:containsTrick("lightning") and not player:containsTrick("YanxiaoCard") and not self.player:hasFlag(flag1) then
+                    local ret = card:getSuit() == sgs.Card_Spade and card:getNumber()>=2 and card:getNumber()<=9 and not to:hasSkill("hongyan")
+                    if ret then self.player:setFlags(flag1) end
+                    return ret
                 end
-                if player:containsTrick("supply_shortage") and self:isFriend(player) and not player:containsTrick("YanxiaoCard") then
-                    return card:getSuit() == sgs.Card_Club
+                if player:containsTrick("supply_shortage") and self:isFriend(player) and not player:containsTrick("YanxiaoCard") and not self.player:hasFlag(flag2) then
+                    local ret = card:getSuit() == sgs.Card_Club
+                    if ret then self.player:setFlags(flag2) end
+                    return ret
                 end
-                if player:containsTrick("indulgence") and self:isFriend(player) and not player:containsTrick("YanxiaoCard")  then
-                    return card:getSuit() == sgs.Card_Heart or (card:getSuit() == sgs.Card_Spade and to:hasSkill("hongyan"))
+                if player:containsTrick("indulgence") and self:isFriend(player) and not player:containsTrick("YanxiaoCard") and not self.player:hasFlag(flag3)  then
+                    local ret = card:getSuit() == sgs.Card_Heart or (card:getSuit() == sgs.Card_Spade and to:hasSkill("hongyan"))
+                    if ret then self.player:setFlags(flag3) end
+                    return ret
                 end
                 
         end

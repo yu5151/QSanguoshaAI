@@ -61,10 +61,6 @@ function sgs.isGoodTarget(player,targets)
 		return false
 	end
 
-	if player:hasSkill("rende") and player:getHp()>=3 then
-		return false
-	end
-
 	if player:hasLordSkill("shichou") and player:getMark("@hate")==0 then
 		if player:getTag("ShichouTarget") and player:getTag("ShichouTarget"):toPlayer() and player:getTag("ShichouTarget"):toPlayer():isAlive() then
 			return false
@@ -114,6 +110,10 @@ function sgs.getDefenseSlash(player)
 
 	if not sgs.isGoodTarget(player) then
 		defense = defense + 10
+	end
+
+    if player:hasSkill("rende") and player:getHp()>=3 then
+		defense = defense + 3
 	end
 	
 	local hujiaJink=0
@@ -1006,6 +1006,7 @@ function SmartAI:useCardDuel(duel, use)
 		if sgs.card_lack[enemy:objectName()]["Slash"] == 1 then n2 = 0 end
 		useduel = n1>=n2 or self.player:getHp()>getBestHp(self.player) or self:getDamagedEffects(self.player,enemy) or (n2<1 and sgs.isGoodHp(self.player))
 		useduel = useduel and not (enemy:getHp()>getBestHp(enemy)) and not self:getDamagedEffects(enemy,self.player)
+        useduel = useduel and not (enemy:hasSkill("jianxiong") and not self:isWeak(enemy) and not self.player:hasSkill("jueqing"))
         if self:objectiveLevel(enemy) > 3 and canUseDuelTo(enemy) and not self:cantbeHurt(enemy) and useduel and sgs.isGoodTarget(enemy,enemies) then
             use.card = duel
             if use.to then

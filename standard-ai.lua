@@ -1108,7 +1108,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
             end
         end
     end
-    if self:isWeak() then
+    if self:isWeak() or (slash:hasFlag("drank") or source:hasFlag("luoyi")) then
         for _, friend in ipairs(self.friends_noself) do
             if not self:isWeak(friend) then
                 if self.player:canSlash(friend, slash, true) and not (source:objectName() == friend:objectName()) then

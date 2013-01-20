@@ -102,12 +102,12 @@ sgs.ai_skill_invoke.yishi = function(self, data)
 	local target = damage.to
 	local judge_card = target:getCards("j")
 	if self:isFriend(target) then
-	    if judge_card and judge_card:length() > 0 then return true end
-	    if not (target:getHp()>2 and target:hasSkill("yiji")) 
-	       and not (target:hasSkill("longhun") and target:getHp()>1 and target:getCards("he"):length()>2)
-	       and not (target:getHp()>2 and target:hasSkill("guixin") and self.room:alivePlayerCount() > 2)
-	      then return true
-	    end
+		if judge_card and judge_card:length() > 0 then return true end
+		if not (target:getHp()>2 and target:hasSkill("yiji")) 
+			and not (target:hasSkill("longhun") and target:getHp()>1 and target:getCards("he"):length()>2)
+			and not (target:getHp()>2 and target:hasSkill("guixin") and self.room:alivePlayerCount() > 2)
+				then return true
+		end
 	else
 		if damage.card:hasFlag("drank") then return false end
 		if self:isWeak(target) then return false end

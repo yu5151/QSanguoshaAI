@@ -683,13 +683,77 @@ function sgs.ai_cardneed.paoxiao(to, card, self)
 	end
 end
 
+
+function sgs.ai_cardneed.luoyi(to, card, self)
+	local slash_num = 0
+    local target
+    local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+
+	local cards = to:getHandcards()
+	local need_slash = true
+	for _, c in sgs.qlist(cards) do
+		local flag=string.format("%s_%s_%s","visible",self.room:getCurrent():objectName(),to:objectName())
+		if c:hasFlag("visible") or c:hasFlag(flag) then
+			if is("Slash",c, to) then
+				need_slash=false
+                break
+			end			
+		end
+	end
+
+    self:sort(self.enemies, "defense")
+	for _, enemy in ipairs(self.enemies) do
+		if to:canSlash(enemy) and not self:slashProhibit(slash ,enemy) and sgs.getDefenseSlash(enemy)<=2 then
+            target = enemy
+            break
+        end
+	end
+    if need_slash and target and is("Slash",card, to) and self:slashIsEffective(card,enemy) then
+        return true
+    end
+    return is("Duel",card, to)	
+end
+
 function sgs.ai_cardneed.jizhi(to, card)
 	return card:isNDTrick()
+end
+
+function sgs.ai_cardneed.guose(to, card)
+	return card:getSuit() == sgs.Card_Diamond
+end
+
+function sgs.ai_cardneed.liuli(to, card)
+	return to:getCards("he"):length()<=2 and not card:isKindOf("Jink")
+end
+
+function sgs.ai_cardneed.qingguo(to, card)
+	return to:getCards("h"):length()<2 and card:isBlack()
+end
+
+function sgs.ai_cardneed.guicai(to, card, self)
+	for _, player in ipairs(self.room:getAlivePlayers()) do
+        if self:getFinalRetrial(to) ==1 then 
+                if player:containsTrick("lightning") and not player:containsTrick("YanxiaoCard") then
+                    return card:getSuit() == sgs.Card_Spade and card:getNumber()>=2 and card:getNumber()<=9 and not to:hasSkill("hongyan")
+                end
+                if player:containsTrick("supply_shortage") and self:isFriend(player) and not player:containsTrick("YanxiaoCard") then
+                    return card:getSuit() == sgs.Card_Club
+                end
+                if player:containsTrick("indulgence") and self:isFriend(player) and not player:containsTrick("YanxiaoCard")  then
+                    return card:getSuit() == sgs.Card_Heart or (card:getSuit() == sgs.Card_Spade and to:hasSkill("hongyan"))
+                end
+                
+        end
+    end
 end
 
 
 function sgs.ai_cardneed.zhiheng(to, card)
     return not card:isKindOf("Jink")
+end
+
+function sgs.ai_cardneed.qixi(to, card)
+	return card:isBlack()
 end
 
 sgs.zhangfei_keep_value = 

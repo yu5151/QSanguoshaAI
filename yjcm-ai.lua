@@ -472,6 +472,7 @@ sgs.ai_skill_choice.mingce = function(self, choices)
 	local chengong = self.room:findPlayerBySkillName("mingce")
 	if chengong and not self:isFriend(chengong) then return "draw" end
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+    self:sort(self.enemies, "defense")
 	for _, enemy in ipairs(self.enemies) do
 		if self.player:canSlash(enemy) and not self:slashProhibit(slash ,enemy) and sgs.getDefenseSlash(enemy)<=2 then return "use" end
 	end

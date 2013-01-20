@@ -2756,6 +2756,7 @@ function SmartAI:getCardNeedPlayer(cards)
 		end
 	end
 
+    self:sort(friends, "defense")
 	for _, friend in ipairs(self.friends_noself) do
 		if not self:needKongcheng(friend) then
 			for _, hcard in ipairs(cardtogive) do

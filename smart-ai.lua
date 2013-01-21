@@ -2544,7 +2544,7 @@ function SmartAI:getCardNeedPlayer(cards)
 
 	end
 
-	-- armor,DefensiveHorse
+	-- Armor,DefensiveHorse
 	for _, friend in ipairs(friends) do		
 		if friend:getHp()<=2 and friend:faceUp() then
 			for _, hcard in ipairs(cards) do
@@ -2580,7 +2580,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	end	
 
 	table.sort(friends, cmpByAction)
-
+	
 	for _, friend in ipairs(friends) do
 		if friend:faceUp() then
 			local can_slash = false
@@ -2590,15 +2590,19 @@ function SmartAI:getCardNeedPlayer(cards)
 					break
 				end
 			end
-	  
+			local flag =string.format("weapon_done_%s_%s",self.player:objectName(),friend:objectName())
 			if not can_slash then
 				for _, p in sgs.qlist(self.room:getOtherPlayers(friend)) do
 					if self:isEnemy(p) and sgs.isGoodTarget(p,self.enemies) and friend:distanceTo(p) > friend:getAttackRange() then
 						for _, hcard in ipairs(cardtogive) do
-							if hcard:isKindOf("Weapon") and friend:distanceTo(p) <= friend:getAttackRange() + (sgs.weapon_range[hcard:getClassName()] or 0) and not friend:getWeapon() then
+							if hcard:isKindOf("Weapon") and friend:distanceTo(p) <= friend:getAttackRange() + (sgs.weapon_range[hcard:getClassName()] or 0) 
+									and not friend:getWeapon() and not friend:hasFlag(flag) then
+								self.room:setPlayerFlag(friend, flag)
 								return hcard, friend 
 							end
-							if hcard:isKindOf("OffensiveHorse") and friend:distanceTo(p) <= friend:getAttackRange() + 1 and not friend:getOffensiveHorse() then
+							if hcard:isKindOf("OffensiveHorse") and friend:distanceTo(p) <= friend:getAttackRange() + 1 
+									and not friend:getOffensiveHorse() and not friend:hasFlag(flag) then
+								self.room:setPlayerFlag(friend, flag)
 								return hcard, friend 
 							end
 						end
@@ -2652,15 +2656,38 @@ function SmartAI:getCardNeedPlayer(cards)
 	end
 
 	self:sort(friends, "defense")
-	for _, friend in ipairs(self.friends_noself) do
-		if not self:needKongcheng(friend) then
-			for _, hcard in ipairs(cardtogive) do
+	for _, hcard in ipairs(cardtogive) do
+		for _, friend in ipairs(self.friends_noself) do
+			if not self:needKongcheng(friend) and (self:hasSkills(priority_skill,friend) or (sgs.ai_chaofeng[self.player:getGeneralName()] or 0) > 2) then			
 				if self:getOverflow()>0 or self.player:getHandcardNum()>3 then
 					return hcard, friend
 				end
 			end
 		end
 	end
+
+	for _, hcard in ipairs(cardtogive) do
+		for _, friend in ipairs(self.friends_noself) do
+			if not self:needKongcheng(friend) then			
+				if self:getOverflow()>0 or self.player:getHandcardNum()>3 or 
+						(self.player:hasSkill("rende") and self.player:isWounded() and self.player:usedTimes("RendeCard") < 2) then
+					return hcard, friend
+				end
+			end
+		end
+	end	
+	
+	if self.player:hasSkill("rende") and self.player:isWounded() and self.player:usedTimes("RendeCard") < 2 and #cardtogive>0 then
+		local need_rende = sgs.current_mode_players["rebel"] ==0 or 
+				(sgs.current_mode_players["rebel"] >0 and sgs.current_mode_players["renegade"] >0 and sgs.current_mode_players["loyalist"] ==0)
+		if need_rende then
+			local players=sgs.QList2Table(self.room:getOtherPlayers(self.player))
+			self:sort(players,"chaofeng", true)
+			self:sortByUseValue(cardtogive, true)
+			return cardtogive[1], players[1]
+		end
+	end
+
 end
 
 function SmartAI:askForYiji(card_ids)
@@ -3922,7 +3949,7 @@ function SmartAI:useTrickCard(card, use)
 	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 then
 		if not (card:isKindOf("AOE") or card:isKindOf("DelayedTrick") or card:isKindOf("IronChain")) then return end
 	end
-	if self:needRende() then return end
+	if self:needRende() and not card:isKindOf("ExNihilo") then return end
 	if card:isKindOf("AOE") then
 		if self.player:hasSkill("wuyan") then return end
 		if self.player:hasSkill("noswuyan") then return end
@@ -4084,7 +4111,7 @@ function SmartAI:useEquipCard(card, use)
 			use.card = lion
 			return
 		end
-		if self.player:hasSkill("rende") and self:evaluateArmor(card)<4 then
+		if self.player:hasSkill("rende") then
 			for _,friend in ipairs(self.friends_noself) do
 				if not friend:getArmor() then return end
 			end

@@ -1804,8 +1804,8 @@ function SmartAI:filterEvent(event, player, data)
 
 			if move.to_place==sgs.Player_PlaceHand and move.to then
 				if card:hasFlag("visible") then
-					if is_a_slash(move.to,card) then sgs.card_lack[move.to:objectName()]["Slash"]=0 end
-					if is_a_jink(move.to,card) then sgs.card_lack[move.to:objectName()]["Jink"]=0 end
+					if isCard("Slash",card, move.to) then sgs.card_lack[move.to:objectName()]["Slash"]=0 end
+					if isCard("Jink",card, move.to) then sgs.card_lack[move.to:objectName()]["Jink"]=0 end
 				else
 					sgs.card_lack[move.to:objectName()]["Slash"]=0
 					sgs.card_lack[move.to:objectName()]["Jink"]=0
@@ -1854,24 +1854,6 @@ function SmartAI:filterEvent(event, player, data)
 			logmsg("ai.html","<meta charset='utf-8'/>")
 		end
 	end
-end
-
-function is_a_jink(player, card)	
-	if card:isKindOf("Jink") then return true end		
-	if player:hasSkill("qingguo") and card:isBlack() then return true end			
-	if player:hasSkill("longdan") and card:isKindOf("Slash") then return true end
-	if player:hasSkill("longhun") and player:getHp() == 1 and card:getSuit() == sgs.Card_Club then return true end
-	return false
-end
-
-function is_a_slash(player, card)
-	if card:isKindOf("Slash") then return true end		
-	if player:hasSkill("wusheng") and card:isRed() then return true end			
-	if player:hasSkill("wushen") and card:getSuit()==sgs.Card_Heart then return true end
-	if player:hasSkill("longdan") and card:isKindOf("Jink") then return true end
-	if player:hasSkill("nosgongqi") and card:isKindOf("EquipCard") then return true end
-	if player:hasSkill("longhun") and player:getHp() == 1 and card:getSuit() == sgs.Card_Diamond then return true end
-	return false
 end
 
 function SmartAI:askForSuit(reason)
@@ -2501,14 +2483,14 @@ function SmartAI:getCardNeedPlayer(cards)
 		local no_distance = self.slash_distance_limit
 		local redcardnum = 0
 		for _,acard in ipairs(cards) do
-			if is("Slash",acard, self.player) then
+			if isCard("Slash",acard, self.player) then
 				if self.player:canSlash(xunyu, nil, not no_distance) and self:slashIsEffective(acard, xunyu) then
 					keptslash = keptslash + 1
 				end
 				if keptslash > 0 then
 					table.insert(cardtogivespecial,acard)
 				end
-			elseif is("Duel",acard, self.player) then
+			elseif isCard("Duel",acard, self.player) then
 				table.insert(cardtogivespecial,acard)
 			end
 		end
@@ -2527,7 +2509,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	local cardtogive = {}
 	local keptjink = 0
 	for _,acard in ipairs(cards) do
-		if is("Jink",acard, self.player) and keptjink < 1 then
+		if isCard("Jink",acard, self.player) and keptjink < 1 then
 			keptjink = keptjink+1
 		else
 			table.insert(cardtogive,acard)
@@ -2539,7 +2521,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	for _, friend in ipairs(friends) do		
 		if self:isWeak(friend) and friend:getHandcardNum() < 3  then
 			for _, hcard in ipairs(cards) do
-				if is("Peach",hcard,friend) or (is("Jink",hcard,friend) and self:getEnemyNumBySeat(self.player,friend)>0) or is("Analeptic",hcard,friend) then
+				if isCard("Peach",hcard,friend) or (isCard("Jink",hcard,friend) and self:getEnemyNumBySeat(self.player,friend)>0) or isCard("Analeptic",hcard,friend) then
 					return hcard, friend
 				end
 			end
@@ -3156,9 +3138,9 @@ local function getFilterSkillViewCard(card, player, card_place)
 end
 
 function isCard(class_name, card, player)
-	local cardx = getFilterSkillViewCard(card, player, player:getRoom():getCardPlace(card:getEffectiveId()))
+	local cardx = getFilterSkillViewCard(card, player, global_room:getCardPlace(card:getEffectiveId()))
 	if cardx and not cardx:isKindOf(class_name) then return false end
-	return card:isKindOf(class_name) or getSkillViewCard(card, class_name, player, player:getRoom():getCardPlace(card:getEffectiveId()))
+	return card:isKindOf(class_name) or getSkillViewCard(card, class_name, player, global_room:getCardPlace(card:getEffectiveId()))
 end
 
 
@@ -3232,7 +3214,7 @@ function getKnownCard(player,class_name,viewas)
 	for _, card in sgs.qlist(cards) do
 		local flag=string.format("%s_%s_%s","visible",global_room:getCurrent():objectName(),player:objectName())
 		if card:hasFlag("visible") or card:hasFlag(flag) then
-			if (viewas and ((class_name=="Slash" and is_a_slash(player,card)) or (class_name=="Jink" and is_a_jink(player,card))))  
+			if (viewas and ((class_name=="Slash" and isCard("Slash",card, player)) or (class_name=="Jink" and isCard("Jink",card, player))))  
 					or card:isKindOf(class_name) then 
 				known = known + 1 
 			end

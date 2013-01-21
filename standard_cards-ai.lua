@@ -245,15 +245,6 @@ function SmartAI:slashIsEffective(slash, to)
 		return false
 	end
 
-	if self.player:getWeapon() and slash:getSubcards():first()==self.player:getWeapon():getId() then
-		if self.player:distanceTo(to) - (sgs.weapon_range[self.player:getWeapon():getClassName()] or 1)< self.player:getAttackRange() then return false end
-	end
-
-	if self.player:getOffensiveHorse() and slash:getSubcards():first()==self.player:getOffensiveHorse():getId() then
-		if self.player:distanceTo(to) -1 < self.player:getAttackRange() then return false end
-	end
-
-
 	local natures = {
 		Slash = sgs.DamageStruct_Normal,
 		FireSlash = sgs.DamageStruct_Fire,
@@ -412,7 +403,7 @@ function SmartAI:useCardSlash(card, use)
 					end
 				end
 				local anal = self:searchForAnaleptic(use, target, card)
-				if anal and not self:isEquip("SilverLion", target) and not self:isWeak() then
+				if anal and not self:isEquip("SilverLion", target) and (self:isWeak(target) or sgs.getDefenseSlash(target)<=2) then
 					if anal:getEffectiveId() ~= card:getEffectiveId() then use.card = anal return end
 				end
 			end

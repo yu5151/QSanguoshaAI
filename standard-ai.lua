@@ -1201,7 +1201,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt, method)
 				elseif card:isKindOf("OffensiveHorse") then
 					range_fix = range_fix + 1;
 				end
-				if self.player:distanceTo(enemy, range_fix) <= self.player:getAttackRange() and not self.player:isCardLimited(card, method) then
+				if self.player:distanceTo(enemy, range_fix) <= self.player:getAttackRange() then
 					return "@LiuliCard="..card:getEffectiveId().."->"..enemy:objectName()
 				end
 			end
@@ -1220,7 +1220,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt, method)
 						elseif card:isKindOf("OffensiveHorse") then
 							range_fix = range_fix + 1;
 						end
-						if self.player:distanceTo(friend, range_fix) <= self.player:getAttackRange() and not self.player:isCardLimited(card, method) then
+						if self.player:distanceTo(friend, range_fix) <= self.player:getAttackRange() then
 							return "@LiuliCard="..card:getEffectiveId().."->".. friend:objectName()
 						end
 					end

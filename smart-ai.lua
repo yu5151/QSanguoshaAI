@@ -1906,13 +1906,14 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 	local callback = sgs.ai_skill_discard[reason]
 	self:assignKeep(self.player:getHp(),true)
 	if type(callback) == "function" then
-		if callback(self, discard_num, min_num, optional, include_equip) then 
-			for _, card_id in ipairs(callback(self, discard_num, min_num, optional, include_equip)) do
+		local ret = callback(self, discard_num, min_num, optional, include_equip)
+		if ret and type(ret) == "table" then 
+			for _, card_id in ipairs(ret) do
 				if self.player:isJilei(sgs.Sanguosha:getCard(card_id)) then
 					return {}
 				end
 			end
-			return callback(self, discard_num, min_num, optional, include_equip) 
+			return ret
 		end
 	elseif optional then 
 		return {} 

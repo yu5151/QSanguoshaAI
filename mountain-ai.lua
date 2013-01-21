@@ -200,7 +200,7 @@ sgs.ai_skill_discard.qiaobian = function(self, discard_num, min_num, optional, i
 				if self:getUseValue(hcard) > top_value then	top_value = self:getUseValue(hcard) end
 			end
 		end
-		if top_value >= 3.7 and #(self:getTurnUse())>0 then return "." end
+		if top_value >= 3.7 and #(self:getTurnUse())>0 then return {} end
 
 		local targets = {}
 		for _, enemy in ipairs(self.enemies) do

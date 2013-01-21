@@ -2434,10 +2434,6 @@ function SmartAI:getCardNeedPlayer(cards)
 		return a:getRoom():getFront(a, b):objectName() == a:objectName()
 	end
 
-	local cmpByAction=function(a,b)
-		return a:getRoom():getFront(a, b):objectName() == a:objectName()
-	end
-
 	local cmpByNumber=function(a,b)
 		return a:getNumber()>b:getNumber()
 	end

@@ -2658,7 +2658,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	self:sort(friends, "defense")
 	for _, hcard in ipairs(cardtogive) do
 		for _, friend in ipairs(self.friends_noself) do
-			if not self:needKongcheng(friend) and (self:hasSkills(priority_skill,friend) or (sgs.ai_chaofeng[self.player:getGeneralName()] or 0) > 2) then			
+			if not self:needKongcheng(friend) and (self:hasSkills(sgs.priority_skill,friend) or (sgs.ai_chaofeng[self.player:getGeneralName()] or 0) > 2) then			
 				if self:getOverflow()>0 or self.player:getHandcardNum()>3 then
 					return hcard, friend
 				end

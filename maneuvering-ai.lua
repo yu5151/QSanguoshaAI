@@ -20,23 +20,18 @@ sgs.ai_use_priority.FireSlash = 2.5
 
 sgs.weapon_range.Fan = 4
 sgs.ai_use_priority.Fan = 2.655
-sgs.ai_use_priority.Vine = 0.6
+sgs.ai_use_priority.Vine = 1.6
 
-	
-sgs.ai_skill_invoke.Fan = function(self, data)
-	local target = data:toSlashEffect().to
-	if target:hasSkill("ayshuiyong") then  --ecup
-	if self:isFriend(target) then
-		return true
-	else
-		return false
+sgs.ai_skill_invoke.fan = function(self, data)
+	local use = data:toCardUse()
+	for _, target in sgs.qlist(use.to) do
+		if self:isFriend(target) then
+			if not (target:isChained() and self:isGoodChainTarget(target)) then return false end
+		else
+			if target:isChained() and not self:isGoodChainTarget(target) then return false end
+		end
 	end
-end													  --ecup
-	if self:isFriend(target) then
-	  return target:isChained() and self:isGoodChainTarget(target)
-	else
-	  return not (target:isChained() and not self:isGoodChainTarget(target))
-	end
+	return true
 end
 
 sgs.ai_view_as.Fan = function(card, player, card_place)
@@ -209,7 +204,7 @@ function SmartAI:useCardSupplyShortage(card, use)
 end
 
 sgs.ai_use_value.SupplyShortage = 7
-sgs.ai_use_priority.SupplyShortage = 0.1
+sgs.ai_use_priority.SupplyShortage = 0.5
 sgs.ai_card_intention.SupplyShortage = 120
 
 sgs.dynamic_value.control_usecard.SupplyShortage = true
@@ -236,7 +231,7 @@ end
 
 function SmartAI:isGoodChainPartner(player)  
 	player = player or self.player
-	if player:hasSkill("buqu") or (self.player:hasSkill("niepan") and self.player:getMark("@@nirvana") > 0) or player:getHp() > getBestHp(player)
+ 	if player:hasSkill("buqu") or (self.player:hasSkill("niepan") and self.player:getMark("@nirvana") > 0) or player:getHp() > getBestHp(player)
 			or self:getDamagedEffects(player) or (player:hasSkill("fuli") and player:getMark("@laoji") > 0) then  
 		return true
 	end

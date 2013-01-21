@@ -10,7 +10,7 @@ function slashdamage(self,gong,shou)  --定义了一个函数，可以计算，�
 		(sm and self:isFriend(sm) and sm:getHandcardNum() >= 2) or
 		(ssm and self:isFriend(ssm) and ssm:getHandcardNum() >= 2 and ssm:getMark("@bear")) then
 		godlikefriend = true
-	end		
+	end
 	
 	--以下完成了这样的计算：
 	--如果被杀的人有八卦，藤甲，那么伤害为0

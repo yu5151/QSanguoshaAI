@@ -3,7 +3,14 @@ sgs.ai_skill_invoke.moukui = function(self, data)
 	return not self:isFriend(target) 
 end
 
-sgs.ai_skill_choice.moukui = function(self, choices)
+sgs.ai_skill_choice.moukui = function(self, choices, data)
+	local target = data:toPlayer()
+	local equip_num = target:getEquips():length()
+	if target:isKongcheng() and equip_num > 0 then
+		if self:hasSkills(sgs.lose_equip_skill, target) or (self:isEquip("SilverLion", target) and target:isWounded() and equip_num == 1) then
+			return "draw"
+		end
+	end
 	return "discard"
 end
 
@@ -171,7 +178,7 @@ sgs.ai_skill_use_func.MizhaoCard=function(card,use,self)
 end
 
 sgs.ai_use_priority.MizhaoCard = 1.5
-sgs.ai_card_intention.MizhaoCard = 20
+sgs.ai_card_intention.MizhaoCard = -20
 
 sgs.ai_skill_playerchosen.mizhao = function(self, targets)
 	self:sort(self.enemies, "hp")
@@ -194,7 +201,7 @@ function sgs.ai_skill_pindian.mizhao(minusecard, self, requestor, maxcard)
 		table.sort(cards, compare_func1)
 	end
 	for _, card in ipairs(cards) do
-		if self:getUseValue(card) < 6 then maxcard = card break end
+		if self:getKeepValue(card) < 8 or card:isKindOf("EquipCard") then maxcard = card break end
 	end
 	return maxcard or cards[1]
 end

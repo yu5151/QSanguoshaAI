@@ -27,7 +27,7 @@ neoluoyi_skill.getTurnUseCard=function(self)
 		if card:isKindOf("Duel") then
 			for _, enemy in ipairs(self.enemies) do
 				if self:getCardsNum("Slash") >= getCardsNum("Slash", enemy) 
-				and self:objectiveLevel(enemy) > 3 and not self:cantbeHurt(enemy) and enemy:getMark("@fog") < 1 then 
+				and self:objectiveLevel(enemy) > 3 and not self:cantbeHurt(enemy) and self:damageIsEffective(enemy) and enemy:getMark("@late") == 0 then
 					dueltarget = dueltarget + 1 
 				end
 			end
@@ -67,22 +67,25 @@ neofanjian_skill.getTurnUseCard=function(self)
 
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	self:sortByKeepValue(cards)
-	local card_id = cards[1]:getEffectiveId()
 
-	if cards[1]:isKindOf("Peach") or cards[1]:isKindOf("Analeptic") then return nil end
+	local keep_value = self:getKeepValue(cards[1])
+	if cards[1]:getSuit() == sgs.Card_Diamond then keep_value = keep_value + 1 end
 
-	local card_str = "@NeoFanjianCard=" .. card_id
-	local fanjianCard = sgs.Card_Parse(card_str)
-	assert(fanjianCard)
-
-	return fanjianCard		
+	if keep_value < 6 then
+		if cards[1]:isKindOf("Peach") or cards[1]:isKindOf("Analeptic") then return nil end
+		local card_id = cards[1]:getEffectiveId()
+		local card_str = "@NeoFanjianCard=" .. card_id
+		local fanjianCard = sgs.Card_Parse(card_str)
+		assert(fanjianCard)
+		return fanjianCard
+	end
 end
 
 sgs.ai_skill_use_func.NeoFanjianCard=function(card,use,self)
 	self:sort(self.enemies, "hp")
 			
 	for _, enemy in ipairs(self.enemies) do		
-		if self:objectiveLevel(enemy) <= 3 or self:cantbeHurt(enemy) or enemy:getMark("@fog") > 0 then						
+		if self:objectiveLevel(enemy) <= 3 or self:cantbeHurt(enemy) or not self:damageIsEffective(enemy) then
 		elseif (not enemy:hasSkill("qingnang")) or (enemy:getHp() == 1 and enemy:getHandcardNum() == 0 and not enemy:getEquips()) then
 			use.card = card
 			if use.to then use.to:append(enemy) end
@@ -140,20 +143,22 @@ sgs.ai_skill_invoke.zhulou = function(self, data)
 end
 
 sgs.ai_skill_cardask["@zhulou-discard"] =  function(self, data)
-	  local weapon_card
 	  for _, card in sgs.qlist(self.player:getCards("he")) do
-		if card:isKindOf("Weapon") then
-			weapon_card = card
+		if card:isKindOf("Weapon") and not self.player:hasEquip(card) then
+			return "$" .. card:getEffectiveId()
 		end
 	end
-
-	return "$" .. weapon_card:getEffectiveId()
+	for _, card in sgs.qlist(self.player:getCards("he")) do
+		if card:isKindOf("Weapon") then
+			return "$" .. card:getEffectiveId()
+		end
+	end
+	return "."
 end
 
 sgs.ai_cardneed.zhulou = sgs.ai_cardneed.weapon
 
-sgs.neo_gongsunzan_keep_value = 
-{
+sgs.zhulou_keep_value = {
 	Peach = 6,
 	Jink = 5.1,
 	Crossbow = 5,

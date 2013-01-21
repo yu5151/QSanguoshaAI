@@ -6,60 +6,52 @@
 sgs.ai_skill_cardask["@huanshi-card"] = function(self, data) --询问缓释改判卡牌
 	local judge = data:toJudge()
 
-	local cards = sgs.QList2Table(self.player:getCards("he"))
-	local card_id = self:getRetrialCardId(cards, judge)
-	local card = sgs.Sanguosha:getCard(card_id)
-	if card_id ~= -1 then
-		return "@HuanshiCard[" .. card:getSuitString() .. ":" .. card:getNumberString() .. "]=" .. card_id
+	if self:needRetrial(judge) then
+		local cards = sgs.QList2Table(self.player:getCards("he"))
+		local card_id = self:getRetrialCardId(cards, judge)
+		local card = sgs.Sanguosha:getCard(card_id)
+		if card_id ~= -1 then
+			return "@HuanshiCard[" .. card:getSuitString() .. ":" .. card:getNumberString() .. "]=" .. card_id
+		end
 	end
 
 	return "."
 end
 
-sgs.ai_skill_invoke.huanshi = function(self, data) --询问诸葛瑾是否发动缓释（为什么data是RecoverStruct类型的？）
-	if self.player:isNude() then --裸奔时不能发动技能
-		return false
-	else
-		local judge = self.room:getTag("JudgeInformation"):toJudge()
-		if self:needRetrial(judge) then
-			return true
-		end
-		--考虑明哲换牌（忽略换装备牌，只考虑换手牌）
-		local cards = self.player:getCards("h") 
-		cards = sgs.QList2Table(cards)
-		self:sortByKeepValue(cards)
-		for _,c in pairs(cards) do
-			if c:isRed() then
-				if self:getKeepValue(c) < 1.5 then
-					return true
-				end
+sgs.ai_skill_invoke.huanshi = true
+
+sgs.ai_skill_choice.huanshi = function(self, choices)
+	local zhugejin = self.room:findPlayerBySkillName("huanshi")
+	if self:objectiveLevel(zhugejin) > 2 then return "reject" end
+	return "accept"
+end
+
+function sgs.ai_cardneed.huanshi(to, card, self)
+	for _, player in ipairs(self.friends) do
+		if self:getFinalRetrial(to) == 1 then 
+			if self:willSkipDrawPhase(player) then
+				return card:getSuit() == sgs.Card_Club
+			end
+			if self:willSkipPlayPhase(player) then
+				return card:getSuit() == sgs.Card_Heart
 			end
 		end
+	end
+end
+
+sgs.ai_skill_invoke.hongyuan = function(self, data)
+	local count = 0
+	for i = 1, #self.friends_noself do
+		if self:needKongcheng(self.friends_noself[i]) and self.friends_noself[i]:getHandcardNum() == 0
+			or self.friends_noself[i]:hasSkill("manjuan") then
+		else
+			count = count + 1
+		end
+		if count == 2 then return true end
 	end
 	return false
 end
 
-sgs.ai_event_callback[sgs.AskForRetrial].huanshi = function(self, player, data)
-	self.room:setTag("JudgeInformation", data)
-end
-
-sgs.ai_event_callback[sgs.FinishJudge].huanshi = function(self, player, data)
-	self.room:removeTag("JudgeInformation")
-end
-
-sgs.ai_skill_choice.huanshi = function(self, choices) --判定者做选择，是否同意诸葛瑾发动缓释
-	local zhugejin = self.room:findPlayerBySkillName("huanshi")
-	if self:objectiveLevel(zhugejin) >= 0 then return "no" end
-	return "yes"
-end
-
-sgs.ai_skill_invoke.hongyuan = function(self, data)
-	return 	self.player:getHandcardNum() > 0
-end
---[[
-	技能：明哲
-	描述：你的回合外，当你因使用、打出或弃置而失去一张红色牌时，你可以摸一张牌。 
-]]--
 sgs.ai_skill_invoke.mingzhe = true
 
 sgs.ai_suit_priority.mingzhe=function(self)	
@@ -113,3 +105,15 @@ end
 sgs.ai_suit_priority.mingzhe=function(self)	
 	return self.player:getPhase()==sgs.Player_NotActive and "diamond|heart|club|spade" or "club|spade|diamond|heart"
 end
+
+sgs.huanshi_suit_value = {
+	heart = 3.9,
+	diamond = 3.4,
+	club = 3.9,
+	spade = 3.5
+}
+
+sgs.mingzhe_suit_value = {
+	heart = 4.0,
+	diamond = 4.0
+}

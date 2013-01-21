@@ -40,7 +40,7 @@ local function card_for_qiaobian(self, who, return_prompt)
 		local judges = who:getJudgingArea()
 		if who:containsTrick("YanxiaoCard") then
 			for _, judge in sgs.qlist(judges) do
-				if judge:objectName()=="YanxiaoCard" then
+				if judge:isKindOf("YanxiaoCard") then
 					card = sgs.Sanguosha:getCard(judge:getEffectiveId())
 					for _, friend in ipairs(self.friends) do
 						if not friend:containsTrick(judge:objectName()) and not self.room:isProhibited(self.player, friend, judge) 
@@ -404,7 +404,31 @@ sgs.ai_skill_invoke.fangquan = function(self, data)
 	end
 
 	local limit = self.player:getMaxCards()
-	return self.player:getHandcardNum() <= limit and not self.player:isKongcheng()
+	if self.player:getHandcardNum() > limit or self.player:isKongcheng() then return false end
+
+	local to_discard = {}
+	local cards = sgs.QList2Table(self.player:getHandcards())
+
+	local index = 0
+	local all_peaches = 0
+	for _, card in ipairs(cards) do
+		if card:isKindOf("Peach") then
+			all_peaches = all_peaches + 1
+		end
+	end
+	if all_peaches >= 2 and self:getOverflow() <= 0 then return {} end
+	self:sortByKeepValue(cards)
+	cards = sgs.reverse(cards)
+
+	for i = #cards, 1, -1 do
+		local card = cards[i]
+		if not card:isKindOf("Peach") and not self.player:isJilei(card) then
+			table.insert(to_discard, card:getEffectiveId())
+			table.remove(cards, i)
+			break
+		end
+	end
+	return #to_discard > 1
 end
 
 sgs.ai_skill_discard.fangquan = function(self, discard_num, min_num, optional, include_equip)
@@ -554,7 +578,7 @@ sgs.ai_skill_use_func.ZhibaCard = function(card, use, self)
 		if self:isEnemy(lord) and max_num > 9 and max_num > lord_max_num then
 			zhiba_str = "@ZhibaCard=" .. max_card:getEffectiveId()
 		end
-		if self:isFriend(lord) and ((lord_max_num > 0 and min_num <= lord_max_num) or min_num < 8) then
+		if self:isFriend(lord) and not lord:hasSkill("manjuan") and ((lord_max_num > 0 and min_num <= lord_max_num) or min_num < 8) then
 			zhiba_str = "@ZhibaCard=" .. min_card:getEffectiveId()
 		end
 
@@ -689,7 +713,7 @@ end
 function sgs.ai_slash_prohibit.duanchang(self, to)
 	if self:isFriend(to) and self:isWeak(to) then return true end
 	if self:hasSkills("jueqing|qianxi") then return false end
-	return self.player:isLord() and self:isWeak()
+	return #self.enemies > 1 and self:isWeak(to) and (self.player:isLord() or not self:isWeak())
 end
 
 sgs.ai_chaofeng.caiwenji = -5

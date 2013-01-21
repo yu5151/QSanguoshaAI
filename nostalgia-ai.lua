@@ -1,6 +1,38 @@
 sgs.weapon_range.MoonSpear = 3
 sgs.ai_use_priority.MoonSpear = 2.635
 
+local nosfanjian_skill = {}
+nosfanjian_skill.name = "nosfanjian"
+table.insert(sgs.ai_skills, nosfanjian_skill)
+nosfanjian_skill.getTurnUseCard = function(self)
+	if self.player:isKongcheng() then return nil end
+	if self.player:usedTimes("NosFanjianCard") > 0 then return nil end
+
+	local cards = self.player:getHandcards()
+
+	for _, card in sgs.qlist(cards) do
+		if card:getSuit() == sgs.Card_Diamond and self.player:getHandcardNum() == 1 then
+			return nil
+		elseif card:isKindOf("Peach") or card:isKindOf("Analeptic") then
+			return nil
+		end
+	end
+
+	local card_str = "@NosFanjianCard=."
+	local fanjianCard = sgs.Card_Parse(card_str)
+	assert(fanjianCard)
+
+	return fanjianCard
+end
+
+sgs.ai_skill_use_func.NosFanjianCard = sgs.ai_skill_use_func.FanjianCard
+
+sgs.ai_card_intention.NosFanjianCard = sgs.ai_card_intention.FanjianCard
+
+sgs.dynamic_value.damage_card.NosFanjianCard = true
+
+sgs.ai_chaofeng.noszhouyu = sgs.ai_chaofeng.zhouyu
+
 nosjujian_skill={}
 nosjujian_skill.name="nosjujian"
 table.insert(sgs.ai_skills,nosjujian_skill)
@@ -176,10 +208,20 @@ sgs.ai_skill_playerchosen.nosxuanhuo = function(self, targets)
 			return player
 		end
 	end
+	for _, player in sgs.qlist(targets) do
+		if self:isFriend(player)
+			and not player:hasFlag("nosxuanhuo_target") and not self:needKongcheng(player) and not player:hasSkill("manjuan") then
+			return player
+		end
+	end
+	for _, player in sgs.qlist(targets) do
+		if player == self.player then
+			return player
+		end
+	end
 end
 
-sgs.nosfazheng_suit_value = 
-{
+sgs.nosenyuan_suit_value = {
 	heart = 3.9
 }
 
@@ -191,15 +233,15 @@ sgs.ai_skill_choice.nosxuanfeng = function(self, choices)
 	for _, enemy in ipairs(self.enemies) do
 		if self.player:distanceTo(enemy)<=1 then
 			return "damage"
-		elseif not self:slashProhibit(slash ,enemy) then
+		elseif not self:slashProhibit(slash, enemy) and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies) then
 			return "slash"
 		end
 	end
 	return "nothing"
 end
 
-sgs.ai_skill_playerchosen.xuanfeng_damage = sgs.ai_skill_playerchosen.damage
-sgs.ai_skill_playerchosen.xuanfeng_slash = sgs.ai_skill_playerchosen.zero_card_as_slash
+sgs.ai_skill_playerchosen.nosxuanfeng_damage = sgs.ai_skill_playerchosen.damage
+sgs.ai_skill_playerchosen.nosxuanfeng_slash = sgs.ai_skill_playerchosen.zero_card_as_slash
 
-sgs.ai_playerchosen_intention.xuanfeng_damage = 80
-sgs.ai_playerchosen_intention.xuanfeng_slash = 80
+sgs.ai_playerchosen_intention.nosxuanfeng_damage = 80
+sgs.ai_playerchosen_intention.nosxuanfeng_slash = 80

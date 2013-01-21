@@ -1443,8 +1443,9 @@ function SmartAI:updateRoleTargets()
 	end
 end
 
-function SmartAI:updatePlayers()
-	if self.role ~= self.player:getRole() then 		
+function SmartAI:updatePlayers(clear_flags)
+	if clear_flags ~= false then clear_flags = true end
+	if self.role ~= self.player:getRole() then
 		if not ((self.role=='lord' and self.player:getRole()=='loyalist') or (self.role=='loyalist' and self.player:getRole()=='lord')) then			
 			sgs.role_evaluation[self.player:objectName()]["loyalist"]= 30
 			sgs.role_evaluation[self.player:objectName()]["rebel"]= 30
@@ -1452,8 +1453,10 @@ function SmartAI:updatePlayers()
 		end
 		self.role = self.player:getRole()
 	end
-	for _, aflag in ipairs(sgs.ai_global_flags) do
-		sgs[aflag] = nil
+	if clear_flags then
+		for _, aflag in ipairs(sgs.ai_global_flags) do
+			sgs[aflag] = nil
+		end
 	end
 
 	sgs.discard_pile = global_room:getDiscardPile()
@@ -1653,9 +1656,11 @@ function SmartAI:filterEvent(event, player, data)
 				end
 			end
 		end
-	elseif event == sgs.CardUsed or event == sgs.CardEffect or event == sgs.GameStart or event == sgs.Death 
-				or event == sgs.EventPhaseStart or event == sgs.HpChanged or event == sgs.MaxHpChanged then
+	elseif event == sgs.CardUsed or event == sgs.CardEffect or event == sgs.GameStart
+				or event == sgs.EventPhaseStart then
 		self:updatePlayers()
+	elseif event == sgs.Death or event == sgs.HpChanged or event == sgs.MaxHpChanged then
+		self:updatePlayers(false)
 	end
 	
 	if event == sgs.Death then

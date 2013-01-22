@@ -1749,17 +1749,17 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 					aoe = card:getEffectiveId()
 				end
 			elseif card:isKindOf("FireAttack") and self:hasTrickEffective(card,enemy) and ( enemy:getHp() == 1 or self:isEquip("Vine", enemy) or enemy:getMark("@wind") > 0 ) then
-				local suits= {spade, heart, club, diamond}
+				local suits= {}
 				local suitnum = 0
 				for _, hcard in sgs.qlist(self.player:getHandcards()) do
 					if hcard:getSuit() == sgs.Card_Spade then
-						spade = true
+						suits.spade = true
 					elseif hcard:getSuit() == sgs.Card_Heart then
-						heart = true
+						suits.heart = true
 					elseif hcard:getSuit() == sgs.Card_Club then
-						club = true
+						suits.club = true
 					elseif hcard:getSuit() == sgs.Card_Diamond then
-						diamond = true
+						suits.diamond = true
 					end
 				end
 				for k, hassuit in pairs(suits) do
@@ -1778,15 +1778,6 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		end
 		if #trickcard > nextisfriend + 1 and nextplayercanuse then
 			return fireattack or aoe or duel or collatera or supplyshortage or indulgence or dismantlement or snatch
-		end
-	end
-	
-	for _, card in ipairs(cards) do
-		if card:isKindOf("AOE") and (not self.player:containsTrick("indulgence") or canNullification or self.player:containsTrick("YanxiaoCard") or not nextplayercanuse ) then
-			local good = self:getAoeValue(card)
-			if good > 0 or ( self:hasSkills("jianxiong|luanji|manjuan",self.player) and good > -10 ) then		
-				return card:getEffectiveId() 
-			end
 		end
 	end
 	

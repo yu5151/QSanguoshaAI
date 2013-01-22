@@ -2506,14 +2506,14 @@ function SmartAI:getCardNeedPlayer(cards)
 		local no_distance = self.slash_distance_limit
 		local redcardnum = 0
 		for _,acard in ipairs(cards) do
-			if is("Slash",acard, self.player) then
+			if isCard("Slash",acard, self.player) then
 				if self.player:canSlash(xunyu, nil, not no_distance) and self:slashIsEffective(acard, xunyu) then
 					keptslash = keptslash + 1
 				end
 				if keptslash > 0 then
 					table.insert(cardtogivespecial,acard)
 				end
-			elseif is("Duel",acard, self.player) then
+			elseif isCard("Duel",acard, self.player) then
 				table.insert(cardtogivespecial,acard)
 			end
 		end
@@ -2532,7 +2532,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	local cardtogive = {}
 	local keptjink = 0
 	for _,acard in ipairs(cards) do
-		if is("Jink",acard, self.player) and keptjink < 1 then
+		if isCard("Jink",acard, self.player) and keptjink < 1 then
 			keptjink = keptjink+1
 		else
 			table.insert(cardtogive,acard)
@@ -2544,7 +2544,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	for _, friend in ipairs(friends) do		
 		if self:isWeak(friend) and friend:getHandcardNum() < 3  then
 			for _, hcard in ipairs(cards) do
-				if is("Peach",hcard,friend) or (is("Jink",hcard,friend) and self:getEnemyNumBySeat(self.player,friend)>0) or is("Analeptic",hcard,friend) then
+				if isCard("Peach",hcard,friend) or (isCard("Jink",hcard,friend) and self:getEnemyNumBySeat(self.player,friend)>0) or isCard("Analeptic",hcard,friend) then
 					return hcard, friend
 				end
 			end
@@ -3658,7 +3658,7 @@ function SmartAI:useSkillCard(card,use)
 	else
 		name = card:getClassName()
 	end
-	if not sgs.ai_skill_use_func[name](card, use, self) then return end
+	if not sgs.ai_skill_use_func[name] then return end
 	sgs.ai_skill_use_func[name](card, use, self)
 	if use.to then
 		if not use.to:isEmpty() and sgs.dynamic_value.damage_card[name] then

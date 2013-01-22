@@ -1809,8 +1809,8 @@ function SmartAI:filterEvent(event, player, data)
 
 			if move.to_place==sgs.Player_PlaceHand and move.to then
 				if card:hasFlag("visible") then
-					if is_a_slash(move.to,card) then sgs.card_lack[move.to:objectName()]["Slash"]=0 end
-					if is_a_jink(move.to,card) then sgs.card_lack[move.to:objectName()]["Jink"]=0 end
+					if isCard("Slash",card, move.to) then sgs.card_lack[move.to:objectName()]["Slash"]=0 end
+					if isCard("Jink",card, move.to) then sgs.card_lack[move.to:objectName()]["Jink"]=0 end
 				else
 					sgs.card_lack[move.to:objectName()]["Slash"]=0
 					sgs.card_lack[move.to:objectName()]["Jink"]=0
@@ -1859,24 +1859,6 @@ function SmartAI:filterEvent(event, player, data)
 			logmsg("ai.html","<meta charset='utf-8'/>")
 		end
 	end
-end
-
-function is_a_jink(player, card)	
-	if card:isKindOf("Jink") then return true end		
-	if player:hasSkill("qingguo") and card:isBlack() then return true end			
-	if player:hasSkill("longdan") and card:isKindOf("Slash") then return true end
-	if player:hasSkill("longhun") and player:getHp() == 1 and card:getSuit() == sgs.Card_Club then return true end
-	return false
-end
-
-function is_a_slash(player, card)
-	if card:isKindOf("Slash") then return true end		
-	if player:hasSkill("wusheng") and card:isRed() then return true end			
-	if player:hasSkill("wushen") and card:getSuit()==sgs.Card_Heart then return true end
-	if player:hasSkill("longdan") and card:isKindOf("Jink") then return true end
-	if player:hasSkill("nosgongqi") and card:isKindOf("EquipCard") then return true end
-	if player:hasSkill("longhun") and player:getHp() == 1 and card:getSuit() == sgs.Card_Diamond then return true end
-	return false
 end
 
 function SmartAI:askForSuit(reason)
@@ -1929,13 +1911,14 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 	local callback = sgs.ai_skill_discard[reason]
 	self:assignKeep(self.player:getHp(),true)
 	if type(callback) == "function" then
-		if callback(self, discard_num, min_num, optional, include_equip) then 
-			for _, card_id in ipairs(callback(self, discard_num, min_num, optional, include_equip)) do
+		local ret = callback(self, discard_num, min_num, optional, include_equip)
+		if ret and type(ret) == "table" then 
+			for _, card_id in ipairs(ret) do
 				if self.player:isJilei(sgs.Sanguosha:getCard(card_id)) then
 					return {}
 				end
 			end
-			return callback(self, discard_num, min_num, optional, include_equip) 
+			return ret
 		end
 	elseif optional then 
 		return {} 
@@ -2567,7 +2550,7 @@ function SmartAI:getCardNeedPlayer(cards)
 
 	end
 
-	-- armor,DefensiveHorse
+	-- Armor,DefensiveHorse
 	for _, friend in ipairs(friends) do		
 		if friend:getHp()<=2 and friend:faceUp() then
 			for _, hcard in ipairs(cards) do
@@ -2603,7 +2586,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	end	
 
 	table.sort(friends, cmpByAction)
-
+	
 	for _, friend in ipairs(friends) do
 		if friend:faceUp() then
 			local can_slash = false
@@ -2613,15 +2596,19 @@ function SmartAI:getCardNeedPlayer(cards)
 					break
 				end
 			end
-	  
+			local flag =string.format("weapon_done_%s_%s",self.player:objectName(),friend:objectName())
 			if not can_slash then
 				for _, p in sgs.qlist(self.room:getOtherPlayers(friend)) do
 					if self:isEnemy(p) and sgs.isGoodTarget(p,self.enemies) and friend:distanceTo(p) > friend:getAttackRange() then
 						for _, hcard in ipairs(cardtogive) do
-							if hcard:isKindOf("Weapon") and friend:distanceTo(p) <= friend:getAttackRange() + (sgs.weapon_range[hcard:getClassName()] or 0) and not friend:getWeapon() then
+							if hcard:isKindOf("Weapon") and friend:distanceTo(p) <= friend:getAttackRange() + (sgs.weapon_range[hcard:getClassName()] or 0) 
+									and not friend:getWeapon() and not friend:hasFlag(flag) then
+								self.room:setPlayerFlag(friend, flag)
 								return hcard, friend 
 							end
-							if hcard:isKindOf("OffensiveHorse") and friend:distanceTo(p) <= friend:getAttackRange() + 1 and not friend:getOffensiveHorse() then
+							if hcard:isKindOf("OffensiveHorse") and friend:distanceTo(p) <= friend:getAttackRange() + 1 
+									and not friend:getOffensiveHorse() and not friend:hasFlag(flag) then
+								self.room:setPlayerFlag(friend, flag)
 								return hcard, friend 
 							end
 						end
@@ -2675,15 +2662,38 @@ function SmartAI:getCardNeedPlayer(cards)
 	end
 
 	self:sort(friends, "defense")
-	for _, friend in ipairs(self.friends_noself) do
-		if not self:needKongcheng(friend) then
-			for _, hcard in ipairs(cardtogive) do
+	for _, hcard in ipairs(cardtogive) do
+		for _, friend in ipairs(self.friends_noself) do
+			if not self:needKongcheng(friend) and (self:hasSkills(sgs.priority_skill,friend) or (sgs.ai_chaofeng[self.player:getGeneralName()] or 0) > 2) then			
 				if self:getOverflow()>0 or self.player:getHandcardNum()>3 then
 					return hcard, friend
 				end
 			end
 		end
 	end
+
+	for _, hcard in ipairs(cardtogive) do
+		for _, friend in ipairs(self.friends_noself) do
+			if not self:needKongcheng(friend) then			
+				if self:getOverflow()>0 or self.player:getHandcardNum()>3 or 
+						(self.player:hasSkill("rende") and self.player:isWounded() and self.player:usedTimes("RendeCard") < 2) then
+					return hcard, friend
+				end
+			end
+		end
+	end	
+	
+	if self.player:hasSkill("rende") and self.player:isWounded() and self.player:usedTimes("RendeCard") < 2 and #cardtogive>0 then
+		local need_rende = sgs.current_mode_players["rebel"] ==0 or 
+				(sgs.current_mode_players["rebel"] >0 and sgs.current_mode_players["renegade"] >0 and sgs.current_mode_players["loyalist"] ==0)
+		if need_rende then
+			local players=sgs.QList2Table(self.room:getOtherPlayers(self.player))
+			self:sort(players,"chaofeng", true)
+			self:sortByUseValue(cardtogive, true)
+			return cardtogive[1], players[1]
+		end
+	end
+
 end
 
 function SmartAI:askForYiji(card_ids)
@@ -3161,9 +3171,9 @@ local function getFilterSkillViewCard(card, player, card_place)
 end
 
 function isCard(class_name, card, player)
-	local cardx = getFilterSkillViewCard(card, player, player:getRoom():getCardPlace(card:getEffectiveId()))
+	local cardx = getFilterSkillViewCard(card, player, global_room:getCardPlace(card:getEffectiveId()))
 	if cardx and not cardx:isKindOf(class_name) then return false end
-	return card:isKindOf(class_name) or getSkillViewCard(card, class_name, player, player:getRoom():getCardPlace(card:getEffectiveId()))
+	return card:isKindOf(class_name) or getSkillViewCard(card, class_name, player, global_room:getCardPlace(card:getEffectiveId()))
 end
 
 
@@ -3237,7 +3247,7 @@ function getKnownCard(player,class_name,viewas)
 	for _, card in sgs.qlist(cards) do
 		local flag=string.format("%s_%s_%s","visible",global_room:getCurrent():objectName(),player:objectName())
 		if card:hasFlag("visible") or card:hasFlag(flag) then
-			if (viewas and ((class_name=="Slash" and is_a_slash(player,card)) or (class_name=="Jink" and is_a_jink(player,card))))  
+			if (viewas and ((class_name=="Slash" and isCard("Slash",card, player)) or (class_name=="Jink" and isCard("Jink",card, player))))  
 					or card:isKindOf(class_name) then 
 				known = known + 1 
 			end
@@ -3945,7 +3955,7 @@ function SmartAI:useTrickCard(card, use)
 	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 then
 		if not (card:isKindOf("AOE") or card:isKindOf("DelayedTrick") or card:isKindOf("IronChain")) then return end
 	end
-	if self:needRende() then return end
+	if self:needRende() and not card:isKindOf("ExNihilo") then return end
 	if card:isKindOf("AOE") then
 		if self.player:hasSkill("wuyan") then return end
 		if self.player:hasSkill("noswuyan") then return end
@@ -4107,7 +4117,7 @@ function SmartAI:useEquipCard(card, use)
 			use.card = lion
 			return
 		end
-		if self.player:hasSkill("rende") and self:evaluateArmor(card)<4 then
+		if self.player:hasSkill("rende") then
 			for _,friend in ipairs(self.friends_noself) do
 				if not friend:getArmor() then return end
 			end

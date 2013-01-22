@@ -431,7 +431,7 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 		end
 	end
 	
-	if (suitnum == 2 and lack.diamond==false and lack.spade==false and self:getOverflow()<=0) or suitnum<=1 then return end
+	if ((suitnum == 2 and lack.diamond==false and lack.spade==false) or suitnum<=1) and self:getOverflow()<=0 then return end
 
 	for _, enemy in ipairs(targets) do
 		if self:isEquip("Vine", enemy) or enemy:getMark("@kuangfeng") > 0 then

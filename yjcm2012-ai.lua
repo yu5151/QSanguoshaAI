@@ -74,7 +74,7 @@ sgs.ai_skill_choice.jiangchi = function(self, choices)
 		
 	for _,enemy in ipairs(self.enemies) do
 		local def=sgs.getDefense(enemy)
-		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuitNoColor, 0)
+		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 		local eff = self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies)
 			
 		if not self.player:canSlash(enemy, nil, false) then
@@ -85,7 +85,7 @@ sgs.ai_skill_choice.jiangchi = function(self, choices)
 	
 	for _,enemy in ipairs(self.enemies) do
 		local def=sgs.getDefense(enemy)
-		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuitNoColor, 0)
+		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 		local eff = self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies)
 
 		if not self.player:canSlash(enemy, nil, false) then
@@ -526,12 +526,12 @@ sgs.ai_skill_invoke.zhiyu = function(self)
 end
 
 local function get_handcard_suit(cards)
-	if #cards == 0 then return sgs.Card_NoSuitNoColor end
+	if #cards == 0 then return sgs.Card_NoSuit end
 	if #cards == 1 then return cards[1]:getSuit() end
 	local black = false
 	if cards[1]:isBlack() then black = true end
 	for _, c in ipairs(cards) do
-		if black ~= c:isBlack() then return sgs.Card_NoSuitNoColor end
+		if black ~= c:isBlack() then return sgs.Card_NoSuit end
 	end
 	if black then return sgs.Card_NoSuitBlack else return sgs.Card_NoSuitRed end
 end

@@ -432,7 +432,7 @@ end
 sgs.ai_skill_invoke.shichou = function(self, data)
 	local enemynum = 0
 	local shu = 0
-	local first = self.player:hasFlag("FirstRound")
+	local first = self.room:getTag("FirstRound"):toBool()
 	local players = self.room:getOtherPlayers(self.player)
 	local shenguanyu = self.room:findPlayerBySkillName("wuhun");
 	if shenguanyu ~= nil then

@@ -79,13 +79,14 @@ function sgs.ai_armor_value.Vine(player, self)
 		return player:hasSkill("kongcheng") and 5 or 3.8
 	end
 	if self:hasSkills(sgs.lose_equip_skill, player) then return 3.8 end
+	if not self:damageIsEffective(to, sgs.DamageStruct_Fire) then return 6 end
 
 	for _, enemy in ipairs(self:getEnemies(player)) do
 		if (enemy:canSlash(player) and self:isEquip("Fan",enemy)) or self:hasSkills("huoji|shaoying", enemy) then return -1 end
 		if getKnownCard(enemy, "FireSlash", true)>=1 or getKnownCard(enemy, "FireAttack", true)>=1 then return -1 end
 	end
 
-	if #(self:getEnemies(player))<3 or player:getHp()<=2 then return 3 end
+	if #(self:getEnemies(player)) <= 3 or player:getHp()<=2 then return 3 end
 	return -1
 end
 

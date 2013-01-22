@@ -432,7 +432,7 @@ function SmartAI:getDynamicUsePriority(card)
 		if use_card:isKindOf("AmazingGrace") then
 			local zhugeliang = self.room:findPlayerBySkillName("kongcheng")
 			if zhugeliang and self:isEnemy(zhugeliang) and zhugeliang:isKongcheng() and self.player:canSlash(zhugeliang, nil, true) then
-				value = sgs.ai_use_priority.NatureSlash + 0.1
+				value = sgs.ai_use_priority.Slash + 0.1
 			end
 		end		
 	end
@@ -1299,23 +1299,19 @@ function SmartAI:objectiveLevel(player)
 		if #players>=4 and sgs.role_evaluation[player:objectName()]["rebel"] ==30 and sgs.role_evaluation[player:objectName()]["loyalist"] ==30 then return 0 end
 	  
 
-		if rebel_num == 0 then
-			if sgs.evaluatePlayerRole(player) == "renegade" then
-				if self.player:isLord() and self:isWeak(player) then return 3
-				else return 5
-				end
-			else
-				if self.player:isLord() then return 0
-				elseif #players == loyal_num+1 and loyal_num == 1 and not player:isLord() then return 5 
-				elseif not player:isLord() then return 3 end
-			end
+		if rebel_num == 0 then			
+			self:sort(players, "hp")
+			local maxhp = players[#players]:getHp()
+			if maxhp > 2 then return player:getHp() == maxhp and 5 or 1 end
+			if maxhp == 2 then return self.player:isLord() and 0 or (player:getHp() == maxhp and 5 or 1) end			
+			return self.player:isLord() and 0 or 5
 		end
 		if loyal_num == 0 then
 			if rebel_num > 2 then
 				if target_role == "renegade" then return -1 end
 			elseif rebel_num > 1 then
-				if sgs.evaluatePlayerRole(player) == "renegade" then return 0 end
-			elseif sgs.evaluatePlayerRole(player) == "renegade" then return 4 end
+				if target_role == "renegade" then return -1 end
+			elseif target_role == "renegade" then return sgs.isLordInDanger and -1 or 4 end
 		end
 		if renegade_num == 0 then
 			if not (sgs.evaluatePlayerRole(player) == "loyalist" or sgs.evaluateRoleTrends(player) == "loyalist") then return 5 end
@@ -2433,7 +2429,7 @@ end
 
 function SmartAI:hasHeavySlashDamage(player, slash)
 	player = player or self.room:getCurrent()
-	local fireSlash = slash and (slash:isKindOf("FireSlash") or (slash:isKindOf("NatureSlash") and self:isEquip("Fan", player))) 
+	local fireSlash = slash and (slash:isKindOf("FireSlash") or (slash:isKindOf("Slash") and self:isEquip("Fan", player))) 
 	return (slash and slash:hasFlag("drank")) or player:hasFlag("drank")
 			or player:hasFlag("luoyi") or player:hasFlag("neoluoyi")
 			or (player:hasSkill("drluoyi") and not player:getWeapon())

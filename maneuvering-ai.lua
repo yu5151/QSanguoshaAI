@@ -79,7 +79,7 @@ function sgs.ai_armor_value.Vine(player, self)
 		return player:hasSkill("kongcheng") and 5 or 3.8
 	end
 	if self:hasSkills(sgs.lose_equip_skill, player) then return 3.8 end
-	if not self:damageIsEffective(to, sgs.DamageStruct_Fire) then return 6 end
+	if not self:damageIsEffective(player, sgs.DamageStruct_Fire) then return 6 end
 
 	for _, enemy in ipairs(self:getEnemies(player)) do
 		if (enemy:canSlash(player) and self:isEquip("Fan",enemy)) or self:hasSkills("huoji|shaoying", enemy) then return -1 end
@@ -435,7 +435,7 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 	if ((suitnum == 2 and lack.diamond==false and lack.spade==false) or suitnum<=1) and self:getOverflow()<=0 then return end
 
 	for _, enemy in ipairs(targets) do
-		if self:isEquip("Vine", enemy) or enemy:getMark("@kuangfeng") > 0 then
+		if self:isEquip("Vine", enemy) or enemy:getMark("@gale") > 0 then
 			use.card = fire_attack
 			if use.to then use.to:append(enemy) end
 			return

@@ -1743,7 +1743,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 				if good > 0 or ( self:hasSkills("jianxiong|luanji|manjuan",self.player) and good > -10 ) then
 					aoe = card:getEffectiveId()
 				end
-			elseif card:isKindOf("FireAttack") and self:hasTrickEffective(card,enemy) and ( enemy:getHp() == 1 or self:isEquip("Vine", enemy) or enemy:getMark("@wind") > 0 ) then
+			elseif card:isKindOf("FireAttack") and self:hasTrickEffective(card,enemy) and ( enemy:getHp() == 1 or self:isEquip("Vine", enemy) or enemy:getMark("@gale") > 0 ) then
 				local suits= {}
 				local suitnum = 0
 				for _, hcard in sgs.qlist(self.player:getHandcards()) do

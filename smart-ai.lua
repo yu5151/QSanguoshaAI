@@ -3863,7 +3863,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 					value = value + 20
 				end
 			end
-			if to:hasSkill("qingguo") or self:isEquip("EightDiagram", to) or ( to:hasSkill("bazhen") and not to:getArmor() ) then
+			if to:hasSkill("qingguo") or self:isEquip("EightDiagram", to) then
 				value = value + 20
 			end
 		end

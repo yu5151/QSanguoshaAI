@@ -117,6 +117,10 @@ function sgs.getDefenseSlash(player)
 	if player:hasSkill("rende") and player:getHp() > 2 then
 		defense = defense + 3
 	end
+
+	if player:hasSkill("tuntian") and getCardsNum("Jink",player) >= 1 then
+		defense = defense + 1.5	
+	end
 	
 	local hujiaJink=0
 	if player:hasLordSkill("hujia") then

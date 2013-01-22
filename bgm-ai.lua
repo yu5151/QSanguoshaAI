@@ -875,7 +875,7 @@ sgs.ai_skill_choice.xuehen = function(self, choices)
 		local def=sgs.getDefense(enemy)
 		local amr=enemy:getArmor()
 		local eff=(not amr) or self.player:hasWeapon("qinggang_sword") or not
-			((amr:isKindOf("Vine") and not self.player:hasWeapon("fan")))
+			((amr:isKindOf("Vine") and not self.player:hasWeapon("Fan")))
 
 		if self.player:canSlash(enemy, nil ,false) and not self:slashProhibit(nil, enemy) and eff and def < 8 then
 			self.room:setPlayerFlag(enemy, "XuehenToChoose")
@@ -885,7 +885,7 @@ sgs.ai_skill_choice.xuehen = function(self, choices)
 	if self:isFriend(current) then
 		for _,enemy in ipairs(self.enemies) do
 			local eff=(not amr) or self.player:hasWeapon("qinggang_sword") or not
-				((amr:isKindOf("Vine") and not self.player:hasWeapon("fan")))
+				((amr:isKindOf("Vine") and not self.player:hasWeapon("Fan")))
 
 			if self.player:canSlash(enemy, nil ,false) and not self:slashProhibit(nil, enemy) then
 				self.room:setPlayerFlag(enemy, "XuehenToChoose")

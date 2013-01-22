@@ -22,7 +22,7 @@ sgs.weapon_range.Fan = 4
 sgs.ai_use_priority.Fan = 2.655
 sgs.ai_use_priority.Vine = 1.6
 
-sgs.ai_skill_invoke.fan = function(self, data)
+sgs.ai_skill_invoke.Fan = function(self, data)
 	local use = data:toCardUse()
 	for _, target in sgs.qlist(use.to) do
 		if self:isFriend(target) then
@@ -79,13 +79,14 @@ function sgs.ai_armor_value.Vine(player, self)
 		return player:hasSkill("kongcheng") and 5 or 3.8
 	end
 	if self:hasSkills(sgs.lose_equip_skill, player) then return 3.8 end
+	if not self:damageIsEffective(to, sgs.DamageStruct_Fire) then return 6 end
 
 	for _, enemy in ipairs(self:getEnemies(player)) do
 		if (enemy:canSlash(player) and self:isEquip("Fan",enemy)) or self:hasSkills("huoji|shaoying", enemy) then return -1 end
 		if getKnownCard(enemy, "FireSlash", true)>=1 or getKnownCard(enemy, "FireAttack", true)>=1 then return -1 end
 	end
 
-	if #(self:getEnemies(player))<3 or player:getHp()<=2 then return 3 end
+	if #(self:getEnemies(player)) <= 3 or player:getHp()<=2 then return 3 end
 	return -1
 end
 

@@ -2279,7 +2279,7 @@ end
 function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	local effect = data:toSlashEffect()
 	local nature
-	if effect.slash and effect.slash:inherits("ThunderSlash") then nature=sgs.DamageStruct_Thunder end
+	if effect.slash and effect.slash:isKindOf("ThunderSlash") then nature=sgs.DamageStruct_Thunder end
 	
 	if self.player:isDead() then return "." end
 	if not self:damageIsEffective(nil, nature, target) then return "." end

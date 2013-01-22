@@ -868,48 +868,15 @@ function sgs.ai_slash_prohibit.fenyong(self, to)
 	return to:getMark("@fenyong") >0 and to:hasSkill("fenyong")
 end
 
-sgs.ai_skill_choice.xuehen = function(self, choices)
-	local current = self.room:getCurrent();
-	self:sort(self.enemies, "defense")
-	for _,enemy in ipairs(self.enemies) do
-		local def=sgs.getDefense(enemy)
-		local amr=enemy:getArmor()
-		local eff=(not amr) or self.player:hasWeapon("qinggang_sword") or not
-			((amr:isKindOf("Vine") and not self.player:hasWeapon("Fan")))
-
-		if self.player:canSlash(enemy, nil ,false) and not self:slashProhibit(nil, enemy) and eff and def < 8 then
-			self.room:setPlayerFlag(enemy, "XuehenToChoose")
-			return "slash"
-		end
+sgs.ai_skill_choice.xuehen = function(self, choices)	
+	local current = self.room:getCurrent()
+	if self:isEnemy(current) then
+		if self:hasSkills("jijiu|tuntian|beige|qiaobian", current) and self.player:getLostHp() >= 2 and current:getCardCount(true) >= 2 then return "discard" end
 	end
-	if self:isFriend(current) then
-		for _,enemy in ipairs(self.enemies) do
-			local eff=(not amr) or self.player:hasWeapon("qinggang_sword") or not
-				((amr:isKindOf("Vine") and not self.player:hasWeapon("Fan")))
-
-			if self.player:canSlash(enemy, nil ,false) and not self:slashProhibit(nil, enemy) then
-				self.room:setPlayerFlag(enemy, "XuehenToChoose")
-				return "slash"
-			end
-		end
-	end
-	return "discard"
+	return "slash"
 end
 
-sgs.ai_skill_playerchosen.xuehen = function(self, targets)
-	targets = sgs.QList2Table(targets)
-	for _, enemy in ipairs(targets) do
-		if enemy:hasFlag("XuehenToChoose") then 
-			self.room:setPlayerFlag(enemy, "-XuehenToChoose")
-			return enemy 
-		end 
-	end
-	for _, p in sgs.qlist(self.room:getAllPlayers()) do
-		if p:hasFlag("XuehenToChoose") then 
-			self.room:setPlayerFlag(p, "-XuehenToChoose")
-		end 
-	end
-end
+sgs.ai_skill_playerchosen.xuehen = sgs.ai_skill_playerchosen.zero_card_as_slash
 
 sgs.ai_suit_priority.jie= "club|spade|diamond|heart"
 sgs.ai_suit_priority.yanxiao= "club|spade|heart|diamond"

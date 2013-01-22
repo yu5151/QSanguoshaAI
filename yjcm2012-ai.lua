@@ -62,7 +62,7 @@ sgs.ai_skill_choice.jiangchi = function(self, choices)
 
 	for _,enemy in ipairs(self.enemies) do
 		for _, slash in ipairs(self:getCards("Slash")) do
-			if self:slashIsEffective(slash, enemy) and (self.player:distanceTo(enemy) <= self.player:getAttackRange())  then 
+			if not self:slashProhibit(slash, enemy) and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies) then
 				goodtarget = goodtarget + 1
 				break
 			end
@@ -147,7 +147,7 @@ gongqi_skill.getTurnUseCard=function(self,inclusive)
 		return sgs.Card_Parse("@GongqiCard=" .. self.player:getArmor():getEffectiveId())
 	end
 	
-	if self.player:getOverflow() > 0 and self:getCardsNum("Slash") >= 1 then
+	if self:getOverflow() > 0 and self:getCardsNum("Slash") >= 1 then
 		self:sortByKeepValue(handcards)
 		for _, c in ipairs(handcards) do
 			if c:isKindOf("Snatch") or c:isKindOf("Dismantlement") then

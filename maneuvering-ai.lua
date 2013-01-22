@@ -22,7 +22,7 @@ sgs.weapon_range.Fan = 4
 sgs.ai_use_priority.Fan = 2.655
 sgs.ai_use_priority.Vine = 1.6
 
-sgs.ai_skill_invoke.fan = function(self, data)
+sgs.ai_skill_invoke.Fan = function(self, data)
 	local use = data:toCardUse()
 	for _, target in sgs.qlist(use.to) do
 		if self:isFriend(target) then

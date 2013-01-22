@@ -350,7 +350,7 @@ sgs.dynamic_value.benefit.IronChain = true
 sgs.ai_event_callback[sgs.ChoiceMade].fireattack=function(self,player,data)
 	local datastr= data:toString()	
 	if string.match(datastr,"cardResponsed")  and  string.match(datastr,"@fire%-attack") and string.match(datastr,"_nil_") then
-		self.room:setPlayerFlag(self.player, "FireAttackFailed_" .. room:getTag("LastFireAttack"):toString() )
+		self.room:setPlayerFlag(self.player, "FireAttackFailed_" .. self.room:getTag("LastFireAttack"):toString())
 	end
 end
 

@@ -25,7 +25,7 @@ function sgs.isGoodHp(player)
 end
 
 function sgs.isGoodTarget(player,targets)
-	local arr = {"jieming","yiji","guixin","fangzhu","neoganglie","miji","xuehen"}
+	local arr = {"jieming","yiji","guixin","fangzhu","neoganglie","miji","xuehen","xueji"}
 	local m_skill=false
 	local attacker = global_room:getCurrent()
 
@@ -447,18 +447,39 @@ end
 sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	local targetlist=sgs.QList2Table(targets)
+	local arrBestHp, canAvoidSlash = {},{}
 	self:sort(targetlist, "defenseSlash")
+
 	for _, target in ipairs(targetlist) do
-		if self:isEnemy(target) and not self:slashProhibit(slash ,target) and self:slashIsEffective(slash,target) and sgs.isGoodTarget(target,targetlist) then
-			return target
+		if self:isEnemy(target) and not self:slashProhibit(slash ,target) and sgs.isGoodTarget(target,targetlist) then
+			if self:slashIsEffective(slash,target) then
+				if target:getHp() > getBestHp(target) then
+					table.insert(arrBestHp,target)
+				else
+					return target
+				end
+			else
+				table.insert(canAvoidSlash,target)
+			end
 		end
 	end
 	for i=#targetlist, 1, -1 do
-		if not self:slashProhibit(slash, targetlist[i]) and sgs.isGoodTarget(targetlist[i],targetlist) then
-			return targetlist[i]
+		local target = targetlist[i]
+		if not self:slashProhibit(slash, target) then
+			if self:slashIsEffective(slash,target) then
+				if self:isFriend(target) and (target:getHp() > getBestHp(target) or self:getDamagedEffects(target,self.player)) then
+					return target
+				end
+			else
+				table.insert(canAvoidSlash,target)
+			end
 		end
 	end
-	return targets:first()
+
+	if #canAvoidSlash >0 then return canAvoidSlash[1] end
+	if #arrBestHp >0 then return arrBestHp[1] end
+	
+	return targets[#targets]
 end
 
 sgs.ai_card_intention.Slash = function(card,from,tos)

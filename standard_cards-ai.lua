@@ -1087,7 +1087,7 @@ sgs.ai_card_intention.ExNihilo = -80
 
 sgs.ai_keep_value.ExNihilo = 3.6
 sgs.ai_use_value.ExNihilo = 10
-sgs.ai_use_priority.ExNihilo = 10
+sgs.ai_use_priority.ExNihilo = 9.3
 
 sgs.dynamic_value.benefit.ExNihilo = true
 

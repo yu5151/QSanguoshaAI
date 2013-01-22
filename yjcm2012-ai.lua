@@ -420,6 +420,8 @@ sgs.ai_card_intention.AnxuCard = function(card, from, to)
 	sgs.updateIntention(from, more, intention)
 end
 
+sgs.ai_use_priority.AnxuCard = 9.6
+
 sgs.ai_skill_invoke.zhuiyi = function(self, data)
 	local damage = data:toDamageStar()
 	local exclude = self.player

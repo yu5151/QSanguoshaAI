@@ -209,12 +209,6 @@ sgs.ai_skill_use["@@leiji"]=function(self,prompt)
 			return "@LeijiCard=.->"..enemy:objectName()
 		end
 	end
-
-	for _,enemy in ipairs(self.enemies) do
-		if not (enemy:isChained() and not self:isGoodChainTarget(enemy)) then
-			return "@LeijiCard=.->"..enemy:objectName()
-		end
-	end
 	
 	return "."
 end

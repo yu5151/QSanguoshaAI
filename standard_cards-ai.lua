@@ -25,7 +25,7 @@ function sgs.isGoodHp(player)
 end
 
 function sgs.isGoodTarget(player,targets)
-	local arr = {"jieming","yiji","guixin","fangzhu","neoganglie","miji"}
+	local arr = {"jieming","yiji","guixin","fangzhu","neoganglie","miji","xuehen"}
 	local m_skill=false
 	local attacker = global_room:getCurrent()
 
@@ -268,7 +268,7 @@ function SmartAI:slashIsEffective(slash, to)
 		if armor:objectName() == "RenwangShield" then
 			return not slash:isBlack()
 		elseif armor:objectName() == "Vine" then
-			return nature ~= sgs.DamageStruct_Normal or self.player:hasWeapon("Fan")
+			return nature ~= sgs.DamageStruct_Normal or self.player:hasWeapon("Fan") or (self.player:hasSkill("lihuo") and not self:isWeak())
 		end
 	end
 

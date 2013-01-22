@@ -350,15 +350,14 @@ sgs.dynamic_value.benefit.IronChain = true
 sgs.ai_event_callback[sgs.ChoiceMade].fireattack=function(self,player,data)
 	local datastr= data:toString()	
 	if string.match(datastr,"cardResponsed")  and  string.match(datastr,"@fire%-attack") and string.match(datastr,"_nil_") then
-		player:setFlags("fireAttackFailed")
+		self.room:setPlayerFlag(self.player, "FireAttackFailed_" .. room:getTag("LastFireAttack"):toString() )
 	end
 end
 
 function SmartAI:useCardFireAttack(fire_attack, use)  
 	if self.player:hasSkill("wuyan") then return end
 	if self.player:hasSkill("noswuyan") then return end
-	if self.player:hasSkill("ayshuiyong") then return end  --ecup
-	if self.player:hasFlag("fireAttackFailed") and self:getOverflow()<=0 and not self:hasSkills("jizhi") then return end
+	if self.player:hasSkill("ayshuiyong") then return end
 
 	local lack = {
 		spade = true,
@@ -387,6 +386,9 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 	self:sort(self.enemies, "defense")
 
 	local can_attack =function(enemy)
+		if self.player:hasFlag("FireAttackFailed_" .. enemy:objectName()) and self:getOverflow() <= 0 and not self:hasSkill("jizhi") then
+			return false
+		end
 		return self:objectiveLevel(enemy) > 3 and not enemy:isKongcheng() and not self.room:isProhibited(self.player, enemy, fire_attack) 
 			and self:damageIsEffective(enemy, sgs.DamageStruct_Fire, self.player) and not self:cantbeHurt(enemy) 
 			and self:hasTrickEffective(fire_attack, enemy)
@@ -409,9 +411,10 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 			and self:damageIsEffective(self.player, sgs.DamageStruct_Fire, self.player) and not self:cantbeHurt(self.player) 
 			and self:hasTrickEffective(fire_attack, self.player) 
 			and (self.player:getHp()>1 or self:getCardsNum("Peach")>=1 or self:getCardsNum("Analeptic")>=1 or self.player:hasSkill("buqu")
-				or (self.player:hasSkill("niepan") and self.player:getMark("@@nirvana") > 0)) then
+				or (self.player:hasSkill("niepan") and self.player:getMark("@nirvana") > 0)) then
 		use.card = fire_attack
 		if use.to then use.to:append(self.player) end
+		self.room:setTag("LastFireAttack",sgs.QVariant(self.player:objectName()))
 		return
 	end
 	
@@ -426,6 +429,7 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 				if not lack[suitstring] then
 					use.card = fire_attack
 					if use.to then use.to:append(enemy) end
+					self.room:setTag("LastFireAttack",sgs.QVariant(enemy:objectName()))	
 					return
 				end
 			end			
@@ -438,12 +442,14 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 		if self:isEquip("Vine", enemy) or enemy:getMark("@gale") > 0 then
 			use.card = fire_attack
 			if use.to then use.to:append(enemy) end
+			self.room:setTag("LastFireAttack",sgs.QVariant(enemy:objectName()))	
 			return
 		end
 	end
 	for _, enemy in ipairs(targets) do
 		use.card = fire_attack
 		if use.to then use.to:append(enemy) end
+		self.room:setTag("LastFireAttack",sgs.QVariant(enemy:objectName()))	
 		return
 	end
 end

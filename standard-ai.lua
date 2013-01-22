@@ -177,7 +177,7 @@ sgs.ai_skill_cardask["@guicai-card"]=function(self, data)
 end
 
 function sgs.ai_cardneed.guicai(to, card, self)
-	for _, player in ipairs(self.room:getAllPlayers()) do
+	for _, player in sgs.qlist(self.room:getAllPlayers()) do
 		if self:getFinalRetrial(to) == 1 then 
 			if player:containsTrick("lightning") and not player:containsTrick("YanxiaoCard") then
 				return card:getSuit() == sgs.Card_Spade and card:getNumber() >= 2 and card:getNumber() <= 9 and not self:hasSkills("hongyan|wuyan")
@@ -1456,8 +1456,12 @@ end
 
 sgs.ai_skill_cardask["@wushuang-jink-1"] = function(self, data, pattern, target)
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
-	if self:canUseJieyuanDecrease(target) then return "." end
-	if self:getCardsNum("Jink") < 2 and not (self.player:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng)) then return "." end	
+	if self:canUseJieyuanDecrease(target) then return "." end	
+	if self:hasSkill("kongcheng") then
+		if target:hasWeapon("GudingBlade") or not (self:getHandcardNum() == 1 and self.player:getCardsNum("Jink") == 1)  then return "." end
+	else
+		if self:getCardsNum("Jink") < 2 and self.player:getHandcardNum() > self:getLeastHandcardNum() then return "." end
+	end
 end
 
 sgs.ai_chaofeng.lvbu = 1

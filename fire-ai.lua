@@ -247,17 +247,25 @@ sgs.kanpo_suit_value = {
 local lianhuan_skill={}
 lianhuan_skill.name="lianhuan"
 table.insert(sgs.ai_skills,lianhuan_skill)
-lianhuan_skill.getTurnUseCard=function(self)
+lianhuan_skill.getTurnUseCard = function(self)
 	local cards = self.player:getCards("h")
-	cards=sgs.QList2Table(cards)
+	cards = sgs.QList2Table(cards)
 
 	local card
-	self:sortByUseValue(cards,true)
+	self:sortByUseValue(cards, true)
 
-	for _,acard in ipairs(cards)  do
+	for _, acard in ipairs(cards) do
 		if acard:getSuit() == sgs.Card_Club then
-			card = acard
-			break
+			local shouldUse = true
+			if self:getUseValue(acard) > sgs.ai_use_value.IronChain and acard:getTypeId() == sgs.Card_TypeTrick then
+				local dummy_use = { isDummy = true }
+				self:useTrickCard(card, dummy_use)
+				if dummy_use.card then shouldUse = false end
+			end
+			if shouldUse then
+				card = acard
+				break
+			end
 		end
 	end
 

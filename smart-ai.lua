@@ -3829,7 +3829,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 	end
 
 	if to:hasSkill("danlao") and self.player:aliveCount() >= 3 then
-		value = value + 20
+		value = value + 25
 	end
 
 	if card:isKindOf("SavageAssault") then
@@ -3850,7 +3850,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 			if to:hasSkill("jieming") then
 				value = value + self:getJiemingChaofeng(to) * 3
 			end
-			if to:hasSkill("ganglie") or to:hasSkill("fankui") or to:hasSkill("enyuan") then
+			if self:hasSkills("ganglie|fankui|enyuan|neoganglie|nosenyuan",to) then
 				if not self:isFriend(from, to) then
 					value = value + 10
 				else
@@ -3867,7 +3867,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 					value = value + 20
 				end
 			end
-			if to:hasSkill("qingguo") or self:isEquip("EightDiagram", to) then
+			if to:hasSkill("qingguo") or self:isEquip("EightDiagram", to) or ( to:hasSkill("bazhen") and not to:getArmor() ) then
 				value = value + 20
 			end
 		end
@@ -3898,8 +3898,12 @@ function SmartAI:getAoeValue(card, player)
 	friends_noself = self:getFriendsNoself(player)
 	enemies = self:getEnemies(player)
 	local good, bad = 0, 0
+	local use = 49
 	for _, friend in ipairs(friends_noself) do
 		good = good + self:getAoeValueTo(card, friend, player)
+		if self:aoeIsEffective(card,friend) then
+		   use = use - 49
+	        end
 	end
 
 	for _, enemy in ipairs(enemies) do
@@ -3923,6 +3927,8 @@ function SmartAI:getAoeValue(card, player)
 	if player:hasSkill("jizhi") then
 		good = good + 20
 	end
+
+	if use - bad > 0 then return use - bad end
 	return good - bad
 end
 
@@ -3968,7 +3974,8 @@ function SmartAI:useTrickCard(card, use)
 	if card:isKindOf("AOE") then
 		if self.player:hasSkill("wuyan") then return end
 		if self.player:hasSkill("noswuyan") then return end
-		if self.role == "loyalist" and sgs.turncount < 2 and card:isKindOf("ArcheryAttack") then return end
+		if self.player:isLord() and sgs.turncount < 2 and card:isKindOf("ArcheryAttack") and self:getOverflow()<1 then return end
+		if self.role == "loyalist" and not self.player:isLord() and sgs.turncount < 2 and card:isKindOf("ArcheryAttack") then return end
 		if self.role == "rebel" and sgs.turncount < 2 and card:isKindOf("SavageAssault") then return end
 		local others = self.room:getOtherPlayers(self.player)
 		others = sgs.QList2Table(others)

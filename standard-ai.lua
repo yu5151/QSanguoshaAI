@@ -1062,6 +1062,16 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 			end
 		end
 	end
+
+	local analeptic_num = 0
+	for _,cd in sgs.qlist(self.player:getHandcards()) do
+		if cd:isKindOf("Analeptic") then
+			analeptic_num = analeptic_num+1
+		end
+	end
+	if self.player:getHp()<=1 and analeptic_num>1 then
+		return sgs.Card_Parse("@KurouCard=.")
+	end
 end
 
 sgs.ai_skill_use_func.KurouCard=function(card,use,self)

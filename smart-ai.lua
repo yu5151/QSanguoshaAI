@@ -4229,7 +4229,7 @@ dofile "lua/ai/chat-ai.lua"
 dofile "lua/ai/basara-ai.lua"
 dofile "lua/ai/hegemony-ai.lua"
 dofile "lua/ai/hulaoguan-ai.lua"
-
+dofile "lua/ai/zombie_mode-ai.lua"
 local loaded = "standard|standard_cards|maneuvering|sp"
 
 local files = table.concat(sgs.GetFileNames("lua/ai"), " ")

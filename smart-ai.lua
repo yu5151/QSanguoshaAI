@@ -10,7 +10,10 @@ math.randomseed(os.time())
 -- SmartAI is the base class for all other specialized AI classes
 SmartAI = class "SmartAI"
 
-version = "QSanguosha AI 20120405 (V0.85 Alpha)"
+version = "QSanguosha AI 20130123 (V1.00 Alpha)"
+
+-- checkout https://github.com/haveatry823/QSanguoshaAI for details
+
 --- this function is only function that exposed to the host program
 --- and it clones an AI instance by general name
 -- @param player The ServerPlayer object that want to create the AI object
@@ -1311,7 +1314,7 @@ function SmartAI:objectiveLevel(player)
 				if target_role == "renegade" then return -1 end
 			elseif rebel_num > 1 then
 				if target_role == "renegade" then return -1 end
-			elseif target_role == "renegade" then return sgs.isLordInDanger and -1 or 4 end
+			elseif target_role == "renegade" then return sgs.isLordInDanger() and -1 or 4 end
 		end
 		if renegade_num == 0 then
 			if not (sgs.evaluatePlayerRole(player) == "loyalist" or sgs.evaluateRoleTrends(player) == "loyalist") then return 5 end
@@ -1840,13 +1843,19 @@ function SmartAI:filterEvent(event, player, data)
 
 		sgs.debugmode = io.open("lua/ai/debug")
 		if sgs.debugmode then sgs.debugmode:close() end
-		
-		if sgs.turncount==1 then			
+
+		if sgs.turncount==1 and player:isLord() then			
+			local msg = ""
+			local humanCount = 0
 			for _, aplayer in sgs.qlist(self.room:getAllPlayers()) do
-				self.room:broadcastProperty(aplayer,"role")				
+				if aplayer:getState() ~= "robot" then humanCount = humanCount +1 end
+				if not aplayer:isLord() then 
+					msg = msg + string.format("%s %s, ",sgs.Sanguosha:translate(aplayer:getGeneralName()),sgs.Sanguosha:translate(aplayer:getRole()))
+				end
 			end
-			if player:isLord() then player:speak("为了调试方便，暂时对房主显示身份，AI之间并不会相互知道身份，这个调试功能不会影响AI身份判断。") end
+			if humanCount == 1 then player:speak(msg) end
 		end
+
 	elseif event == sgs.GameStart then		
 		sgs.turncount = 0
 		sgs.debugmode = io.open("lua/ai/debug")

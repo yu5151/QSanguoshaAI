@@ -607,7 +607,7 @@ function SmartAI:useCardPeach(card, use)
 		return
 	end
 
-	if self.player:getHp() > getBestHp(self.player) then self.player:speak("我才不会说我有桃不吃->7") return end
+	if self.player:getHp() > getBestHp(self.player) then return end
 	
 	local lord= self.room:getLord()
 	if self:isFriend(lord) and lord:getHp() <= 2 and not lord:hasSkill("buqu") then 

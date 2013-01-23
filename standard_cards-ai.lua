@@ -478,7 +478,7 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 
 	if #canAvoidSlash >0 then return canAvoidSlash[1] end
 	if #arrBestHp >0 then return arrBestHp[1] end
-	
+	--报错：lua/ai/standard_cards-ai.lua:482: attempt to get length of local 'targets' (a userdata value)
 	return targets[#targets]
 end
 

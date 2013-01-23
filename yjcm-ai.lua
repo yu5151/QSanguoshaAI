@@ -593,7 +593,7 @@ sgs.ai_cardneed.xianzhen=function(to, card, self)
 		end
 	end
 	if not has_big then
-		return hcard:getNumber() > 10
+		return hcard:getNumber() > 10 --报错，lua/ai/yjcm-ai.lua:596: attempt to index global 'hcard' (a nil value)
 	else
 		return hcard:isKindOf("Slash") or hcard:isKindOf("Analeptic")
 	end

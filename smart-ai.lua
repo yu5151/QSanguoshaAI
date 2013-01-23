@@ -1850,7 +1850,7 @@ function SmartAI:filterEvent(event, player, data)
 			for _, aplayer in sgs.qlist(self.room:getAllPlayers()) do
 				if aplayer:getState() ~= "robot" then humanCount = humanCount +1 end
 				if not aplayer:isLord() then 
-					msg = msg + string.format("%s %s, ",sgs.Sanguosha:translate(aplayer:getGeneralName()),sgs.Sanguosha:translate(aplayer:getRole()))
+					msg = msg..string.format("%s %s, ",sgs.Sanguosha:translate(aplayer:getGeneralName()),sgs.Sanguosha:translate(aplayer:getRole()))
 				end
 			end
 			if humanCount == 1 then player:speak(msg) end

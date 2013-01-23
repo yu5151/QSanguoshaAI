@@ -478,8 +478,8 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 
 	if #canAvoidSlash >0 then return canAvoidSlash[1] end
 	if #arrBestHp >0 then return arrBestHp[1] end
-	
-	return targets[#targets]
+
+	return targetlist[#targetlist]
 end
 
 sgs.ai_card_intention.Slash = function(card,from,tos)
@@ -607,7 +607,7 @@ function SmartAI:useCardPeach(card, use)
 		return
 	end
 
-	if self.player:getHp() > getBestHp(self.player) then self.player:speak("我才不会说我有桃不吃->7") return end
+	if self.player:getHp() > getBestHp(self.player) then return end
 	
 	local lord= self.room:getLord()
 	if self:isFriend(lord) and lord:getHp() <= 2 and not lord:hasSkill("buqu") then 

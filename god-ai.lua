@@ -673,7 +673,6 @@ sgs.ai_skill_use_func.ShenfenCard=function(card,use,self)
 	
 	good = good - (friendscards - enemiescards)/4
 	
-	self.player:speak("ShenfenCard:good is "..good)
 	if good >0 and self.player:getMark("@wrath") >5 then 
 		use.card = card		
 	end	

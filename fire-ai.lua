@@ -11,6 +11,8 @@ end
 sgs.ai_skill_use_func.QuhuCard = function(card, use, self)
 	local max_card = self:getMaxCard()
 	local max_point = max_card:getNumber()
+	
+	if #self.enemies == 0 then return end
 	self:sort(self.enemies, "handcard")
 
 	for _, enemy in ipairs(self.enemies) do

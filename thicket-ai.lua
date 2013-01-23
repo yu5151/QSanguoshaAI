@@ -343,7 +343,7 @@ sgs.ai_card_intention.DimengCard = function(card, from, to)
 end
 
 sgs.ai_use_value.DimengCard = 3.5
-sgs.ai_use_priority.DimengCard = 2.3
+sgs.ai_use_priority.DimengCard = 5.3
 
 sgs.dynamic_value.control_card.DimengCard = true
 

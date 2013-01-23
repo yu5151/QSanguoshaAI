@@ -11,6 +11,8 @@ end
 sgs.ai_skill_use_func.QuhuCard = function(card, use, self)
 	local max_card = self:getMaxCard()
 	local max_point = max_card:getNumber()
+	
+	if #self.enemies == 0 then return end
 	self:sort(self.enemies, "handcard")
 
 	for _, enemy in ipairs(self.enemies) do
@@ -43,7 +45,6 @@ sgs.ai_skill_use_func.QuhuCard = function(card, use, self)
 		for _, friend in ipairs(self.friends) do
 			if math.min(5, friend:getMaxHp()) - friend:getHandcardNum() >= 2 then
 				self:sort(self.enemies, "handcard")
-				--这行在僵尸模式下报错：lua/ai/fire-ai.lua:46: attempt to index field '?' (a nil value)
 				if self.enemies[#self.enemies]:getHandcardNum() > 0 then use_quhu = true break end
 			end
 		end

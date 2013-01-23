@@ -1062,15 +1062,26 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 			end
 		end
 	end
-
-	local analeptic_num = 0
-	for _,cd in sgs.qlist(self.player:getHandcards()) do
-		if cd:isKindOf("Analeptic") then
-			analeptic_num = analeptic_num+1
-		end
-	end
-	if self.player:getHp()<=1 and analeptic_num>1 then
+	
+	if self.player:getHp()==1 and self:getCardsNum("Analeptic")>=1 then
 		return sgs.Card_Parse("@KurouCard=.")
+	end
+	
+	local nextplayer = self.player:getNextAlive()
+	if self.player:getHp()==1 then
+		if self:isFriend(nextplayer) then
+			if nextplayer:hasSkill("jieyin") and self.player:isMale() and (not nextplayer:containsTrick("indulgence") 
+				or nextplayer:containsTrick("YanxiaoCard")) then
+				return
+			end
+			if nextplayer:hasSkill("qingnang") and (not nextplayer:containsTrick("indulgence") 
+				or nextplayer:containsTrick("YanxiaoCard")) then
+				return
+			end
+			--To Be Continue for killing by rebel friends
+		elseif self:isEnemy(nextplayer) then
+			return sgs.Card_Parse("@KurouCard=.")
+		end
 	end
 end
 

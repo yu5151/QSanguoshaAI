@@ -81,6 +81,16 @@ function sgs.isGoodTarget(player,targets)
 	end 	
 end
 
+function SmartAI:canAttack(enemy, attacker , nature)
+	attacker = attacker or self.player
+	nature = nature or sgs.DamageStruct_Normal
+	if #self.enemies ==1 or self:hasSkills("jueqing") then return true end
+	if self:getDamagedEffects(enemy, attacker) or (enemy:getHp() > getBestHp(enemy) and #self.enemies>2) or not sgs.isGoodTarget(enemy, self.enemies) then return false end
+	if self:objectiveLevel(enemy) <= 3 or self:cantbeHurt(enemy) or not self:damageIsEffective(enemy, nature , attacker) then return false end
+	if nature ~= sgs.DamageStruct_Normal and enemy:isChained() and not self:isGoodChainTarget(enemy) then return false end
+	return true
+end
+
 
 function sgs.getDefenseSlash(player)	
 	local attacker = global_room:getCurrent()
@@ -148,6 +158,8 @@ function sgs.getDefenseSlash(player)
 	if (player:getSeat()-attacker:getSeat()) % playernum >= playernum-2 and playernum>3 and player:getHandcardNum()<=2 and player:getHp()<=2 then
 		defense = defense - 0.4
 	end
+
+	if player:getHandcardNum() > 2 and player:hasSkill("tianxiang") then defense = defense + 1.5 end
 
 	if player:getHandcardNum()==0 and hujiaJink==0 and not player:hasSkill("kongcheng") then		
 		if player:getHp()<=1 then defense = defense - 1  end

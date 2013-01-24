@@ -1326,9 +1326,8 @@ function SmartAI:objectiveLevel(player)
 		elseif sgs.evaluateRoleTrends(player) == "loyalist" then return -1
 		elseif sgs.backwardEvaluation(player) == "rebel" then return 5
 		elseif sgs.backwardEvaluation(player) == "loyalist" then return -2
-		elseif process:match("rebel") then return -1
-		elseif sgs.compareRoleEvaluation(player, "rebel", "loyalist") == "rebel" then return 3
-		else return 0 end
+		elseif sgs.compareRoleEvaluation(player, "rebel", "loyalist") == "rebel" then return 3.5
+		else return 1 end
 	elseif self.role == "rebel" then
 		if #players>=4 and sgs.role_evaluation[player:objectName()]["rebel"] ==30 and sgs.role_evaluation[player:objectName()]["loyalist"] ==30 and sgs.role_evaluation[player:objectName()]["renegade"] ==30  then return 0 end
 	  
@@ -1339,9 +1338,8 @@ function SmartAI:objectiveLevel(player)
 		elseif sgs.evaluateRoleTrends(player) == "rebel" then return -1
 		elseif sgs.backwardEvaluation(player) == "rebel" then return -2
 		elseif sgs.backwardEvaluation(player) == "loyalist" then return 4
-		elseif process:match("loyalist") then return -1
-		elseif sgs.compareRoleEvaluation(player, "renegade", "loyalist") == "loyalist" then return 3
-		else return 0 end
+		elseif sgs.compareRoleEvaluation(player, "renegade", "loyalist") == "loyalist" then return 3.5
+		else return 1 end
 	end
 end
 
@@ -2190,12 +2188,11 @@ function SmartAI:askForCardChosen(who, flags, reason)
 		end
 
 		if flags:match("e") then
-			if self:isEquip("Crossbow",who) then 
-			--注意，如果没装备诸葛连弩，只是拥有技能咆哮的话，self:isEquip("Crossbow", who)也会返回true。
+			if self:isEquip("Crossbow",who) then
 				for _, friend in ipairs(self.friends) do
 					if who:distanceTo(friend) <= 1 then 
 						local weapon = who:getWeapon()
-						if weapon then --真的有诸葛连弩（而不是咆哮）
+						if weapon then 
 							return weapon:getId() 
 						end
 					end

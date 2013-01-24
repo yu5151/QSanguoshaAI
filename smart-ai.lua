@@ -1163,7 +1163,7 @@ function sgs.gameProcess(room,...)
 			if aplayer:getMark("@duanchang")==1 and aplayer:getMaxHp() <=3 then loyal_value = loyal_value - 1 end
 		end		
 	end
-	local diff = loyal_value - rebel_value
+	local diff = loyal_value - rebel_value + (loyal_num - rebel_num) * 2
 	if #arg>0 and arg[1]==1 then return diff end
 
 	if diff >= 2 then

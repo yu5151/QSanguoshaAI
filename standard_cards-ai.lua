@@ -1526,7 +1526,16 @@ local function hp_subtract_handcard(a,b)
 end
 
 function SmartAI:useCardIndulgence(card, use)
-	local enemies = self:exclude(self.enemies, card)
+	local enemies
+
+	if #self.enemies == 0 then
+		if sgs.turncount == 0 and self.role == "lord" and not sgs.isRolePredictable() 
+				and sgs.role_evaluation[self.player:getNextAlive():objectName()]["loyalist"] == 30 then
+			enemies = self:exclude({self.player:getNextAlive()}, card)
+		end
+	else
+		enemies = self:exclude(self.enemies, card)
+	end	
 
 	local zhanghe = self.room:findPlayerBySkillName("qiaobian")
 	local zhanghe_seat = zhanghe and zhanghe:faceUp() and self:isEnemy(zhanghe) and zhanghe:getSeat() or 0

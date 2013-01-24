@@ -3834,7 +3834,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 	end
 
 	if to:hasSkill("danlao") and self.player:aliveCount() >= 3 then
-		value = value + 25
+		value = value + 20
 	end
 
 	if card:isKindOf("SavageAssault") then
@@ -3904,15 +3904,20 @@ function SmartAI:getAoeValue(card, player)
 	enemies = self:getEnemies(player)
 	local good, bad = 0, 0
 	local use = 49
+	local donotuse = 49
+
 	for _, friend in ipairs(friends_noself) do
 		good = good + self:getAoeValueTo(card, friend, player)
 		if self:aoeIsEffective(card,friend) then
-		   use = use - 49
-	        end
+			use = use - 49
+		end
 	end
 
 	for _, enemy in ipairs(enemies) do
 		bad = bad + self:getAoeValueTo(card, enemy, player)
+		if self:aoeIsEffective(card,enemy) then
+			donotuse = donotuse - 49
+		end
 	end
 
 	local liuxie = self.room:findPlayerBySkillName("huangen")
@@ -3930,9 +3935,12 @@ function SmartAI:getAoeValue(card, player)
 		end
 	end
 	if player:hasSkill("jizhi") then
-		good = good + 20
+		good = good + 25
 	end
 
+	if donotuse > 0 then
+		if not player:hasSkill("jizhi") then use = 0 end
+	end
 	if use - bad > 0 then return use - bad end
 	return good - bad
 end

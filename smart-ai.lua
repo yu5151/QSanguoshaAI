@@ -1163,7 +1163,7 @@ function sgs.gameProcess(room,...)
 			if aplayer:getMark("@duanchang")==1 and aplayer:getMaxHp() <=3 then loyal_value = loyal_value - 1 end
 		end		
 	end
-	local diff = loyal_value - rebel_value
+	local diff = loyal_value - rebel_value + (loyal_num - rebel_num) * 2
 	if #arg>0 and arg[1]==1 then return diff end
 
 	if diff >= 2 then
@@ -1265,8 +1265,8 @@ function SmartAI:objectiveLevel(player)
 					return 5
 				end
 			end	
-		elseif process == "neutral" or sgs.turncount <=1 then
-			if sgs.turncount <=1 then return 0 end
+		elseif process == "neutral" or (sgs.turncount <=1 and sgs.isLordHealthy()) then
+			if sgs.turncount <=1 and sgs.isLordHealthy() then return 0 end
 
 			local renegade_attack_skill = string.format("buqu|%s|%s|%s|%s",sgs.priority_skill,sgs.save_skill,sgs.recover_skill,sgs.drawpeach_skill)
 			for i=1, #players, 1 do
@@ -1299,7 +1299,7 @@ function SmartAI:objectiveLevel(player)
 	
 	if self.player:isLord() or self.role == "loyalist" then
 		if player:isLord() then return -2 end
-		if #players>=4 and sgs.role_evaluation[player:objectName()]["rebel"] ==30 and sgs.role_evaluation[player:objectName()]["loyalist"] ==30 then return 0 end
+		if #players>=4 and sgs.role_evaluation[player:objectName()]["rebel"] ==30 and sgs.role_evaluation[player:objectName()]["loyalist"] ==30 and sgs.role_evaluation[player:objectName()]["renegade"] ==30  then return 0 end
 	  
 
 		if rebel_num == 0 then			
@@ -1330,8 +1330,7 @@ function SmartAI:objectiveLevel(player)
 		elseif sgs.compareRoleEvaluation(player, "rebel", "loyalist") == "rebel" then return 3
 		else return 0 end
 	elseif self.role == "rebel" then
-		if process:match("loyalist") and loyal_num>rebel_num and target_role=='renegade' then return -1 end
-		 if #players>=4 and sgs.role_evaluation[player:objectName()]["rebel"] ==30 and sgs.role_evaluation[player:objectName()]["loyalist"] ==30 then return 0 end
+		if #players>=4 and sgs.role_evaluation[player:objectName()]["rebel"] ==30 and sgs.role_evaluation[player:objectName()]["loyalist"] ==30 and sgs.role_evaluation[player:objectName()]["renegade"] ==30  then return 0 end
 	  
 		if player:isLord() then return 5
 		elseif sgs.evaluatePlayerRole(player) == "loyalist" then return 5
@@ -1867,7 +1866,7 @@ function SmartAI:filterEvent(event, player, data)
 end
 
 function SmartAI:askForSuit(reason)
-	if not reason then return sgs.ai_skill_suit.fanjian() end -- this line is kept for back-compatibility
+	if not reason then return sgs.ai_skill_suit.fanjian(self) end -- this line is kept for back-compatibility
 	local callback = sgs.ai_skill_suit[reason]
 	if type(callback) == "function" then
 		if callback(self) then return callback(self) end
@@ -2453,6 +2452,7 @@ function SmartAI:needKongcheng(player)
 end
 
 function SmartAI:getLeastHandcardNum(player)
+	player = player or self.player
 	local least = 0
 	if player:hasSkill("lianying") and least < 1 then least = 1 end
 	if player:hasSkill("shangshi") and least < math.min(2, player:getLostHp()) then least = math.min(2, player:getLostHp()) end
@@ -2461,6 +2461,7 @@ function SmartAI:getLeastHandcardNum(player)
 end
 
 function SmartAI:hasLoseHandcardEffective(player)
+	player = player or self.player
 	return player:getHandcardNum() > self:getLeastHandcardNum(player)
 end
 

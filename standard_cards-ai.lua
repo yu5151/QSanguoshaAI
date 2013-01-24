@@ -137,6 +137,8 @@ function sgs.getDefenseSlash(player)
 	if player:getMark("@tied")>0 then
 		defense = defense + 1
 	end
+	
+	if player:getHp() > getBestHp(player) then defense = defense + 1.3 end
 
 	if player:getHp()<=2 then
 		defense = defense - 0.4

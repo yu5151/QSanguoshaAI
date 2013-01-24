@@ -1552,7 +1552,7 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 		end
 		if friend_maxSlash then
 			local safe = false
-			if (first:hasSkill("ganglie") or first:hasSkill("fankui") or first:hasSkill("enyuan")) then
+			if self:hasSkills("ganglie|fankui|enyuan|neoganglie|nosenyuan", first) then
 				if (first:getHp()<=1 and first:getHandcardNum()==0) then safe=true end
 			elseif (getCardsNum("Slash", friend_maxSlash) >= getCardsNum("Slash", first)) then safe=true end
 			if safe then return friend_maxSlash end
@@ -1601,8 +1601,8 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 					if (self.role=="rebel") and (not first:isLord()) and self:damageIsEffective(lord, sgs.DamageStruct_Normal, first) then
 						second = lord
 					else
-						if ((self.role=="loyalist" or (self.role=="renegade") and not (first:hasSkill("ganglie") and first:hasSkill("enyuan"))))
-							and	( getCardsNum("Slash", first)<=getCardsNum("Slash", second)) then
+						if ( (self.role == "loyalist" or self.role == "renegade") and not self:hasSkills("ganglie|enyuan|neoganglie|nosenyuan", first) )
+							and ( getCardsNum("Slash", first) <= getCardsNum("Slash", second) ) then
 							second = lord
 						end
 					end

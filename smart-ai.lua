@@ -103,7 +103,7 @@ function setInitialTables()
 								"jieyin|renjie|zhiheng|rende|jujian|guicai|guidao|jilve|longhun|wusheng|longdan"
 	sgs.drawpeach_skill =		"tuxi|qiaobian"
 	sgs.recover_skill =		 "rende|kuanggu|zaiqi|jieyin|qingnang|yinghun"
-	sgs.use_lion_skill =		 "longhun|duanliang|qixi|guidao|lijian|jujian|zhiheng|mingce|zhiba"
+	sgs.use_lion_skill =		 "longhun|duanliang|qixi|guidao|lijian|jujian|zhiheng|mingce|zhiba|yongsi"
 	
 	for _, aplayer in sgs.qlist(global_room:getAllPlayers()) do
 		table.insert(sgs.role_evaluation, aplayer:objectName())

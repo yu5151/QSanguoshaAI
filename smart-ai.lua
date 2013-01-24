@@ -1326,9 +1326,8 @@ function SmartAI:objectiveLevel(player)
 		elseif sgs.evaluateRoleTrends(player) == "loyalist" then return -1
 		elseif sgs.backwardEvaluation(player) == "rebel" then return 5
 		elseif sgs.backwardEvaluation(player) == "loyalist" then return -2
-		elseif process:match("rebel") then return -1
-		elseif sgs.compareRoleEvaluation(player, "rebel", "loyalist") == "rebel" then return 3
-		else return 0 end
+		elseif sgs.compareRoleEvaluation(player, "rebel", "loyalist") == "rebel" then return 3.5
+		else return 1 end
 	elseif self.role == "rebel" then
 		if #players>=4 and sgs.role_evaluation[player:objectName()]["rebel"] ==30 and sgs.role_evaluation[player:objectName()]["loyalist"] ==30 and sgs.role_evaluation[player:objectName()]["renegade"] ==30  then return 0 end
 	  
@@ -1339,9 +1338,8 @@ function SmartAI:objectiveLevel(player)
 		elseif sgs.evaluateRoleTrends(player) == "rebel" then return -1
 		elseif sgs.backwardEvaluation(player) == "rebel" then return -2
 		elseif sgs.backwardEvaluation(player) == "loyalist" then return 4
-		elseif process:match("loyalist") then return -1
-		elseif sgs.compareRoleEvaluation(player, "renegade", "loyalist") == "loyalist" then return 3
-		else return 0 end
+		elseif sgs.compareRoleEvaluation(player, "renegade", "loyalist") == "loyalist" then return 3.5
+		else return 1 end
 	end
 end
 

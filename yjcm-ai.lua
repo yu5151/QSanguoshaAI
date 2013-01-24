@@ -515,17 +515,17 @@ sgs.ai_skill_choice.mingce = function(self, choices)
 	local chengong = self.room:getCurrent()
 	if not self:isFriend(chengong) then return "draw" end
 	for _, player in sgs.qlist(self.room:getAlivePlayers()) do
-		if player:hasFlag("mingceTarget") then return "use" end
+		if player:hasFlag("mingceTarget") then 
+			self.room:setPlayerFlag(player, "-mingceTarget")
+			return "use" 
+		end
 	end
 	return "draw"
 end
 
 sgs.ai_skill_playerchosen.mingce = function(self, targets)
 	for _, player in sgs.qlist(targets) do
-		if player:hasFlag("mingceTarget") then
-			self.room:setPlayerFlag(player, "-mingceTarget")
-			return player 
-		end
+		if player:hasFlag("mingceTarget") then return player end
 	end
 	return sgs.ai_skill_playerchosen.zero_card_as_slash(self, targets)
 end

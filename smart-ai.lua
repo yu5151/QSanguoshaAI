@@ -2950,7 +2950,7 @@ function SmartAI:getOverflow(player)
 			end
 		end
 	end
-	return math.max(player:getHandcardNum() - kingdom_num - player:getHp(), 0)
+	return math.max(player:getHandcardNum() - kingdom_num - player:getMaxCards(), 0)
 end
 
 function SmartAI:isWeak(player)

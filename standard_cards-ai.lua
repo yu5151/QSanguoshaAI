@@ -800,9 +800,9 @@ function sgs.ai_cardsview.Spear(class_name, player)
 		cards=sgs.QList2Table(cards)
 		local newcards = {}
 		for _, card in ipairs(cards) do
-			if not card:isKindOf("Peach") then table.insert(newcards, card) end
+			if not card:isKindOf("Peach") and not (card:isKindOf("ExNihilo") and player:getPhase() == sgs.Player_Play) then table.insert(newcards, card) end
 		end
-		if #newcards<(player:getHp()+1) then return nil end
+		if #newcards < player:getHp() and not (player:hasSkill("paoxiao") or player:hasSkill("lianying") or player:hasSkill("kongcheng")) then return nil end
 		if #newcards<2 then return nil end
 
 		local suit1 = newcards[1]:getSuitString()
@@ -824,10 +824,13 @@ local Spear_skill={}
 Spear_skill.name="Spear"
 table.insert(sgs.ai_skills,Spear_skill)
 Spear_skill.getTurnUseCard=function(self,inclusive)
-	local cards = self.player:getCards("h")	
-	cards=sgs.QList2Table(cards)
+	local handcards = sgs.QList2Table(self.player:getCards("h"))
+	local cards = {}
+	for _, card in ipairs(handcards) do
+		if not card:isKindOf("Peach") and not (card:isKindOf("ExNihilo") and self.player:getPhase() == sgs.Player_Play) then table.insert(cards, card) end
+	end
 
-	if #cards<(self.player:getHp()+1) then return nil end
+	if #cards < self.player:getHp() and not self:hasSkills("kongcheng|lianying|paoxiao",self.player) then return nil end
 	if #cards<2 then return nil end
 
 	self:sortByUseValue(cards,true)
@@ -1522,7 +1525,7 @@ local function hp_subtract_handcard(a,b)
 end
 
 function SmartAI:useCardIndulgence(card, use)
-	local enemies
+	local enemies = {}
 
 	if #self.enemies == 0 then
 		if sgs.turncount == 0 and self.role == "lord" and not sgs.isRolePredictable() 

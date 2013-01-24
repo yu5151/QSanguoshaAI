@@ -102,7 +102,7 @@ function setInitialTables()
 	sgs.cardneed_skill =		"paoxiao|tianyi|xianzhen|shuangxiong|jizhi|guose|duanliang|qixi|qingnang|" ..
 								"jieyin|renjie|zhiheng|rende|jujian|guicai|guidao|jilve|longhun|wusheng|longdan"
 	sgs.drawpeach_skill =		"tuxi|qiaobian"
-	sgs.recover_skill =		 "rende|kuanggu|zaiqi|jieyin|qingnang|yinghun"
+	sgs.recover_skill =			"rende|kuanggu|zaiqi|jieyin|qingnang|yinghun"
 	sgs.use_lion_skill =		 "longhun|duanliang|qixi|guidao|lijian|jujian|zhiheng|mingce|zhiba|yongsi"
 	
 	for _, aplayer in sgs.qlist(global_room:getAllPlayers()) do
@@ -323,6 +323,11 @@ function SmartAI:getUseValue(card)
 		if self:hasSkills(sgs.lose_equip_skill) then return 10 end
 	elseif card:getTypeId() == sgs.Card_Basic then
 		if card:isKindOf("Slash") then
+			
+			if card:getSkillName() == "Spear"   then v = v - 1 end
+			if card:getSkillName() == "longdan" then v = v + 1 end
+			if card:getSkillName() == "wusheng" then v = v + 1 end
+
 			if self.player:hasFlag("tianyi_success") or self.player:hasFlag("jiangchi_invoke")
 				or self:hasHeavySlashDamage() then v = 8.7 end
 			if self:isEquip("Crossbow") then v = v + 4 end
@@ -392,7 +397,11 @@ function SmartAI:adjustUsePriority(card,v)
 	end
 	
 	table.insert(suits,"no_suit")
-	--if card:isKindOf("Slash") then	v = (card:isKindOf("ThunderSlash") or card:isKindOf("FireSlash")) and 2.5 or 2.6 end
+	if card:isKindOf("Slash") then 
+		if card:getSkillName() == "Spear"   then v = v - 0.01 end
+		if card:getSkillName() == "longdan" then v = v + 0.01 end
+		if card:getSkillName() == "wusheng" then v = v + 0.01 end
+	end
 
 	local suits_value={}
 	for index,suit in ipairs(suits) do
@@ -1265,15 +1274,16 @@ function SmartAI:objectiveLevel(player)
 					return 5
 				end
 			end	
-		elseif process == "neutral" or (sgs.turncount <=1 and sgs.isLordHealthy()) then
+		elseif process == "neutral" or (sgs.turncount <=1 and sgs.isLordHealthy()) then			
 			if sgs.turncount <=1 and sgs.isLordHealthy() then return 0 end
+			if player:isLord() then return -1 end
 
 			local renegade_attack_skill = string.format("buqu|%s|%s|%s|%s",sgs.priority_skill,sgs.save_skill,sgs.recover_skill,sgs.drawpeach_skill)
 			for i=1, #players, 1 do
 				if not players[i]:isLord() and self:hasSkills(renegade_attack_skill,players[i]) then return 5 end
 				if not players[i]:isLord() and math.abs(sgs.ai_chaofeng[players[i]:getGeneralName()] or 0) >3 then return 5 end
 			end
-			return player:isLord() and 0 or 3 
+			return 3
 		elseif process:match("rebel") then
 			if target_role == "rebel" then 
 				if process == "rebel" then return 5 else return 3 end			
@@ -1327,7 +1337,7 @@ function SmartAI:objectiveLevel(player)
 		elseif sgs.backwardEvaluation(player) == "rebel" then return 5
 		elseif sgs.backwardEvaluation(player) == "loyalist" then return -2
 		elseif sgs.compareRoleEvaluation(player, "rebel", "loyalist") == "rebel" then return 3.5
-		else return 1 end
+		else return 0 end
 	elseif self.role == "rebel" then
 		if #players>=4 and sgs.role_evaluation[player:objectName()]["rebel"] ==30 and sgs.role_evaluation[player:objectName()]["loyalist"] ==30 and sgs.role_evaluation[player:objectName()]["renegade"] ==30  then return 0 end
 	  
@@ -1339,7 +1349,7 @@ function SmartAI:objectiveLevel(player)
 		elseif sgs.backwardEvaluation(player) == "rebel" then return -2
 		elseif sgs.backwardEvaluation(player) == "loyalist" then return 4
 		elseif sgs.compareRoleEvaluation(player, "renegade", "loyalist") == "loyalist" then return 3.5
-		else return 1 end
+		else return 0 end
 	end
 end
 
@@ -1857,7 +1867,8 @@ function SmartAI:filterEvent(event, player, data)
 		sgs.turncount = 0
 		sgs.debugmode = io.open("lua/ai/debug")
 		if sgs.debugmode then sgs.debugmode:close() end
-		if player:isLord() and sgs.debugmode then
+		--self.room:acquireSkill(self.room:getLord(),"zhijian")
+		if player:isLord() and sgs.debugmode then			
 			logmsg("ai.html","<meta charset='utf-8'/>")
 		end
 	end
@@ -2928,6 +2939,7 @@ function SmartAI:activate(use)
 		if not self.player:isJilei(card) and not self.player:isLocked(card) then
 			local type = card:getTypeId()
 			self["use" .. sgs.ai_type_name[type + 1] .. "Card"](self, card, use)
+			logmsg("debug.txt","use" .. sgs.ai_type_name[type + 1] .. "Card  : " .. card:toString())
 
 			if use:isValid(nil) then
 				self.toUse = nil

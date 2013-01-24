@@ -2871,6 +2871,10 @@ function SmartAI:getTurnUse()
 		slashAvail = slashAvail+1
 		self.slash_distance_limit = true
 	end
+
+	if self.player:hasFlag("jiefanUsed") then
+		self.slash_distance_limit = true
+	end
 	
 	if self.player:getMark("huxiao") > 0 then
 		slashAvail = slashAvail + self.player:getMark("huxiao")

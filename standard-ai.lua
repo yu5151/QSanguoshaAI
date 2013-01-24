@@ -1062,15 +1062,26 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 			end
 		end
 	end
-
-	local analeptic_num = 0
-	for _,cd in sgs.qlist(self.player:getHandcards()) do
-		if cd:isKindOf("Analeptic") then
-			analeptic_num = analeptic_num+1
-		end
-	end
-	if self.player:getHp()<=1 and analeptic_num>1 then
+	
+	if self.player:getHp()==1 and self:getCardsNum("Analeptic")>=1 then
 		return sgs.Card_Parse("@KurouCard=.")
+	end
+	
+	local nextplayer = self.player:getNextAlive()
+	if self.player:getHp()==1 then
+		if self:isFriend(nextplayer) then
+			if nextplayer:hasSkill("jieyin") and self.player:isMale() and (not nextplayer:containsTrick("indulgence") 
+				or nextplayer:containsTrick("YanxiaoCard")) then
+				return
+			end
+			if nextplayer:hasSkill("qingnang") and (not nextplayer:containsTrick("indulgence") 
+				or nextplayer:containsTrick("YanxiaoCard")) then
+				return
+			end
+			--To Be Continue for killing by rebel friends
+		elseif self:isEnemy(nextplayer) then
+			return sgs.Card_Parse("@KurouCard=.")
+		end
 	end
 end
 
@@ -1471,7 +1482,7 @@ sgs.ai_skill_cardask["@wushuang-jink-1"] = function(self, data, pattern, target)
 	if self:hasSkill("kongcheng") then
 		if target:hasWeapon("GudingBlade") or not (self:getHandcardNum() == 1 and self.player:getCardsNum("Jink") == 1)  then return "." end
 	else
-		if self:getCardsNum("Jink") < 2 and self.player:getHandcardNum() > self:getLeastHandcardNum() then return "." end
+		if self:getCardsNum("Jink") < 2 and self.player:getHandcardNum() > self:getLeastHandcardNum(self.player) then return "." end
 	end
 end
 

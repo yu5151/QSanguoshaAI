@@ -1257,7 +1257,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			
 			return
 		end
-		if self:isEquip("SilverLion", friend) and self:hasTrickEffective(card, friend) and friend:isWounded() and not self:hasSkills(sgs.use_lion_skill,friend) then
+		if self:isEquip("SilverLion", friend) and self:hasTrickEffective(card, friend) and self:isWeak(friend) and not self:hasSkills(sgs.use_lion_skill,friend) then
 			hasLion = true
 			target = friend
 		end
@@ -1695,8 +1695,14 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		for _, bycard in ipairs(cards) do
 			if not bycard:isKindOf("BasicCard") then
 				local value = self:getUseValue(bycard)
-				if value > maxvalue then maxvaluecard = bycard end
-				if value < minvalue then minvaluecard = bycard end
+				if value > maxvalue then 
+					maxvalue = value
+					maxvaluecard = bycard
+				end
+				if value < minvalue then 
+					minvalue = value
+					minvaluecard = bycard 
+				end
 			end
 		end
 		if self:isFriend(nextp) and minvaluecard and ( not nextp:containsTrick("indulgence") or nextp:containsTrick("YanxiaoCard") or canNullification ) then
@@ -1708,7 +1714,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	end
 	
 	for _, card in ipairs(cards) do
-		if card:isKindOf("ExNihilo") then
+		if card:isKindOf("ExNihilo") and (self:getCardsNum("Peach") >= self.player:getLostHp()) then
 			if not self.player:containsTrick("indulgence") or self.player:containsTrick("YanxiaoCard")  or canNullification then 
 				return card:getEffectiveId()
 			elseif self.player:containsTrick("indulgence") and not nextplayercanuse then
@@ -1717,7 +1723,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		end
 	end	
 	
-	local friendneedpeach , peach
+	local friendneedpeach, peach
 	local peachnum = 0
 	if nextplayercanuse then
 		if ( not self.player:isWounded() and nextp:isWounded() or self.player:getLostHp() < self:getCardsNum("Peach") and self:getCardsNum("Peach") > 0 ) then		

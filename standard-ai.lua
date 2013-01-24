@@ -1049,38 +1049,61 @@ local kurou_skill={}
 kurou_skill.name="kurou"
 table.insert(sgs.ai_skills,kurou_skill)
 kurou_skill.getTurnUseCard=function(self,inclusive)
-	if (self.player:getHp() > 3 and self.player:getHandcardNum() > self.player:getHp())
-		or (self.player:getHp() - self.player:getHandcardNum() >= 2) then
-		return sgs.Card_Parse("@KurouCard=.")
-	end
-	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)	
-	if self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow") then
-		for _, enemy in ipairs(self.enemies) do
-			if self.player:canSlash(enemy, nil, true) and self:slashIsEffective(slash, enemy) 
-				and sgs.isGoodTarget(enemy,self.enemies) and not self:slashProhibit(slash, enemy) and self.player:getHp()>1 then
-				return sgs.Card_Parse("@KurouCard=.")
+	if sgs.ai_use_priority.KurouCard == 6.8 then
+		if (self.player:getHp() > 3 and self.player:getHandcardNum() > self.player:getHp())
+			or (self.player:getHp() - self.player:getHandcardNum() >= 2) then
+			return sgs.Card_Parse("@KurouCard=.")
+		end
+		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)	
+		if self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow") then
+			for _, enemy in ipairs(self.enemies) do
+				if self.player:canSlash(enemy, nil, true) and self:slashIsEffective(slash, enemy) 
+					and sgs.isGoodTarget(enemy,self.enemies) and not self:slashProhibit(slash, enemy) and self.player:getHp()>1 then
+					return sgs.Card_Parse("@KurouCard=.")
+				end
 			end
 		end
-	end
-	
-	if self.player:getHp()==1 and self:getCardsNum("Analeptic")>=1 then
-		return sgs.Card_Parse("@KurouCard=.")
-	end
-	
-	local nextplayer = self.player:getNextAlive()
-	if self.player:getHp()==1 then
-		if self:isFriend(nextplayer) then
-			if nextplayer:hasSkill("jieyin") and self.player:isMale() and (not nextplayer:containsTrick("indulgence") 
-				or nextplayer:containsTrick("YanxiaoCard")) then
-				return
-			end
-			if nextplayer:hasSkill("qingnang") and (not nextplayer:containsTrick("indulgence") 
-				or nextplayer:containsTrick("YanxiaoCard")) then
-				return
-			end
-			--To Be Continue for killing by rebel friends
-		elseif self:isEnemy(nextplayer) then
+		
+		if self.player:getHp()==1 and self:getCardsNum("Analeptic")>=1 then
 			return sgs.Card_Parse("@KurouCard=.")
+		end
+		sgs.ai_use_priority.KurouCard = 0
+	elseif sgs.ai_use_priority.KurouCard == 0 then
+		sgs.ai_use_priority.KurouCard = 6.8
+		local nextplayer = self.player:getNextAlive()
+		if self.player:getHp()==1 then
+			local to_death = false
+			if self:isFriend(nextplayer) then
+				if nextplayer:hasSkill("jieyin") and self.player:isMale() and (not nextplayer:containsTrick("indulgence") 
+					or nextplayer:containsTrick("YanxiaoCard")) then
+					return
+				end
+				if nextplayer:hasSkill("qingnang") and (not nextplayer:containsTrick("indulgence") 
+					or nextplayer:containsTrick("YanxiaoCard")) then
+					return
+				end
+				if self.player:getRole()=="rebel" then
+					if nextplayer:containsTrick("indulgence") and nextplayer:containsTrick("YanxiaoCard") 
+						and not nextplayer:hasSkill("shensu") then
+						to_death = true
+					end
+					local yuejin = self.room:findPlayerBySkillName("gzxiaoguo")
+					if yuejin and not self:isFriend(yuejin) and self.player:getEquips():isEmpty() and not yuejin:isKongcheng() then
+						to_death = true
+					end
+				end
+			else
+				to_death = true
+			end
+			if to_death and self.player:getHandcardNum()>3 then
+				local caopi = self.room:findPlayerBySkillName("xingshang")
+				if caopi and self:isEnemy(caopi) then
+					to_death = false
+				end
+			end
+			if to_death then
+				return sgs.Card_Parse("@KurouCard=.")
+			end
 		end
 	end
 end

@@ -69,28 +69,25 @@ sgs.ai_skill_choice.jiangchi = function(self, choices)
 			end
 		end
 	end
-	if slashnum > 1 or (slashnum > 0 and goodtarget == 0) then needburst = 1 end
-	self:sort(self.enemies,"defenseSlash")
-	if goodtarget == 0 or self.player:isSkipped(sgs.Player_Play) then return "jiang" end
-		
+
 	for _,enemy in ipairs(self.enemies) do
-		local def=sgs.getDefense(enemy)
-		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-		local eff = self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies)
-			
-		if not self.player:canSlash(enemy, nil, false) then
-		elseif self:slashProhibit(nil, enemy) then
-		elseif def<6 and eff and needburst > 0 then return "chi"
-		end	
+			if self.player:canSlash(enemy) then
+				target = target + 1
+				break
+			end
 	end
+
+	if slashnum > 1 or (slashnum > 0 and goodtarget > 0) then needburst = 1 end
+	self:sort(self.enemies,"defenseSlash")
+	local can_save_card_num = self.player:getMaxCards() - self.player:getHandcardNum()
+	if target == 0 or can_save_card_num > 1 or self.player:isSkipped(sgs.Player_Play) then return "jiang" end
 	
 	for _,enemy in ipairs(self.enemies) do
 		local def=sgs.getDefense(enemy)
 		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 		local eff = self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies)
 
-		if not self.player:canSlash(enemy, nil, false) then
-		elseif self:slashProhibit(nil, enemy) then
+		if self:slashProhibit(slash, enemy) then
 		elseif eff and def<8 and needburst > 0 then return "chi"
 		end
 	end

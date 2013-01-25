@@ -257,6 +257,8 @@ anxu_skill.getTurnUseCard=function(self)
 end
 
 sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
+	if #self.enemies == 0 then return end
+	local intention = 50
 	local friends = {}
 	for _, friend in ipairs(self.friends_noself) do
 		if friend:hasSkill("manjuan") then
@@ -301,13 +303,17 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 	
 	-- Enemy -> Friend
 	if least_friend then
-		local tg_enemy = prior_enemy or most_enemy
-		if tg_enemy and tg_enemy:getHandcardNum() > least_friend:getHandcardNum() then
+		local tg_enemy 
+		if not tg_enemy and prior_enemy and prior_enemy:getHandcardNum() > least_friend:getHandcardNum() then tg_enemy = prior_enemy end
+		if not tg_enemy and most_enemy  and most_enemy:getHandcardNum() > least_friend:getHandcardNum() then tg_enemy = most_enemy end
+		if tg_enemy  then
 			use.card = card
 			if use.to then
 				use.to:append(tg_enemy)
 				use.to:append(least_friend)
 			end
+			sgs.updateIntention(self.player, tg_enemy, intention)
+			sgs.updateIntention(self.player, least_friend, -intention)
 			return
 		end
 	end
@@ -320,6 +326,8 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(need_kongcheng_friend)
 				use.to:append(least_friend)
 			end
+			sgs.updateIntention(self.player, tg_enemy, -intention)
+			sgs.updateIntention(self.player, least_friend, -intention)
 			return
 		elseif most_friend:getHandcardNum() >= 4 and most_friend:getHandcardNum() > least_friend:getHandcardNum() then
 			use.card = card
@@ -327,6 +335,7 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(most_friend)
 				use.to:append(least_friend)
 			end
+			sgs.updateIntention(self.player, least_friend, -intention)
 			return
 		end
 	end
@@ -340,6 +349,8 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(tg_enemy)
 				use.to:append(kongcheng_enemy)
 			end
+			sgs.updateIntention(self.player, tg_enemy, intention)
+			sgs.updateIntention(self.player, kongcheng_enemy, intention)
 			return
 		elseif most_friend and most_friend:getHandcardNum() >= 4 then -- Friend -> Enemy for KongCheng
 			use.card = card
@@ -347,6 +358,7 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(most_friend)
 				use.to:append(kongcheng_enemy)
 			end
+			sgs.updateIntention(self.player, kongcheng_enemy, intention)
 			return
 		end
 	elseif manjuan_enemy then
@@ -357,6 +369,7 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(tg_enemy)
 				use.to:append(manjuan_enemy)
 			end
+			sgs.updateIntention(self.player, tg_enemy, intention)
 			return
 		end
 	elseif most_enemy then
@@ -384,39 +397,15 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 			if use.to then
 				use.to:append(tg_enemy)
 				use.to:append(second_enemy)
-				self.player:setFlags("anxu_isenemy_" .. second_enemy:objectName())
 			end
+			sgs.updateIntention(self.player, tg_enemy, intention)
+			sgs.updateIntention(self.player, second_enemy, intention)
 			return
 		end
 	end
 end
 
-sgs.ai_card_intention.AnxuCard = function(card, from, to)
-	local more, less
-	if to[1]:getHandcardNum() > to[2]:getHandcardNum() then
-		more = to[1]
-		less = to[2]
-	else
-		more = to[2]
-		less = to[1]
-	end
-	local intention = -50
-	local kc_enemy = false
-	if less:hasSkill("manjuan") or (less:hasSkill("kongcheng") and less:isKongcheng()) then
-		kc_enemy = true
-		intention = 80
-	else
-		if from:hasFlag("anxu_isenemy_" .. less:objectName()) then intention = -intention end
-		intention = intention / (less:getHandcardNum() + 1)
-	end
-	sgs.updateIntention(from, less, intention)
-	if kc_enemy then 
-		intention = 0 
-	elseif sgs.evaluateRoleTrends(more) ~= sgs.evaluateRoleTrends(less) then 
-		intention = -intention
-	end
-	sgs.updateIntention(from, more, intention)
-end
+sgs.ai_card_intention.AnxuCard = 0
 
 sgs.ai_use_priority.AnxuCard = 9.6
 

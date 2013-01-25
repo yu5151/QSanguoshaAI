@@ -587,6 +587,22 @@ sgs.ai_skill_use_func.RendeCard = function(card, use, self)
 		end
 		if use.to then use.to:append(friend) end
 		return
+	else
+		local pangtong = self.room:findPlayerBySkillName("manjuan")
+		if not pangtong then return end
+		if self.player:isWounded() and self.player:getHandcardNum() >= 3 and self.player:usedTimes("RendeCard") < 2 then
+			self:sortByUseValue(cards, true)
+			local to_give = {}
+			for _, card in ipairs(cards) do
+				if not card:isKindOf("Peach") and not card:isKindOf("ExNihilo") then table.insert(to_give, card:getId()) end
+				if #to_give == 2 - self.player:usedTimes("RendeCard") then break end
+			end
+			if #to_give > 0 then
+				use.card = sgs.Card_Parse("@RendeCard=" .. table.concat(to_give, "+"))
+				if use.to then use.to:append(pangtong) end
+				return
+			end
+		end
 	end
 end
 
@@ -666,10 +682,17 @@ sgs.ai_skill_use_func.JijiangCard=function(card,use,self)
 				use.to:append(enemy)
 			end
 			table.insert(sgs.jijiangtarget, enemy)
+			self.player:speak(enemy.objectName())
 			target_count=target_count+1
 			if self.slash_targets<=target_count then return end
 		end
 	end	
+end
+
+sgs.ai_card_intention.JijiangCard = function(card, from, tos)
+	if not from:isLord() and global_room:getCurrent():objectName() == from:objectName() then
+		return sgs.ai_card_intention.Slash(card, from, tos)
+	end
 end
 
 sgs.ai_use_value.JijiangCard = 8.5
@@ -680,6 +703,7 @@ sgs.ai_choicemade_filter.cardResponsed["@jijiang-slash"] = function(player, prom
 		sgs.updateIntention(player, sgs.jijiangsource, -40)
 		sgs.jijiangsource = nil
 		sgs.jijiangtarget = nil
+		player:speak("clear jijiang taregt")
 	end
 end
 
@@ -694,6 +718,8 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 	--only deal with one target now
 	self:sort(sgs.jijiangtarget, "defense")
 	local target = sgs.jijiangtarget[1]
+	self.player:speak(type(sgs.jijiangtarget))
+	self.player:speak(target:objectName())
 
 	local ignoreArmor = sgs.jijiangsource:hasUsed("WuqianCard") or sgs.jijiangsource:hasWeapon("QinggangSword") or sgs.jijiangsource:hasFlag("xianzhen_success")
 	if ignoreArmor then return self:getCardId("Slash") or "." end
@@ -1049,38 +1075,61 @@ local kurou_skill={}
 kurou_skill.name="kurou"
 table.insert(sgs.ai_skills,kurou_skill)
 kurou_skill.getTurnUseCard=function(self,inclusive)
-	if (self.player:getHp() > 3 and self.player:getHandcardNum() > self.player:getHp())
-		or (self.player:getHp() - self.player:getHandcardNum() >= 2) then
-		return sgs.Card_Parse("@KurouCard=.")
-	end
-	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)	
-	if self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow") then
-		for _, enemy in ipairs(self.enemies) do
-			if self.player:canSlash(enemy, nil, true) and self:slashIsEffective(slash, enemy) 
-				and sgs.isGoodTarget(enemy,self.enemies) and not self:slashProhibit(slash, enemy) and self.player:getHp()>1 then
-				return sgs.Card_Parse("@KurouCard=.")
+	if sgs.ai_use_priority.KurouCard == 6.8 then
+		if (self.player:getHp() > 3 and self.player:getHandcardNum() > self.player:getHp())
+			or (self.player:getHp() - self.player:getHandcardNum() >= 2) then
+			return sgs.Card_Parse("@KurouCard=.")
+		end
+		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)	
+		if self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow") then
+			for _, enemy in ipairs(self.enemies) do
+				if self.player:canSlash(enemy, nil, true) and self:slashIsEffective(slash, enemy) 
+					and sgs.isGoodTarget(enemy,self.enemies) and not self:slashProhibit(slash, enemy) and self.player:getHp()>1 then
+					return sgs.Card_Parse("@KurouCard=.")
+				end
 			end
 		end
-	end
-	
-	if self.player:getHp()==1 and self:getCardsNum("Analeptic")>=1 then
-		return sgs.Card_Parse("@KurouCard=.")
-	end
-	
-	local nextplayer = self.player:getNextAlive()
-	if self.player:getHp()==1 then
-		if self:isFriend(nextplayer) then
-			if nextplayer:hasSkill("jieyin") and self.player:isMale() and (not nextplayer:containsTrick("indulgence") 
-				or nextplayer:containsTrick("YanxiaoCard")) then
-				return
-			end
-			if nextplayer:hasSkill("qingnang") and (not nextplayer:containsTrick("indulgence") 
-				or nextplayer:containsTrick("YanxiaoCard")) then
-				return
-			end
-			--To Be Continue for killing by rebel friends
-		elseif self:isEnemy(nextplayer) then
+		
+		if self.player:getHp()==1 and self:getCardsNum("Analeptic")>=1 then
 			return sgs.Card_Parse("@KurouCard=.")
+		end
+		sgs.ai_use_priority.KurouCard = 0
+	elseif sgs.ai_use_priority.KurouCard == 0 then
+		sgs.ai_use_priority.KurouCard = 6.8
+		local nextplayer = self.player:getNextAlive()
+		if self.player:getHp()==1 then
+			local to_death = false
+			if self:isFriend(nextplayer) then
+				if nextplayer:hasSkill("jieyin") and self.player:isMale() and (not nextplayer:containsTrick("indulgence") 
+					or nextplayer:containsTrick("YanxiaoCard")) then
+					return
+				end
+				if nextplayer:hasSkill("qingnang") and (not nextplayer:containsTrick("indulgence") 
+					or nextplayer:containsTrick("YanxiaoCard")) then
+					return
+				end
+				if self.player:getRole()=="rebel" then
+					if nextplayer:containsTrick("indulgence") and nextplayer:containsTrick("YanxiaoCard") 
+						and not nextplayer:hasSkill("shensu") then
+						to_death = true
+					end
+					local yuejin = self.room:findPlayerBySkillName("gzxiaoguo")
+					if yuejin and not self:isFriend(yuejin) and self.player:getEquips():isEmpty() and not yuejin:isKongcheng() then
+						to_death = true
+					end
+				end
+			else
+				to_death = true
+			end
+			if to_death and self.player:getHandcardNum()>3 then
+				local caopi = self.room:findPlayerBySkillName("xingshang")
+				if caopi and self:isEnemy(caopi) then
+					to_death = false
+				end
+			end
+			if to_death then
+				return sgs.Card_Parse("@KurouCard=.")
+			end
 		end
 	end
 end
@@ -1119,11 +1168,10 @@ fanjian_skill.getTurnUseCard=function(self)
 end
 
 sgs.ai_skill_use_func.FanjianCard=function(card,use,self)
-	self:sort(self.enemies, "hp")
+	self:sort(self.enemies, "defense")
 			
-	for _, enemy in ipairs(self.enemies) do		
-		if self:objectiveLevel(enemy) <= 3 or self:cantbeHurt(enemy) or not self:damageIsEffective(enemy) then
-		elseif (not enemy:hasSkill("qingnang")) or (enemy:getHp() == 1 and enemy:getHandcardNum() == 0 and not enemy:getEquips()) then
+	for _, enemy in ipairs(self.enemies) do
+		if self:canAttack(enemy) and not self:hasSkills("qingnang|jijiu",enemy) then
 			use.card = card
 			if use.to then use.to:append(enemy) end
 			return

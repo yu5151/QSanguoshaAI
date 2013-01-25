@@ -399,64 +399,69 @@ function sgs.ai_slash_prohibit.xiangle(self, to)
 end
 
 sgs.ai_skill_invoke.fangquan = function(self, data)
-	if #self.friends == 1 then
-		return false
-	end
 
+	if #self.friends == 1 then return end
+	
 	local limit = self.player:getMaxCards()
-	if self.player:getHandcardNum() > limit or self.player:isKongcheng() then return false end
+	-- if self.player:getHandcardNum() > limit + 2 then return end
+	if self.player:isKongcheng() then return end
+	if self:getCardsNum("Peach") >= limit and self.player:isWounded() then return end	
 
-	local to_discard = {}
 	local cards = sgs.QList2Table(self.player:getHandcards())
-
-	local index = 0
-	local all_peaches = 0
-	for _, card in ipairs(cards) do
-		if card:isKindOf("Peach") then
-			all_peaches = all_peaches + 1
+	local shouldUse = 0
+	for _ ,card in ipairs(cards) do
+		if card:isKindOf("TrickCard") and self:getUseValue(card) > 3.69 then
+			local dummy_use = { isDummy = true }
+			self:useTrickCard(card, dummy_use)
+			if dummy_use.card then shouldUse = shouldUse + 1 end
 		end
-	end
-	if all_peaches >= 2 and self:getOverflow() <= 0 then return {} end
-	self:sortByKeepValue(cards)
-	cards = sgs.reverse(cards)
-
-	for i = #cards, 1, -1 do
-		local card = cards[i]
-		if not card:isKindOf("Peach") and not self.player:isJilei(card) then
-			table.insert(to_discard, card:getEffectiveId())
-			table.remove(cards, i)
-			break
-		end
-	end
-	return #to_discard > 1
+		
+		if card:isKindOf("Slash") then
+			for _, enemy in ipairs(self.enemies) do
+				if (self:getCardsNum("Jink", enemy) < 1 or enemy:isKongcheng()) and self:slashIsEffective(card, enemy) and self.player:canSlash(enemy, nil, true) then
+					shouldUse = shouldUse + 1
+					break
+				end
+			end
+		end		
+	end	
+	if shouldUse >= 2 then return end
+	
+	return shouldUse < 2
 end
 
 sgs.ai_skill_discard.fangquan = function(self, discard_num, min_num, optional, include_equip)
-	local to_discard = {}
-	local cards = sgs.QList2Table(self.player:getHandcards())
-	local index = 0
-	local all_peaches = 0
-	for _, card in ipairs(cards) do
-		if card:isKindOf("Peach") then
-			all_peaches = all_peaches + 1
-		end
-	end
-	if all_peaches >= 2 and self:getOverflow() <= 0 then return {} end
-	self:sortByKeepValue(cards)
-	cards = sgs.reverse(cards)
 
-	for i = #cards, 1, -1 do
-		local card = cards[i]
-		if not card:isKindOf("Peach") and not self.player:isJilei(card) then
-			table.insert(to_discard, card:getEffectiveId())
-			table.remove(cards, i)
-			break
-		end
-	end	
-	if #to_discard < 1 then return {} 
-	else
-		return to_discard
-	end
+	-- local to_discard = {}
+	-- local cards = sgs.QList2Table(self.player:getHandcards())
+	-- local index = 0
+	-- local all_peaches = 0
+	-- for _, card in ipairs(cards) do
+		-- if card:isKindOf("Peach") then
+			-- all_peaches = all_peaches + 1
+		-- end
+	-- end
+	-- if all_peaches >= 2 and self:getOverflow() <= 0 then return {} end
+	-- self:sortByKeepValue(cards)
+	-- cards = sgs.reverse(cards)
+
+	-- for i = #cards, 1, -1 do
+		-- local card = cards[i]
+		-- if not card:isKindOf("Peach") and not self.player:isJilei(card) then
+			-- table.insert(to_discard, card:getEffectiveId())
+			-- table.remove(cards, i)
+			-- break
+		-- end
+	-- end	
+	-- if #to_discard < 1 then return {} 
+	-- else
+		-- return to_discard
+	-- end
+	
+	local cards = sgs.QList2Table(self.player:getHandcards())
+	self:sortByKeepValue(cards, true)
+	
+	return cards[1]:getEffectiveId()
 end
 
 sgs.ai_skill_playerchosen.fangquan = function(self, targets)
@@ -475,7 +480,9 @@ sgs.ai_skill_playerchosen.fangquan = function(self, targets)
 		end
 	end
 
-	return #self.friends_noself>0 and self.friends_noself[1]
+	if #self.friends_noself>0 then return self.friends_noself[1] end
+	
+	return targets:first()
 end
 
 sgs.ai_playerchosen_intention.fangquan = -40

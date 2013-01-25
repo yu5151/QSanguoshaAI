@@ -2565,7 +2565,7 @@ function SmartAI:getCardNeedPlayer(cards)
 			(self.player:getHandcardNum() == 1 and self.player:usedTimes("RendeCard") == 1) then
 			for _, enemy in ipairs(self.enemies) do
 				if self:isEquip("GudingBlade", enemy) and 
-				(enemy:canSlash(self.player, nil, true) or enemy:hasSkill("shensu") or enemy:hasSkill("wushen") or enemy:hasSkill("jiangchi")) then return end
+				(enemy:canSlash(self.player) or enemy:hasSkill("shensu") or enemy:hasSkill("wushen") or enemy:hasSkill("jiangchi")) then return end
 				if enemy:canSlash(self.player, nil, true) and enemy:hasSkill("qianxi") and enemy:distanceTo(self.player) == 1 then return end
 			end
 						
@@ -2700,7 +2700,8 @@ function SmartAI:getCardNeedPlayer(cards)
 	for _, hcard in ipairs(cardtogive) do
 		for _, friend in ipairs(self.friends_noself) do
 			if not self:needKongcheng(friend) and not friend:hasSkill("manjuan") then
-				if (self:getOverflow()>0 or self.player:getHandcardNum()>3) and friend:getHandcardNum() < 3 then
+				if friend:getHandcardNum() <= 3 and (self:getOverflow()>0 or self.player:getHandcardNum()>3 
+						or (self.player:hasSkill("rende") and self.player:isWounded() and self.player:usedTimes("RendeCard") < 2)) then
 					return hcard, friend
 				end
 			end
@@ -2732,7 +2733,7 @@ function SmartAI:askForYiji(card_ids)
 	
 	local card, friend = self:getCardNeedPlayer(cards)
 	if card and friend then return friend, card:getId() end
-	if #self.friends > 1 and self:getOverflow() > 0 then
+	if #self.friends > 1 then
 		self:sort(self.friends, "handcard")
 		for _, afriend in ipairs(self.friends) do
 			if not (self:needKongcheng(afriend) or afriend:hasSkill("manjuan")) then

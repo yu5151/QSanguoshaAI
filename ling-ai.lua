@@ -81,10 +81,9 @@ neofanjian_skill.getTurnUseCard=function(self)
 	end
 end
 
-sgs.ai_skill_use_func.NeoFanjianCard=sgs.ai_skill_use_func.FanjianCard
-
-sgs.ai_card_intention.NeoFanjianCard = 70
-
+sgs.ai_skill_use_func.NeoFanjianCard = sgs.ai_skill_use_func.FanjianCard
+sgs.ai_card_intention.NeoFanjianCard = sgs.ai_card_intention.FanjianCard
+sgs.dynamic_value.damage_card.NeoFanjianCard = true
 
 function sgs.ai_skill_suit.neofanjian(self)
 	local map = {0, 0, 1, 2, 2, 3, 3, 3}

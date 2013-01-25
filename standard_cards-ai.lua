@@ -246,7 +246,7 @@ function SmartAI:canLiuli(other, another)
 end
 
 function SmartAI:slashIsEffective(slash, to)
-	if not to then self.room:writeToConsole(debug.traceback()) end
+	if not to then self.room:writeToConsole(debug.traceback()) return end
 	if to:hasSkill("zuixiang") and to:isLocked(slash) then return false end
 	if to:hasSkill("yizhong") and not to:getArmor() then
 		if slash:isBlack() then
@@ -486,8 +486,15 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 
 	if #canAvoidSlash >0 then return canAvoidSlash[1] end
 	if #arrBestHp >0 then return arrBestHp[1] end
-
-	return targetlist[#targetlist]
+	
+	self:sort(targetlist, "defenseSlash", true)
+	for _, target in ipairs(targetlist) do
+		if target:objectName() ~= self.player:objectName() then
+			return target
+		end
+	end
+	
+	return targetlist[1]
 end
 
 sgs.ai_card_intention.Slash = function(card,from,tos)
@@ -620,6 +627,7 @@ function SmartAI:useCardPeach(card, use)
 	local lord= self.room:getLord()
 	if self:isFriend(lord) and lord:getHp() <= 2 and not lord:hasSkill("buqu") then 
 		if self.player:isLord() then use.card = card end
+		if self:getCardsNum("Peach") > 1 and self:getCardsNum("Peach") + self:getCardsNum("Jink") > self.player:getMaxCards() then use.card = card end
 		return 
 	end
 
@@ -1740,16 +1748,6 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		end
 	end
 	
-	for _, card in ipairs(cards) do
-		if card:isKindOf("ExNihilo") and (self:getCardsNum("Peach") >= self.player:getLostHp()) then
-			if not self.player:containsTrick("indulgence") or self.player:containsTrick("YanxiaoCard")  or canNullification then 
-				return card:getEffectiveId()
-			elseif self.player:containsTrick("indulgence") and not nextplayercanuse then
-				return card:getEffectiveId()
-			end
-		end
-	end	
-	
 	local friendneedpeach, peach
 	local peachnum = 0
 	if nextplayercanuse then
@@ -1764,6 +1762,16 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		end
 	end
 	if ( not friendneedpeach and peach ) or peachnum > 1 then return peach end
+	
+	for _, card in ipairs(cards) do
+		if card:isKindOf("ExNihilo") then
+			if not self.player:containsTrick("indulgence") or self.player:containsTrick("YanxiaoCard")  or canNullification then 
+				return card:getEffectiveId()
+			elseif self.player:containsTrick("indulgence") and not nextplayercanuse then
+				return card:getEffectiveId()
+			end
+		end
+	end	
 	
 	if ( self:isWeak() or self:getCardsNum("Jink") == 0 ) and hasjink then
 		for _, card in ipairs(cards) do
@@ -1792,7 +1800,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 				supplyshortage = card:getEffectiveId()
 			elseif card:isKindOf("Collatera") and self:hasTrickEffective(card,enemy) and enemy:getWeapon() then
 				collatera = card:getEffectiveId()
-			elseif card:isKindOf("Duel") and self:getCardsNum("Slash") > getCardsNum("Slash", enemy) then
+			elseif card:isKindOf("Duel") and self:getCardsNum("Slash") >= getCardsNum("Slash", enemy) then
 				duel = card:getEffectiveId()
 			elseif card:isKindOf("AOE") then
 				local good = self:getAoeValue(card)

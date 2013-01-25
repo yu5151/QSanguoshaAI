@@ -869,6 +869,7 @@ sgs.yinling_suit_value = {
 }
 
 sgs.ai_skill_invoke.fenyong = function(self, data)
+	if sgs.turncount == 0 and #self.enemies == 0 then return end
 	return true
 end
 
@@ -881,7 +882,8 @@ sgs.ai_skill_choice.xuehen = function(self, choices)
 	if self:isEnemy(current) then
 		if self:hasSkills("jijiu|tuntian|beige|qiaobian", current) and self.player:getLostHp() >= 2 and current:getCardCount(true) >= 2 then return "discard" end
 	end
-	return "slash"
+	if #self.enemies > 0 then return "slash" end
+	return "discard"
 end
 
 sgs.ai_skill_playerchosen.xuehen = sgs.ai_skill_playerchosen.zero_card_as_slash

@@ -331,12 +331,12 @@ function SmartAI:getUseValue(card)
 			if self:isEquip("Crossbow") then v = v + 4 end
 
 			if card:getSkillName() == "Spear"   then v = v - 1 end
-			if card:getSkillName() == "chongzhen" then v = v + 1 end
+			if card:getSkillName() == "longdan" then v = v + 1 end
 			if card:getSkillName() == "wusheng" then v = v + 1 end
 
 		elseif card:isKindOf("Jink") then
 			if self:getCardsNum("Jink") > 1 then v = v-6 end
-			if self.player:hasSkill("chongzhen") then v = 8.7 end
+			if self.player:hasSkill("longdan") then v = 8.7 end
 		elseif card:isKindOf("Peach") then
 			if self.player:isWounded() then v = v + 6 end
 		end
@@ -403,7 +403,7 @@ function SmartAI:adjustUsePriority(card,v)
 	table.insert(suits,"no_suit")
 	if card:isKindOf("Slash") then 
 		if card:getSkillName() == "Spear"   then v = v - 0.01 end
-		if card:getSkillName() == "chongzhen" then v = v + 0.01 end
+		if card:getSkillName() == "longdan" then v = v + 0.01 end
 		if card:getSkillName() == "wusheng" then v = v + 0.01 end
 	end
 
@@ -1239,7 +1239,7 @@ function SmartAI:objectiveLevel(player)
 					if process == "loyalist" then
 						if player:isLord() then
 							if not sgs.isLordHealthy() then return -1
-							else return 3.5 end
+							else return 1 end
 						elseif target_role == "rebel" then
 							return 0
 						else
@@ -1262,7 +1262,7 @@ function SmartAI:objectiveLevel(player)
 			elseif loyal_num > 0 then
 				if player:isLord() then
 					if not sgs.isLordHealthy() then return 0
-					else return 3 end
+					else return 1 end
 				elseif target_role == "renegade" and renegade_num > 1 then
 					return 3
 				else
@@ -3332,7 +3332,7 @@ function SmartAI:getCardId(class_name, player)
 		viewas = getSkillViewCard(card, class_name, player, card_place)
 		if card:isKindOf(class_name) and not prohibitUseDirectly(card, player) then cardid=card:getEffectiveId() end
 		if viewas or cardid then
-			return self:hasSkills("chongzhen|wusheng|wushen|jinjiu", player) and (viewas or cardid) or (cardid or viewas)
+			return self:hasSkills("longdan|wusheng|wushen|jinjiu", player) and (viewas or cardid) or (cardid or viewas)
 		end
 	end
 	return cardsView(class_name, player)

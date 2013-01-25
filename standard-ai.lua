@@ -668,10 +668,6 @@ end
 sgs.ai_skill_use_func.JijiangCard=function(card,use,self)
 	if self.player:hasFlag("jijiang_failed") then return end
 	self:sort(self.enemies, "defenseSlash")
-	
-	if not sgs.jijiangtarget then table.insert(sgs.ai_global_flags, "jijiangtarget") end
-	sgs.jijiangtarget = {}
-
 	local target_count=0
 	for _, enemy in ipairs(self.enemies) do
 		if (self.player:canSlash(enemy, nil, not no_distance) or
@@ -681,9 +677,14 @@ sgs.ai_skill_use_func.JijiangCard=function(card,use,self)
 			if use.to then
 				use.to:append(enemy)
 			end
-			table.insert(sgs.jijiangtarget, enemy)
-			self.player:speak(enemy.objectName())
 			target_count=target_count+1
+			
+			--only deal with the first target now
+			if target_count == 1 then
+				local data = sgs.QVariant()
+				data:setValue(enemy)
+				self.room:setTag("jijiangTarget", data)
+			end			
 			if self.slash_targets<=target_count then return end
 		end
 	end	
@@ -702,8 +703,6 @@ sgs.ai_choicemade_filter.cardResponsed["@jijiang-slash"] = function(player, prom
 	if promptlist[#promptlist] ~= "_nil_" then
 		sgs.updateIntention(player, sgs.jijiangsource, -40)
 		sgs.jijiangsource = nil
-		sgs.jijiangtarget = nil
-		player:speak("clear jijiang taregt")
 	end
 end
 
@@ -711,15 +710,11 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 	if not sgs.jijiangsource then sgs.jijiangsource = self.room:getLord() end
 	if not self:isFriend(sgs.jijiangsource) then return "." end
 	if self:needBear() then return "." end
-	if not sgs.jijiangtarget or (sgs.jijiangtarget and #sgs.jijiangtarget==0) then
+	if not self.room:getTag("jijiangTarget") or not self.room:getTag("jijiangTarget"):toPlayer() then
 		return self:getCardId("Slash") or "."
 	end
 	
-	--only deal with one target now
-	self:sort(sgs.jijiangtarget, "defense")
-	local target = sgs.jijiangtarget[1]
-	self.player:speak(type(sgs.jijiangtarget))
-	self.player:speak(target:objectName())
+	local target = self.room:getTag("jijiangTarget"):toPlayer()
 
 	local ignoreArmor = sgs.jijiangsource:hasUsed("WuqianCard") or sgs.jijiangsource:hasWeapon("QinggangSword") or sgs.jijiangsource:hasFlag("xianzhen_success")
 	if ignoreArmor then return self:getCardId("Slash") or "." end

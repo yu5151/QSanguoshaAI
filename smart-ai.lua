@@ -3317,10 +3317,11 @@ function getKnownCard(player,class_name,viewas)
 end
 
 
-function SmartAI:getCardId(class_name, player)
+function SmartAI:getCardId(class_name, player, acard)
 	player = player or self.player
 	local cards = player:getCards("he")
 	cards = sgs.QList2Table(cards)
+	if acard then cards = {acard} end
 	self:sortByUsePriority(cards,player)
 	local guhuo_str = self:getGuhuoCard(class_name, player) 
 	if guhuo_str then return guhuo_str end

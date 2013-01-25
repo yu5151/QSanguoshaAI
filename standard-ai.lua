@@ -677,18 +677,31 @@ sgs.ai_skill_use_func.JijiangCard=function(card,use,self)
 			if use.to then
 				use.to:append(enemy)
 			end
-			target_count=target_count+1
-			
-			--only deal with the first target now
-			if target_count == 1 then
-				local data = sgs.QVariant()
-				data:setValue(enemy)
-				self.room:setTag("jijiangTarget", data)
-			end			
+			target_count=target_count+1			
+			if target_count == 1 then 
+				local flag = string.format("jijiang_%s_%s", self.player:objectName(), enemy:objectName())
+				self.room:setPlayerFlag(self.player, flag)
+			end
 			if self.slash_targets<=target_count then return end
 		end
 	end	
 end
+
+
+-- 主公刘备是自己，经测试 sgs.cardEffect 不行， 不知道刘备主是AI会怎样，反正自己是不行的。 sgs.TargetConfirmed 可以
+sgs.ai_event_callback[sgs.TargetConfirmed].jijiang=function(self, player, data)
+	local use = data:toCardUse()
+	local to = sgs.QList2Table(use.to)
+
+	if not use.card:isKindOf("JijiangCard") then return end
+
+	self:sort(to, "defense")
+	local flag = string.format("jijiang_%s_%s", use.from:objectName(), to[1]:objectName())
+	self.room:setPlayerFlag(use.from, flag)
+	sgs.jijiangsource = use.from
+end
+
+
 
 sgs.ai_card_intention.JijiangCard = function(card, from, tos)
 	if not from:isLord() and global_room:getCurrent():objectName() == from:objectName() then
@@ -707,34 +720,33 @@ sgs.ai_choicemade_filter.cardResponsed["@jijiang-slash"] = function(player, prom
 end
 
 sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
-	if not sgs.jijiangsource then sgs.jijiangsource = self.room:getLord() end
+	if not sgs.jijiangsource then return "." end
 	if not self:isFriend(sgs.jijiangsource) then return "." end
 	if self:needBear() then return "." end
-	if not self.room:getTag("jijiangTarget") or not self.room:getTag("jijiangTarget"):toPlayer() then
-		return self:getCardId("Slash") or "."
+	local target
+	for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+		local flag = string.format("jijiang_%s_%s", sgs.jijiangsource:objectName(), p:objectName())
+		if sgs.jijiangsource:hasFlag(flag) then
+			target = p
+			break
+		end
 	end
-	
-	local target = self.room:getTag("jijiangTarget"):toPlayer()
 
-	local ignoreArmor = sgs.jijiangsource:hasUsed("WuqianCard") or sgs.jijiangsource:hasWeapon("QinggangSword") or sgs.jijiangsource:hasFlag("xianzhen_success")
-	if ignoreArmor then return self:getCardId("Slash") or "." end
+	if not target then return self:getCardId("Slash") or "." end	
+	
+	local ignoreArmor = sgs.jijiangsource:hasUsed("WuqianCard") or sgs.jijiangsource:hasWeapon("QinggangSword") 
+						or sgs.jijiangsource:hasFlag("xianzhen_success") or not target:getArmor()
+	if ignoreArmor and not target:hasSkill("yizhong") then return self:getCardId("Slash") or "." end
 
 	local cards = sgs.QList2Table(self.player:getCards("he"))
 	self:sortByUsePriority(cards,self.player)
 	
 	for i=1, #cards ,1 do
 		local card = cards[i]
-
-		local card_place = self.room:getCardPlace(card:getEffectiveId())
-		local card_str = getSkillViewCard(card, "Slash", self.player, card_place)
-
-		local carduse ={sgs.Card_Parse(card_str), card, sgs.Card_Parse(cardsView("Slash",player)) }
-		local cardstr ={card_str, card:getEffectiveId(), cardsView("Slash",player)}
-		
-		for j=1, #carduse, 1 do	
-			if carduse[j]:isKindOf("Slash") and not self:slashProhibit(carduse[j],target) and self:slashIsEffective(carduse[j], target) then
-				return cardstr[j]
-			end		
+		local slash_str = self:getCardId("Slash", self.player, card)
+		local slash = sgs.Card_Parse(slash_str)
+		if not self:slashProhibit(slash,target) and self:slashIsEffective(slash, target) then
+			return slash_str
 		end
 
 	end

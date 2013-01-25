@@ -103,7 +103,7 @@ function setInitialTables()
 								"jieyin|renjie|zhiheng|rende|jujian|guicai|guidao|jilve|longhun|wusheng|longdan"
 	sgs.drawpeach_skill =		"tuxi|qiaobian"
 	sgs.recover_skill =			"rende|kuanggu|zaiqi|jieyin|qingnang|yinghun"
-	sgs.use_lion_skill =		 "longhun|duanliang|qixi|guidao|lijian|jujian|zhiheng|mingce|zhiba|yongsi"
+	sgs.use_lion_skill =		 "longhun|duanliang|qixi|guidao|lijian|jujian|nosjujian|zhiheng|mingce|yongsi"								  
 	
 	for _, aplayer in sgs.qlist(global_room:getAllPlayers()) do
 		table.insert(sgs.role_evaluation, aplayer:objectName())
@@ -2294,10 +2294,11 @@ function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	if effect and effect.slash then nature=effect.nature end
 	
 	if self.player:isDead() then return "." end
-	if not self:hasHeavySlashDamage(target, effect and effect.slash) then
-		if not self:damageIsEffective(nil, nature, target) then return "." end
-		if self:getDamagedEffects(self.player,target) or self.player:getHp()>getBestHp(self.player) then return "." end
-	end	
+
+	if not self:damageIsEffective(nil, nature, target) then return "." end
+	if target and target:hasSkill("guagu") and self.player:isLord() then return "." end
+	if effect and self:hasHeavySlashDamage(target, effect.slash) then return end
+
 	if target and target:getWeapon() and target:getWeapon():isKindOf("IceSword") and self.player:getCards("he"):length() > 2 then return end
 	if target and target:hasSkill("jueqing") then return end
 	if self:needBear() and self.player:getLostHp() < 2 then return "." end
@@ -2310,7 +2311,7 @@ function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	elseif self.player:hasSkill("longhun") and self.player:getHp() > 1 then
 		return "."
 	end
-	if target and target:hasSkill("guagu") and self.player:isLord() then return "." end
+
 	local sunshangxiang = self.room:findPlayerBySkillName("jieyin")
 	if sunshangxiang and sunshangxiang:isWounded() and self:isFriend(sunshangxiang) and not self.player:isWounded() 
 		and self.player:isMale() then

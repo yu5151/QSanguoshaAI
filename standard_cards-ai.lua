@@ -247,7 +247,6 @@ end
 
 function SmartAI:slashIsEffective(slash, to)
 	if not to then self.room:writeToConsole(debug.traceback()) end
-	if not self.player:canSlash(to, slash, true) then return false end
 	if to:hasSkill("zuixiang") and to:isLocked(slash) then return false end
 	if to:hasSkill("yizhong") and not to:getArmor() then
 		if slash:isBlack() then
@@ -1254,12 +1253,20 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 				tricks = friend:getJudgingArea()
 				for _, trick in sgs.qlist(tricks) do
 					if trick:isKindOf("Indulgence") then
-						sgs.ai_skill_cardchosen[name] = trick:getEffectiveId()
+						if friend:getHp() <= friend:getHandcardNum() or friend:isLord() or name == "snatch" then
+							sgs.ai_skill_cardchosen[name] = trick:getEffectiveId()
+							break
+						end
 					end
 					if trick:isKindOf("SupplyShortage") then
-						sgs.ai_skill_cardchosen[name] = trick:getEffectiveId() 
+						sgs.ai_skill_cardchosen[name] = trick:getEffectiveId()
+						break
 					end
-				end				
+					if trick:isKindOf("Indulgence") then
+						sgs.ai_skill_cardchosen[name] = trick:getEffectiveId()
+						break
+					end
+				end
 				use.to:append(friend) 
 			end
 			

@@ -16,7 +16,7 @@ sgs.ai_skill_use["@@fangzhu"] = function(self, prompt)
 			target = friend
 			break
 		end
-		if (friend:hasSkill("jushou") or friend:hasSkill("kuiwei")) and friend:getPhase() == sgs.Player_Play then
+		if (friend:hasSkill("jushou") or (friend:hasUsed("LihunCard") and friend:faceUp()) or friend:hasSkill("kuiwei")) and friend:getPhase() == sgs.Player_Play then
 			target = friend
 			break
 		end
@@ -30,7 +30,7 @@ sgs.ai_skill_use["@@fangzhu"] = function(self, prompt)
 			self:sort(self.enemies)
 			for _, enemy in ipairs(self.enemies) do
 				local invoke = true
-				if (enemy:hasSkill("jushou") or enemy:hasSkill("kuiwei")) and enemy:getPhase() == sgs.Player_Play then invoke =false end
+				if (enemy:hasSkill("jushou") or (enemy:hasUsed("LihunCard") and enemy:faceUp()) or enemy:hasSkill("kuiwei")) and enemy:getPhase() == sgs.Player_Play then invoke =false end
 				if enemy:hasSkill("jijiu") and x ==2 then invoke =false end
 				if enemy:hasUsed("ShenfenCard") and enemy:faceUp() and enemy:getPhase() == sgs.Player_Play and
 				sgs.shenfensource and sgs.shenfensource:objectName() == enemy:objectName() then invoke = false end

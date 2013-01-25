@@ -292,7 +292,7 @@ end
 
 sgs.ai_skill_use["@@bawang"] = function(self, prompt)
 	local first_index, second_index
-	self:sort(self.enemies, "defense")
+	self:sort(self.enemies, "defenseSlash")
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	for i=1, #self.enemies do
 		if not (self.enemies[i]:hasSkill("kongcheng") and self.enemies[i]:isKongcheng()) and not self:slashProhibit(slash ,self.enemies[i]) then

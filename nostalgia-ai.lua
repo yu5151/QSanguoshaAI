@@ -228,8 +228,8 @@ sgs.nosenyuan_suit_value = {
 sgs.ai_chaofeng.nosfazheng = -3
 
 sgs.ai_skill_choice.nosxuanfeng = function(self, choices)
-	self:sort(self.enemies, "defense")
-	local slash = sgs.Card_Parse(("slash[%s:%s]"):format(sgs.Card_NoSuit, 0))
+	self:sort(self.enemies, "defenseSlash")
+	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	for _, enemy in ipairs(self.enemies) do
 		if self.player:distanceTo(enemy)<=1 then
 			return "damage"
@@ -240,8 +240,8 @@ sgs.ai_skill_choice.nosxuanfeng = function(self, choices)
 	return "nothing"
 end
 
-sgs.ai_skill_playerchosen.nosxuanfeng_damage = sgs.ai_skill_playerchosen.damage
-sgs.ai_skill_playerchosen.nosxuanfeng_slash = sgs.ai_skill_playerchosen.zero_card_as_slash
+sgs.ai_skill_playerchosen.xuanfeng_damage = sgs.ai_skill_playerchosen.damage
+sgs.ai_skill_playerchosen.xuanfeng_slash = sgs.ai_skill_playerchosen.zero_card_as_slash
 
-sgs.ai_playerchosen_intention.nosxuanfeng_damage = 80
-sgs.ai_playerchosen_intention.nosxuanfeng_slash = 80
+sgs.ai_playerchosen_intention.xuanfeng_damage = 80
+sgs.ai_playerchosen_intention.xuanfeng_slash = 80

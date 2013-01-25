@@ -1509,9 +1509,53 @@ function SmartAI:updatePlayers(clear_flags)
 	end	
 	table.insert(self.friends,self.player)
 end
-
+--查找room内指定objectName的player
+function findPlayerByObjectName(room, name, include_death)
+	if not room then
+		return
+	end
+	local players = nil
+	if include_death then
+		players = room:getAllPlayers()
+	else
+		players = room:getAlivePlayers()
+	end
+	for _,p in sgs.qlist(players) do
+		if p:objectName() == name then
+			return p
+		end
+	end
+end
+--无懈可击：更新仇恨值--
+--promptlist{?, trick:className(), to:objectName(), positive<"true"or"false">}--
+--判断player打出的无懈可击，无懈掉对to的trick
+sgs.ai_nullification_level = {} --无懈可击层级记录
+sgs.ai_trick_struct = {"from", "to", "card"} --记录最近一次锦囊使用的情况
+sgs.ai_nullification_struct = {"from", "to"} --记录最近一次无懈可击使用的情况
 sgs.ai_choicemade_filter.Nullification.general = function(player, promptlist)
-	if player:objectName() == promptlist[3] then return end
+	
+	local trick_struct = {player:objectName(), promptlist[3], promptlist[2]} --from、to、card
+	local level = #sgs.ai_nullification_level 
+	if level < 2 or trick_struct[3] ~= "Nullification" then --刚开局，或者本次被无懈的锦囊不是无懈可击
+		sgs.ai_nullification_struct = {trick_struct[1], trick_struct[2]}
+		if promptlist[4] == "true" then --无懈敌方的有利锦囊
+			sgs.ai_nullification_level = {trick_struct[2], trick_struct[1]} --无懈可击层级起点
+		else --"false"--无懈己方或自己的不利锦囊
+			sgs.ai_nullification_level = {trick_struct[2], trick_struct[2], trick_struct[1]} --无懈可击层级起点
+		end
+	else --level > 0 and promptlist[2] == "Nullification"
+		if sgs.ai_nullification_level[1] == trick_struct[2] then --assert--无懈敌方无懈可击
+			if sgs.ai_nullification_level[level] == sgs.ai_trick_struct[1] then --assert
+				table.insert(sgs.ai_nullification_level, player:objectName()) 
+				sgs.ai_nullification_struct = {trick_struct[1], trick_struct[2]}
+			end
+		end
+	end
+	sgs.ai_trick_struct = {trick_struct[1], trick_struct[2], trick_struct[3]}
+	
+	if player:objectName() == promptlist[3] then --自己对自己使用的锦囊
+		return 
+	end
 	local positive = true
 	if promptlist[4] == "false" then positive = false end
 	local className, to = promptlist[2]
@@ -1520,15 +1564,40 @@ sgs.ai_choicemade_filter.Nullification.general = function(player, promptlist)
 		if aplayer:objectName() == promptlist[3] then to = aplayer break end
 	end
 	local intention = 0
-	if type(sgs.ai_card_intention[className]) == "number" then intention = sgs.ai_card_intention[className]
-	elseif sgs.dynamic_value.damage_card[className] then intention = 70
-	elseif sgs.dynamic_value.benefit[className] then intention = -40
+	if type(sgs.ai_card_intention[className]) == "number" then 
+		intention = sgs.ai_card_intention[className]
+	elseif sgs.dynamic_value.damage_card[className] then 
+		intention = 70
+	elseif sgs.dynamic_value.benefit[className] then 
+		intention = -40
 	elseif (className == "Snatch" or className == "Dismantlement") and
 		(to:getCards("j"):isEmpty() and
 		not (to:getArmor() and to:getArmor():isKindOf("SilverLion"))) then
 		intention = 80
+	elseif className == "Nullification" then --无懈敌方的无懈可击
+		local newlevel = #sgs.ai_nullification_level
+		local count = 0
+		if newlevel > 0 then
+			for _,p in pairs(sgs.ai_nullification_level) do --检测player在拼无懈可击过程中出现过多少次
+				if player:objectName() == p then
+					count = count + 1
+				end
+			end
+		end
+		if count > 0 then --assert
+			local pos = math.mod(level, 2) 
+			local source = findPlayerByObjectName(player:getRoom(), sgs.ai_nullification_level[1])
+			if pos == 1 then --友方
+				sgs.updateIntention(player, source, -count*25)
+			elseif pos == 0 then --敌方
+				sgs.updateIntention(player, source, count*25)
+			end
+			return 
+		end
 	end
-	if positive then intention = -intention end
+	if positive then 
+		intention = -intention 
+	end
 	sgs.updateIntention(player, to, intention)
 end
 
@@ -1960,60 +2029,69 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 	end
 	return to_discard
 end
-
+--询问无懈可击--
 function SmartAI:askForNullification(trick, from, to, positive)
 	if self.player:isDead() then return nil end
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
 	self:sortByUseValue(cards, true)
 	local null_card
-	null_card = self:getCardId("Nullification")
+	null_card = self:getCardId("Nullification") --无懈可击
 	local null_num = 0
-	local menghuo = self.room:findPlayerBySkillName("huoshou")
+	local menghuo = self.room:findPlayerBySkillName("huoshou") --“祸首”
 	for _, acard in ipairs(cards) do
 		if acard:isKindOf("Nullification") then
 			null_num = null_num + 1
 		end
 	end
-	if null_card then null_card = sgs.Card_Parse(null_card) else return end
-	if (from and from:isDead()) or (to and to:isDead()) then return nil end
-	if self:needBear() then return nil end
-	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 then return nil end
+	if null_card then null_card = sgs.Card_Parse(null_card) else return end --没有无懈可击
+	if (from and from:isDead()) or (to and to:isDead()) then return nil end --已死
+	if self:needBear() then return nil end --“忍戒”
+	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 then return nil end --“无谋”
 
 	if from and not from:hasSkill("jueqing") then
 		if (to:hasSkill("wuyan") or (self:getDamagedEffects(to, from) and self:isFriend(to)))
 			and (trick:isKindOf("Duel") or trick:isKindOf("FireAttack") or trick:isKindOf("AOE")) then
 		return nil
-	end
-		if not self:damageIsEffective(to, sgs.DamageStruct_Normal) and (trick:isKindOf("Duel") or trick:isKindOf("AOE")) then return nil end
-		if not self:damageIsEffective(to, sgs.DamageStruct_Fire) and trick:isKindOf("FireAttack") then return nil end
+	end --“绝情”“无言”、决斗、火攻、AOE
+		if not self:damageIsEffective(to, sgs.DamageStruct_Normal) and (trick:isKindOf("Duel") or trick:isKindOf("AOE")) then return nil end --决斗、AOE
+		if not self:damageIsEffective(to, sgs.DamageStruct_Fire) and trick:isKindOf("FireAttack") then return nil end --火攻
 	end 
 	if to:getHp() > getBestHp(to) and self:isFriend(to)
 		and (trick:isKindOf("Duel") or trick:isKindOf("FireAttack") or trick:isKindOf("AOE")) then
-		return nil
+		return nil --扣减体力有利
 	end
-
+	--准备使用无懈可击--
 	if positive then
 		if from and self:isEnemy(from) and (sgs.evaluateRoleTrends(from) ~= "neutral" or sgs.isRolePredictable()) then
+			--使用者是敌方，自己有技能“空城”且无懈可击为最后一张手牌->命中
 			if self:hasSkill("kongcheng") and self.player:getHandcardNum() == 1 and self.player:isLastHandcard(null_card) then return null_card end
+			--敌方在虚弱、需牌技、漫卷中使用无中生有->命中
 			if trick:isKindOf("ExNihilo") and (self:isWeak(from) or self:hasSkills(sgs.cardneed_skill, from) or from:hasSkill("manjuan")) then return null_card end
+			--铁索连环的目标没有藤甲->不管
 			if trick:isKindOf("IronChain") and not self:isEquip("Vine", to) then return nil end
 			if self:isFriend(to) then
 				if trick:isKindOf("Dismantlement") then 
+					--敌方拆友方威胁牌、价值牌、最后一张手牌->命中
 					if self:getDangerousCard(to) or self:getValuableCard(to) or (to:getHandcardNum() == 1 and not self:needKongcheng(to)) then return null_card end
 				else
+					--敌方使用顺手牵羊->命中
 					if trick:isKindOf("Snatch") then return null_card end
+					--非无言敌方火攻藤甲、狂风、铁索连环友方->命中
 					if trick:isKindOf("FireAttack") and (self:isEquip("Vine", to) or to:getMark("@gale") > 0 or (to:isChained() and not self:isGoodChainTarget(to))) 
 						and from:objectName() ~= to:objectName() and not from:hasSkill("wuyan") then return null_card end
-					if self:isWeak(to)  then 
+					if self:isWeak(to)  then
+						--非无言敌方决斗虚弱友方->命中
 						if trick:isKindOf("Duel") and not from:hasSkill("wuyan") then
 							return null_card
+						--非无言多手牌敌方火攻虚弱友方->命中
 						elseif trick:isKindOf("FireAttack") and not from:hasSkill("wuyan") then
 							if from:getHandcardNum() > 2  and from:objectName() ~= to:objectName() then return null_card end
 						end
 					end
 				end
 			elseif self:isEnemy(to) then
+				--敌方顺手牵羊、过河拆桥敌方判定区延时性锦囊->命中
 				if (trick:isKindOf("Snatch") or trick:isKindOf("Dismantlement")) and to:getCards("j"):length() > 0 then
 					return null_card
 				end
@@ -2022,12 +2100,14 @@ function SmartAI:askForNullification(trick, from, to, positive)
 
 		if self:isFriend(to) then
 			if not (to:hasSkill("guanxing") and global_room:alivePlayerCount() > 4) then 
+				--无观星友方判定区有乐不思蜀->视“突袭”、“巧变”、“神速”情形而定
 				if trick:isKindOf("Indulgence") then
 					if to:hasSkill("tuxi") and to:getHp()>=2 then return nil end
 					if to:hasSkill("qiaobian") and not to:isKongcheng() then return nil end
 					if to:hasSkill("shensu") and not self:isWeak(to) then return nil end
 					return null_card
 				end
+				--无观星友方判定区有兵粮寸断->视“鬼道”、“天妒”、“溃围”、“巧变”、“神速”情形而定
 				if trick:isKindOf("SupplyShortage") then
 					if self:hasSkills("guidao|tiandu",to) then return nil end
 					if to:getMark("@kuiwei") == 0 then return nil end
@@ -2036,15 +2116,18 @@ function SmartAI:askForNullification(trick, from, to, positive)
 					return null_card
 				end
 			end 
+			--非无言来源使用多目标攻击性非延时锦囊
 			if trick:isKindOf("AOE") and not (from:hasSkill("wuyan") and not (menghuo and trick:isKindOf("SavageAssault"))) then
 				local lord = self.room:getLord()
 				local currentplayer = self.room:getCurrent()
+				--主公
 				if self:isFriend(lord) and self:isWeak(lord) and self:aoeIsEffective(trick, lord) and 
 					((lord:getSeat() - currentplayer:getSeat()) % (self.room:alivePlayerCount())) >
 					((to:getSeat() - currentplayer:getSeat()) % (self.room:alivePlayerCount()))	and not
 					(self.player:objectName() == to:objectName() and self.player:getHp() == 1 and not self:canAvoidAOE(trick)) then
 					return nil
 				end
+				--自己
 				if self.player:objectName() == to:objectName() then
 					if self:hasSkills("jieming|yiji|guixin", self.player) and 
 						(self.player:getHp() > 1 or self:getCardsNum("Peach") > 0 or self:getCardsNum("Analeptic") > 0) then
@@ -2053,6 +2136,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 						return null_card
 					end
 				end
+				--队友
 				if self:isWeak(to) and self:aoeIsEffective(trick, to) then
 					if ((to:getSeat() - currentplayer:getSeat()) % (self.room:alivePlayerCount())) >
 					((self.player:getSeat() - currentplayer:getSeat()) % (self.room:alivePlayerCount())) or null_num > 1 then
@@ -2062,6 +2146,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 					end
 				end
 			end
+			--非无言来源对自己使用决斗
 			if trick:isKindOf("Duel") and not from:hasSkill("wuyan") then
 				if self.player:objectName() == to:objectName() then
 					if self:hasSkills(sgs.masochism_skill, self.player) and 
@@ -2073,6 +2158,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 				end
 			end
 		end
+		--虚弱敌方遇到桃园结义->命中
 		if from then
 			if self:isEnemy(to) then
 				if trick:isKindOf("GodSalvation") and self:isWeak(to) then

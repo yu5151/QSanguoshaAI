@@ -1542,7 +1542,7 @@ function findPlayerByObjectName(room, name, include_death)
 end
 --无懈可击：更新仇恨值--
 --promptlist{?, trick:className(), to:objectName(), positive<"true"or"false">}--
---判断player打出的无懈可击，无懈掉对to的trick
+--用于判断player打出的、无懈掉对to的trick的无懈可击
 sgs.ai_nullification_level = {} --无懈可击层级记录
 sgs.ai_trick_struct = {"from", "to", "card"} --记录最近一次锦囊使用的情况
 sgs.ai_nullification_struct = {"from", "to"} --记录最近一次无懈可击使用的情况

@@ -294,7 +294,7 @@ sgs.ai_skill_playerchosen.gzshuangren = function(self, targets)
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	self:sort(self.enemies, "defense")
 	for _, enemy in ipairs(self.enemies) do
-		if not player:isKongcheng() and not self:slashProhibit(slash ,enemy) 
+		if not enemy:isKongcheng() and not self:slashProhibit(slash ,enemy) 
 		then
 			target = player
 			break

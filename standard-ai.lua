@@ -688,6 +688,12 @@ sgs.ai_skill_use_func.JijiangCard=function(card,use,self)
 	end	
 end
 
+sgs.ai_card_intention.JijiangCard = function(card, from, tos)
+	if not from:isLord() and global_room:getCurrent():objectName() == from:objectName() then
+		return sgs.ai_card_intention.Slash(card, from, tos)
+	end
+end
+
 sgs.ai_use_value.JijiangCard = 8.5
 sgs.ai_use_priority.JijiangCard = 2.4
 

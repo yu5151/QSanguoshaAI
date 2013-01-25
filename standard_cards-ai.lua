@@ -1068,6 +1068,17 @@ function SmartAI:useCardDuel(duel, use)
 	end
 	
 	for _, enemy in ipairs(enemies) do
+		if self.player:hasFlag("duelTo" .. enemy:objectName()) and canUseDuelTo(enemy) then
+			use.card = duel
+			if use.to then
+				use.to:append(enemy)
+				self:speak("duel", self.player:isFemale())
+			end
+			return
+		end
+	end
+
+	for _, enemy in ipairs(enemies) do
 		local useduel 
 		local n2 =getCardsNum("Slash",enemy)
 		if sgs.card_lack[enemy:objectName()]["Slash"] == 1 then n2 = 0 end
@@ -1079,6 +1090,9 @@ function SmartAI:useCardDuel(duel, use)
 			if use.to then
 				use.to:append(enemy)
 				self:speak("duel", self.player:isFemale())
+			end
+			if self.player:getPhase() == sgs.Player_Play then
+				self.room:setPlayerFlag(self.player, "duelTo" .. enemy:objectName())
 			end
 			return
 		end
@@ -1104,12 +1118,28 @@ sgs.ai_skill_cardask["duel-slash"] = function(self, data, pattern, target)
 	if target:hasSkill("wuyan") or self.player:hasSkill("wuyan") then return "." end
 	if self.player:getMark("@fenyong") >0 and self.player:hasSkill("fenyong") then return "." end
 
-	if self:getDamagedEffects(self.player,target) or self.player:getHp()>getBestHp(self.player) then return "." end
+	if self:cantbeHurt(target) then return "." end
+	if self.player:getPhase()==sgs.Player_Play then return self:getCardId("Slash") end
+	
 	if self:isFriend(target) and target:hasSkill("rende") and self.player:hasSkill("jieming") then return "." end
-	if (not self:isFriend(target) and self:getCardsNum("Slash")*2 >= target:getHandcardNum())
+	if self:isEnemy(target) and not self:isWeak() and self:getDamagedEffects(self.player,target) then return "." end
+
+	if self:isFriend(target) then 
+		if self:getDamagedEffects(self.player,target) or self.player:getHp()>getBestHp(self.player) then return "." end
+		if self:getDamagedEffects(target,self.player) or target:getHp()>getBestHp(target) then
+			return self:getCardId("Slash")
+		else
+			if target:isLord() and not sgs.isLordInDanger() and not sgs.isGoodHp(self.player) then return self:getCardId("Slash") end
+			if self.player:isLord() and sgs.isLordInDanger() then return self:getCardId("Slash") end			
+			return "."
+		end
+	end
+			
+	if (not self:isFriend(target) and self:getCardsNum("Slash") >= getCardsNum("Slash", target))
 		or (target:getHp() > 2 and self.player:getHp() <= 1 and self:getCardsNum("Peach") == 0 and not self.player:hasSkill("buqu")) then
 		return self:getCardId("Slash")
 	else return "." end
+	
 end
 
 function SmartAI:useCardExNihilo(card, use)

@@ -390,7 +390,7 @@ end
 
 sgs.ai_card_intention.TianxiangCard = function(card, from, tos)
 	local to = tos[1]
-	local intention = 20
+	local intention = 10
 	local friend = false
 	for _, askill in ipairs(("yiji|shuangxiong|zaiqi|yinghun|jianxiong|fangzhu"):split("|")) do
 		if to:hasSkill(askill) then
@@ -401,7 +401,7 @@ sgs.ai_card_intention.TianxiangCard = function(card, from, tos)
 	if (to:getHp() >= 2 and friend)
 		or (to:getHandcardNum() < 3 and to:hasSkill("rende"))
 		or to:hasSkill("buqu") then
-		intention = -20
+		intention = -10
 	end
 	sgs.updateIntention(from, to, intention)
 end

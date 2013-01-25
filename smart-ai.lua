@@ -324,15 +324,19 @@ function SmartAI:getUseValue(card)
 	elseif card:getTypeId() == sgs.Card_Basic then
 		if card:isKindOf("Slash") then
 			
-			if card:getSkillName() == "Spear"   then v = v - 1 end
-			if card:getSkillName() == "longdan" then v = v + 1 end
-			if card:getSkillName() == "wusheng" then v = v + 1 end
+			v = sgs.ai_use_value[class_name] or 0
 
 			if self.player:hasFlag("tianyi_success") or self.player:hasFlag("jiangchi_invoke")
 				or self:hasHeavySlashDamage() then v = 8.7 end
 			if self:isEquip("Crossbow") then v = v + 4 end
+
+			if card:getSkillName() == "Spear"   then v = v - 1 end
+			if card:getSkillName() == "chongzhen" then v = v + 1 end
+			if card:getSkillName() == "wusheng" then v = v + 1 end
+
 		elseif card:isKindOf("Jink") then
 			if self:getCardsNum("Jink") > 1 then v = v-6 end
+			if self.player:hasSkill("chongzhen") then v = 8.7 end
 		elseif card:isKindOf("Peach") then
 			if self.player:isWounded() then v = v + 6 end
 		end
@@ -399,7 +403,7 @@ function SmartAI:adjustUsePriority(card,v)
 	table.insert(suits,"no_suit")
 	if card:isKindOf("Slash") then 
 		if card:getSkillName() == "Spear"   then v = v - 0.01 end
-		if card:getSkillName() == "longdan" then v = v + 0.01 end
+		if card:getSkillName() == "chongzhen" then v = v + 0.01 end
 		if card:getSkillName() == "wusheng" then v = v + 0.01 end
 	end
 
@@ -2600,7 +2604,7 @@ function SmartAI:getCardNeedPlayer(cards)
 
 	--Crossbow
 	for _, friend in ipairs(friends) do
-		if self:hasSkills("longdan|wusheng|keji",friend) and not self:hasSkills("paoxiao",friend) and friend:getHandcardNum() >=3 then
+		if self:hasSkills("longdan|wusheng|keji",friend) and not self:hasSkills("paoxiao",friend) and friend:getHandcardNum() >=2 then
 			for _, hcard in ipairs(cards) do
 				if hcard:isKindOf("Crossbow") then
 					return hcard, friend
@@ -2608,6 +2612,20 @@ function SmartAI:getCardNeedPlayer(cards)
 			end
 		end
 	end	
+
+	for _, friend in ipairs(friends) do
+		if getKnownCard(friend, "Crossbow") then
+			for _, p in sgs.qlist(self.room:getOtherPlayers(friend)) do
+				if self:isEnemy(p) and sgs.isGoodTarget(p,self.enemies) and friend:distanceTo(p) <= 1 then
+					for _, hcard in ipairs(cards) do
+						if isCard("Slash", hcard, friend) then
+							return hcard, friend
+						end
+					end
+				end
+			end
+		end
+	end
 
 	table.sort(friends, cmpByAction)
 	
@@ -2702,6 +2720,18 @@ function SmartAI:getCardNeedPlayer(cards)
 		for _, friend in ipairs(self.friends_noself) do
 			if not self:needKongcheng(friend) and not friend:hasSkill("manjuan") then
 				if friend:getHandcardNum() <= 3 and (self:getOverflow()>0 or self.player:getHandcardNum()>3 
+						or (self.player:hasSkill("rende") and self.player:isWounded() and self.player:usedTimes("RendeCard") < 2)) then
+					return hcard, friend
+				end
+			end
+		end
+	end
+	
+	-- 如果所有队友都有3牌以上，刘备情愿弃牌也不仁德
+	for _, hcard in ipairs(cardtogive) do
+		for _, friend in ipairs(self.friends_noself) do
+			if not self:needKongcheng(friend) and not friend:hasSkill("manjuan") then
+				if (self:getOverflow()>0 or self.player:getHandcardNum()>3 
 						or (self.player:hasSkill("rende") and self.player:isWounded() and self.player:usedTimes("RendeCard") < 2)) then
 					return hcard, friend
 				end
@@ -2942,7 +2972,6 @@ function SmartAI:activate(use)
 		if not self.player:isJilei(card) and not self.player:isLocked(card) then
 			local type = card:getTypeId()
 			self["use" .. sgs.ai_type_name[type + 1] .. "Card"](self, card, use)
-			logmsg("debug.txt","use" .. sgs.ai_type_name[type + 1] .. "Card  : " .. card:toString())
 
 			if use:isValid(nil) then
 				self.toUse = nil

@@ -682,6 +682,7 @@ sgs.ai_skill_use_func.JijiangCard=function(card,use,self)
 				use.to:append(enemy)
 			end
 			table.insert(sgs.jijiangtarget, enemy)
+			self.player:speak(enemy.objectName())
 			target_count=target_count+1
 			if self.slash_targets<=target_count then return end
 		end
@@ -702,6 +703,7 @@ sgs.ai_choicemade_filter.cardResponsed["@jijiang-slash"] = function(player, prom
 		sgs.updateIntention(player, sgs.jijiangsource, -40)
 		sgs.jijiangsource = nil
 		sgs.jijiangtarget = nil
+		player:speak("clear jijiang taregt")
 	end
 end
 
@@ -716,6 +718,8 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 	--only deal with one target now
 	self:sort(sgs.jijiangtarget, "defense")
 	local target = sgs.jijiangtarget[1]
+	self.player:speak(type(sgs.jijiangtarget))
+	self.player:speak(target:objectName())
 
 	local ignoreArmor = sgs.jijiangsource:hasUsed("WuqianCard") or sgs.jijiangsource:hasWeapon("QinggangSword") or sgs.jijiangsource:hasFlag("xianzhen_success")
 	if ignoreArmor then return self:getCardId("Slash") or "." end

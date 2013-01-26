@@ -325,20 +325,11 @@ sgs.ai_skill_use_func.TianyiCard=function(card,use,self)
 	end
 	
 	local slash = self:getCard("Slash")	
-	local targetCount = 0
 
 	local dummy_use = {isDummy = true}
 	self:useBasicCard(slash, dummy_use)
 
-	if dummy_use.card then 
-		for _, enemy in ipairs(self.enemies) do
-			if self:canAttack(enemy, attacker) and not self:slashProhibit(slash ,enemy) and self:slashIsEffective(slash, enemy) then
-				targetCount = targetCount + 1
-			end
-		end
-	end
-
-	if slashcount >= 1 and targetCount > 0  then		
+	if slashcount >= 1 and dummy_use.card  then		
 		for _, enemy in ipairs(self.enemies) do
 			if not enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1 then
 				local enemy_max_card = self:getMaxCard(enemy)
@@ -489,27 +480,12 @@ sgs.ai_skill_invoke.shuangxiong=function(self,data)
 	if self.player:isSkipped(sgs.Player_Play) or self.player:getHp() < 2 then
 		return false
 	end
-	local target = 0
-	local cards=self.player:getCards("h")
-	cards=sgs.QList2Table(cards)
+	local duel = sgs.Sanguosha:cloneCard("duel", sgs.Card_NoSuit, 0)
 
-	local handnum=0
-	for _,card in ipairs(cards) do
-		if self:getUseValue(card)<8 then
-			handnum=handnum+1
-		end
-	end
-
-	handnum=handnum/2
-	self:sort(self.enemies, "hp")
-	for _, enemy in ipairs(self.enemies) do
- 		if (getCardsNum("Slash", enemy)+enemy:getHp()<=handnum) and (self:getCardsNum("Slash")>=getCardsNum("Slash", enemy)) 
-			and self:objectiveLevel(enemy) > 3 and not self:cantbeHurt(enemy) and self:damageIsEffective(enemy) then
-			target = target + 1
-		end
-	end
+	local dummy_use = {isDummy = true}
+	self:useTrickCard(duel, dummy_use)
 	
-	return self.player:getHandcardNum()>=self.player:getHp() and target > 0
+	return self.player:getHandcardNum() >= 3 and dummy_use.card and #self:enemies > 0
 end
 
 sgs.ai_cardneed.shuangxiong=function(to, card, self)

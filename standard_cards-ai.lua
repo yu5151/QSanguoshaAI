@@ -246,7 +246,7 @@ function SmartAI:canLiuli(other, another)
 end
 
 function SmartAI:slashIsEffective(slash, to)
-	if not to then self.room:writeToConsole(debug.traceback()) return end
+	if not slash or not to then self.room:writeToConsole(debug.traceback()) return end
 	if to:hasSkill("zuixiang") and to:isLocked(slash) then return false end
 	if to:hasSkill("yizhong") and not to:getArmor() then
 		if slash:isBlack() then
@@ -661,7 +661,7 @@ sgs.ai_card_intention.Peach = -120
 
 sgs.ai_use_value.Peach = 6
 sgs.ai_keep_value.Peach = 5
-sgs.ai_use_priority.Peach = 0.1
+sgs.ai_use_priority.Peach = 0.9
 
 sgs.ai_use_value.Jink = 8.9
 sgs.ai_keep_value.Jink = 4
@@ -1249,7 +1249,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	local tricks
 	players = self:exclude(players, card)
 	for _, player in ipairs(players) do
-		if player:containsTrick("lightning") and self:getFinalRetrial(player) ==2 and self:hasTrickEffective(card, player) then 
+		if (player:containsTrick("lightning") and self:getFinalRetrial(player) ==2 and self:hasTrickEffective(card, player)) or #self.enemies == 0 then 
 			use.card = card
 			if use.to then 
 				tricks = player:getCards("j")
@@ -1265,7 +1265,14 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	end
 
 	self:sort(self.enemies,"defenseSlash")
-	local enemies = self:exclude(self.enemies, card)
+	local enemies 
+
+	if #self.enemies ==0 then
+		enemies = self:exclude(sgs.QList2Table(players), card)
+	else
+		enemies = self:exclude(self.enemies, card)
+	end
+
 	self:sort(self.friends_noself,"defense")
 	local friends = self:exclude(self.friends_noself, card)
 	local hasLion, target

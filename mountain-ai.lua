@@ -529,10 +529,12 @@ local zhiba_pindian_skill={}
 zhiba_pindian_skill.name="zhiba_pindian"
 table.insert(sgs.ai_skills, zhiba_pindian_skill)
 zhiba_pindian_skill.getTurnUseCard = function(self)
-	if self.player:isKongcheng() or self.player:getHandcardNum() < self.player:getHp() or self.player:getKingdom() ~= "wu"
+	if self.player:isKongcheng() or self.player:getHandcardNum() <= self.player:getHp() or self.player:getKingdom() ~= "wu"
 		or self.player:hasUsed("ZhibaCard") then return end
 	return sgs.Card_Parse("@ZhibaCard=.")
 end
+
+sgs.ai_use_priority.ZhibaCard = sgs.ai_use_priority.Peach - 0.1
 
 sgs.ai_skill_use_func.ZhibaCard = function(card, use, self)
 	local lords = {}
@@ -541,6 +543,7 @@ sgs.ai_skill_use_func.ZhibaCard = function(card, use, self)
 	end
 	if #lords == 0 then return end
 	if self:needBear() then return end
+	if self:getOverflow() <= 0 then return end
 	self:sort(lords, "defense")
 	for _, lord in ipairs(lords) do
 		local zhiba_str
@@ -582,10 +585,13 @@ sgs.ai_skill_use_func.ZhibaCard = function(card, use, self)
 			end
 		end
 
-		if self:isEnemy(lord) and max_num > 9 and max_num > lord_max_num then
+		if self:isEnemy(lord) and max_num > 10 and max_num > lord_max_num then
+			if isCard("Jink", max_card, self.player) and self:getCardsNum("Jink") ==1 then return end
+			if isCard("Peach", max_card, self.player) or isCard("Analeptic", max_card, self.player) then return false end
 			zhiba_str = "@ZhibaCard=" .. max_card:getEffectiveId()
 		end
-		if self:isFriend(lord) and not lord:hasSkill("manjuan") and ((lord_max_num > 0 and min_num <= lord_max_num) or min_num < 8) then
+		if self:isFriend(lord) and not lord:hasSkill("manjuan") and ((lord_max_num > 0 and min_num <= lord_max_num) or min_num < 7) then
+			if isCard("Jink", min_card, self.player) and self:getCardsNum("Jink") ==1 then return end
 			zhiba_str = "@ZhibaCard=" .. min_card:getEffectiveId()
 		end
 
@@ -615,16 +621,10 @@ sgs.ai_skill_choice.sunce_zhiba = function(self, choices)
 	return "yes"
 end
 
-function sgs.ai_skill_pindian.zhiba_pindian(minusecard, self, requestor, maxcard)
-	local cards, maxcard = sgs.QList2Table(self.player:getHandcards())
-	local function compare_func(a, b)
-		return a:getNumber() > b:getNumber()
-	end
-	table.sort(cards, compare_func)
-	for _, card in ipairs(cards) do
-		if self:getUseValue(card) < 6 then maxcard = card break end
-	end
-	return maxcard or cards[1]
+function sgs.ai_skill_pindian.zhiba_pindian(minusecard, self, requestor)
+	local maxcard=self:getMaxCard()
+	local point = self:isFriend(requestor) and 6 or 9
+	return maxcard:getNumber() <= point and minusecard or maxcard
 end
 
 function sgs.ai_card_intention.ZhibaCard(card, from, tos, source)

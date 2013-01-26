@@ -738,18 +738,13 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 						or sgs.jijiangsource:hasFlag("xianzhen_success") or not target:getArmor()
 	if ignoreArmor and not target:hasSkill("yizhong") then return self:getCardId("Slash") or "." end
 
-	local cards = sgs.QList2Table(self.player:getCards("he"))
-	self:sortByUsePriority(cards,self.player)
-	
-	for i=1, #cards ,1 do
-		local card = cards[i]
-		local slash_str = self:getCardId("Slash", self.player, card)
-		local slash = sgs.Card_Parse(slash_str)
+	local slashes = self:getCards("Slash")
+	for _, slash in ipairs(slashes) do
 		if not self:slashProhibit(slash,target) and self:slashIsEffective(slash, target) then
-			return slash_str
+			return slash:toString()
 		end
-
-	end
+	end	
+	
 	return "."
 end
 

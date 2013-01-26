@@ -601,7 +601,7 @@ end
 
 sgs.ai_skill_use_func.XianzhenCard=function(card,use,self)
 
-	self:sort(self.enemies, "handcard")
+	self:sort(self.enemies, "defense")
 	local max_card = self:getMaxCard()
 	local max_point = max_card:getNumber()
 	local slashcount = self:getCardsNum("Slash")
@@ -612,22 +612,27 @@ sgs.ai_skill_use_func.XianzhenCard=function(card,use,self)
 		assert(slash)
 		local dummy_use = {isDummy = true}
 		self:useBasicCard(slash, dummy_use)
+
 		for _, enemy in ipairs(self.enemies) do
-			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() then
+			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and self:canAttack(enemy, self.player) then
 				local enemy_max_card = self:getMaxCard(enemy)
-				local allknown = 0
-				if self:getKnownNum(enemy) == enemy:getHandcardNum() then
-					allknown = allknown + 1
-				end
-				if (enemy_max_card and max_point > enemy_max_card:getNumber() and allknown > 0)
-					or (enemy_max_card and max_point > enemy_max_card:getNumber() and allknown < 1 and max_point > 10) 
-					or (not enemy_max_card and max_point > 10) then
+				local enemy_max_point =enemy_max_card and enemy_max_card:getNumber() or 100
+				if max_point > enemy_max_point then
 					use.card = sgs.Card_Parse("@XianzhenCard=" .. max_card:getId())
 					if use.to then use.to:append(enemy) end
 					return
 				end
 			end
 		end
+		for _, enemy in ipairs(self.enemies) do
+			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and self:canAttack(enemy, self.player) then
+				if max_point >= 10 then
+					use.card = sgs.Card_Parse("@XianzhenCard=" .. max_card:getId())
+					if use.to then use.to:append(enemy) end
+					return
+				end
+			end
+		end		
 	end
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	self:sortByUseValue(cards, true)
@@ -664,8 +669,8 @@ sgs.ai_cardneed.xianzhen=function(to, card, self)
 end
 
 function sgs.ai_skill_pindian.xianzhen(minusecard, self, requestor)
-	if self:isFriend(requestor) then return end
-	if requestor:getHandcardNum() <= 2 then return minusecard end
+	local maxcard=self:getMaxCard()	
+	return self:isFriend(requestor) and minusecard or ( maxcard:getNumber() < 6 and  minusecard or maxcard )
 end
 
 sgs.ai_card_intention.XianzhenCard = 70

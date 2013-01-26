@@ -484,7 +484,7 @@ end
 sgs.ai_chaofeng.yuanshao = 1
 
 sgs.ai_skill_invoke.shuangxiong=function(self,data)
-	if self.player:isSkipped(sgs.Player_Play) or self.player:getHp() < 2 then
+	if self.player:isSkipped(sgs.Player_Play) or self.player:getHp() < 2 or #self.enemies == 0 then
 		return false
 	end
 	local duel = sgs.Sanguosha:cloneCard("duel", sgs.Card_NoSuit, 0)
@@ -492,7 +492,7 @@ sgs.ai_skill_invoke.shuangxiong=function(self,data)
 	local dummy_use = {isDummy = true}
 	self:useTrickCard(duel, dummy_use)
 	
-	return self.player:getHandcardNum() >= 3 and dummy_use.card and #self:enemies > 0
+	return self.player:getHandcardNum() >= 3 and dummy_use.card
 end
 
 sgs.ai_cardneed.shuangxiong=function(to, card, self)

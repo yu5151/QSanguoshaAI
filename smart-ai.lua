@@ -3828,6 +3828,7 @@ function SmartAI:useSkillCard(card,use)
 end
 
 function SmartAI:useBasicCard(card, use)
+	if not card then return end
 	if self.player:hasSkill("chengxiang") and self.player:getHandcardNum() < 8 and card:getNumber() < 7 then return end
 	if not (card:isKindOf("Peach") and self.player:getLostHp() > 1) and self:needBear() then return end
 	if self:needRende() then return end

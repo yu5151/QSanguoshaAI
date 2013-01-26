@@ -664,8 +664,8 @@ sgs.ai_cardneed.xianzhen=function(to, card, self)
 end
 
 function sgs.ai_skill_pindian.xianzhen(minusecard, self, requestor)
-	if self:isFriend(requestor) then return end
-	if requestor:getHandcardNum() <= 2 then return minusecard end
+	local maxcard=self:getMaxCard()	
+	return self:isFriend(requestor) and minusecard or ( maxcard:getNumber() < 6 and  minusecard or maxcard )
 end
 
 sgs.ai_card_intention.XianzhenCard = 70

@@ -621,16 +621,10 @@ sgs.ai_skill_choice.sunce_zhiba = function(self, choices)
 	return "yes"
 end
 
-function sgs.ai_skill_pindian.zhiba_pindian(minusecard, self, requestor, maxcard)
-	local cards, maxcard = sgs.QList2Table(self.player:getHandcards())
-	local function compare_func(a, b)
-		return a:getNumber() > b:getNumber()
-	end
-	table.sort(cards, compare_func)
-	for _, card in ipairs(cards) do
-		if self:getUseValue(card) < 6 then maxcard = card break end
-	end
-	return maxcard or cards[1]
+function sgs.ai_skill_pindian.zhiba_pindian(minusecard, self, requestor)
+	local maxcard=self:getMaxCard()
+	local point = self:isFriend(requestor) and 6 or 9
+	return maxcard:getNumber() <= point and minusecard or maxcard
 end
 
 function sgs.ai_card_intention.ZhibaCard(card, from, tos, source)

@@ -316,7 +316,7 @@ sgs.ai_skill_use_func.TianyiCard=function(card,use,self)
 	if isCard("Slash", max_card, self.player) then slashcount = slashcount - 1 end
 	if self.player:hasSkill("kongcheng") and self.player:getHandcardNum()==1 then
 		for _, enemy in ipairs(self.enemies) do
-			if not enemy:isKongcheng() and not self:hasLoseHandcardEffective(enemy) and not (enemy:hasSkill("tuntian") and enemy:getHandcardNum() > 2) then
+			if not enemy:isKongcheng() and not (enemy:hasSkill("tuntian") and enemy:getHandcardNum() > 2) then
 				use.card = sgs.Card_Parse("@TianyiCard=" .. max_card:getId())
 				if use.to then use.to:append(enemy) end
 				return

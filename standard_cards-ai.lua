@@ -1265,10 +1265,13 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	end
 
 	self:sort(self.enemies,"defenseSlash")
-	local enemies 
+	local enemies = {}
 
 	if #self.enemies ==0 then
-		enemies = self:exclude(sgs.QList2Table(players), card)
+		for _, player in ipairs(players) do
+			if not player:isLord() then	table.insert(enemies, player) end
+		end
+		enemies = self:exclude(enemies, card)
 	else
 		enemies = self:exclude(self.enemies, card)
 	end

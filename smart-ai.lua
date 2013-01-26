@@ -1530,9 +1530,9 @@ function findPlayerByObjectName(room, name, include_death)
 	end
 	local players = nil
 	if include_death then
-		players = room:getAllPlayers()
+		players = room:getPlayers()
 	else
-		players = room:getAlivePlayers()
+		players = room:getAllPlayers()
 	end
 	for _,p in sgs.qlist(players) do
 		if p:objectName() == name then
@@ -1599,7 +1599,7 @@ sgs.ai_choicemade_filter.Nullification.general = function(player, promptlist)
 			end
 		end
 		if count > 0 then --assert
-			local pos = math.mod(level, 2) 
+			local pos = math.mod(newlevel, 2) 
 			local source = findPlayerByObjectName(player:getRoom(), sgs.ai_nullification_level[1])
 			if pos == 1 then --友方
 				sgs.updateIntention(player, source, -count*25)

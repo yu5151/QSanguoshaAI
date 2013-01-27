@@ -318,6 +318,24 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 		end
 	end
 	
+	self:sort(self.enemies,"defense")
+	if least_friend then
+		for _,enemy in ipairs(self.enemies) do
+			local hand1 = enemy:getHandcardNum()
+			local hand2 = least_friend:getHandcardNum()
+
+			if (hand1 > hand2) then
+				use.card=card
+				if use.to then
+					use.to:append(enemy)
+					use.to:append(least_friend)
+					return
+				end
+			end
+		end
+	end
+
+	self:sort(enemies, "handcard", true)
 	-- Friend -> Friend
 	if #friends >= 2 then
 		if need_kongcheng_friend and least_friend:isKongcheng() then

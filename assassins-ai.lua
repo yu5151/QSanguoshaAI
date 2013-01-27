@@ -343,7 +343,7 @@ end
 
 sgs.ai_skill_use["@@fengyin"] = function(self, data)
 	local cards = self.player:getHandcards()
-	local allcard = {}
+	local card
 	cards = sgs.QList2Table(cards)
 	
 	for _,acard in ipairs(cards)  do

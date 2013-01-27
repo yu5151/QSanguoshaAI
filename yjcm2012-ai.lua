@@ -318,9 +318,9 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 		end
 	end
 	
-	self:sort(self.enemies,"defense")
+	self:sort(enemies,"defense")
 	if least_friend then
-		for _,enemy in ipairs(self.enemies) do
+		for _,enemy in ipairs(enemies) do
 			local hand1 = enemy:getHandcardNum()
 			local hand2 = least_friend:getHandcardNum()
 

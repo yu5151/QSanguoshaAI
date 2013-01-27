@@ -682,10 +682,13 @@ sgs.ai_skill_use_func.ZhijianCard = function(card, use, self)
 	end
 	local zhijian = sgs.Card_Parse("@ZhijianCard=" .. select_equip:getId())
 	use.card = zhijian
+	if select_equip:isKindOf("GaleShell") then
+		sgs.updateIntention(self.player, target, 35)
+	end
 end
 
 sgs.ai_card_intention.ZhijianCard = -80
-
+sgs.ai_use_priority.ZhijianCard = sgs.ai_use_priority.RendeCard --8.8
 sgs.ai_cardneed.zhijian = sgs.ai_cardneed.equip
 
 sgs.ai_skill_invoke.guzheng = function(self, data)

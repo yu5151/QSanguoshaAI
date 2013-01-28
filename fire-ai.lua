@@ -398,9 +398,12 @@ sgs.ai_skill_use_func.TianyiCard=function(card,use,self)
 	end
 
 	if self:getOverflow() > 0 then
+	        local cards = sgs.QList2Table(self.player:getHandcards())
+		self:sortByKeepValue(cards)
 		for _, enemy in ipairs(self.enemies) do
 			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() 
-					and not enemy:hasSkill("tuntian") and not self:hasLoseHandcardEffective(enemy) then
+					and not enemy:hasSkill("tuntian") and self:hasLoseHandcardEffective(enemy) 
+				then
 				use.card = sgs.Card_Parse("@TianyiCard=" .. cards[1]:getId())
 				if use.to then use.to:append(enemy) end
 				return

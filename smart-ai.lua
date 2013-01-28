@@ -2300,11 +2300,6 @@ function SmartAI:askForCardChosen(who, flags, reason)
 				return who:getWeapon():getId()
 			end
 		end
-		if flags:match("h") then
-			if (not who:isKongcheng() and who:getHandcardNum() <= 2) and not self:hasSkills("kongcheng|lianying|shangshi|nosshangshi", who) then
-				return self:getCardRandomly(who, "h")
-			end
-		end
 
 		if flags:match("e") then
 			if self:isEquip("Crossbow",who) then
@@ -2333,9 +2328,6 @@ function SmartAI:askForCardChosen(who, flags, reason)
 				end
 			end
 
-			if who:getArmor() and self:evaluateArmor(who:getArmor(),who)>0 then
-				return who:getArmor():getId()
-			end
 		end
 
 		if flags:match("j") then
@@ -2358,7 +2350,7 @@ function SmartAI:askForCardChosen(who, flags, reason)
 
 		if flags:match("e") then
 			if who:getArmor() and self:evaluateArmor(who:getArmor(), who)>0
-				and not (who:getArmor():isKindOf("SilverLion") and self:isWeak(who)) then
+				and not (who:getArmor():isKindOf("SilverLion") and who:isWounded()) then
 				return who:getArmor():getId()
 			end
 
@@ -2385,8 +2377,8 @@ function SmartAI:askForCardChosen(who, flags, reason)
 			end
 		end
 		if flags:match("h") then
-			if not who:isKongcheng() then
-				return -1
+			if (not who:isKongcheng() and who:getHandcardNum() <= 2) and not self:hasSkills("kongcheng|lianying|shangshi|nosshangshi", who) then
+				return self:getCardRandomly(who, "h")
 			end
 		end
 	end
@@ -3109,6 +3101,7 @@ function SmartAI:isWeak(player)
 end
 
 function SmartAI:useCardByClassName(card, use)
+	if not card then global_room:writeToConsole(debug.traceback()) return end
 	local class_name = card:getClassName()
 	local use_func = self["useCard" .. class_name]
 
@@ -3846,7 +3839,7 @@ function SmartAI:useSkillCard(card,use)
 end
 
 function SmartAI:useBasicCard(card, use)
-	if not card then return end
+	if not card then global_room:writeToConsole(debug.traceback()) return end
 	if self.player:hasSkill("chengxiang") and self.player:getHandcardNum() < 8 and card:getNumber() < 7 then return end
 	if not (card:isKindOf("Peach") and self.player:getLostHp() > 1) and self:needBear() then return end
 	if self:needRende() then return end
@@ -3940,8 +3933,16 @@ function SmartAI:exclude(players, card)
 	local excluded = {}
 	local limit = self:getDistanceLimit(card)
 	local range_fix = 0
-	if self.player:getOffensiveHorse() and self.player:getOffensiveHorse():getEffectiveId() == card:getEffectiveId() then range_fix = 1 end
-	if card:getSkillName() == "jixi" then range_fix = 1 end
+	if card:isVirtualCard() then
+		for _, id in sgs.qlist(card:getSubcards()) do
+			if self.player:getWeapon() and self.player:getWeapon():getId() == id then
+				range_fix = range_fix + sgs.weapon_range[self.player:getWeapon():getClassName() - 1]
+			end
+			if self.player:getOffensiveHorse() and self.player:getOffensiveHorse():getEffectiveId() == id then range_fix = range_fix + 1 end
+		end
+		if card:getSkillName() == "jixi" then range_fix = range_fix + 1 end
+	end
+
 	for _, player in sgs.list(players) do
 		if not self.room:isProhibited(self.player, player, card) then
 			local should_insert = true
@@ -3955,6 +3956,8 @@ function SmartAI:exclude(players, card)
 	end
 	return excluded
 end
+
+
 
 function SmartAI:getJiemingChaofeng(player)
 	local max_x , chaofeng = 0 , 0
@@ -4130,6 +4133,7 @@ function SmartAI:hasTrickEffective(card, player)
 end
 
 function SmartAI:useTrickCard(card, use)
+	if not card then global_room:writeToConsole(debug.traceback()) return end
 	if self.player:hasSkill("chengxiang") and self.player:getHandcardNum() < 8 and card:getNumber() < 7 then return end
 	if self:needBear() and not ("amazing_grace|ex_nihilo|snatch|iron_chain"):match(card:objectName()) then return end
 	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 then
@@ -4252,6 +4256,7 @@ function SmartAI:hasSameEquip(card, player) -- obsolete
 end
 
 function SmartAI:useEquipCard(card, use)
+	if not card then global_room:writeToConsole(debug.traceback()) return end
 	if self.player:hasSkill("chengxiang") and self.player:getHandcardNum() < 8 and card:getNumber() < 7 and self:getSameEquip(card) then return end
 	if self:hasSkills(sgs.lose_equip_skill) and self:evaluateArmor(card)>-5 then
 		use.card = card
@@ -4273,20 +4278,24 @@ function SmartAI:useEquipCard(card, use)
 	self:useCardByClassName(card, use)
 	if use.card or use.broken then return end
 	if card:isKindOf("Weapon") then
+
 		if self:needBear() then return end
-		if self:hasSkills("qiangxi|taichen|zhulou") and same then return end
+		if self:hasSkill("zhulou") and same then return end
+		if self:hasSkill("qiangxi") and not self.player:hasUsed("QiangxiCard") then
+			local dummy_use = { isDummy = true }
+			self:useSkillCard(sgs.Card_Parse("@QiangxiCard=" .. same:getEffectiveId()), dummy_use)
+			if dummy_use.card then return end
+		end
 		if self.player:hasSkill("rende") then
-			for _,friend in ipairs(self.friends_noself) do
+			for _, friend in ipairs(self.friends_noself) do
 				if not friend:getWeapon() then return end
 			end
 		end
-		if self:hasSkills("paoxiao|fuhun",self.player) and card:isKindOf("Crossbow") then return end
-		
-		if not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow()<=0 and not canUseSlash then return end
-
+		if self:hasSkills("paoxiao|fuhun", self.player) and card:isKindOf("Crossbow") then return end
+		if not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow() <= 0 and not canUseSlash then return end
 		if self:evaluateWeapon(card) > self:evaluateWeapon(self.player:getWeapon()) then
 			if (not use.to) and self.weaponUsed and (not self:hasSkills(sgs.lose_equip_skill)) then return end
-			if self.player:getHandcardNum() <= self.player:getHp() then return end
+			if self.player:getHandcardNum() <= self.player:getHp() - 2 then return end
 			use.card = card
 			return
 		end
@@ -4376,7 +4385,7 @@ function SmartAI:needRende()
 end
 
 function getBestHp(player)
-	local arr = {baiyin = 1, quhu = 1, ganlu = 1, yinghun = 2, miji = 1, xueji = 1}
+	local arr = {baiyin = 1, quhu = 1, ganlu = 1, yinghun = 2, miji = 1, xueji = 1, baobian = 2}
 
 	if player:hasSkill("longhun") and player:getCards("he"):length()>2 then return 1 end
 	if player:getMark("@waked") > 0 and not player:hasSkill("xueji") then return player:getMaxHp() end

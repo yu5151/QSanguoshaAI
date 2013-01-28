@@ -316,8 +316,21 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 			sgs.updateIntention(self.player, least_friend, -intention)
 			return
 		end
+
+		if most_enemy and most_enemy:getHandcardNum() > least_friend:getHandcardNum() then
+			use.card = card
+			if use.to then
+				use.to:append(most_enemy)
+				use.to:append(least_friend)
+			end
+			sgs.updateIntention(self.player, most_enemy, intention)
+			sgs.updateIntention(self.player, least_friend, -intention)
+			return
+		end
+
 	end
 	
+	--[[
 	self:sort(enemies,"defense")
 	if least_friend then
 		for _,enemy in ipairs(enemies) do
@@ -334,6 +347,8 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 			end
 		end
 	end
+	]]
+
 
 	self:sort(enemies, "handcard", true)
 	-- Friend -> Friend

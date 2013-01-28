@@ -523,6 +523,28 @@ end
 
 sgs.ai_skill_choice.tiaoxin = sgs.ai_skill_choice.collateral
 
+sgs.ai_skill_cardask["tiaoxin-slash"] = function(self, data, pattern, target)
+	if target then
+		for _, slash in ipairs(self:getCards("Slash")) do
+			if self:slashIsEffective(slash, target) and not self.getDamagedEffects(target, self.player) and self:isEnemy(target) then
+				return slash:toString()
+			end
+			if (not self:slashIsEffective(slash, target) or self.getDamagedEffects(target, self.player) or target:getHp() > getBestHp(target))
+				and self:isFriend(target) then
+				return slash:toString()
+			end
+		end
+		for _, slash in ipairs(self:getCards("Slash")) do
+			if (not (self.getDamagedEffects(target, self.player) or target:getHp() > getBestHp(target)) or not self:slashIsEffective(slash, target))
+				and self:isEnemy(target) then
+				return slash:toString()
+			end
+		end
+	end
+	return "."
+end
+
+
 sgs.ai_card_intention.TiaoxinCard = 80
 sgs.ai_use_priority.TiaoxinCard = 8
 

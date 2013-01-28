@@ -280,6 +280,10 @@ sgs.yuanhu_keep_value = {
 	Horse = 4.9
 }
 
+sgs.ai_cardneed.xueji = function(to, card)
+	return to:getHandcardNum() < 3 and card:isRed()
+end
+
 local xueji_skill = {}
 xueji_skill.name="xueji"
 table.insert(sgs.ai_skills,xueji_skill)

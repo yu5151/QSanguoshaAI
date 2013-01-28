@@ -837,6 +837,9 @@ sgs.ai_skill_playerchosen.junweigive = function(self, targets)
 	end 
 
 	if #tos > 0 then
+		for _, to in ipairs(tos) do
+			if to:hasSkill("leiji") and self:isFriend(to) then return to end
+		end
 		self:sort(tos, "defense")
 		return tos[1]
 	end

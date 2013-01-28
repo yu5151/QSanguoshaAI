@@ -399,7 +399,7 @@ sgs.ai_skill_use_func.TianyiCard=function(card,use,self)
 
 	if self:getOverflow() > 0 then
 	        local cards = sgs.QList2Table(self.player:getHandcards())
-		self:sortByKeepValue(cards,true)
+		self:sortByKeepValue(cards)
 		for _, enemy in ipairs(self.enemies) do
 			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() 
 					and not enemy:hasSkill("tuntian") and self:hasLoseHandcardEffective(enemy) 

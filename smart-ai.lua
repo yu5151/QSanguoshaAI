@@ -1844,7 +1844,6 @@ function SmartAI:filterEvent(event, player, data)
 		if from then str = str .. from:getGeneralName() .. "->" .. table.concat(toname, "+") end
 		if source then str = str .. "#" .. source:getGeneralName() end
 		sgs.laststr = str
-		--self.room:writeToConsole(str)
 
 		local callback = sgs.ai_card_intention[card:getClassName()]
 		if callback then
@@ -4036,8 +4035,8 @@ function SmartAI:getAoeValueTo(card, to , from)
 			value = value -30
 		end
 
-		if to:isLord() and sgs.isLordInDanger() and not sgs.isGoodHp(to) and sj_num < 1 then
-			value = value + ( self:isFriend(to) and -150 or 100 )
+		if to:isLord() and sgs.isLordInDanger() then
+			value = value + ((self:isFriend(to) or (self.role == "renegade" and self.room:alivePlayerCount() > 2)) and -150 or 100 )
 		end
 
 		if sgs.evaluatePlayerRole(to) == "rebel" and not sgs.isGoodHp(to) and sj_num < 1 then

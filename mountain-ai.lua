@@ -76,7 +76,7 @@ local function card_for_qiaobian(self, who, return_prompt)
 			
 			if #targets > 0 then
 				if card:isKindOf("Weapon") or card:isKindOf("OffensiveHorse") then
-					self:sort(targets, "threat")
+					self:sort(targets, "defense")
 					target = targets[#targets]
 				else
 					self:sort(targets,"defense")
@@ -261,7 +261,7 @@ sgs.ai_skill_use["@qiaobian"] = function(self, prompt)
 	if prompt == "@qiaobian-3" then
 		-- if self.player:getHandcardNum()-2 > self.player:getHp() then return "." end
 
-		self:sort(self.enemies, "hp")
+		self:sort(self.enemies, "defense")
 		for _, friend in ipairs(self.friends) do
 			if not friend:getCards("j"):isEmpty() and not friend:containsTrick("YanxiaoCard") and card_for_qiaobian(self, friend, ".") then
 				-- return "@QiaobianCard=" .. card:getEffectiveId() .."->".. friend:objectName()
@@ -469,7 +469,13 @@ sgs.ai_skill_playerchosen.fangquan = function(self, targets)
 	self:sort(self.friends_noself, "handcard", true)
 
 	for _, target in ipairs(self.friends_noself) do
-		if not target:hasSkill("dawu") and self:hasSkills("yongsi|zhiheng|"..sgs.priority_skill.."|shensu",target) and not target:containsTrick("indulgence") then
+		if not target:hasSkill("dawu") and self:hasSkills("yongsi",target) and not self:willSkipPlayPhase(target) and not self:willSkipDrawPhase(target) then
+			return target
+		end
+	end
+
+	for _, target in ipairs(self.friends_noself) do
+		if not target:hasSkill("dawu") and self:hasSkills("zhiheng|shensu|"..sgs.priority_skill, target) and not self:willSkipPlayPhase(target) and not self:willSkipDrawPhase(target) then
 			return target
 		end
 	end
@@ -485,7 +491,7 @@ sgs.ai_skill_playerchosen.fangquan = function(self, targets)
 	return targets:first()
 end
 
-sgs.ai_playerchosen_intention.fangquan = -40
+sgs.ai_playerchosen_intention.fangquan = - 100
 
 local tiaoxin_skill={}
 tiaoxin_skill.name="tiaoxin"
@@ -688,7 +694,7 @@ sgs.ai_skill_use_func.ZhijianCard = function(card, use, self)
 end
 
 sgs.ai_card_intention.ZhijianCard = -80
-sgs.ai_use_priority.ZhijianCard = sgs.ai_use_priority.RendeCard --8.8
+sgs.ai_use_priority.ZhijianCard = sgs.ai_use_priority.RendeCard + 0.1  -- 刘备二张双将的话，优先直谏
 sgs.ai_cardneed.zhijian = sgs.ai_cardneed.equip
 
 sgs.ai_skill_invoke.guzheng = function(self, data)

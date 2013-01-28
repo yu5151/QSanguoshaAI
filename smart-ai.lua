@@ -432,25 +432,44 @@ function SmartAI:getDynamicUsePriority(card)
 		self:useSkillCard(card, dummy_use)
 	end
 
-	
-
 	local value = self:getUsePriority(card)
 	if dummy_use.card then
 		local use_card = dummy_use.card
 		local card_name = use_card:getClassName()
-
-		if use_card:getSkillName() == "wusheng" and
-			sgs.Sanguosha:getCard(use_card:getEffectiveId()):isKindOf("GaleShell") and
-			self:isEquip("GaleShell") then
-			value = value + 10
-		end
+		local tos = dummy_use.to
 
 		if use_card:isKindOf("AmazingGrace") then
 			local zhugeliang = self.room:findPlayerBySkillName("kongcheng")
 			if zhugeliang and self:isEnemy(zhugeliang) and zhugeliang:isKongcheng() and self.player:canSlash(zhugeliang, nil, true) then
-				value = sgs.ai_use_priority.Slash + 0.1
+				value = math.max(sgs.ai_use_priority.Slash, sgs.ai_use_priority.Duel) + 0.1
 			end
-		end		
+		end
+
+		if use_card:isKindOf("FireAttack") and self:isEquip("Vine", tos:first()) then
+			value = sgs.ai_use_priority.Dismantlement + 0.1
+		end
+		
+		local slash = self:getCard("Slash", self.player)
+		local duel = self:getCard("Duel", self.player)
+		if use_card:isKindOf("GodSalvation") and (slash or duel)then
+			local dummy_slash = {}
+			dummy_slash.isDummy = true			
+			self:useBasicCard(slash, dummy_slash)
+
+			local dummy_duel = {}
+			dummy_duel.isDummy = true			
+			self:useTrickCard(duel, dummy_duel)
+
+			if dummy_slash.card then
+				local target = dummy_slash.to:first()
+				if not target:isWounded() then value = math.max(sgs.ai_use_priority.Slash, sgs.ai_use_priority.Duel) + 0.1 end
+			end
+
+			if dummy_duel.card then
+				local target = dummy_duel.to:first()
+				if not target:isWounded() then value = math.max(sgs.ai_use_priority.Slash, sgs.ai_use_priority.Duel) + 0.1 end
+			end
+		end
 	end
 
 	return value

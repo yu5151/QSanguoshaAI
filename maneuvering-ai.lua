@@ -23,13 +23,15 @@ sgs.ai_use_priority.Fan = 2.655
 sgs.ai_use_priority.Vine = 1.6
 
 sgs.ai_skill_invoke.Fan = function(self, data)
-	local use = data:toCardUse()
+	local use = data:toCardUse()	
 	for _, target in sgs.qlist(use.to) do
 		if self:isFriend(target) then
-			if not (target:isChained() and self:isGoodChainTarget(target)) then return false end
+			if not (target:isChained() and self:isGoodChainTarget(target)) then return false end			
 		else
-			if target:isChained() and not self:isGoodChainTarget(target) then return false end
+			if target:isChained() and not self:isGoodChainTarget(target) then return false end			
 		end
+		-- for ayshuiyong
+		if not self:damageIsEffective(target, sgs.DamageStruct_Fire) then return self:isFriend(target) end
 	end
 	return true
 end

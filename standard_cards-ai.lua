@@ -124,9 +124,10 @@ function sgs.getDefenseSlash(player)
 		defense = defense + 10
 	end
 
-	if player:hasSkill("rende") and player:getHp() > 2 then
-		defense = defense + 3
-	end
+	if player:hasSkill("rende") and player:getHp() > 2 then  defense = defense + 3 end
+	if player:hasSkill("kuanggu") and player:getHp() > 1 then defense = defense + 0.2 end
+	if player:hasSkill("zaiqi") and player:getHp() > 1 then defense = defense + 0.35 end
+	
 
 	if player:hasSkill("tuntian") and getCardsNum("Jink",player) >= 1 then
 		defense = defense + 1.5	
@@ -1019,7 +1020,7 @@ end
 
 sgs.ai_use_value.AmazingGrace = 3
 sgs.ai_keep_value.AmazingGrace = -1
-sgs.ai_use_priority.AmazingGrace = 1
+sgs.ai_use_priority.AmazingGrace = 1.2
 
 function SmartAI:useCardGodSalvation(card, use)
 	local good, bad = 0, 0

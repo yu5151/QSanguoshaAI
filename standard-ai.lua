@@ -446,7 +446,7 @@ function sgs.ai_cardneed.luoyi(to, card, self)
 			if isCard("Slash", c, to) then
 				need_slash = false
 				break
-			end      
+			end	  
 		end
 	end
 	
@@ -1277,7 +1277,8 @@ function sgs.ai_cardneed.guose(to, card)
 	return card:getSuit() == sgs.Card_Diamond
 end
 
-sgs.ai_skill_use["@@liuli"] = function(self, prompt, method)
+sgs.ai_skill_use["@@liuli"] = function(self, prompt)
+
 	local others=self.room:getOtherPlayers(self.player)
 	local slash = self.player:getTag("liuli-card"):toCard()
 	others=sgs.QList2Table(others)
@@ -1289,40 +1290,74 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt, method)
 		end
 	end
 	self:sort(self.enemies, "defense")
-	for _, enemy in ipairs(self.enemies) do
-		if self.player:canSlash(enemy, slash, true) and not (source and (source:objectName() == enemy:objectName())) then
-			local cards = self.player:getCards("he")
-			cards=sgs.QList2Table(cards)
-			for _,card in ipairs(cards) do
-				local range_fix = 0
-				if (self.player:getWeapon() and card:getId() == self.player:getWeapon():getId()) then
-					range_fix = range_fix + sgs.weapon_range[self.player:getWeapon():getClassName()] - 1
-				elseif card:isKindOf("OffensiveHorse") then
-					range_fix = range_fix + 1;
-				end
-				if self.player:distanceTo(enemy, range_fix) <= self.player:getAttackRange() then
-					return "@LiuliCard="..card:getEffectiveId().."->"..enemy:objectName()
+	
+	local doLiuli=function(who)
+		if not self:isFriend(who) and who:hasSkill("leiji") 
+			and ( self:hasSuit("spade", true, who) or who:getHandcardNum() >= 3)
+			and (getKnownCard(who, "Jink", true) >= 1 or (not self:isEquip("QinggangSword", source) and self:isEquip("EightDiagram",who) )) then
+			return "."
+		end
+
+		local cards = self.player:getCards("h")
+		cards=sgs.QList2Table(cards)
+		self:sortByKeepValue(cards)
+		for _,card in ipairs(cards) do
+			if self.player:distanceTo(who) <= self.player:getAttackRange() then
+				if self:isFriend(who) and not (isCard("Peach", card, self.player) or isCard("Analeptic", card, self.player)) then
+					return "@LiuliCard="..card:getEffectiveId().."->"..who:objectName()
+				else
+					return "@LiuliCard="..card:getEffectiveId().."->"..who:objectName()
 				end
 			end
 		end
+
+		local cards = self.player:getCards("e")
+		cards=sgs.QList2Table(cards)
+		self:sortByKeepValue(cards)
+		for _,card in ipairs(cards) do
+			if (self.player:getWeapon() and card:getId() == self.player:getWeapon():getId()) and self.player:distanceTo(who)>1 then				
+			elseif card:isKindOf("OffensiveHorse") and self.player:getAttackRange()==self.player:distanceTo(who) and self.player:distanceTo(who)>1 then
+			else
+				return "@LiuliCard="..card:getEffectiveId().."->"..who:objectName()
+			end
+		end
+		return "."
 	end
+
+	for _, enemy in ipairs(self.enemies) do
+		if not (source and (source:objectName() == enemy:objectName())) then
+			local ret = doLiuli(enemy)
+			if ret ~= "." then return ret end
+		end
+	end
+
+	self:sort(self.friends_noself, "defense", true)
+
+
+	for _, friend in ipairs(self.friends_noself) do
+		if not self:slashIsEffective(slash,friend) then
+			if not (source and (source:objectName() == friend:objectName())) then
+				local ret = doLiuli(friend)
+				if ret ~= "." then return ret end
+			end
+		end
+	end
+
+	for _, friend in ipairs(self.friends_noself) do
+		if friend:getHp() > getBestHp(friend) or self:getDamagedEffects(friend, source) then
+			if not (source and (source:objectName() == friend:objectName())) then
+				local ret = doLiuli(friend)
+				if ret ~= "." then return ret end
+			end
+		end
+	end
+
 	if (self:isWeak() or self:hasHeavySlashDamage(source, slash)) and not self:getCardId("Jink") then
 		for _, friend in ipairs(self.friends_noself) do
 			if not self:isWeak(friend) then
-				if self.player:canSlash(friend, slash, true) and not (source:objectName() == friend:objectName()) then
-					local cards = self.player:getCards("he")
-					cards=sgs.QList2Table(cards)
-					for _,card in ipairs(cards) do
-						local range_fix = 0
-						if (self.player:getWeapon() and card:getId() == self.player:getWeapon():getId()) then
-							range_fix = range_fix + sgs.weapon_range[self.player:getWeapon():getClassName()] - 1
-						elseif card:isKindOf("OffensiveHorse") then
-							range_fix = range_fix + 1;
-						end
-						if self.player:distanceTo(friend, range_fix) <= self.player:getAttackRange() then
-							return "@LiuliCard="..card:getEffectiveId().."->".. friend:objectName()
-						end
-					end
+				if not (source and (source:objectName() == friend:objectName())) then
+					local ret = doLiuli(friend)
+					if ret ~= "." then return ret end
 				end
 			end
 		end

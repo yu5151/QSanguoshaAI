@@ -3344,14 +3344,14 @@ function SmartAI:getMaxCard(player)
 	local cards = player:getHandcards()
 	local max_card, max_point = nil, 0
 	for _, card in sgs.qlist(cards) do
-		local flag=string.format("%s_%s_%s","visible",global_room:getCurrent():objectName(),player:objectName())
-		if player:objectName() == self.player:objectName() or card:hasFlag("visible") or card:hasFlag(flag) then
+		--local flag=string.format("%s_%s_%s","visible",global_room:getCurrent():objectName(),player:objectName())
+		--if player:objectName() == self.player:objectName() or card:hasFlag("visible") or card:hasFlag(flag) then
 			local point = card:getNumber()
 			if point > max_point then
 				max_point = point
 				max_card = card
 			end
-		end
+		--end
 	end
 
 	return max_card
@@ -3367,14 +3367,14 @@ function SmartAI:getMinCard(player)
 	local cards = player:getHandcards()
 	local min_card, min_point = nil, 14
 	for _, card in sgs.qlist(cards) do
-		local flag=string.format("%s_%s_%s","visible",global_room:getCurrent():objectName(),player:objectName())
-		if player:objectName() == self.player:objectName() or card:hasFlag("visible") or card:hasFlag(flag) then
+		--local flag=string.format("%s_%s_%s","visible",global_room:getCurrent():objectName(),player:objectName())
+		--if player:objectName() == self.player:objectName() or card:hasFlag("visible") or card:hasFlag(flag) then
 			local point = card:getNumber()
 			if point < min_point then
 				min_point = point
 				min_card = card
 			end
-		end
+		--end
 	end
 
 	return min_card

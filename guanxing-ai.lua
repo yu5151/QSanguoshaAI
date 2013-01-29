@@ -36,16 +36,66 @@ local function getOwnCards(self, up, bottom, next_judge)
 			table.remove(bottom, index)
 			hasNext = true
 		else
-			if has_slash then 
-				if not gcard:isKindOf("Slash") then 
+			if self.player:hasSkill("fuhun") then
+				local fuhun1, fuhun2
+				if not fuhun1 and gcard:isRed() then
 					table.insert(up, gcard) 
 					table.remove(bottom, index)
+					fuhun1 = true
 				end
-			else
-				if gcard:isKindOf("Slash") then 
+				if not fuhun2 and gcard:isBlack() and isCard("Slash", gcard, self.player) then
 					table.insert(up, gcard) 
 					table.remove(bottom, index)
-					has_slash = true 
+					fuhun2 = true
+				end
+				if not fuhun2 and gcard:isBlack() and card:getTypeId() == sgs.Card_Equip then
+					table.insert(up, gcard) 
+					table.remove(bottom, index)
+					fuhun2 = true
+				end
+			elseif self.player:hasSkill("shuangxiong") and self.player:getHandcardNum() >= 3 then
+				local shuangxiong
+				local rednum, blacknum = 0, 0
+				local cards = sgs.QList2Table(self.player:getHandcards())
+				for _, card in ipairs(cards) do
+					if card:isRed() then rednum = rednum +1 else blacknum = blacknum +1 end
+				end
+				if not shuangxiong and ((rednum > blacknum and gcard:isBlack()) or (blacknum > rednum and gcard:isRed())) 
+						and (isCard("Slash", gcard, self.player) or isCard("Duel", gcard, self.player)) then
+					table.insert(up, gcard) 
+					table.remove(bottom, index)
+					shuangxiong = true					
+				end
+				if not shuangxiong and ((rednum > blacknum and gcard:isBlack()) or (blacknum > rednum and gcard:isRed())) then
+					table.insert(up, gcard) 
+					table.remove(bottom, index)
+					shuangxiong = true					
+				end
+			elseif self.player:hasSkill("xianzhen|tianyi") then
+				local has_big
+				local maxcard = self:getMaxCard(self.player)
+				has_big = maxcard and maxcard:getNumber() > 10
+				if not has_big and gcard:getNumber() > 10 then
+					table.insert(up, gcard) 
+					table.remove(bottom, index)
+					has_big = true
+				end
+				if isCard("Slash", gcard, self.player) then 
+					table.insert(up, gcard) 
+					table.remove(bottom, index)					
+				end				
+			else
+				if has_slash then 
+					if not gcard:isKindOf("Slash") then 
+						table.insert(up, gcard) 
+						table.remove(bottom, index)
+					end
+				else
+					if isCard("Slash", gcard, self.player) then 
+						table.insert(up, gcard) 
+						table.remove(bottom, index)
+						has_slash = true 
+					end
 				end
 			end
 		end

@@ -1046,8 +1046,8 @@ function SmartAI:useCardGodSalvation(card, use)
 	end
 
 	for _, friend in ipairs(self.friends) do
-		if not ((friend:hasSkill("zhichi") and self.room:getTag("Zhichi"):toString() == friend:objectName()) or friend:hasSkill("noswuyan")) then		
-			good = good + 10 * getCardsNum("Nullification", friend)
+		good = good + 10 * getCardsNum("Nullification", friend)
+		if not ((friend:hasSkill("zhichi") and self.room:getTag("Zhichi"):toString() == friend:objectName()) or friend:hasSkill("noswuyan")) then					
 			if friend:isWounded() then
 				good = good + 10
 				if friend:isLord() then good = good + 11/(friend:getHp() + 0.1) end
@@ -1066,8 +1066,8 @@ function SmartAI:useCardGodSalvation(card, use)
 	end
 
 	for _, enemy in ipairs(self.enemies) do
+		bad = bad + 10 * getCardsNum("Nullification", enemy)
 		if not ((enemy:hasSkill("zhichi") and self.room:getTag("Zhichi"):toString() == enemy:objectName()) or enemy:hasSkill("noswuyan")) then
-			bad = bad + 10 * getCardsNum("Nullification", enemy)
 			if enemy:isWounded() then
 				bad = bad + 10
 				if enemy:isLord() then

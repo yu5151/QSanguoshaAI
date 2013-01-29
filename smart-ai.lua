@@ -443,6 +443,12 @@ function SmartAI:getDynamicUsePriority(card)
 				value = math.max(sgs.ai_use_priority.Slash, sgs.ai_use_priority.Duel) + 0.1
 			end
 		end
+
+		if use_card:isKindOf("YanxiaoCard") and self.player:containsTrick("YanxiaoCard") then
+			value = 0.1
+		end
+
+
 	end
 	return value
 end
@@ -4233,7 +4239,7 @@ function SmartAI:useEquipCard(card, use)
 
 		if self:needBear() then return end
 		if self:hasSkill("zhulou") and same then return end
-		if self:hasSkill("qiangxi") and not self.player:hasUsed("QiangxiCard") then
+		if self:hasSkill("qiangxi") and not self.player:hasUsed("QiangxiCard") and same then
 			local dummy_use = { isDummy = true }
 			self:useSkillCard(sgs.Card_Parse("@QiangxiCard=" .. same:getEffectiveId()), dummy_use)
 			if dummy_use.card then return end

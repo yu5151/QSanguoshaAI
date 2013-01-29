@@ -515,9 +515,13 @@ sgs.ai_skill_discard.shichou = sgs.ai_skill_discard.lihun
 function SmartAI:useCardYanxiaoCard(card, use)
 	local players = self.room:getOtherPlayers(self.player)
 	local tricks
+	self:sort(self.friends_noself, "defense")
+
 	for _, friend in ipairs(self.friends_noself) do
 		local judges = friend:getJudgingArea()
-		if not judges:isEmpty() and not friend:containsTrick("YanxiaoCard") then
+		local yanxiao = (friend:containsTrick("lightning") and self:getFinalRetrial(player) ==2) 
+					or friend:containsTrick("indulgence") or friend:containsTrick("supply_shortage")
+		if yanxiao and not friend:containsTrick("YanxiaoCard") then
 			use.card = card
 			if use.to then
 				use.to:append(friend)
@@ -525,12 +529,34 @@ function SmartAI:useCardYanxiaoCard(card, use)
 			return
 		end
 	end
-	if not target and not self.player:containsTrick("YanxiaoCard") then
-		use.card = card
-		if use.to then
-			use.to:append(self.player)
+
+	if self:getOverflow() > 0 then
+		if not self.player:containsTrick("YanxiaoCard") then
+			use.card = card
+			if use.to then
+				use.to:append(self.player)
+			end
+			return
 		end
-		return
+		local lord = self.room:getLord()
+		if self:isFriend(lord) and not lord:containsTrick("YanxiaoCard") then
+			use.card = card
+			if use.to then
+				use.to:append(lord)
+			end
+			return
+		end
+
+		for _, friend in ipairs(self.friends_noself) do
+			local judges = friend:getJudgingArea()
+			if not friend:containsTrick("YanxiaoCard") then
+				use.card = card
+				if use.to then
+					use.to:append(friend)
+				end
+				return
+			end
+		end
 	end
 end
 
@@ -582,17 +608,14 @@ sgs.ai_skill_invoke.anxian = function(self, data)
 end
 
 sgs.ai_skill_cardask["@anxian-discard"] = function(self, data)
-	local use = data:toCardUse()
-	if self.player:isKongcheng() or self:getCardsNum("Jink") > 0 or self:getCardsNum("Peach") > 1
-		or not self:slashIsEffective(use.card, self.player)
-		or (not self:hasHeavySlashDamage(use.from, use.card) and self:getDamagedEffects(self.player, use.from)) then
+	if self.player:isKongcheng() or self:getCardsNum("Jink") > 0 or self:getDamagedEffects(self.player) then
 		return "."
 	end
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
 	self:sortByKeepValue(cards)
 	for _, card in ipairs(cards) do
-		if not card:isKindOf("Peach") then
+		if not isCard("Peach", card, self.player) then
 			return "$" .. card:getEffectiveId()
 		end
 	end

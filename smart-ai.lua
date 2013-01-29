@@ -1930,7 +1930,8 @@ function SmartAI:filterEvent(event, player, data)
 		sgs.turncount = 0
 		sgs.debugmode = io.open("lua/ai/debug")
 		if sgs.debugmode then sgs.debugmode:close() end
-		--self.room:acquireSkill(self.room:getLord(),"zhijian")
+		--self.room:acquireSkill(self.room:getOwner(),"shenwei")
+		--self.room:acquireSkill(self.room:getOwner(),"qianxun")
 		if player:isLord() and sgs.debugmode then			
 			logmsg("ai.html","<meta charset='utf-8'/>")
 		end
@@ -2917,7 +2918,12 @@ function SmartAI:askForSinglePeach(dying)
 	local forbid = sgs.Sanguosha:cloneCard("peach", sgs.Card_NoSuit, 0)
 	if self.player:isDead() then return "." end
 	if self.player:isLocked(forbid) or dying:isLocked(forbid) then return "." end
-	if self.role == "renegade" and not dying:isLord() and self.room:getCurrent():objectName() == self.player:objectName() then return "." end
+	if self.role == "renegade" and not dying:isLord() and 
+			(sgs.current_mode_players["loyalist"] == sgs.current_mode_players["rebel"] or self.room:getCurrent():objectName() == self.player:objectName()) then
+		return "."
+	end
+	if self.role == "loyalist" and not dying:isLord() and sgs.current_mode_players["loyalist"] == 2 then return "." end
+
 	if self:isFriend(dying) then
 		if self:needDeath(dying) then return "." end
 		local buqu = dying:getPile("buqu")
@@ -3909,7 +3915,7 @@ function SmartAI:exclude(players, card)
 	if card:isVirtualCard() then
 		for _, id in sgs.qlist(card:getSubcards()) do
 			if self.player:getWeapon() and self.player:getWeapon():getId() == id then
-				range_fix = range_fix + sgs.weapon_range[self.player:getWeapon():getClassName() - 1]
+				range_fix = range_fix + sgs.weapon_range[self.player:getWeapon():getClassName()]  - 1
 			end
 			if self.player:getOffensiveHorse() and self.player:getOffensiveHorse():getEffectiveId() == id then range_fix = range_fix + 1 end
 		end

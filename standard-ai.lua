@@ -370,14 +370,25 @@ end
 
 sgs.ai_card_intention.TuxiCard = function(card, from, tos, source)
 	local lord = from:getRoom():getLord()
-	local tuxi_lord = false
-	for _, to in ipairs(tos) do
-		if to:objectName() == lord:objectName() then tuxi_lord = true end
-		local intention = from:hasFlag("tuxi_isfriend_"..to:objectName()) and -5 or 80
-		sgs.updateIntention(from, to, intention)
-	end
-	if sgs.turncount ==1 and not tuxi_lord and not lord:isKongcheng() and not from:getRoom():alivePlayerCount() == 2 then 
-		sgs.updateIntention(from, lord, -80) 
+	local tuxi_lord = false	
+	if from:getState() == "online" then
+		for _, to in ipairs(tos) do
+			if to:hasSkill("kongcheng") or to:hasSkill("lianying") or to:hasSkill("zhiji") or to:hasSkill("tuntian") then
+				sgs.updateIntention(from, to, 0)
+			else
+				sgs.updateIntention(from, to, 80)
+			end
+		end
+	else
+		for _, to in ipairs(tos) do
+			if to:objectName() == lord:objectName() then tuxi_lord = true end
+			local intention = from:hasFlag("tuxi_isfriend_"..to:objectName()) and -5 or 80
+			sgs.updateIntention(from, to, intention)
+		end
+		if sgs.turncount ==1 and not tuxi_lord and not lord:isKongcheng() and not from:getRoom():alivePlayerCount() == 2 then 
+			sgs.updateIntention(from, lord, -80) 
+		end
+		
 	end
 end
 

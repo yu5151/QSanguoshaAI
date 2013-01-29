@@ -435,22 +435,36 @@ sgs.ai_skill_choice.guhuo = function(self, choices)
 	local players = self.room:getOtherPlayers(self.player)
 	players = sgs.QList2Table(players)
 	local yuji
+
+	self:sort(self.friends,"hp")
+
 	if self.player:getHp()<2 and self.room:alivePlayerCount() > 2 then return "noquestion" end
 	for _, other in ipairs(players) do
 		if other:hasSkill("guhuo") then yuji = other break end
 	end
 	if self.lua_ai:isFriend(yuji) then return "noquestion"
 	elseif sgs.questioner then return "noquestion"
-	else
-		self:sort(self.friends,"hp")
+	else		
 		if self.player:getHp()<self.friends[#self.friends]:getHp() then return "noquestion" end
 	end
-	local r=math.random(0,self.player:getHp()-1)
-	if r==0 then return "noquestion" else return "question" end
+
+	if self.player:getHp() > getBestHp(self.player) and not self:hasSkills(sgs.masochism_skill,self.player) then return "question" end
+
+	local questioner
+	for _, friend in ipairs(self.friends) do
+		if friend:getHp() == self.friends[#self.friends]:getHp() then
+			if self:hasSkills("rende|kuanggu|zaiqi|buqu|yinghun|longhun|xueji|baobiao") then
+				questioner = friend
+				break
+			end
+		end
+	end
+	if not questioner then questioner = self.friends[#self.friends] end
+	return self:objectName() == questioner:objectName() and "question" or "noquestion"
 end
 
 sgs.ai_choicemade_filter.skillChoice.guhuo = function(player, promptlist)
-	if promptlist[#promptlist] == "yes" then
+	if promptlist[#promptlist] == "question" then
 		sgs.questioner = player
 	end
 end

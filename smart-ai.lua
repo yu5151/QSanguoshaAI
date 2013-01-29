@@ -3373,11 +3373,12 @@ end
 function getKnownCard(player,class_name,viewas)
 	local cards = player:getHandcards()
 	local known = 0
+	local suits={["club"]=1, ["spade"]=1, ["diamond"]=1, ["heart"]=1}
 	for _, card in sgs.qlist(cards) do
 		local flag=string.format("%s_%s_%s","visible",global_room:getCurrent():objectName(),player:objectName())
-		if card:hasFlag("visible") or card:hasFlag(flag) then
-			if (viewas and ((class_name=="Slash" and isCard("Slash",card, player)) or (class_name=="Jink" and isCard("Jink",card, player))))  
-					or card:isKindOf(class_name) then 
+		if card:hasFlag("visible") or card:hasFlag(flag) or player:objectName() == global_room:getCurrent():objectName() then
+			if (viewas and isCard(class_name, card, player)) or card:isKindOf(class_name) or 
+					(suits[class_name] and card:getSuitString() == class_name) then
 				known = known + 1 
 			end
 		end

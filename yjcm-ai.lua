@@ -516,6 +516,20 @@ sgs.ai_skill_use_func.MingceCard=function(card,use,self)
 	end
 end
 
+sgs.ai_event_callback[sgs.ChoiceMade].mingce=function(self, player, data)
+	if self.player:getState() ~= "online" then return end
+
+	local choices= data:toString():split(":")
+	if choices[1]=="playerChosen"  and  choices[2]=="mingce" and choices[3] then
+		for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+			if p:objectName() == choices[3] and not p:hasFlag("mingceTarget") then 
+				 self.room:setPlayerFlag(p, "mingceTarget")
+			end
+		end		
+	end	
+end
+
+
 sgs.ai_skill_choice.mingce = function(self, choices)
 	local chengong = self.room:getCurrent()
 	if not self:isFriend(chengong) then return "draw" end

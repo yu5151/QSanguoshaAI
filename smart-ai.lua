@@ -4042,7 +4042,7 @@ function SmartAI:getAoeValue(card, player)
 		good = good + (self:isEnemy(lord) and 150 or -250)
 	end
 
-	for _, player in sgs.qlist(self.room:getOtherPlayers()) do
+	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if self:cantbeHurt(player) and self:aoeIsEffective(card, player, attacker) then
 			bad = bad + 250
 		end

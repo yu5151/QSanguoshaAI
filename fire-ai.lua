@@ -328,9 +328,9 @@ sgs.ai_skill_use_func.TianyiCard=function(card,use,self)
 	local slash = self:getCard("Slash")	
 	local dummy_use = {isDummy = true}
 
-	self:useBasicCard(slash, dummy_use)
+	if slash then self:useBasicCard(slash, dummy_use) end
 
-	if slashcount >= 1 and dummy_use.card  then		
+	if slashcount >= 1 and slash and dummy_use.card  then		
 		for _, enemy in ipairs(self.enemies) do
 			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() then
 				local enemy_max_card = self:getMaxCard(enemy)

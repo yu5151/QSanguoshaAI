@@ -4039,6 +4039,7 @@ function SmartAI:getAoeValue(card, player)
 	local good, bad = 0, 0
 	local use = 49
 	local donotuse = 49
+	local to = 0
 
 	for _, friend in ipairs(friends_noself) do
 		good = good + self:getAoeValueTo(card, friend, player)
@@ -4051,6 +4052,7 @@ function SmartAI:getAoeValue(card, player)
 		bad = bad + self:getAoeValueTo(card, enemy, player)
 		if self:aoeIsEffective(card,enemy) then
 			donotuse = donotuse - 49
+			to = to + 1
 		end
 	end
 
@@ -4072,7 +4074,7 @@ function SmartAI:getAoeValue(card, player)
 		good = good + 25
 	end
 
-	if donotuse > 0 then
+	if donotuse > 0 or to == 0 then
 		if not player:hasSkill("jizhi") then use = 0 end
 	end
 	if use - bad > 0 then return use - bad end

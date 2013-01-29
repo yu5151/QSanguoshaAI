@@ -1033,19 +1033,56 @@ function SmartAI:useCardGodSalvation(card, use)
 		use.card = card
 		return
 	end
+	
+	if self.player:hasSkill("jizhi") then good = good + 6 end
+
+	local liuxie = self.room:findPlayerBySkillName("huangen")
+	if liuxie then
+		if self:isFriend(player, liuxie) then
+			good = good + 5 * liuxie:getHp()
+		else
+			bad = bad + 5 * liuxie:getHp()
+		end
+	end
 
 	for _, friend in ipairs(self.friends) do
-		if friend:isWounded() then
-			good = good + 10/(friend:getHp())
-			if friend:isLord() then good = good + 10/(friend:getHp()) end
+		good = good + 10 * getCardsNum("Nullification", friend)
+		if not ((friend:hasSkill("zhichi") and self.room:getTag("Zhichi"):toString() == friend:objectName()) or friend:hasSkill("noswuyan")) then					
+			if friend:isWounded() then
+				good = good + 10
+				if friend:isLord() then good = good + 11/(friend:getHp() + 0.1) end
+				if self:hasSkills(sgs.masochism_skill, friend) then
+					good = good + 5
+				end
+				if friend:getHp() > getBestHp(friend) then
+					good = good - 5
+				end
+				if friend:getHp() <= 1 and not friend:hasSkill("buqu") or friend:getPile("buqu"):length() > 4 then
+					good = good + 5
+				end
+			elseif friend:hasSkill("danlao") then good = good + 5
+			end
 		end
 	end
 
 	for _, enemy in ipairs(self.enemies) do
-		if enemy:isWounded() then
-			bad = bad + 10/(enemy:getHp())
-			if enemy:isLord() then
-				bad = bad + 10/(enemy:getHp())
+		bad = bad + 10 * getCardsNum("Nullification", enemy)
+		if not ((enemy:hasSkill("zhichi") and self.room:getTag("Zhichi"):toString() == enemy:objectName()) or enemy:hasSkill("noswuyan")) then
+			if enemy:isWounded() then
+				bad = bad + 10
+				if enemy:isLord() then
+					bad = bad + 11/(enemy:getHp() + 0.1)
+				end
+				if self:hasSkills(sgs.masochism_skill, enemy) then
+					bad = bad + 5
+				end
+				if enemy:getHp() > getBestHp(enemy) then
+					bad = bad - 5
+				end
+				if enemy:getHp() <= 1 and not enemy:hasSkill("buqu") or enemy:getPile("buqu"):length() > 4 then
+					bad = bad + 5
+				end
+			elseif enemy:hasSkill("danlao") then bad = bad + 5
 			end
 		end
 	end

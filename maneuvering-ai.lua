@@ -491,6 +491,6 @@ sgs.ai_cardshow.fire_attack = function(self, requestor)
 end
 
 sgs.ai_use_value.FireAttack = 4.8
-sgs.ai_use_priority.FireAttack = 2
+sgs.ai_use_priority.FireAttack = sgs.ai_use_priority.Dismantlement + 0.1
 
 sgs.ai_card_intention.FireAttack = 80

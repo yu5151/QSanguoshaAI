@@ -29,6 +29,9 @@ local function getOwnCards(self, up, bottom, next_judge)
 	self:sortByUseValue(bottom)
 	local has_slash = self:getCardsNum("Slash") > 0
 	local hasNext = false
+	local fuhun1, fuhun2
+	local shuangxiong
+	local has_big
 	for index, gcard in ipairs(bottom) do
 		if index == 3 then break end
 		if #next_judge > 0 then
@@ -36,8 +39,7 @@ local function getOwnCards(self, up, bottom, next_judge)
 			table.remove(bottom, index)
 			hasNext = true
 		else
-			if self.player:hasSkill("fuhun") then
-				local fuhun1, fuhun2
+			if self.player:hasSkill("fuhun") then				
 				if not fuhun1 and gcard:isRed() then
 					table.insert(up, gcard) 
 					table.remove(bottom, index)
@@ -53,8 +55,12 @@ local function getOwnCards(self, up, bottom, next_judge)
 					table.remove(bottom, index)
 					fuhun2 = true
 				end
-			elseif self.player:hasSkill("shuangxiong") and self.player:getHandcardNum() >= 3 then
-				local shuangxiong
+				if not fuhun2 and gcard:isBlack() then
+					table.insert(up, gcard) 
+					table.remove(bottom, index)
+					fuhun2 = true
+				end
+			elseif self.player:hasSkill("shuangxiong") and self.player:getHandcardNum() >= 3 then				
 				local rednum, blacknum = 0, 0
 				local cards = sgs.QList2Table(self.player:getHandcards())
 				for _, card in ipairs(cards) do
@@ -72,7 +78,6 @@ local function getOwnCards(self, up, bottom, next_judge)
 					shuangxiong = true					
 				end
 			elseif self.player:hasSkill("xianzhen|tianyi") then
-				local has_big
 				local maxcard = self:getMaxCard(self.player)
 				has_big = maxcard and maxcard:getNumber() > 10
 				if not has_big and gcard:getNumber() > 10 then

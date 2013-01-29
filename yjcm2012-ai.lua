@@ -312,8 +312,10 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(tg_enemy)
 				use.to:append(least_friend)
 			end
-			sgs.updateIntention(self.player, tg_enemy, intention)
-			sgs.updateIntention(self.player, least_friend, -intention)
+			if not use.isDummy then
+				sgs.updateIntention(self.player, tg_enemy, intention)
+				sgs.updateIntention(self.player, least_friend, -intention)
+			end
 			return
 		end
 
@@ -323,8 +325,10 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(most_enemy)
 				use.to:append(least_friend)
 			end
-			sgs.updateIntention(self.player, most_enemy, intention)
-			sgs.updateIntention(self.player, least_friend, -intention)
+			if not use.isDummy then
+				sgs.updateIntention(self.player, most_enemy, intention)
+				sgs.updateIntention(self.player, least_friend, -intention)
+			end
 			return
 		end
 
@@ -359,8 +363,10 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(need_kongcheng_friend)
 				use.to:append(least_friend)
 			end
-			sgs.updateIntention(self.player, tg_enemy, -intention)
-			sgs.updateIntention(self.player, least_friend, -intention)
+			if not use.isDummy then
+				sgs.updateIntention(self.player, tg_enemy, -intention)
+				sgs.updateIntention(self.player, least_friend, -intention)
+			end
 			return
 		elseif most_friend:getHandcardNum() >= 4 and most_friend:getHandcardNum() > least_friend:getHandcardNum() then
 			use.card = card
@@ -368,7 +374,7 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(most_friend)
 				use.to:append(least_friend)
 			end
-			sgs.updateIntention(self.player, least_friend, -intention)
+			if not use.isDummy then sgs.updateIntention(self.player, least_friend, -intention) end
 			return
 		end
 	end
@@ -382,8 +388,10 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(tg_enemy)
 				use.to:append(kongcheng_enemy)
 			end
-			sgs.updateIntention(self.player, tg_enemy, intention)
-			sgs.updateIntention(self.player, kongcheng_enemy, intention)
+			if not use.isDummy then
+				sgs.updateIntention(self.player, tg_enemy, intention)
+				sgs.updateIntention(self.player, kongcheng_enemy, intention)
+			end
 			return
 		elseif most_friend and most_friend:getHandcardNum() >= 4 then -- Friend -> Enemy for KongCheng
 			use.card = card
@@ -391,7 +399,7 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(most_friend)
 				use.to:append(kongcheng_enemy)
 			end
-			sgs.updateIntention(self.player, kongcheng_enemy, intention)
+			if not use.isDummy then sgs.updateIntention(self.player, kongcheng_enemy, intention) end
 			return
 		end
 	elseif manjuan_enemy then
@@ -402,7 +410,7 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(tg_enemy)
 				use.to:append(manjuan_enemy)
 			end
-			sgs.updateIntention(self.player, tg_enemy, intention)
+			if not use.isDummy then sgs.updateIntention(self.player, tg_enemy, intention) end
 			return
 		end
 	elseif most_enemy then
@@ -431,8 +439,10 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 				use.to:append(tg_enemy)
 				use.to:append(second_enemy)
 			end
-			sgs.updateIntention(self.player, tg_enemy, intention)
-			sgs.updateIntention(self.player, second_enemy, intention)
+			if not use.isDummy then
+				sgs.updateIntention(self.player, tg_enemy, intention)
+				sgs.updateIntention(self.player, second_enemy, intention)
+			end
 			return
 		end
 	end

@@ -460,7 +460,7 @@ sgs.ai_skill_choice.guhuo = function(self, choices)
 		end
 	end
 	if not questioner then questioner = self.friends[#self.friends] end
-	return self:objectName() == questioner:objectName() and "question" or "noquestion"
+	return self.player:objectName() == questioner:objectName() and "question" or "noquestion"
 end
 
 sgs.ai_choicemade_filter.skillChoice.guhuo = function(player, promptlist)

@@ -16,6 +16,11 @@ sgs.ai_skill_invoke.hujia = function(self, data)
 	for _, other in sgs.qlist(others) do
 		if other:getKingdom() == "wei" and other:isAlive() then wei_num = wei_num + 1 end
 	end
+	
+	local current = self.room:getCurrent()
+	if self:isFriend(current) and current:getKingdom() == "wei" and self:getOverFlow(current) >2 then
+		return true
+	end
 
 	for _, card in sgs.qlist(cards) do
 		if card:isKindOf("Jink") then
@@ -487,7 +492,7 @@ end
 sgs.ai_need_damaged.yiji = function (self, attacker)
 	local need_card = false
 	local current = self.room:getCurrent()
-	if current:isEquip("Crossbow") or current:hasSkill("paoxiao") or current:hasFlag("shuangxiong") then need_card = true end
+	if self:isEquip("Crossbow", current) or current:hasSkill("paoxiao") or current:hasFlag("shuangxiong") then need_card = true end
 	if self:hasSkills("jieyin|jijiu",current) and self:getOverflow(current)<=0 then need_card = true end
 	if self:isFriend(current) and need_card then return true end
 
@@ -637,6 +642,12 @@ end
 table.insert(sgs.ai_choicemade_filter.cardUsed, jijiang_filter)
 
 sgs.ai_skill_invoke.jijiang = function(self, data)
+
+	local current = self.room:getCurrent()
+	if self:isFriend(current) and current:getKingdom() == "shu" and self:getOverFlow(current) >2 and not self:isEquip("Crossbow", current) then
+		return true
+	end
+
 	local cards = self.player:getHandcards()
 	for _, card in sgs.qlist(cards) do
 		if card:isKindOf("Slash") then

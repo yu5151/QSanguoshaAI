@@ -1552,7 +1552,7 @@ sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target,
 	if self:isFriend(target2) and target2:hasSkill("leiji") 
 		and ( self:hasSuit("spade", true, target2) or target2:getHandcardNum() >= 3)
 		and (getKnownCard(target2,"Jink",true) >= 1 or 
-			(not self:isWeak(friend) and not self:isEquip("QinggangSword", self.player) and self:isEquip("EightDiagram",friend))) then
+			(not self:isWeak(target2) and not self:isEquip("QinggangSword", self.player) and self:isEquip("EightDiagram",target2) )) then
 
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if self:slashIsEffective(slash, target2) then 

@@ -112,8 +112,7 @@ function SmartAI:searchForAnaleptic(use,enemy,slash)
 		return
 	end
 
-	if ((enemy:getArmor() and enemy:getArmor():objectName() == "EightDiagram") or enemy:getHandcardNum() > 2) 
-		and not ((self:isEquip("Axe") and #allcards > 4) or self.player:getHandcardNum() > 1+self.player:getHp()) then
+	if self:hasSkills(sgs.masochism_skill .. "|longhun|buqu|" .. sgs.recover_skill ,enemy) and self:hasSkills("qianxi") then
 		return
 	end
 
@@ -414,6 +413,12 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 			and self:hasTrickEffective(fire_attack, self.player) 
 			and (self.player:getHp()>1 or self:getCardsNum("Peach")>=1 or self:getCardsNum("Analeptic")>=1 or self.player:hasSkill("buqu")
 				or (self.player:hasSkill("niepan") and self.player:getMark("@nirvana") > 0)) then
+
+		if self:willUseGodSalvation() then
+			local godsalvation = self:getCard("GodSalvation")
+			if godsalvation and godsalvation:getId()~= fire_attack:getId() then use.card = godsalvation return end
+		end
+
 		use.card = fire_attack
 		if use.to then use.to:append(self.player) end
 		self.room:setTag("LastFireAttack",sgs.QVariant(self.player:objectName()))
@@ -429,6 +434,12 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 			if handcards[1]:hasFlag("visible") or handcards[1]:hasFlag(flag) then
 				local suitstring = handcards[1]:getSuitString()
 				if not lack[suitstring] then
+
+					if self:willUseGodSalvation() and not enemy:isWounded() then
+						local godsalvation = self:getCard("GodSalvation")
+						if godsalvation and godsalvation:getId()~= fire_attack:getId() then use.card = godsalvation return end
+					end
+
 					use.card = fire_attack
 					if use.to then use.to:append(enemy) end
 					self.room:setTag("LastFireAttack",sgs.QVariant(enemy:objectName()))	
@@ -442,6 +453,10 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 
 	for _, enemy in ipairs(targets) do
 		if self:isEquip("Vine", enemy) or enemy:getMark("@gale") > 0 then
+			if self:willUseGodSalvation() and not enemy:isWounded() then
+				local godsalvation = self:getCard("GodSalvation")
+				if godsalvation and godsalvation:getId()~= fire_attack:getId() then use.card = godsalvation return end
+			end
 			use.card = fire_attack
 			if use.to then use.to:append(enemy) end
 			self.room:setTag("LastFireAttack",sgs.QVariant(enemy:objectName()))	
@@ -449,6 +464,10 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 		end
 	end
 	for _, enemy in ipairs(targets) do
+		if self:willUseGodSalvation() and not enemy:isWounded() then
+			local godsalvation = self:getCard("GodSalvation")
+			if godsalvation and godsalvation:getId()~= fire_attack:getId() then use.card = godsalvation return end
+		end
 		use.card = fire_attack
 		if use.to then use.to:append(enemy) end
 		self.room:setTag("LastFireAttack",sgs.QVariant(enemy:objectName()))	

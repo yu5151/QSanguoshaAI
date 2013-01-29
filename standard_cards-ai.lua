@@ -415,6 +415,12 @@ function SmartAI:useCardSlash(card, use)
 						if slash and self:slashIsEffective(slash, target) and not self:slashProhibit(slash, target) then usecard = slash end
 					end
 				end
+
+				if self:willUseGodSalvation() and not target:isWounded() then
+					local godsalvation = self:getCard("GodSalvation")
+					if godsalvation and godsalvation:getId()~= card:getId() then use.card = godsalvation return end
+				end
+
 				local anal = self:searchForAnaleptic(use, target, card)
 				if anal and not self:isEquip("SilverLion", target) and (self:isWeak(target) or sgs.getDefenseSlash(target)<=2) then
 					if anal:getEffectiveId() ~= card:getEffectiveId() then use.card = anal return end
@@ -1027,14 +1033,13 @@ sgs.ai_use_value.AmazingGrace = 3
 sgs.ai_keep_value.AmazingGrace = -1
 sgs.ai_use_priority.AmazingGrace = 1.2
 
-function SmartAI:useCardGodSalvation(card, use)
+
+function SmartAI:willUseGodSalvation()
 	local good, bad = 0, 0
-	if self.player:hasSkill("noswuyan") and self.player:isWounded() then
-		use.card = card
-		return
-	end
+	if self.player:hasSkill("noswuyan") and self.player:isWounded() then return true end
 	
-	if self.player:hasSkill("jizhi") then good = good + 6 end
+	if self:hasSkills("jizhi") then good = good + 6 end
+	if self:hasSkills("kongcheng|lianying") and self.player:getHandcardNum() == 1 then good = good + 15 end
 
 	local liuxie = self.room:findPlayerBySkillName("huangen")
 	if liuxie then
@@ -1054,11 +1059,11 @@ function SmartAI:useCardGodSalvation(card, use)
 				if self:hasSkills(sgs.masochism_skill, friend) then
 					good = good + 5
 				end
-				if friend:getHp() > getBestHp(friend) then
-					good = good - 5
-				end
-				if friend:getHp() <= 1 and not friend:hasSkill("buqu") or friend:getPile("buqu"):length() > 4 then
+				if friend:getHp() <= 1 and self:isWeak(friend) then
 					good = good + 5
+					if friend:isLord() then good = good + 10 end	
+				else
+					if friend:isLord() then good = good + 5 end
 				end
 			elseif friend:hasSkill("danlao") then good = good + 5
 			end
@@ -1076,18 +1081,21 @@ function SmartAI:useCardGodSalvation(card, use)
 				if self:hasSkills(sgs.masochism_skill, enemy) then
 					bad = bad + 5
 				end
-				if enemy:getHp() > getBestHp(enemy) then
-					bad = bad - 5
-				end
-				if enemy:getHp() <= 1 and not enemy:hasSkill("buqu") or enemy:getPile("buqu"):length() > 4 then
+				if enemy:getHp() <= 1 and self:isWeak(enemy) then
 					bad = bad + 5
+					if enemy:isLord() then bad = bad + 10 end
+				else
+					if enemy:isLord() then bad = bad + 5 end
 				end
 			elseif enemy:hasSkill("danlao") then bad = bad + 5
 			end
 		end
 	end
+	return good > bad
+end
 
-	if good > bad then
+function SmartAI:useCardGodSalvation(card, use)	
+	if self:willUseGodSalvation() then
 		use.card = card
 	end
 end
@@ -1120,6 +1128,12 @@ function SmartAI:useCardDuel(duel, use)
 	
 	for _, enemy in ipairs(enemies) do
 		if self.player:hasFlag("duelTo" .. enemy:objectName()) and canUseDuelTo(enemy) then
+
+			if self:willUseGodSalvation() and not enemy:isWounded() then
+				local godsalvation = self:getCard("GodSalvation")
+				if godsalvation and godsalvation:getId()~= duel:getId() then use.card = godsalvation return end
+			end
+
 			use.card = duel
 			if use.to then
 				use.to:append(enemy)
@@ -1137,6 +1151,11 @@ function SmartAI:useCardDuel(duel, use)
 		useduel = useduel and not (enemy:getHp()>getBestHp(enemy)) and not self:getDamagedEffects(enemy,self.player)
 		useduel = useduel and not (enemy:hasSkill("jianxiong") and not self:isWeak(enemy) and not self.player:hasSkill("jueqing"))
 		if self:objectiveLevel(enemy) > 3 and canUseDuelTo(enemy) and not self:cantbeHurt(enemy) and useduel and sgs.isGoodTarget(enemy,enemies) then
+			if self:willUseGodSalvation() and not enemy:isWounded() then
+				local godsalvation = self:getCard("GodSalvation")
+				if godsalvation and godsalvation:getId()~= duel:getId() then use.card = godsalvation return end
+			end
+
 			use.card = duel
 			if use.to then
 				use.to:append(enemy)

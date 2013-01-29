@@ -445,7 +445,7 @@ function SmartAI:getDynamicUsePriority(card)
 			end
 		end
 
-		if use_card:isKindOf("FireAttack") and self:isEquip("Vine", tos:first()) then
+		if tos and use_card:isKindOf("FireAttack") and self:isEquip("Vine", tos:first()) then
 			value = sgs.ai_use_priority.Dismantlement + 0.1
 		end
 		

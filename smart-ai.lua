@@ -2165,9 +2165,9 @@ sgs.ai_skill_discard.gamerule = function(self, discard_num, min_num)
 	
 	if debugprint then logmsg("discard.html", ":::") end
 	
-	for i = #sortedCards, 0, -1 do
-		if #to_discard == discard_num or self.player:isKongcheng() then return to_discard end
+	for i = #sortedCards, 1, -1 do
 		table.insert(to_discard, sortedCards[i]:getId())
+		if #to_discard == discard_num or self.player:isKongcheng() then return to_discard end
 		if debugprint then logmsg("discard.html", "discard :  "  ..sortedCards[i]:getLogName()) end
 	end
 

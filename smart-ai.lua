@@ -77,7 +77,7 @@ sgs.ai_need_damaged =		{}
 sgs.ai_debug_func =			{}
 sgs.ai_chat_func =			{}
 sgs.ai_event_callback =		{}
-sgs.processvalue = {loyalist ="忠大优", dilemma="纠结", loyalish="忠小优" , rebelish="反小优", rebel="反大优",neutral= "平衡"}
+sgs.processvalue = {loyalist ="忠大优", dilemma="左右为难", loyalish="忠小优" , rebelish="反小优", rebel="反大优",neutral= "平衡"}
 
 for i=sgs.NonTrigger, sgs.NumOfEvents, 1 do
 	sgs.ai_debug_func[i]	={}
@@ -594,19 +594,24 @@ end
 
 function SmartAI:sortByKeepValue(cards,inverse,kept)
 	local compare_func = function(a,b)
-		local value1 = self:getKeepValue(a,kept)
-		local value2 = self:getKeepValue(b,kept)
+		local value1 = self:getKeepValue(a, kept)
+		local value2 = self:getKeepValue(b, kept)
 
-		if value1 ~= value2 then
-			if inverse then return value1 > value2 end
-			return value1 < value2
-		else
-			return a:getNumber() < b:getNumber()
+		local v1 = self:adjustUsePriority(a, value1)
+		local v2 = self:adjustUsePriority(b, value2)
+		if a:isKindOf("NatureSlash") then v1 = v1 - 0.1 end
+		if b:isKindOf("NatureSlash") then v2 = v2 - 0.1 end
+
+		if v1 ~= v2 then
+			if inverse then return v1 > v2 end
+			return v1 < v2
 		end
 	end
 
 	table.sort(cards, compare_func)
 end
+
+
 
 function SmartAI:sortByUseValue(cards,inverse)
 	local compare_func = function(a,b)
@@ -1030,10 +1035,17 @@ sgs.ai_card_intention.general=function(from,to,level)
 			local log= sgs.LogMessage()
 			log.type = "#show_intention_value"
 			log.from = from
-			log.arg  = string.format("%d, %d, %d", sgs.role_evaluation[from:objectName()]["loyalist"],
-							sgs.role_evaluation[from:objectName()]["rebel"], sgs.role_evaluation[from:objectName()]["renegade"]) 
-			log.arg2 = sgs.processvalue[sgs.gameProcess(global_room)]
+			log.arg  = string.format("%d", sgs.role_evaluation[from:objectName()]["loyalist"])
+			log.arg2 = string.format("%d", sgs.role_evaluation[from:objectName()]["rebel"])
 			global_room:sendLog(log)
+
+			local log= sgs.LogMessage()
+			log.type = "#show_intention_value2"
+			log.from = from
+			log.arg  = string.format("%d", sgs.role_evaluation[from:objectName()]["renegade"])
+			log.arg2 = string.format("pro%s", sgs.gameProcess(global_room))
+			global_room:sendLog(log)
+
 			from:speak(string.format("忠:%d,反:%d,内:%d",
 							sgs.role_evaluation[from:objectName()]["loyalist"],
 							sgs.role_evaluation[from:objectName()]["rebel"],
@@ -1942,9 +1954,10 @@ function SmartAI:filterEvent(event, player, data)
 		if sgs.debugmode then sgs.debugmode:close() end
 		--self.room:acquireSkill(self.room:getOwner(),"shenwei")
 		--self.room:acquireSkill(self.room:getOwner(),"qianxun")
-		if player:isLord() and sgs.debugmode then			
-			logmsg("ai.html","<meta charset='utf-8'/>")
+		if player:isLord() then			
+			if sgs.debugmode then logmsg("ai.html","<meta charset='utf-8'/>") end
 		end
+		
 	end
 end
 
@@ -2045,6 +2058,126 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 	end
 	return to_discard
 end
+
+sgs.ai_skill_discard.gamerule = function(self, discard_num, min_num)
+	if self:getOverflow() <= 0 then return {} end
+
+	local cards = sgs.QList2Table(self.player:getCards("h"))
+	local to_discard = {}	
+	local peaches, jinks, analeptics, nullifications, slashes = {}, {}, {}, {}, {}
+	local keeparr = {}
+	local debugprint = true
+
+	local keepdata = {"peach1", "peach2", "jink1", "peach3", "analeptic", "jink2", "nullification", "slash" }
+
+	if not self:isWeak() and (self.player:getHp() > getBestHp(self.player) or self:getDamagedEffects(self.player) or not sgs.isGoodTarget(self.player)) then
+		keepdata = {"peach1", "peach2", "analeptic","peach3", "nullification", "slash" }
+	end
+	
+	for _, name in ipairs(keepdata) do 	keeparr[name] = nil end
+
+	local compare_func = function(a, b)
+		local v1 = self:adjustUsePriority(a,1)
+		local v2 = self:adjustUsePriority(b,1)
+		if a:isKindOf("NatureSlash") then v1 = v1 - 0.1 end
+		if b:isKindOf("NatureSlash") then v2 = v2 - 0.1 end
+		return  v1 < v2 
+	end
+	
+	local resetCards = function(allcards, keepcards)
+		local result = {}
+		for _, acard in ipairs(allcards) do
+			local found = false
+			for _, keepcard in pairs(keepcards) do
+				if keepcard and keepcard:getEffectiveId() == acard:getEffectiveId() then
+					found = true
+					break
+				end
+			end
+			if not found then table.insert(result, acard) end
+		end
+		return result
+	end
+
+	for _, card in ipairs(cards) do
+		if isCard("Peach", card, self.player) then table.insert(peaches, card) end
+	end	
+	table.sort(peaches, compare_func)
+	if #peaches >= 1 and table.contains(keepdata, "peach1") then keeparr.peach1 = peaches[1] end
+	if #peaches >= 2 and table.contains(keepdata, "peach2") then keeparr.peach2 = peaches[2] end
+	if #peaches >= 3 and table.contains(keepdata, "peach3") then keeparr.peach3 = peaches[3] end
+
+	cards = resetCards(cards, keeparr)	
+	for _, card in ipairs(cards) do
+		if isCard("Jink", card, self.player) then table.insert(jinks, card)	end
+	end
+	table.sort(jinks, compare_func)
+	if #jinks >= 1 and table.contains(keepdata, "jink1") then keeparr.jink1 = jinks[1] end
+	if #jinks >= 2 and table.contains(keepdata, "jink2") then keeparr.jink2 = jinks[2] end
+ 
+	cards = resetCards(cards, keeparr)	
+	for _, card in ipairs(cards) do
+		if isCard("Analeptic", card, self.player) then table.insert(analeptics, card) end
+	end
+	table.sort(analeptics, compare_func)
+	if #analeptics >= 1 and table.contains(keepdata, "analeptic") then keeparr.analeptic = analeptics[1] end
+	
+	cards = resetCards(cards, keeparr)	
+	for _, card in ipairs(cards) do
+		if isCard("Nullification", card, self.player) then table.insert(nullifications, card) end
+	end
+	table.sort(nullifications, compare_func)
+	if #nullifications >= 1 and table.contains(keepdata, "nullification") then keeparr.nullification = nullifications[1] end
+
+	cards = resetCards(cards, keeparr)	
+	for _, card in ipairs(cards) do
+		if isCard("Slash", card, self.player) then table.insert(slashes, card) end
+	end
+	table.sort(slashes, compare_func)
+	if #slashes >= 1 and table.contains(keepdata, "slash") then keeparr.slash = slashes[1] end
+
+	cards = resetCards(cards,keeparr)
+	self:sortByUseValue(cards)
+	self:sortByKeepValue(cards, true)
+
+	if debugprint then
+		logmsg("discard.html", "<meta charset='utf-8'/><pre>")
+		logmsg("discard.html", "========================="..self.player:getGeneralName().."=================================")
+		logmsg("discard.html", "")
+	end
+
+	local sortedCards = {}
+	for _, name in ipairs(keepdata) do
+		if keeparr[name] then 
+			table.insert(sortedCards, keeparr[name]) 
+			if debugprint then logmsg("discard.html", "keep :  "  ..keeparr[name]:getLogName()) end
+		end
+	end
+	
+	for _, card in ipairs(cards) do
+		table.insert(sortedCards, card)
+		if debugprint then logmsg("discard.html", "other :  "  ..card:getLogName()) end
+	end
+	
+	if debugprint then logmsg("discard.html", ":::") end
+	
+	for i = #sortedCards, 1, -1 do
+		if #to_discard == discard_num or self.player:isKongcheng() then return to_discard end
+		table.insert(to_discard, sortedCards[i]:getId())
+		if debugprint then logmsg("discard.html", "discard :  "  ..sortedCards[i]:getLogName()) end
+	end
+
+	if debugprint then
+		logmsg("discard.html", "")
+		logmsg("discard.html", "")
+		logmsg("discard.html", "</pre>")
+	end
+	
+	return {}	
+
+end
+
+
 --询问无懈可击--
 function SmartAI:askForNullification(trick, from, to, positive)
 	if self.player:isDead() then return nil end

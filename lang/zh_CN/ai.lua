@@ -7,10 +7,16 @@ return {
 		[":objectiveLevel"] ="武将名[推测身份] 反估值:忠估值:内估值 关系",
 		["getDefenseSlash"] ="查看对杀的防御",
 
+		["proloyalist"] ="忠大优",
+		["prodilemma"] ="左右为难",
+		["proloyalish"] ="忠小优",
+		["prorebelish"] ="反小优",
+		["prorebel"] ="反大优",
+		["proneutral"] ="平衡",
+
 		["#add_loyalist_value"] = "%from <font color='green'>的忠诚度增加了 %arg 点</font>",
 		["#add_rebel_value"] = "%from <font color='red'>的反贼度增加了 %arg 点</font>",
 		["#add_renegade_value"] = "%from <font color='blue'>的内奸度增加了 %arg 点</font>",
-		["#show_intention_value"] ="%from 当前的【忠-反-内】值为 %arg, 当前游戏局势为 %arg2",
+		["#show_intention_value"] ="%from 的忠值为 %arg, 反值为 %arg2",
+		["#show_intention_value2"] ="%from 的内值为 %arg, 局势: %arg2",
 }
-
-

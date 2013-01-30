@@ -1180,6 +1180,7 @@ end
 
 sgs.ai_use_value.Duel = 3.7
 sgs.ai_use_priority.Duel = 2.9
+sgs.ai_keep_value.Duel = 1.7
 
 sgs.dynamic_value.damage_card.Duel = true
 
@@ -1530,6 +1531,7 @@ SmartAI.useCardSnatch = SmartAI.useCardSnatchOrDismantlement
 
 sgs.ai_use_value.Snatch = 9
 sgs.ai_use_priority.Snatch = 4.3
+sgs.ai_keep_value.Snatch = 1.9
 
 sgs.dynamic_value.control_card.Snatch = true
 function sgs.ai_card_intention.Snatch()
@@ -1540,6 +1542,7 @@ SmartAI.useCardDismantlement = SmartAI.useCardSnatchOrDismantlement
 
 sgs.ai_use_value.Dismantlement = 5.6
 sgs.ai_use_priority.Dismantlement = 4.4
+sgs.ai_keep_value.Dismantlement = 1.8
 function sgs.ai_card_intention.Dismantlement()
 	sgs.ai_snat_disma_effect = false
 end
@@ -1723,6 +1726,7 @@ end
 sgs.ai_use_value.Indulgence = 8
 sgs.ai_use_priority.Indulgence = 0.5
 sgs.ai_card_intention.Indulgence = 120
+sgs.ai_keep_value.Indulgence = 1.5
 
 sgs.dynamic_value.control_usecard.Indulgence = true
 

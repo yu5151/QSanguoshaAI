@@ -4018,8 +4018,7 @@ function SmartAI:getAoeValue(card, player)
 		end
 		
 		if self:getCardsNum("Peach") > 0 then return true end
-		
-		-- 这里有点纠结，应为AI可能会给位置在主公之前的队友使用无邪，为了保险起见，还是需要有两个无邪吧
+				
 		for _, p in sgs.qlist(self.room:getAlivePlayers()) do
 			if self:isFriend(lord, p) then 
 				goodnull = goodnull +  getCardsNum("Nullification", p) 
@@ -4062,6 +4061,11 @@ function SmartAI:getAoeValue(card, player)
 		end
 	end
 	if self.player:hasSkill("jizhi") then good = good + 25 end
+
+	if sgs.turncount < 2 and self.player:getSeat() <= 3 and card:isKindOf("SavageAssault") then
+		if self.role ~= "rebel" then good = good + 50 end
+		if self.role == "rebel" then bad = bad + 50 end
+	end
 
 	return good - bad
 end

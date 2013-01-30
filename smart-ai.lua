@@ -3338,6 +3338,14 @@ function SmartAI:getMaxCard(player)
 		--end
 	end
 
+	if self:hasSkills("tianyi|dahe|xianzhen") and max_point > 0 then
+		for _, card in sgs.qlist(cards) do
+			if 	card:getNumber() == max_point and not isCard("Slash", card, self.player) then
+				return card
+			end
+		end
+	end
+
 	return max_card
 end
 

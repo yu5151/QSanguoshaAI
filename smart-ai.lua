@@ -2924,11 +2924,12 @@ function SmartAI:askForSinglePeach(dying)
 	local forbid = sgs.Sanguosha:cloneCard("peach", sgs.Card_NoSuit, 0)
 	if self.player:isDead() then return "." end
 	if self.player:isLocked(forbid) or dying:isLocked(forbid) then return "." end
-	if self.role == "renegade" and not dying:isLord() and 
+	if self.role == "renegade" and not (dying:isLord() or dying:objectName() == self.player:objectName()) and 
 			(sgs.current_mode_players["loyalist"] == sgs.current_mode_players["rebel"] or self.room:getCurrent():objectName() == self.player:objectName()) then
 		return "."
 	end
-	if self.role == "loyalist" and not dying:isLord() and sgs.current_mode_players["loyalist"] == 2 then return "." end
+	if self.role == "loyalist" and not (dying:isLord() or dying:objectName() == self.player:objectName()) 
+			and sgs.current_mode_players["loyalist"] == 2 then return "." end
 
 	if self:isFriend(dying) then
 		if self:needDeath(dying) then return "." end

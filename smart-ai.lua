@@ -447,7 +447,11 @@ function SmartAI:getDynamicUsePriority(card)
 		if use_card:isKindOf("YanxiaoCard") and self.player:containsTrick("YanxiaoCard") then
 			value = 0.1
 		end
-
+		
+		if use_card:isKindOf("KurouCard") and self.player:getHp()==1 and self.player:getRole()~="lord" 
+			and self.player:getRole()~="renegade" and self:getCardsNum("Analeptic")==0 then
+			value = 0.1
+		end
 
 	end
 	return value
@@ -3084,6 +3088,7 @@ function SmartAI:askForSinglePeach(dying)
 			end
 			if not same then return "." end
 		end
+		if dying:hasFlag("Kurou_toDie") and (not dying:getWeapon() or dying:getWeapon():objectName()~="Crossbow") then return "." end
 		if (self.player:objectName() == dying:objectName()) then
 			card_str = self:getCardId("Analeptic")
 			if not card_str then 

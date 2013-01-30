@@ -10,7 +10,7 @@ return {
 		["#add_loyalist_value"] = "%from <font color='green'>的忠诚度增加了 %arg 点</font>",
 		["#add_rebel_value"] = "%from <font color='red'>的反贼度增加了 %arg 点</font>",
 		["#add_renegade_value"] = "%from <font color='blue'>的内奸度增加了 %arg 点</font>",
-		["#show_intention_value"] ="%from 当前的忠值为 %arg, 反值为 %arg2",
+		["#show_intention_value"] ="%from 当前的【忠-反-内】值为 %arg, 当前游戏局势为 %arg2",
 }
 
 

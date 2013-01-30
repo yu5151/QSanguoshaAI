@@ -907,7 +907,7 @@ end
 sgs.ai_card_intention.general=function(from,to,level)
 	if sgs.isRolePredictable() then return end
 	if not to then global_room:writeToConsole(debug.traceback()) return end
-	if from:isLord() then return end
+	if from:isLord() or level == 0 then return end
 	--sgs.outputProcessValues(from:getRoom())
 	sgs.outputRoleValues(from, level)
 	
@@ -1005,38 +1005,40 @@ sgs.ai_card_intention.general=function(from,to,level)
 			end
 		end
 	end
-
-	local diffarr = {
-		add_loyalist_value	= sgs.role_evaluation[from:objectName()]["loyalist"] - loyalist_value ,
-		add_rebel_value		= sgs.role_evaluation[from:objectName()]["rebel"] - rebel_value ,
-		add_renegade_value	= sgs.role_evaluation[from:objectName()]["renegade"] - renegade_value ,
-	}
-
-	local value_changed = false
 	
-	for msgtype,diffvalue in pairs(diffarr) do
-		if diffvalue >0 then
-			value_changed = true
-			local log= sgs.LogMessage()
-			log.type = "#" .. msgtype
-			log.from = from
-			log.arg= math.ceil(diffvalue)
-			from:getRoom():sendLog(log)
+	if global_room:getTag("humanCount") and global_room:getTag("humanCount"):toInt() ==1 then
+		local diffarr = {
+			add_loyalist_value	= sgs.role_evaluation[from:objectName()]["loyalist"] - loyalist_value ,
+			add_rebel_value		= sgs.role_evaluation[from:objectName()]["rebel"] - rebel_value ,
+			add_renegade_value	= sgs.role_evaluation[from:objectName()]["renegade"] - renegade_value ,
+		}
+
+		local value_changed = false
+		
+		for msgtype,diffvalue in pairs(diffarr) do
+			if diffvalue >0 then
+				value_changed = true
+				local log= sgs.LogMessage()
+				log.type = "#" .. msgtype
+				log.from = from
+				log.arg= math.ceil(diffvalue)
+				global_room:sendLog(log)
+			end
 		end
-	end
-	
-	
-	if value_changed then
-		local log= sgs.LogMessage()
-		log.type = "#show_intention_value"
-		log.from = from
-		log.arg  = math.ceil(sgs.role_evaluation[from:objectName()]["loyalist"])
-		log.arg2 = math.ceil(sgs.role_evaluation[from:objectName()]["rebel"])
-		from:getRoom():sendLog(log)
-		from:speak(string.format("忠:%d,反:%d,内:%d",
-						sgs.role_evaluation[from:objectName()]["loyalist"],
-						sgs.role_evaluation[from:objectName()]["rebel"],
-						sgs.role_evaluation[from:objectName()]["renegade"]))
+		
+		if value_changed then
+			local log= sgs.LogMessage()
+			log.type = "#show_intention_value"
+			log.from = from
+			log.arg  = string.format("%d, %d, %d", sgs.role_evaluation[from:objectName()]["loyalist"],
+							sgs.role_evaluation[from:objectName()]["rebel"], sgs.role_evaluation[from:objectName()]["renegade"]) 
+			log.arg2 = sgs.processvalue[sgs.gameProcess(global_room)]
+			global_room:sendLog(log)
+			from:speak(string.format("忠:%d,反:%d,内:%d",
+							sgs.role_evaluation[from:objectName()]["loyalist"],
+							sgs.role_evaluation[from:objectName()]["rebel"],
+							sgs.role_evaluation[from:objectName()]["renegade"]))
+		end
 	end
 
 	--sgs.outputProcessValues(from:getRoom())
@@ -1929,6 +1931,8 @@ function SmartAI:filterEvent(event, player, data)
 					msg = msg..string.format("%s %s, ",sgs.Sanguosha:translate(aplayer:getGeneralName()),sgs.Sanguosha:translate(aplayer:getRole()))
 				end
 			end
+			self.room:setTag("humanCount",sgs.QVariant(humanCount))
+
 			if humanCount == 1 then player:speak(msg) end
 		end
 

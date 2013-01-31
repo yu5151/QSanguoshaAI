@@ -328,6 +328,7 @@ jixi_skill.getTurnUseCard = function(self)
 	local snatch=sgs.Sanguosha:getCard(self.player:getPile("field"):first())
 	snatch=sgs.Sanguosha:cloneCard("snatch", snatch:getSuit(), snatch:getNumber())
 	local use={isDummy=true}
+	snatch:setSkillName("jixi")
 	self:useCardSnatch(snatch,use)
 	if use.card then return sgs.Card_Parse("@JixiCard=.") end
 end

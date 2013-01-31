@@ -334,7 +334,7 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 
 	end
 	
-	--[[
+	
 	self:sort(enemies,"defense")
 	if least_friend then
 		for _,enemy in ipairs(enemies) do
@@ -351,7 +351,7 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 			end
 		end
 	end
-	]]
+	
 
 
 	self:sort(enemies, "handcard", true)

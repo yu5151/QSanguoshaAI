@@ -1011,7 +1011,7 @@ sgs.ai_keep_value.Nullification = 3
 sgs.ai_use_value.Nullification = 8
 
 function SmartAI:useCardAmazingGrace(card, use)
-	if self.player:hasSkill("noswuyan") then use.card = card end
+	if self.player:hasSkill("noswuyan") then use.card = card  return end
 	if (self.role == "lord" or self.role == "loyalist") and sgs.turncount <= 2 and self.player:getSeat() <= 3 and self.player:aliveCount() > 5 then return end
 	local value = 1
 	local suf, coeff = 0.8, 0.8
@@ -1092,7 +1092,7 @@ function SmartAI:willUseGodSalvation(card)
 			end
 		end
 	end
-	return good > bad
+	return good - bad > 5
 end
 
 function SmartAI:useCardGodSalvation(card, use)	

@@ -1760,38 +1760,82 @@ function SmartAI:filterEvent(event, player, data)
 	end
 
 	if self ~= sgs.recorder then return end
+	
+	if event == sgs.TargetConfirmed then
+	
+		local struct = data:toCardUse()
+		local from  = struct.from
+		if from and from:objectName() == player:objectName() then
 
-	if event == sgs.CardEffect then
-		local struct = data:toCardEffect()
-		local card = struct.card
-		local from = struct.from
-		local to = struct.to
-		if card:isKindOf("Collateral") then sgs.ai_collateral = true end
-		if card:isKindOf("Dismantlement") or card:isKindOf("Snatch")
-			or card:isKindOf("YinlingCard") then
-			sgs.ai_snat_disma_effect = true
-			sgs.ai_snat_dism_from = struct.from
-			if to:getCards("j"):isEmpty() and
-				not (to:getArmor() and to:getArmor():isKindOf("SilverLion")) then
-				sgs.updateIntention(from, to, 80)
+			local card = struct.card
+			local to = sgs.QList2Table(struct.to)
+			local source =  self.room:getCurrent()
+			local str
+
+			str = card:getClassName() .. card:toString() .. ":"
+			local toname = {}
+
+			if card:isKindOf("Collateral") then sgs.ai_collateral = true end
+
+			for _, ato in ipairs(to) do
+				table.insert(toname, ato:getGeneralName())
+
+				
+				if card:isKindOf("Dismantlement") or card:isKindOf("Snatch") or card:isKindOf("YinlingCard") then
+					sgs.ai_snat_disma_effect = true
+					sgs.ai_snat_dism_from = struct.from
+					if ato:getCards("j"):isEmpty() and not (ato:getArmor() and ato:getArmor():isKindOf("SilverLion")) and not (ato:hasSkill("kongcheng") and ato:getHandcardNum() == 1) then
+						sgs.updateIntention(from, ato, 80)
+					end
+				end
+				if card:isKindOf("Slash") then
+					if ato:hasSkill("leiji") and 
+						(getCardsNum("Jink", ato)>0 or (to:getArmor() and ato:getArmor():objectName() == "EightDiagram"))
+						and (ato:getHandcardNum()>2 or from:getState() == "robot") then
+						sgs.ai_leiji_effect = true
+					elseif from and from:hasSkill("gzkuangfu") then				
+						sgs.gzkuangfu_to = ato
+					end
+				end		
+				if card:isKindOf("SongciCard") and from and ato then
+					if ato:getHandcardNum() > ato:getHp() then
+						sgs.updateIntention(from, ato, 100)
+					elseif to:getHandcardNum() < to:getHp() then
+						sgs.updateIntention(from, ato, -100)
+					end
+				end
+
 			end
+			if from then str = str .. from:getGeneralName() .. "->" .. table.concat(toname, "+") end
+			if source then str = str .. "#" .. source:getGeneralName() end
+			sgs.laststr = str
+
+			local callback = sgs.ai_card_intention[card:getClassName()]
+			if callback then
+				if type(callback) == "function" then
+					callback(card, from, to)
+				elseif type(callback) == "number" then
+					sgs.updateIntentions(from, to, callback, card)
+				end
+			else
+				if card:isKindOf("SkillCard") and not card:targetFixed() then
+					logmsg("card_intention.txt", card:getClassName()) -- tmp debug
+				end
+			end
+			if card:getClassName() == "LuaSkillCard" and card:isKindOf("LuaSkillCard") then
+				local luaskillcardcallback = sgs.ai_card_intention[card:objectName()]
+				if luaskillcardcallback then
+					if type(luaskillcardcallback) == "function" then
+						luaskillcardcallback(card, from, to)
+					elseif type(luaskillcardcallback) == "number" then
+						sgs.updateIntentions(from, to, luaskillcardcallback, card)
+					end
+				end
+			end
+
 		end
-		if card:isKindOf("Slash") then
-			if to:hasSkill("leiji") and 
-				(getCardsNum("Jink", to)>0 or (to:getArmor() and to:getArmor():objectName() == "EightDiagram"))
-				and (to:getHandcardNum()>2 or from:getState() == "robot") then
-				sgs.ai_leiji_effect = true
-			elseif from and from:hasSkill("gzkuangfu") then				
-				sgs.gzkuangfu_to = to
-			end
-		end		
-		if card:isKindOf("SongciCard") and from and to then
-			if to:getHandcardNum() > to:getHp() then
-				sgs.updateIntention(from, to, 100)
-			elseif to:getHandcardNum() < to:getHp() then
-				sgs.updateIntention(from, to, -100)
-			end
-		end
+	elseif event == sgs.CardEffect then
+		
 	elseif event == sgs.Damaged then
 		local damage = data:toDamage()
 		local card = damage.card
@@ -1820,44 +1864,7 @@ function SmartAI:filterEvent(event, player, data)
 			if from and intention~=0 then sgs.updateIntention(from, to, intention) end
 		end
 	elseif event == sgs.CardUsed then
-		local struct = data:toCardUse()
-		local card = struct.card
-		local to = struct.to
-		to = sgs.QList2Table(to)
-		local from  = struct.from
-		local source =  self.room:getCurrent()
-		local str
-		str = card:getClassName() .. card:toString() .. ":"
-		local toname = {}
-		for _, ato in ipairs(to) do
-			table.insert(toname, ato:getGeneralName())
-		end
-		if from then str = str .. from:getGeneralName() .. "->" .. table.concat(toname, "+") end
-		if source then str = str .. "#" .. source:getGeneralName() end
-		sgs.laststr = str
-
-		local callback = sgs.ai_card_intention[card:getClassName()]
-		if callback then
-			if type(callback) == "function" then
-				callback(card, from, to)
-			elseif type(callback) == "number" then
-				sgs.updateIntentions(from, to, callback, card)
-			end
-		else
-			if card:isKindOf("SkillCard") and not card:targetFixed() then
-				logmsg("card_intention.txt", card:getClassName()) -- tmp debug
-			end
-		end
-		if card:getClassName() == "LuaSkillCard" and card:isKindOf("LuaSkillCard") then
-			local luaskillcardcallback = sgs.ai_card_intention[card:objectName()]
-			if luaskillcardcallback then
-				if type(luaskillcardcallback) == "function" then
-					luaskillcardcallback(card, from, to)
-				elseif type(luaskillcardcallback) == "number" then
-					sgs.updateIntentions(from, to, luaskillcardcallback, card)
-				end
-			end
-		end
+	
 	elseif event == sgs.CardsMoveOneTime then
 		local move = data:toMoveOneTime()
 		local from = move.from

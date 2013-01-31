@@ -1921,7 +1921,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 				dismantlement = card:getEffectiveId()
 			elseif card:isKindOf("Indulgence") and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("Indulgence") then
 				indulgence = card:getEffectiveId()
-			elseif card:isKindOf("SupplyShortage")	and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("SupplyShortage") then
+			elseif card:isKindOf("SupplyShortage")	and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("supply_shortage") then
 				supplyshortage = card:getEffectiveId()
 			elseif card:isKindOf("Collatera") and self:hasTrickEffective(card,enemy) and enemy:getWeapon() then
 				collatera = card:getEffectiveId()

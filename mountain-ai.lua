@@ -523,7 +523,7 @@ end
 
 sgs.ai_skill_choice.tiaoxin = sgs.ai_skill_choice.collateral
 
-sgs.ai_skill_cardask["tiaoxin-slash"] = function(self, data, pattern, target)
+sgs.ai_skill_cardask["@tiaoxin-slash"] = function(self, data, pattern, target)
 	if target then
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if self:slashIsEffective(slash, target) and self:isFriend(target) and target:hasSkill("leiji") then

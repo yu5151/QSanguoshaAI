@@ -1049,11 +1049,6 @@ sgs.ai_card_intention.general=function(from,to,level)
 			log.arg  = string.format("%d", sgs.role_evaluation[from:objectName()]["renegade"])
 			log.arg2 = string.format("pro%s", sgs.gameProcess(global_room))
 			global_room:sendLog(log)
-
-			from:speak(string.format("忠:%d,反:%d,内:%d",
-							sgs.role_evaluation[from:objectName()]["loyalist"],
-							sgs.role_evaluation[from:objectName()]["rebel"],
-							sgs.role_evaluation[from:objectName()]["renegade"]))
 		end
 	end
 
@@ -1946,12 +1941,12 @@ function SmartAI:filterEvent(event, player, data)
 			for _, aplayer in sgs.qlist(self.room:getAllPlayers()) do
 				if aplayer:getState() ~= "robot" then humanCount = humanCount +1 end
 				if not aplayer:isLord() then 
-					msg = msg..string.format("%s %s, ",sgs.Sanguosha:translate(aplayer:getGeneralName()),sgs.Sanguosha:translate(aplayer:getRole()))
+					msg = msg..string.format("%s %s, ",aplayer:getGeneralName(),aplayer:getRole())
 				end
 			end
 			self.room:setTag("humanCount",sgs.QVariant(humanCount))
 
-			if humanCount == 1 then player:speak(msg) end
+			if humanCount == 1 then global_room:writeToConsole(msg) end
 		end
 
 	elseif event == sgs.GameStart then		

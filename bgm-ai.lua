@@ -696,6 +696,7 @@ sgs.ai_skill_use_func.YinlingCard = function(card, use, self)
 			if not player:isLord() then	table.insert(enemies, player) end
 		end
 		enemies = self:exclude(enemies, card)
+		if sgs.turncount < 3 then enemies = {enemies[1 + (os.time() % #enemies)]} end
 		self:sort(enemies,"defenseSlash", true)
 	else
 		enemies = self:exclude(self.enemies, card)

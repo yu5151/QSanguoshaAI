@@ -331,12 +331,12 @@ function SmartAI:getUseValue(card)
 			if self:isEquip("Crossbow") then v = v + 4 end
 
 			if card:getSkillName() == "Spear"   then v = v - 1 end
-			if card:getSkillName() == "longdan" then v = v + 1 end
+			if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 1 end
 			if card:getSkillName() == "wusheng" then v = v + 1 end
 
 		elseif card:isKindOf("Jink") then
 			if self:getCardsNum("Jink") > 1 then v = v-6 end
-			if self.player:hasSkill("longdan") then v = 8.7 end
+			if self.player:hasSkill("longdan") and self:hasSkills("chongzhen") then v = 8.7 end
 		elseif card:isKindOf("Peach") then
 			if self.player:isWounded() then v = v + 6 end
 		end
@@ -403,7 +403,7 @@ function SmartAI:adjustUsePriority(card,v)
 	table.insert(suits,"no_suit")
 	if card:isKindOf("Slash") then 
 		if card:getSkillName() == "Spear"   then v = v - 0.01 end
-		if card:getSkillName() == "longdan" then v = v + 0.01 end
+		if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 0.01 end
 		if card:getSkillName() == "wusheng" then v = v + 0.01 end
 	end
 

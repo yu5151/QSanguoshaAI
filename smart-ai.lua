@@ -1336,7 +1336,7 @@ function SmartAI:objectiveLevel(player)
 			if #players == 2 and self.role == "loyalist" then return 5 end
 			self:sort(players, "hp")
 			local maxhp = players[#players]:getHp()
-			if maxhp > 2 then return player:getHp() == maxhp and 5 or 1 end
+			if maxhp > 2 then return player:getHp() == maxhp and 5 or 0 end
 			if maxhp == 2 then return self.player:isLord() and 0 or (player:getHp() == maxhp and 5 or 1) end			
 			return self.player:isLord() and 0 or 5
 		end

@@ -1303,26 +1303,16 @@ function SmartAI:objectiveLevel(player)
 				if not players[i]:isLord() and math.abs(sgs.ai_chaofeng[players[i]:getGeneralName()] or 0) >3 then return 5 end
 			end
 			return 3
-		elseif process:match("rebel") then
-			if target_role == "rebel" then 
-				if process == "rebel" then return 5 else return 3 end			
-			else return -1 end
+		elseif process:match("rebel") then			
+			return target_role == "rebel" and 5 or -1
 		elseif process:match("dilemma") then
 			if target_role == "rebel" then return 5
 			elseif player:isLord() then return -2
 			elseif target_role == "renegade" then return 0
 			else return 5 end
 		else
-			if target_role == "rebel" then 
-				return -2			
-			else
-				if player:isLord() then
-					if not sgs.isLordHealthy() then  return 0
-						else return 3 end
-				else
-					if process == "loyalist" then return 5 else return 3 end
-				end
-			end
+			if player:isLord() or target_role == "renegade" then return 0 end
+			return target_role == "rebel" and -2 or 5
 		end
 	end
 	

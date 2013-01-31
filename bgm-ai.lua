@@ -689,8 +689,20 @@ sgs.ai_skill_use_func.YinlingCard = function(card, use, self)
 	local players = self.room:getOtherPlayers(self.player)
 	players = self:exclude(players, card)
 
-	self:sort(self.enemies, "defenseSlash")
-	local enemies = self:exclude(self.enemies, card)
+	local enemies = {}
+
+	if #self.enemies ==0 then
+		for _, player in ipairs(players) do
+			if not player:isLord() then	table.insert(enemies, player) end
+		end
+		enemies = self:exclude(enemies, card)
+		self:sort(enemies,"defenseSlash", true)
+	else
+		enemies = self:exclude(self.enemies, card)
+		self:sort(enemies,"defenseSlash")
+	end
+
+
 	self:sort(self.friends_noself,"defense")
 	local friends = self:exclude(self.friends_noself, card)
 	local hasLion, target
@@ -837,6 +849,8 @@ sgs.ai_skill_invoke.junwei = function(self, data)
 	return #self.enemies > 0
 end
 
+sgs.ai_playerchosen_intention.junwei = 80
+
 sgs.ai_skill_playerchosen.junwei = function(self, targets)
 	local tos = {}
 	for _, target in sgs.qlist(targets) do
@@ -850,6 +864,8 @@ sgs.ai_skill_playerchosen.junwei = function(self, targets)
 		return tos[1]
 	end
 end
+
+sgs.ai_playerchosen_intention.junweigive = -80
 
 sgs.ai_skill_playerchosen.junweigive = function(self, targets)
 	local tos = {}

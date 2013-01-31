@@ -355,6 +355,32 @@ sgs.ai_event_callback[sgs.ChoiceMade].fireattack=function(self,player,data)
 	end
 end
 
+sgs.ai_skill_cardask["@fire-attack"] = function(self, data, pattern, target)
+	local cards = sgs.QList2Table(self.player:getHandcards())
+	local convert = { [".S"] = "spade", [".D"] = "diamond", [".H"] = "heart", [".C"] = "club"} 
+	local card
+
+	self:sortByUseValue(cards, true)
+
+	for _, acard in ipairs(cards) do
+		if acard:getSuitString() == convert[pattern] then
+			card = acard
+			break
+		end
+	end
+
+	if card and card:isKindOf("Peach") and (not self:isWeak(target)) or (self:isWeak() and self.player:isLord()) then
+		card = nil
+	end
+
+	if card then
+		return card:getId()
+	else
+		self.room:setPlayerFlag(self.player, "FireAttackFailed_" .. self.room:getTag("LastFireAttack"):toString())
+		return "."
+	end
+end
+
 function SmartAI:useCardFireAttack(fire_attack, use)  
 	if self.player:hasSkill("wuyan") then return end
 	if self.player:hasSkill("noswuyan") then return end

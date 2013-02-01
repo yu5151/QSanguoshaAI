@@ -747,3 +747,62 @@ function SmartAI:qvt(data)
 	end
 	return "Unknown"
 end
+--[[
+	主题：集火
+]]--
+sgs.ai_event_callback[sgs.Damaged].general = function(self, player, data)
+	local damage = data:toDamage()
+	local count = damage.damage
+	local marks = player:getMark("FocusDamageCount")
+	self.room:setPlayerMark(player, "FocusDamageCount", marks + count)
+end
+sgs.ai_event_callback[sgs.HpRecover].general = function(self, player, data)
+	local recover = data:toRecover()
+	local count = recover.recover
+	local marks = player:getMark("FocusRecoverCount")
+	self.room:setPlayerMark(player, "FocusRecoverCount", marks + count)
+end
+function SmartAI:getDamagePoint(player)
+	if player then
+		return player:getMark("FocusDamageCount")
+	end
+	return 0
+end
+function SmartAI:getRecoverPoint(player)
+	if player then
+		return player:getMark("FocusRecoverCount")
+	end
+	return 0
+end
+function SmartAI:RecoverRate(player)
+	if player then
+		local room = player:getRoom()
+		local damage = player:getMark("FocusDamageCount")
+		local recover = player:getMark("FocusRecoverCount")
+		local rate = (recover+1) / damage
+		return (recover+1)*rate + damage*0.05
+	end
+	return 1000
+end
+function SmartAI:sortByRecoverRate(players, inverse)
+	local compare_func = function(a,b)
+		local rateA = self:RecoverRate(a)
+		local rateB = self:RecoverRate(b)
+		if rateA == rateB then
+			return self:getDamagePoint(a) < self:getDamagePoint(b)
+		else
+			if inverse then
+				return rateA > rateB
+			else
+				return rateA < rateB
+			end
+		end
+	end
+	table.sort(players, compare_func)
+end
+function SmartAI:getFocusTarget(players)
+	if players and #players > 0 then
+		self:sortByRecoverRate(players)
+		return players[1]
+	end
+end

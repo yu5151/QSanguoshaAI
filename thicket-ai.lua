@@ -280,7 +280,7 @@ dimeng_skill.getTurnUseCard=function(self)
 
 end
 
---ÒªÇó£ºmycardsÊÇ¾­¹ýsortByKeepValueÅÅÐòµÄ--
+--è¦æ±‚ï¼šmycardsæ˜¯ç»è¿‡sortByKeepValueæŽ’åºçš„--
 function DimengIsWorth(self, friend, enemy, mycards, myequips)
 	local hand1 = enemy:getHandcardNum()
 	local hand2 = friend:getHandcardNum()
@@ -340,7 +340,7 @@ sgs.ai_skill_use_func.DimengCard=function(card,use,self)
 			table.insert(myequips, c)
 		end
 	end
-	self:sortByKeepValue(mycards) --ÌÒµÄkeepValueÊÇ5£¬useValueÊÇ6£»Ë³ÊÖÇ£ÑòµÄkeepValueÊÇ1.9£¬useValueÊÇ9
+	self:sortByKeepValue(mycards) --æ¡ƒçš„keepValueæ˜¯5ï¼ŒuseValueæ˜¯6ï¼›é¡ºæ‰‹ç‰µç¾Šçš„keepValueæ˜¯1.9ï¼ŒuseValueæ˜¯9
 
 	self:sort(self.enemies,"handcard")
 	local friends={}
@@ -381,7 +381,7 @@ sgs.ai_skill_use_func.DimengCard=function(card,use,self)
 		end
 	end
 end
---µÞÃËµÄÆúÅÆ²ßÂÔ--
+--ç¼”ç›Ÿçš„å¼ƒç‰Œç­–ç•¥--
 sgs.ai_skill_discard.DimengCard = function(self, discard_num, min_num, optional, include_equip)
 	local cards = self.player:getCards("he")
 	local to_discard = {}
@@ -396,7 +396,7 @@ sgs.ai_skill_discard.DimengCard = function(self, discard_num, min_num, optional,
 			elseif card:isKindOf("DefensiveHorse") then return 3
 			elseif card:isKindOf("Armor") then return 4
 			end
-		elseif self:getUseValue(card) > 7 then return 3 --Ê¹ÓÃ¼ÛÖµ¸ßµÄÅÆ£¬ÈçË³ÊÖÇ£Ñò(9)
+		elseif self:getUseValue(card) > 7 then return 3 --ä½¿ç”¨ä»·å€¼é«˜çš„ç‰Œï¼Œå¦‚é¡ºæ‰‹ç‰µç¾Š(9)
 		elseif self:hasSkills(sgs.lose_equip_skill) then return 5
 		else return 0
 		end

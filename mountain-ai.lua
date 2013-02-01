@@ -314,7 +314,7 @@ sgs.ai_card_intention.QiaobianCard = function(card, from, tos, source)
 	return 0
 end
 
-function sgs.ai_cardneed.qiaobiao(to, card)
+function sgs.ai_cardneed.qiaobian(to, card)
 	return to:getCards("h"):length() <= 2
 end
 

@@ -314,6 +314,7 @@ function SmartAI:useCardSlash(card, use)
 	or (self.player:hasSkill("shenji") and not self.player:getWeapon()) then
 		self.slash_targets = self.slash_targets + 2
 	end
+	if self.player:hasSkill("duanbing") then self.slash_targets = self.slash_targets + 1 end
 
 	self.predictedRange = self.player:getAttackRange()
 

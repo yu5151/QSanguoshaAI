@@ -353,7 +353,7 @@ function SmartAI:getUseValue(card)
 	if self:hasSkills(sgs.need_kongcheng) then
 		if self.player:getHandcardNum() == 1 then v = 10 end
 	end
-	if self:hasSkills("Halberd|halberd") and card:isKindOf("Slash") and self.player:getHandcardNum() == 1 then v = 10 end
+	if self.player:hasWeapon("Halberd") and card:isKindOf("Slash") and self.player:getHandcardNum() == 1 then v = 10 end
 	if card:getTypeId() == sgs.Card_Skill then
 		if v == 0 then v = 10 end
 	end
@@ -2507,22 +2507,22 @@ end
 
 function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	local effect = data:toSlashEffect()
-	local nature
-	if effect and effect.slash then nature=effect.nature end
+	local damage_nature
+	if effect and effect.slash then damage_nature=effect.nature end
 	
 	if self.player:isDead() then return "." end
-
-	if not self:damageIsEffective(nil, nature, target) then return "." end
+	
+	if target and target:hasSkill("jueqing") then return end
+	if not self:damageIsEffective(nil, damage_nature, target) then return "." end
 	if target and target:hasSkill("guagu") and self.player:isLord() then return "." end
 	if effect and self:hasHeavySlashDamage(target, effect.slash) then return end
 
 	if target and target:getWeapon() and target:getWeapon():isKindOf("IceSword") and self.player:getCards("he"):length() > 2 then return end
-	if target and target:hasSkill("jueqing") then return end
 	if self:needBear() and self.player:getLostHp() < 2 then return "." end
 	if self.player:hasSkill("zili") and not self.player:hasSkill("paiyi") and self.player:getLostHp() < 2 then return "." end
 	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 and self.player:getHp() > 2 then return "." end
 	if self.player:hasSkill("tianxiang") then
-		local dmgStr = {damage = 1, nature = 0}
+		local dmgStr = {damage = 1, nature = damage_nature}
 		local willTianxiang = sgs.ai_skill_use["@@tianxiang"](self, dmgStr)
 		if willTianxiang ~= "." then return "." end
 	elseif self.player:hasSkill("longhun") and self.player:getHp() > 1 then
@@ -4201,11 +4201,25 @@ function SmartAI:getAoeValue(card, player)
 			bad = bad + 250
 		end
 	end
-	if self:hasSkills("shenhun|jizhi", self.player) then good = good + 25 end
 
-	if sgs.turncount < 2 and self.player:getSeat() <= 3 and card:isKindOf("SavageAssault") and not self:hasSkills("shenhun|jizhi", self.player) then
-		if self.role ~= "rebel" then good = good + 50 end
-		if self.role == "rebel" then bad = bad + 50 end
+	local forbid_start = true
+	if self.player:hasSkill("jizhi") then
+		forbid_start = false
+		good = good + 25
+	end
+	
+	if self.player:hasSkill("shenfen") and self.player:hasSkill("kuangbao") then
+		forbid_start = false
+		good = good + 15
+		if not self.player:hasSkill("wumou") then
+			good = good + 10
+		elseif self.player:getMark("@wrath") > 0 then
+			good = good + 5
+		end
+	end
+
+	if forbid_start and sgs.turncount < 2 and self.player:getSeat() <= 3 and card:isKindOf("SavageAssault") then
+		if self.role ~= "rebel" then good = good + 50 else bad = bad + 50 end
 	end
 
 	return good - bad

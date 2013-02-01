@@ -314,6 +314,10 @@ sgs.ai_card_intention.QiaobianCard = function(card, from, tos, source)
 	return 0
 end
 
+function sgs.ai_cardneed.qiaobiao(to, card)
+	return to:getCards("h"):length() <= 2
+end
+
 sgs.ai_skill_invoke.tuntian = true
 
 local jixi_skill={}
@@ -751,6 +755,10 @@ sgs.ai_chaofeng.erzhang = 5
 sgs.ai_skill_invoke.beige = function(self, data)
 	local damage = data:toDamage()
 	return self:isFriend(damage.to) and not self:isFriend(damage.from)
+end
+
+function sgs.ai_cardneed.beige(to, card)
+	return to:getCards("h"):length() <= 2
 end
 
 function sgs.ai_slash_prohibit.duanchang(self, to)

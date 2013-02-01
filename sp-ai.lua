@@ -472,8 +472,14 @@ end
 sgs.ai_use_value.SongciCard = 3
 sgs.ai_use_priority.SongciCard = 2.5
 
-sgs.ai_card_intention.SongciCard = function(card, from, to)
-	sgs.updateIntention(from, to[1], to[1]:getHandcardNum() > to[1]:getHp() and 80 or -80)	
+sgs.ai_card_intention.SongciCard = function(card, from, tos, source)	
+	for _, to in ipairs(tos) do
+		if to:getHandcardNum() > to:getHp() then
+			sgs.updateIntention(from, to, 100)
+		elseif to:getHandcardNum() < to:getHp() then
+			sgs.updateIntention(from, to, -100)
+		end
+	end	
 end
 
 sgs.ai_skill_invoke.cv_sunshangxiang = function(self, data)

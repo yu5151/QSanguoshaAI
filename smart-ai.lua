@@ -3061,7 +3061,7 @@ function SmartAI:askForSinglePeach(dying)
 			if not same then return "." end
 		end
 		if dying:hasFlag("Kurou_toDie") and (not dying:getWeapon() or dying:getWeapon():objectName()~="Crossbow") then return "." end
-		if self.player:objectName() ~= dying:objectName() and dying:hasSkill("jiushi") and dying:faceUp() then
+		if self.player:objectName() ~= dying:objectName() and dying:hasSkill("jiushi") and dying:faceUp() and dying:getHp()== 0 then
 			return "."
 		end
 		if (self.player:objectName() == dying:objectName()) then

@@ -1045,7 +1045,7 @@ function SmartAI:willUseGodSalvation(card)
 
 	local liuxie = self.room:findPlayerBySkillName("huangen")
 	if liuxie then
-		if self:isFriend(player, liuxie) then
+		if self:isFriend(self.player, liuxie) then
 			good = good + 5 * liuxie:getHp()
 		else
 			bad = bad + 5 * liuxie:getHp()

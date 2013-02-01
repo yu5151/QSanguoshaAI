@@ -3061,6 +3061,9 @@ function SmartAI:askForSinglePeach(dying)
 			if not same then return "." end
 		end
 		if dying:hasFlag("Kurou_toDie") and (not dying:getWeapon() or dying:getWeapon():objectName()~="Crossbow") then return "." end
+		if self.player:objectName() ~= dying:objectName() and dying:hasSkill("jiushi") and dying:faceUp() then
+			return "."
+		end
 		if (self.player:objectName() == dying:objectName()) then
 			card_str = self:getCardId("Analeptic")
 			if not card_str then 

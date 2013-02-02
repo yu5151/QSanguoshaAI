@@ -1667,14 +1667,14 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 		local maxSlash = 0
 		local friend_maxSlash
 		for _, friend in ipairs(self.friends_noself) do
-			if (getCardsNum("Slash", friend)> maxSlash) and friend:isMale() then
+			if (getCardsNum("Slash", friend)> maxSlash) and friend:isMale() and not self:hasSkills("wuyan|noswuyan", friend) then
 				maxSlash=getCardsNum("Slash", friend)
 				friend_maxSlash = friend
 			end
 		end
 		if friend_maxSlash then
 			local safe = false
-			if self:hasSkills("ganglie|fankui|enyuan|neoganglie|nosenyuan", first) then
+			if self:hasSkills("ganglie|fankui|enyuan|neoganglie|nosenyuan", first) and not self:hasSkills("wuyan|noswuyan", first) then
 				if (first:getHp()<=1 and first:getHandcardNum()==0) then safe=true end
 			elseif (getCardsNum("Slash", friend_maxSlash) >= getCardsNum("Slash", first)) then safe=true end
 			if safe then return friend_maxSlash end

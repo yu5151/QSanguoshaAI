@@ -400,6 +400,7 @@ sgs.ai_skill_discard.DimengCard = function(self, discard_num, min_num, optional,
 		elseif self:hasSkills(sgs.lose_equip_skill) then return 5
 		else return 0
 		end
+		return 0
 	end
 	
 	local compare_func = function(a, b)
@@ -411,12 +412,8 @@ sgs.ai_skill_discard.DimengCard = function(self, discard_num, min_num, optional,
 
 	table.sort(cards, compare_func)
 	for _, card in ipairs(cards) do
-		if #to_discard >= discard_num then 
-			break 
-		end
-		if not self.player:isJilei(card) then
-			table.insert(to_discard, card:getId())
-		end
+		if not self.player:isJilei(card) then table.insert(to_discard, card:getId()) end
+		if #to_discard >= discard_num then break end
 	end
 	return to_discard
 end
@@ -427,7 +424,7 @@ sgs.ai_card_intention.DimengCard = function(card, from, to)
 	end
 	table.sort(to, compare_func)
 	if to[1]:getHandcardNum() < to[2]:getHandcardNum() then
-		sgs.updateIntention(from, to[1], (to[2]:getHandcardNum()-to[1]:getHandcardNum())*20+40)
+		sgs.updateIntention(from, to[1], -80)
 	end
 end
 

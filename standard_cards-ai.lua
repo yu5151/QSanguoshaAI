@@ -1038,6 +1038,7 @@ sgs.ai_use_priority.AmazingGrace = 1.2
 function SmartAI:willUseGodSalvation(card)
 	if not card then self.room:writeToConsole(debug.traceback()) return false end
 	local good, bad = 0, 0
+	local wounded_friend = 0
 	if self.player:hasSkill("noswuyan") and self.player:isWounded() then return true end
 	
 	if self:hasSkills("jizhi") then good = good + 6 end
@@ -1056,6 +1057,7 @@ function SmartAI:willUseGodSalvation(card)
 		good = good + 10 * getCardsNum("Nullification", friend)
 		if not ((friend:hasSkill("zhichi") and self.room:getTag("Zhichi"):toString() == friend:objectName()) or friend:hasSkill("noswuyan")) then					
 			if friend:isWounded() then
+				wounded_friend = wounded_friend + 1
 				good = good + 10
 				if friend:isLord() then good = good + 11/(friend:getHp() + 0.1) end
 				if self:hasSkills(sgs.masochism_skill, friend) then
@@ -1093,7 +1095,7 @@ function SmartAI:willUseGodSalvation(card)
 			end
 		end
 	end
-	return good - bad > 5
+	return good - bad > 5 and wounded_friend > 0 
 end
 
 function SmartAI:useCardGodSalvation(card, use)	

@@ -4191,6 +4191,10 @@ function SmartAI:getAoeValue(card, player)
 		if self.role ~= "rebel" then good = good + 50 else bad = bad + 50 end
 	end
 
+	if sgs.current_mode_players["rebel"] ==0 and self.role ~= "renegade" then
+		bad = bad + 300
+	end
+
 	return good - bad
 end
 

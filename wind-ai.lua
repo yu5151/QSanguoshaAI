@@ -103,24 +103,7 @@ sgs.ai_cardneed.shensu = sgs.ai_cardneed.equip
 
 sgs.ai_card_intention.ShensuCard = 80
 
-sgs.shensu_keep_value = {
-	Peach = 6,
-	Jink = 5.1,
-	Crossbow = 5,
-	Blade = 5,
-	Spear = 5,
-	DoubleSword =5,
-	QinggangSword=5,
-	Axe=5,
-	KylinBow=5,
-	Halberd=5,
-	IceSword=5,
-	Fan=5,
-	MoonSpear=5,
-	GudingBlade=5,
-	DefensiveHorse = 5,
-	OffensiveHorse = 5
-}
+sgs.shensu_keep_value = sgs.xiaoji_keep_value
 
 function sgs.ai_skill_invoke.jushou(self, data)
 	if not self.player:faceUp() then return true end

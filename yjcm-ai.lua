@@ -68,10 +68,7 @@ sgs.ai_use_priority.JujianCard = 4.5
 sgs.jujian_keep_value = {
 	Peach = 6,
 	Jink = 5,
-	Weapon = 5,
-	Armor = 5,
-	DefensiveHorse = 5,
-	OffensiveHorse = 5,
+	EquipCard = 5,
 	Duel = 5,
 	FireAttack = 5,
 	ArcheryAttack = 5,
@@ -324,6 +321,7 @@ sgs.ai_skill_use["@@xuanfeng"] = function(self, prompt)
 end
 
 sgs.ai_card_intention.XuanfengCard = 80
+sgs.xuanfeng_keep_value = sgs.xiaoji_keep_value
 
 sgs.ai_skill_playerchosen.xuanfeng = function(self, targets)	
 	targets = sgs.QList2Table(targets)

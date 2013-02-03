@@ -497,7 +497,7 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 	
 	self:sort(targetlist, "defenseSlash", true)
 	for _, target in ipairs(targetlist) do
-		if target:objectName() ~= self.player:objectName() and self:isEnemy(target) then
+		if target:objectName() ~= self.player:objectName() and not self:isFriend(target) then
 			return target
 		end
 	end

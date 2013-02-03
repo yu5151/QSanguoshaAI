@@ -1781,26 +1781,6 @@ function SmartAI:filterEvent(event, player, data)
 
 			local card = struct.card
 			local to = sgs.QList2Table(struct.to)
-			local source =  self.room:getCurrent()
-
-			if card:isKindOf("Collateral") then sgs.ai_collateral = true end
-
-			if card:isKindOf("Dismantlement") or card:isKindOf("Snatch") or card:isKindOf("YinlingCard") then
-				sgs.ai_snat_disma_effect = true
-				sgs.ai_snat_dism_from = struct.from
-			end
-
-
-			for _, ato in ipairs(to) do
-				if card:isKindOf("Slash") then
-					if ato:hasSkill("leiji") and (getCardsNum("Jink", ato)>0 or ato:hasArmorEffect("EightDiagram")) then
-						sgs.updateIntention(from, ato, 3)
-						sgs.ai_leiji_effect = true
-					elseif from and from:hasSkill("gzkuangfu") then				
-						sgs.gzkuangfu_to = ato
-					end
-				end
-			end
 
 			local callback = sgs.ai_card_intention[card:getClassName()]
 			if callback then
@@ -1823,6 +1803,27 @@ function SmartAI:filterEvent(event, player, data)
 
 		end
 	elseif event == sgs.CardEffect then
+		local struct = data:toCardEffect()
+		local card = struct.card
+		local from = struct.from
+		local to = struct.to
+		if card:isKindOf("Collateral") then sgs.ai_collateral = true end
+		if card:isKindOf("Dismantlement") or card:isKindOf("Snatch") or card:isKindOf("YinlingCard") then
+			sgs.ai_snat_disma_effect = true
+			sgs.ai_snat_dism_from = struct.from
+			if to:getCards("j"):isEmpty() and not (to:getArmor() and to:getArmor():isKindOf("SilverLion")) then
+				sgs.updateIntention(from, to, 80)
+			end
+		end
+
+		if card:isKindOf("Slash") then
+			if to:hasSkill("leiji") and (getCardsNum("Jink", to)>0 or to:hasArmorEffect("EightDiagram")) then
+				sgs.updateIntention(from, to, 3)
+				sgs.ai_leiji_effect = true
+			elseif from and from:hasSkill("gzkuangfu") then				
+				sgs.gzkuangfu_to = to
+			end
+		end	
 		
 	elseif event == sgs.Damaged then
 		local damage = data:toDamage()
@@ -1852,6 +1853,48 @@ function SmartAI:filterEvent(event, player, data)
 			if from and intention~=0 then sgs.updateIntention(from, to, intention) end
 		end
 	elseif event == sgs.CardUsed then
+		if sgs.turncount <= 3 then
+			local struct = data:toCardUse()
+			local card = struct.card
+			local lord = self.room:getLord()
+			local who = struct.to:first()
+			if (card:isKindOf("Snatch") or card:isKindOf("Dismantlement") or card:isKindOf("YinlingCard")) and sgs.evaluatePlayerRole(who) == "unknown" then
+				local aplayer = self:exclude({lord}, card)
+				if #aplayer ==1 then sgs.updateIntention(player, lord, -10) end
+			end
+		end
+	elseif event == sgs.CardDiscarded then
+		if not player:isSkipped(sgs.Player_Play) and sgs.turncount <= 3 and player:getPhase() == sgs.Player_Discard then
+			local cards = data:toCard()
+			for _,cdid in sgs.qlist(cards:getSubcards()) do
+				local card = sgs.Sanguosha:getCard(cdid)
+				if card:isKindOf("Slash") and player:canSlashWithoutCrossbow() then
+					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
+						if player:canSlash(target, card, true) and self:slashIsEffective(card, target) 
+								and not self:slashProhibit(card, target) and sgs.isGoodTarget(target,self.enemies) then
+							sgs.updateIntention(player, target, -5)
+						end
+					end
+				end
+				if card:isKindOf("Indulgence") and not self.room:getLord():hasSkill("qiaobian") then
+					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
+						if not (target:containsTrick("indulgence") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
+							local aplayer = self:exclude( {target}, card)
+							if #aplayer ==1 then sgs.updateIntention(player, target, -5) end
+						end
+					end
+				end
+
+				if card:isKindOf("SupplyShortage") and not self.room:getLord():hasSkill("qiaobian") then
+					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
+						if not (target:containsTrick("supply_shortage") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
+							local aplayer = self:exclude( {target}, card)
+							if #aplayer ==1 then sgs.updateIntention(player, target, -5) end
+						end
+					end
+				end
+			end			
+		end
 	
 	elseif event == sgs.CardsMoveOneTime then
 		local move = data:toMoveOneTime()

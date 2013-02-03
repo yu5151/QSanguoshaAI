@@ -726,8 +726,6 @@ sgs.ai_skill_invoke.IceSword=function(self, data)
 	else
 		if self:isWeak(target) then return false end
 		if damage.damage > 1 then return false end
-		if self.player:hasSkill("wenjiu") and damage.card:isBlack() then return false end
-		if damage.card:isKindOf("FireSlash") and (target:hasArmorEffect("Vine") or target:getMark("@gale") > 0) then return false end
 
 		if target:getArmor() and self:evaluateArmor(target:getArmor(), target)>3 then return true end
 		local num = target:getHandcardNum()

@@ -1039,6 +1039,7 @@ function SmartAI:willUseGodSalvation(card)
 	if not card then self.room:writeToConsole(debug.traceback()) return false end
 	local good, bad = 0, 0
 	local wounded_friend = 0
+	local wounded_enemy = 0
 	if self.player:hasSkill("noswuyan") and self.player:isWounded() then return true end
 	
 	if self:hasSkills("jizhi") then good = good + 6 end
@@ -1078,6 +1079,7 @@ function SmartAI:willUseGodSalvation(card)
 		bad = bad + 10 * getCardsNum("Nullification", enemy)
 		if not ((enemy:hasSkill("zhichi") and self.room:getTag("Zhichi"):toString() == enemy:objectName()) or enemy:hasSkill("noswuyan")) then
 			if enemy:isWounded() then
+				wounded_enemy = wounded_enemy + 1
 				bad = bad + 10
 				if enemy:isLord() then
 					bad = bad + 11/(enemy:getHp() + 0.1)
@@ -1095,7 +1097,7 @@ function SmartAI:willUseGodSalvation(card)
 			end
 		end
 	end
-	return good - bad > 5 and wounded_friend > 0 
+	return (good - bad > 5 and wounded_friend > 0)  or (wounded_friend == 0 and wounded_enemy == 0 and self:hasSkills("jizhi"))
 end
 
 function SmartAI:useCardGodSalvation(card, use)	

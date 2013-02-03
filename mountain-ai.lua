@@ -408,7 +408,7 @@ sgs.ai_skill_invoke.fangquan = function(self, data)
 	if #self.friends == 1 then return end
 	
 	local limit = self.player:getMaxCards()
-	-- if self.player:getHandcardNum() > limit + 2 then return end
+	if self.player:getHandcardNum() > limit + 2 then return end
 	if self.player:isKongcheng() then return end
 	if self:getCardsNum("Peach") >= limit and self.player:isWounded() then return end	
 

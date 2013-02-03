@@ -1336,6 +1336,8 @@ function SmartAI:objectiveLevel(player)
 			if not (sgs.evaluatePlayerRole(player) == "loyalist" or sgs.evaluateRoleTrends(player) == "loyalist") then return 5 end
 		end
 
+		if process == "rebel" and rebel_num > loyal_num and target_role == "renegade" then return -2 end
+
 		if sgs.evaluatePlayerRole(player) == "rebel" then return 5
 		elseif sgs.evaluateRoleTrends(player) == "rebel" then return 3.5
 		elseif sgs.evaluatePlayerRole(player) == "loyalist" then return -2
@@ -1349,6 +1351,8 @@ function SmartAI:objectiveLevel(player)
 		if loyal_num ==0 and renegade_num ==0 then return player:isLord() and 5 or -2 end
 
 		if #players>=4 and sgs.role_evaluation[player:objectName()]["rebel"] ==30 and sgs.role_evaluation[player:objectName()]["loyalist"] ==30 and sgs.role_evaluation[player:objectName()]["renegade"] ==30  then return 0 end
+
+		if process == "loyalist" and loyal_num >rebel_num and target_role == "renegade" then return -2 end
 	  
 		if player:isLord() then return 5
 		elseif sgs.evaluatePlayerRole(player) == "loyalist" then return 5
@@ -2001,14 +2005,7 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 	self:assignKeep(self.player:getHp(),true)
 	if type(callback) == "function" then
 		local ret = callback(self, discard_num, min_num, optional, include_equip)
-		if ret and type(ret) == "table" then 
-			for _, card_id in ipairs(ret) do
-				if self.player:isJilei(sgs.Sanguosha:getCard(card_id)) then
-					return {}
-				end
-			end
-			return ret
-		end
+		if ret and type(ret) == "table" then return ret end
 	elseif optional then 
 		return {} 
 	end
@@ -2049,8 +2046,6 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 end
 
 sgs.ai_skill_discard.gamerule = function(self, discard_num, min_num)
-	if self:getOverflow() <= 0 then return {} end
-
 	local cards = sgs.QList2Table(self.player:getCards("h"))
 	local to_discard = {}	
 	local peaches, jinks, analeptics, nullifications, slashes = {}, {}, {}, {}, {}
@@ -2149,21 +2144,21 @@ sgs.ai_skill_discard.gamerule = function(self, discard_num, min_num)
 	end
 	
 	if debugprint then logmsg("discard.html", ":::") end
-	
-	for i = #sortedCards, 1, -1 do
-		table.insert(to_discard, sortedCards[i]:getId())
-		if #to_discard == discard_num or self.player:isKongcheng() then return to_discard end
-		if debugprint then logmsg("discard.html", "discard :  "  ..sortedCards[i]:getLogName()) end
+
+
+	local least = min_num
+	if discard_num - min_num > 1 then
+		least = discard_num -1
 	end
 
-	if debugprint then
-		logmsg("discard.html", "")
-		logmsg("discard.html", "")
-		logmsg("discard.html", "</pre>")
+	for i = #sortedCards, 1, -1 do		
+		if not self.player:isJilei(sortedCards[i]) then			
+			table.insert(to_discard, sortedCards[i]:getId())
+			if debugprint then logmsg("discard.html", "discard :  "  ..sortedCards[i]:getLogName()) end
+		end
+		if (self.player:hasSkill("qinyin") and #to_discard >= least) or #to_discard >= discard_num or self.player:isKongcheng() then break end
 	end
-	
-	return {}	
-
+	return to_discard
 end
 
 
@@ -4211,6 +4206,10 @@ function SmartAI:getAoeValue(card, player)
 
 	if forbid_start and sgs.turncount < 2 and self.player:getSeat() <= 3 and card:isKindOf("SavageAssault") then
 		if self.role ~= "rebel" then good = good + 50 else bad = bad + 50 end
+	end
+
+	if sgs.current_mode_players["rebel"] ==0 and self.role ~= "renegade" then
+		bad = bad + 300
 	end
 
 	return good - bad

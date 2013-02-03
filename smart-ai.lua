@@ -1781,6 +1781,7 @@ function SmartAI:filterEvent(event, player, data)
 			for _, ato in ipairs(to) do
 				if card:isKindOf("Slash") then
 					if ato:hasSkill("leiji") and (getCardsNum("Jink", ato)>0 or ato:hasArmorEffect("EightDiagram")) then
+						sgs.updateIntention(from, ato, 3)
 						sgs.ai_leiji_effect = true
 					elseif from and from:hasSkill("gzkuangfu") then				
 						sgs.gzkuangfu_to = ato
@@ -4104,8 +4105,8 @@ function SmartAI:getAoeValueTo(card, to , from)
 		if card:isKindOf("ArcheryAttack") then
 			sj_num = getCardsNum("Jink", to)
 			if (to:hasSkill("leiji") and sj_num >= 1) or self:isEquip("EightDiagram", to) then
-				value = value + 20
-				if self:hasSuit("spade", true, to) or to:getHandcardNum() >= 3 then value = value + 40 end
+				value = value + 50
+				if self:hasSuit("spade", true, to) or to:getHandcardNum() >= 3 then value = value + 70 end
 			end
 			if self:isEquip("EightDiagram", to) then value = value + 30	end
 		end	

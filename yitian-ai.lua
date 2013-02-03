@@ -922,3 +922,4 @@ sgs.ai_skill_use_func.TaichenCard=function(card,use,self)
 end
 
 sgs.ai_cardneed.taichen = sgs.ai_cardneed.weapon
+sgs.taichen_keep_value = sgs.qiangxi_keep_value

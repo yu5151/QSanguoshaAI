@@ -158,22 +158,7 @@ end
 
 sgs.ai_cardneed.zhulou = sgs.ai_cardneed.weapon
 
-sgs.zhulou_keep_value = {
-	Peach = 6,
-	Jink = 5.1,
-	Crossbow = 5,
-	Blade = 5,
-	Spear = 5,
-	DoubleSword =5,
-	QinggangSword=5,
-	Axe=5,
-	KylinBow=5,
-	Halberd=5,
-	IceSword=5,
-	Fan=5,
-	MoonSpear=5,
-	GudingBlade=5
-}
+sgs.zhulou_keep_value = sgs.qiangxi_keep_value
 
 function sgs.ai_skill_invoke.neojushou(self, data)
 	if not self.player:faceUp() then return true end

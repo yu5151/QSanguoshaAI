@@ -177,12 +177,15 @@ sgs.ai_skill_use_func.QiangxiCard = function(card, use, self)
 end
 
 sgs.ai_use_value.QiangxiCard = 2.5
-
 sgs.ai_card_intention.QiangxiCard = 80
-
 sgs.dynamic_value.damage_card.QiangxiCard = true
-
 sgs.ai_cardneed.qiangxi = sgs.ai_cardneed.weapon
+
+sgs.qiangxi_keep_value = {
+	Peach = 6,
+	Jink = 5.1,
+	Weapon = 5
+}
 
 sgs.ai_chaofeng.dianwei = 2
 

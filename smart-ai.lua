@@ -1567,7 +1567,7 @@ function getTrickIntention(TrickClass, target)
 		if TrickClass == "Snatch" or TrickClass == "Dismantlement" then
 			local judgelist = target:getCards("j")
 			if not judgelist or judgelist:isEmpty() then
-				local armor = to:getArmor()
+				local armor = target:getArmor()
 				if not armor or not armor:isKindOf("SilverLion") or not armor:isKindOf("GaleShell") then
 					return 80
 				end

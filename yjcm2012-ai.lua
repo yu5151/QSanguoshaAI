@@ -536,6 +536,10 @@ end
 
 sgs.ai_skill_invoke.chunlao = function(self, data)
 	local dying = data:toDying()
+	if self.role == "renegade" and not (dying.who:isLord() or dying.who:objectName() == self.player:objectName()) and 
+			(sgs.current_mode_players["loyalist"] == sgs.current_mode_players["rebel"] or self.room:getCurrent():objectName() == self.player:objectName()) then
+		return false
+	end
 	return self:isFriend(dying.who) and self.player:getPile("wine"):length() > 0
 end
 

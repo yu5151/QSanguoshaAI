@@ -1552,13 +1552,22 @@ function findPlayerByObjectName(room, name, include_death, except)
 end
 --获取对target使用的锦囊TrickClass的一般仇恨值--
 function getTrickIntention(TrickClass, target)
-	if type(sgs.ai_card_intention[TrickClass]) == "number" then
-		return sgs.ai_card_intention[TrickClass] 
+	local Intention = sgs.ai_card_intention[TrickClass]
+	if type(Intention) == "number" then
+		return Intention 
+	elseif type(Intention == "function") then
+		if TrickClass == "IronChain" then --这个铁索连环真让人头疼……不知还有没有别的仇恨值是函数的锦囊……
+			if target:isChained() then
+				return -80
+			else
+				return 80
+			end
+		end
 	end
 	if sgs.dynamic_value.damage_card[TrickClass] then 
 		return 70
 	end
-	if sgs.dynamic_value.benefit[TrickClass] then 
+	if sgs.dynamic_value.benefit[TrickClass] then --没想到铁索连环会是有益锦囊……
 		return -40
 	end
 	if target then
@@ -1579,6 +1588,7 @@ end
 --用于判断player使用的、无懈掉对to的trick的无懈可击
 --positive=true为维护性无懈可击
 sgs.ai_nullification_level = {} --无懈可击层级记录
+sgs.ai_trick_struct = {"source", "target", "trick"} --被无懈可击的一般锦囊
 sgs.ai_choicemade_filter.Nullification.general = function(player, promptlist)
 	local room = player:getRoom() --当前房间
 	local NFSource = player:objectName() --使用当前无懈可击的角色 --from
@@ -1610,16 +1620,26 @@ sgs.ai_choicemade_filter.Nullification.general = function(player, promptlist)
 		end
 	else
 		if NFSource == TrickTarget then --（自己）无懈对自己使用的一般锦囊
+			local me = findPlayerByObjectName(room, TrickTarget)
+			local intention = getTrickIntention(TrickClass, me)
 			if level > 0 and sgs.ai_nullification_level[1] == TrickTarget then
-				table.insert(sgs.ai_nullification_level, NFSource)
+				if sgs.ai_trick_struct[3] == TrickClass then
+					table.insert(sgs.ai_nullification_level, NFSource)
+				else
+					if intention > 0 then
+						sgs.ai_nullification_level = {TrickTarget, TrickTarget, NFSource}
+					else
+						sgs.ai_nullification_level = {TrickTarget, NFSource}
+					end
+					sgs.ai_trick_struct = {NFSource, TrickTarget, TrickClass}
+				end
 			else
-				local me = findPlayerByObjectName(room, TrickTarget)
-				local intention = getTrickIntention(TrickClass, me)
 				if intention > 0 then --无懈对自己的不利锦囊，属于友方行为，再无懈视为敌方
 					sgs.ai_nullification_level = {TrickTarget, TrickTarget, NFSource}
 				else --无懈对自己的有利锦囊，属于敌方行为，再无懈视为友方
 					sgs.ai_nullification_level = {TrickTarget, NFSource}
 				end
+				sgs.ai_trick_struct = {NFSource, TrickTarget, TrickClass}
 			end 
 		else --无懈对他人的一般锦囊
 			sgs.lastclass = TrickClass
@@ -1630,6 +1650,7 @@ sgs.ai_choicemade_filter.Nullification.general = function(player, promptlist)
 			else --无懈有利锦囊，属于敌方行为，再无懈属于友方
 				sgs.ai_nullification_level = {TrickTarget, NFSource}
 			end
+			sgs.ai_trick_struct = {NFSource, TrickTarget, TrickClass}
 			sgs.updateIntention(player, to, -intention) --取相反的仇恨值
 		end
 	end

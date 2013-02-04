@@ -332,7 +332,6 @@ function SmartAI:getUseValue(card)
 
 			if card:getSkillName() == "Spear"   then v = v - 1 end
 			if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 1 end
-			if card:getSkillName() == "wusheng" then v = v + 1 end
 
 		elseif card:isKindOf("Jink") then
 			if self:getCardsNum("Jink") > 1 then v = v-6 end
@@ -404,7 +403,6 @@ function SmartAI:adjustUsePriority(card,v)
 	if card:isKindOf("Slash") then 
 		if card:getSkillName() == "Spear"   then v = v - 0.01 end
 		if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 0.01 end
-		if card:getSkillName() == "wusheng" then v = v + 0.01 end
 	end
 
 	local suits_value={}
@@ -3616,7 +3614,7 @@ function SmartAI:getCardId(class_name, player, acard)
 		viewas = getSkillViewCard(card, class_name, player, card_place)
 		if card:isKindOf(class_name) and not prohibitUseDirectly(card, player) then cardid=card:getEffectiveId() end
 		if viewas or cardid then
-			return self:hasSkills("longdan|wusheng|wushen|jinjiu", player) and (viewas or cardid) or (cardid or viewas)
+			return self:hasSkills("longdan|jinjiu", player) and (viewas or cardid) or (cardid or viewas)
 		end
 	end
 	return cardsView(class_name, player)

@@ -18,7 +18,7 @@ sgs.ai_skill_invoke.hujia = function(self, data)
 	end
 	
 	local current = self.room:getCurrent()
-	if self:isFriend(current) and current:getKingdom() == "wei" and self:getOverFlow(current) >2 then
+	if self:isFriend(current) and current:getKingdom() == "wei" and self:getOverflow(current) >2 then
 		return true
 	end
 
@@ -1543,8 +1543,8 @@ qingnang_skill.getTurnUseCard=function(self)
 	cards=sgs.QList2Table(cards)
 
 	local compare_func = function(a, b)
-		local v1 = self:getKeepValue(a) + ( a:isRed() and 100 or 50 ) + ( a:isKindOf("Peach") and 100 or 50 )
-		local v2 = self:getKeepValue(b) + ( b:isRed() and 100 or 50 ) + ( b:isKindOf("Peach") and 100 or 50 )
+		local v1 = self:getKeepValue(a) + ( a:isRed() and 50 or 0 ) + ( a:isKindOf("Peach") and 50 or 0 )
+		local v2 = self:getKeepValue(b) + ( b:isRed() and 50 or 0 ) + ( b:isKindOf("Peach") and 50 or 0 )
 		return v1 < v2
 	end
 	table.sort(cards, compare_func)

@@ -1541,8 +1541,13 @@ qingnang_skill.getTurnUseCard=function(self)
 	
 	local cards = self.player:getHandcards()
 	cards=sgs.QList2Table(cards)
-	
-	self:sortByKeepValue(cards)
+
+	local compare_func = function(a, b)
+		local v1 = self:getKeepValue(a) + ( a:isRed() and 100 or 50 )
+		local v2 = self:getKeepValue(b) + ( b:isRed() and 100 or 50 )
+		return v1 < v2
+	end
+	table.sort(cards, compare_func)
 
 	local card_str = ("@QingnangCard=%d"):format(cards[1]:getId())
 	return sgs.Card_Parse(card_str)

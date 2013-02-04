@@ -2688,15 +2688,35 @@ function SmartAI:getEnemyNumBySeat(from, to)
 	return enemynum
 end
 
-function SmartAI:hasHeavySlashDamage(player, slash)
-	player = player or self.room:getCurrent()
-	local fireSlash = slash and (slash:isKindOf("FireSlash") or (slash:isKindOf("Slash") and self:isEquip("Fan", player))) 
-	return (slash and slash:hasFlag("drank")) or player:hasFlag("drank")
-			or player:hasFlag("luoyi") or player:hasFlag("neoluoyi")
-			or (player:hasSkill("drluoyi") and not player:getWeapon())
-			or (slash and player:hasSkill("jie") and slash:isRed())
-			or ((self.player:hasArmorEffect("Vine") or self.player:getMark("@gale")) and fireSlash)
-			or (self:isEquip("GudingBlade", player) and slash and self.player:isKongcheng())
+function SmartAI:hasHeavySlashDamage(from, slash, to)
+	from = from or self.room:getCurrent()
+	to = to or self.player
+	if not from or not to then self.room:writeToConsole(debug.traceback()) return false end
+	if not from:hasSkill("jueqing") and to:hasArmorEffect("silver_lion") then return false end
+	local dmg = 1
+	local fireSlash = slash and (slash:isKindOf("FireSlash") or (slash:objectName() == "slash" and (from:hasWeapon("fan") or (from:hasSkill("lihuo") and not self:isWeak(from))))) 
+	if (slash and slash:hasFlag("drank")) then	
+		dmg = dmg + 1
+	elseif from:getMark("drank") > 0 then	
+		dmg = dmg + from:getMark("drank")
+	end
+	if from:hasFlag("luoyi") then dmg = dmg + 1 end	
+	if from:hasFlag("neoluoyi") then dmg = dmg + 1 end
+	if from:hasSkill("drluoyi") and not from:getWeapon() then dmg = dmg + 1 end	
+	if slash and from:hasSkill("jie") and slash:isRed() then dmg = dmg + 1 end
+--	if slash and from:hasSkill("wenjiu") and slash:isBlack() then dmg = dmg + 1 end --等新版exe
+	if not from:hasSkill("jueqing") then	
+		if slash and from:hasSkill("wenjiu") and slash:isBlack() then dmg = dmg + 1 end  --等新版exe
+		if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and fireSlash then dmg = dmg + 1 end	
+		if from:hasWeapon("guding_blade") and slash and to:isKongcheng() then dmg = dmg + 1 end	
+		if from:hasSkill("jieyuan") and to:getHp() >= from:getHp() and from:getHandcardNum() >= 3 then dmg = dmg + 1 end	
+		if to:hasSkill("jieyuan") and from:getHp() >= to:getHp()	
+			and (to:getHandcardNum() > 3 or self:getKnownCard(to, "heart") + self:getKnownCard(to, "diamond") > 0)
+		then
+			dmg = dmg - 1
+		end	
+	end	
+	return (dmg > 1)
 end
 
 function SmartAI:needKongcheng(player)

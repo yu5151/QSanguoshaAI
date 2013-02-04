@@ -1872,14 +1872,14 @@ function SmartAI:filterEvent(event, player, data)
 			if from and intention~=0 then sgs.updateIntention(from, to, intention) end
 		end
 	elseif event == sgs.CardUsed then
-		if sgs.turncount <= 3 then
+		if sgs.turncount == 1 then
 			local struct = data:toCardUse()
 			local card = struct.card
 			local lord = self.room:getLord()
 			local who = struct.to:first()
-			if (card:isKindOf("Snatch") or card:isKindOf("Dismantlement") or card:isKindOf("YinlingCard")) and sgs.evaluatePlayerRole(who) == "unknown" then
+			if (card:isKindOf("Snatch") or card:isKindOf("Dismantlement") or card:isKindOf("YinlingCard")) and sgs.evaluateRoleTrends(who) == "neutral" then
 				local aplayer = self:exclude({lord}, card)
-				if #aplayer ==1 then sgs.updateIntention(player, lord, -10) end
+				if #aplayer ==1 then sgs.updateIntention(player, lord, -70) end
 			end
 		end
 	elseif event == sgs.CardDiscarded then

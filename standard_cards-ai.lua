@@ -568,10 +568,7 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 				if self:hasSkills(sgs.lose_equip_skill, target) and target:getEquips():length() > 1 then return "." end
 				if target:getHandcardNum() - target:getHp() > 2 then return "." end
 			elseif self:isEquip("Blade", target) then
-				if ((effect.slash:isKindOf("FireSlash") 
-					and not target:hasSkill("jueqing") 
-					and (self.player:hasArmorEffect("Vine") or self.player:getMark("@gale") > 0))
-					or self:hasHeavySlashDamage(target, effect.slash)) then
+				if self:hasHeavySlashDamage(target, effect.slash,self.player) then
 				elseif self:getCardsNum("Jink") <= getCardsNum("Slash", target) or self:hasSkills("jijiu|qingnang") or self:canUseJieyuanDecrease(target) then
 					return "."
 				end
@@ -725,9 +722,7 @@ sgs.ai_skill_invoke.IceSword=function(self, data)
 		return true
 	else
 		if self:isWeak(target) then return false end
-		if damage.damage > 1 then return false end
-		if damage.card:isKindOf("FireSlash") and (target:hasArmorEffect("Vine") or target:getMark("@gale") > 0) then return false end
-
+		if damage.damage > 1 or self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
 		if target:getArmor() and self:evaluateArmor(target:getArmor(), target)>3 then return true end
 		local num = target:getHandcardNum()
 		if self.player:hasSkill("tieji") or (self.player:hasSkill("liegong")

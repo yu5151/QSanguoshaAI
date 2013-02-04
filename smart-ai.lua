@@ -327,12 +327,11 @@ function SmartAI:getUseValue(card)
 			v = sgs.ai_use_value[class_name] or 0
 
 			if self.player:hasFlag("tianyi_success") or self.player:hasFlag("jiangchi_invoke")
-				or self:hasHeavySlashDamage() then v = 8.7 end
+				or self:hasHeavySlashDamage(self.player, card) then v = 8.7 end
 			if self:isEquip("Crossbow") then v = v + 4 end
 
 			if card:getSkillName() == "Spear"   then v = v - 1 end
 			if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 1 end
-			if card:getSkillName() == "wusheng" then v = v + 1 end
 
 		elseif card:isKindOf("Jink") then
 			if self:getCardsNum("Jink") > 1 then v = v-6 end
@@ -404,7 +403,6 @@ function SmartAI:adjustUsePriority(card,v)
 	if card:isKindOf("Slash") then 
 		if card:getSkillName() == "Spear"   then v = v - 0.01 end
 		if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 0.01 end
-		if card:getSkillName() == "wusheng" then v = v + 0.01 end
 	end
 
 	local suits_value={}
@@ -2563,7 +2561,7 @@ function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	if target and target:hasSkill("jueqing") then return end
 	if not self:damageIsEffective(nil, damage_nature, target) then return "." end
 	if target and target:hasSkill("guagu") and self.player:isLord() then return "." end
-	if effect and self:hasHeavySlashDamage(target, effect.slash) then return end
+	if effect and self:hasHeavySlashDamage(target, effect.slash, self.player) then return end
 
 	if target and target:getWeapon() and target:getWeapon():isKindOf("IceSword") and self.player:getCards("he"):length() > 2 then return end
 	if self:needBear() and self.player:getLostHp() < 2 then return "." end
@@ -2713,29 +2711,31 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 	from = from or self.room:getCurrent()
 	to = to or self.player
 	if not from or not to then self.room:writeToConsole(debug.traceback()) return false end
-	if not from:hasSkill("jueqing") and to:hasArmorEffect("silver_lion") then return false end
+	if not from:hasSkill("jueqing") and to:hasArmorEffect("SilverLion") then return false end
 	local dmg = 1
-	local fireSlash = slash and (slash:isKindOf("FireSlash") or (slash:objectName() == "slash" and (from:hasWeapon("fan") or (from:hasSkill("lihuo") and not self:isWeak(from))))) 
-	if (slash and slash:hasFlag("drank")) then	
-		dmg = dmg + 1
-	elseif from:getMark("drank") > 0 then	
-		dmg = dmg + from:getMark("drank")
-	end
+	local fireSlash = slash and (slash:isKindOf("FireSlash") or 
+		(slash:objectName() == "slash" and (from:hasWeapon("Fan") or (from:hasSkill("lihuo") and not self:isWeak(from))))) 
+	local thunderSlash = slash and slash:isKindOf("ThunderSlash")
+	if (slash and slash:hasFlag("drank")) or from:hasFlag("drank") then dmg = dmg + 1 end
 	if from:hasFlag("luoyi") then dmg = dmg + 1 end	
 	if from:hasFlag("neoluoyi") then dmg = dmg + 1 end
 	if from:hasSkill("drluoyi") and not from:getWeapon() then dmg = dmg + 1 end	
 	if slash and from:hasSkill("jie") and slash:isRed() then dmg = dmg + 1 end
---	if slash and from:hasSkill("wenjiu") and slash:isBlack() then dmg = dmg + 1 end --等新版exe
+	
+	local jinxuandi = self.room:findPlayerBySkillName("wuling")
 	if not from:hasSkill("jueqing") then	
-		if slash and from:hasSkill("wenjiu") and slash:isBlack() then dmg = dmg + 1 end  --等新版exe
-		if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and fireSlash then dmg = dmg + 1 end	
-		if from:hasWeapon("guding_blade") and slash and to:isKongcheng() then dmg = dmg + 1 end	
+		if slash and from:hasSkill("wenjiu") and slash:isBlack() then dmg = dmg + 1 end
+		if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and (fireSlash or (jinxuandi and jinxuandi:getMark("@fire"))) then dmg = dmg + 1 end	
+		if fireSlash and jinxuandi and jinxuandi:getMark("@wind") then dmg = dmg + 1 end
+		if thunderSlash and jinxuandi and jinxuandi:getMark("@thunder") then dmg = dmg + 1 end
+		if from:hasWeapon("GudingBlade") and slash and to:isKongcheng() then dmg = dmg + 1 end	
 		if from:hasSkill("jieyuan") and to:getHp() >= from:getHp() and from:getHandcardNum() >= 3 then dmg = dmg + 1 end	
 		if to:hasSkill("jieyuan") and from:getHp() >= to:getHp()	
-			and (to:getHandcardNum() > 3 or self:getKnownCard(to, "heart") + self:getKnownCard(to, "diamond") > 0)
+			and (to:getHandcardNum() > 3 or getKnownCard(to, "heart") + getKnownCard(to, "diamond") > 0)
 		then
 			dmg = dmg - 1
-		end	
+		end
+		if (fireSlash or thunderSlash) and jinxuandi and jinxuandi:getMark("@earth") and dmg > 1 then dmg = 1 end
 	end	
 	return (dmg > 1)
 end
@@ -3635,7 +3635,7 @@ function SmartAI:getCardId(class_name, player, acard)
 		viewas = getSkillViewCard(card, class_name, player, card_place)
 		if card:isKindOf(class_name) and not prohibitUseDirectly(card, player) then cardid=card:getEffectiveId() end
 		if viewas or cardid then
-			return self:hasSkills("longdan|wusheng|wushen|jinjiu", player) and (viewas or cardid) or (cardid or viewas)
+			return self:hasSkills("longdan|jinjiu", player) and (viewas or cardid) or (cardid or viewas)
 		end
 	end
 	return cardsView(class_name, player)
@@ -4520,6 +4520,8 @@ function SmartAI:useEquipCard(card, use)
 			for _,friend in ipairs(self.friends_noself) do
 				if not friend:getOffensiveHorse() then return end
 			end
+			use.card = card 
+			return
 		else
 			if not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow()<=0 and not (canUseSlash or self:getCardId("Snatch")) then 
 				return

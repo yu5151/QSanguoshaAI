@@ -2696,23 +2696,27 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 	local dmg = 1
 	local fireSlash = slash and (slash:isKindOf("FireSlash") or 
 		(slash:objectName() == "slash" and (from:hasWeapon("Fan") or (from:hasSkill("lihuo") and not self:isWeak(from))))) 
-
+	local thunderSlash = slash and slash:isKindOf("ThunderSlash")
 	if (slash and slash:hasFlag("drank")) or from:hasFlag("drank") then dmg = dmg + 1 end
 	if from:hasFlag("luoyi") then dmg = dmg + 1 end	
 	if from:hasFlag("neoluoyi") then dmg = dmg + 1 end
 	if from:hasSkill("drluoyi") and not from:getWeapon() then dmg = dmg + 1 end	
 	if slash and from:hasSkill("jie") and slash:isRed() then dmg = dmg + 1 end
-
+	
+	local jinxuandi = self.room:findPlayerBySkillName("wuling")
 	if not from:hasSkill("jueqing") then	
 		if slash and from:hasSkill("wenjiu") and slash:isBlack() then dmg = dmg + 1 end
-		if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and fireSlash then dmg = dmg + 1 end	
+		if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and (fireSlash or (jinxuandi and jinxuandi:getMark("@fire"))) then dmg = dmg + 1 end	
+		if fireSlash and jinxuandi and jinxuandi:getMark("@wind") then dmg = dmg + 1 end
+		if thunderSlash and jinxuandi and jinxuandi:getMark("@thunder") then dmg = dmg + 1 end
 		if from:hasWeapon("GudingBlade") and slash and to:isKongcheng() then dmg = dmg + 1 end	
 		if from:hasSkill("jieyuan") and to:getHp() >= from:getHp() and from:getHandcardNum() >= 3 then dmg = dmg + 1 end	
 		if to:hasSkill("jieyuan") and from:getHp() >= to:getHp()	
 			and (to:getHandcardNum() > 3 or getKnownCard(to, "heart") + getKnownCard(to, "diamond") > 0)
 		then
 			dmg = dmg - 1
-		end	
+		end
+		if (fireSlash or thunderSlash) and jinxuandi and jinxuandi:getMark("@earth") and dmg > 1 then dmg = 1 end
 	end	
 	return (dmg > 1)
 end

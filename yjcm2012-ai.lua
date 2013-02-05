@@ -190,7 +190,7 @@ sgs.ai_skill_invoke.gongqi = function(self, data)
 end
 
 function sgs.ai_cardneed.gongqi(to, card)
-	return card:getTypeId() == sgs.Card_Equip and getKnownCard(to, "Equip", true) == 0
+	return card:getTypeId() == sgs.Card_Equip and getKnownCard(to, "EquipCard", true) == 0
 end
 
 sgs.ai_use_value.GongqiCard = 2

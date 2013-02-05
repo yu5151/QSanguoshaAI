@@ -445,6 +445,11 @@ function SmartAI:getDynamicUsePriority(card)
 		if use_card:isKindOf("YanxiaoCard") and self.player:containsTrick("YanxiaoCard") then
 			value = 0.1
 		end
+
+		if self.player:getMark("shuangxiong") > 0 and use_card:isKindOf("Duel") then 
+			value = value + 10
+		end
+
 		
 		if use_card:isKindOf("KurouCard") and self.player:getHp()==1 and self.player:getRole()~="lord" 
 			and self.player:getRole()~="renegade" and self:getCardsNum("Analeptic")==0 then

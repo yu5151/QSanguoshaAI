@@ -242,7 +242,22 @@ local function getBeggar(self)
 end
 
 sgs.ai_skill_invoke.haoshi = function(self, data)
-	if self.player:getHandcardNum() <= 1 and not self.player:hasSkill("yongsi") then
+	local extra = 0
+	if self.player:hasSkill("yongsi") then
+		local kingdoms = {}
+		for _,p in sgs.qlist(self.room:getAlivePlayers()) do
+			kingdoms[p:getKingdom()] = true
+		end
+		extra=extra+#kingdoms
+	end
+	local sk = {["yingzi"]=1, ["zishou"]=self.player:getLostHp(), ["ayshuijian"]=1+self.player:getEquips():length(),
+	["shenwei"]=2, ["juejing"]=self.player:getLostHp()}
+	for s,n in ipairs(sk) do
+		if self.player:hasSkill(s) then
+			extra = extra+n
+		end
+	end
+	if self.player:getHandcardNum()+extra <= 1 then
 		return true
 	end
 

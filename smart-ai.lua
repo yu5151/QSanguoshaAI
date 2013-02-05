@@ -1323,6 +1323,10 @@ function SmartAI:objectiveLevel(player)
 		if rebel_num == 0 then
 			if #players == 2 and self.role == "loyalist" then return 5 end
 
+			if self.player:isLord() and self:hasHeavySlashDamage(self.player, nil, player) and player:getHp() <= 2 then
+				return 0
+			end
+
 			if self.room:getLord():hasSkill("benghuai") then				
 				if self.player:isLord() then
 					if (sgs.evaluatePlayerRole(player) == "renegade" or sgs.evaluateRoleTrends(player) == "renegade") and player:getHp() > 1 then
@@ -2727,6 +2731,7 @@ end
 
 function SmartAI:hasHeavySlashDamage(from, slash, to)
 	from = from or self.room:getCurrent()
+	slash = slash or self:getCard("Slash", from)
 	to = to or self.player
 	if not from or not to then self.room:writeToConsole(debug.traceback()) return false end
 	if not from:hasSkill("jueqing") and to:hasArmorEffect("SilverLion") then return false end

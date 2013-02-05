@@ -35,7 +35,8 @@ function sgs.isGoodTarget(player,targets, self)
 		if #targets==1 then return true end
 		local foundtarget=false
 		for i = 1, #targets, 1 do
-			if sgs.isGoodTarget(targets[i]) and not (self:cantbeHurt(targets[i]) or self:slashProhibit(nil,target[i])) then
+			--if sgs.isGoodTarget(targets[i]) and not (self:cantbeHurt(targets[i]) or self:slashProhibit(nil,target[i])) then
+			if sgs.isGoodTarget(targets[i]) and not self:cantbeHurt(targets[i]) then
 				foundtarget = true
 				break
 			end

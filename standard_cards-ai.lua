@@ -874,9 +874,42 @@ Spear_skill.getTurnUseCard=function(self,inclusive)
 
 	local suit="no_suit"
 	if cards[1]:isBlack() == cards[2]:isBlack() then suit = suit1 end
+	
+	if suit == "spade" or suit == "club" then
+		local black_slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_Spade, 0)
+		local nosuit_slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+		
+		self:sort(self.enemies, "defenseSlash")
+		for _, enemy in ipairs(self.enemies) do
+			if not self:slashProhibit(nosuit_slash, enemy) and self:slashIsEffective(nosuit_slash, enemy) and self:canAttack(enemy) 
+					and self:slashProhibit(black_slash, enemy) and self:isWeak(enemy) then
+				local redcards, blackcards = {}, {}
+				for _, acard in ipairs(cards) do
+					if acard:isBlack() then table.insert(blackcards, acard) else table.insert(redcards, acard) end
+				end
+				if #redcards == 0 then break end
+				
+				local redcard, othercard
+
+				self:sortByUseValue(blackcards, true)
+				self:sortByUseValue(redcards, true)				
+				redcard = redcards[1]
+
+				othercard = #blackcards > 0 and blackcards[1] or redcards[2]
+				if redcard and othercard then
+					suit1 = redcard:getSuitString()
+					card_id1 = redcard:getEffectiveId()
+					suit2 = othercard:getSuitString()
+					card_id2 = othercard:getEffectiveId()
+					suit = othercard:isRed() and suit1 or "no_suit"
+					break
+				end				
+			end
+		end
+
+	end
 
 	local card_str = ("slash:Spear[%s:%s]=%d+%d"):format(suit, 0, card_id1, card_id2)
-
 	local slash = sgs.Card_Parse(card_str)
 
 	return slash	

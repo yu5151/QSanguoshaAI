@@ -1107,9 +1107,12 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 		return sgs.Card_Parse("@KurouCard=.")
 	end
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)	
-	if self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow") then
+	if (self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow")) or self:hasSkills("paoxiao") then
 		for _, enemy in ipairs(self.enemies) do
 			if self.player:canSlash(enemy, nil, true) and self:slashIsEffective(slash, enemy) 
+			    and not (enemy:hasSkill("kongcheng") and enemy:isKongcheng())
+				and not (self:hasSkills("fankui|guixin", enemy) and not self:hasSkills("paoxiao"))
+				and not self:hasSkills("fenyong|jilei|zhichi", enemy)
 				and sgs.isGoodTarget(enemy, self.enemies, self) and not self:slashProhibit(slash, enemy) and self.player:getHp()>1 then
 				return sgs.Card_Parse("@KurouCard=.")
 			end
@@ -1311,7 +1314,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 		cards=sgs.QList2Table(cards)
 		self:sortByKeepValue(cards)
 		for _,card in ipairs(cards) do
-			if self.player:distanceTo(who) <= self.player:getAttackRange() then
+			if self.player:distanceTo(who) <= self.player:getAttackRange() and not (who:hasSkill("kongcheng") and who:isKongcheng()) then
 				if self:isFriend(who) and not (isCard("Peach", card, self.player) or isCard("Analeptic", card, self.player)) then
 					return "@LiuliCard="..card:getEffectiveId().."->"..who:objectName()
 				else
@@ -1326,7 +1329,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 		for _,card in ipairs(cards) do
 			if (self.player:getWeapon() and card:getId() == self.player:getWeapon():getId()) and self.player:distanceTo(who)>1 then				
 			elseif card:isKindOf("OffensiveHorse") and self.player:getAttackRange()==self.player:distanceTo(who) and self.player:distanceTo(who)>1 then
-			elseif self.player:inMyAttackRange(who) then
+			elseif self.player:inMyAttackRange(who) and not (who:hasSkill("kongcheng") and who:isKongcheng()) then
 				return "@LiuliCard="..card:getEffectiveId().."->"..who:objectName()
 			end
 		end

@@ -99,7 +99,9 @@ sgs.ai_skill_use["@@shensu2"]=function(self,prompt)
 	return "."
 end
 
-sgs.ai_cardneed.shensu = sgs.ai_cardneed.equip
+sgs.ai_cardneed.shensu = function(to, card)
+	return card:getTypeId() == sgs.Card_Equip and getKnownCard(to, "EquipCard", false) < 2
+end
 
 sgs.ai_card_intention.ShensuCard = 80
 
@@ -111,6 +113,10 @@ function sgs.ai_skill_invoke.jushou(self, data)
 		if self:hasSkills("fangzhu|jilve", friend) then return true end
 	end
 	return self:isWeak()
+end
+
+function sgs.ai_cardneed.liegong(to, card)
+	return (isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0) or (card:isKindOf("Weapon") and not (to:getWeapon() or getKnownCard(to, "Weapon", false) > 0))
 end
 
 sgs.ai_skill_invoke.liegong = function(self, data)
@@ -156,14 +162,16 @@ function sgs.ai_cardneed.guidao(to, card, self)
 				return card:getSuit() == sgs.Card_Spade and card:getNumber() >= 2 and card:getNumber() <= 9 and not self:hasSkills("hongyan|wuyan")
 			end
 			if self:isFriend(player) and self:willSkipDrawPhase(player) then
-				return card:getSuit() == sgs.Card_Club
+				return card:getSuit() == sgs.Card_Club and self:hasSuit("club", true, to)
 			end
 		end
 	end
 end
 
 function sgs.ai_cardneed.leiji(to, card, self)
-	return card:getSuit() == sgs.Card_Spade or isCard("Jink", card, to)
+	return  ((isCard("Jink", card, to) and getKnownCard(to, "Jink", true) == 0)
+			or (card:getSuit() == sgs.Card_Spade and self:hasSuit("spade", true, to))
+			or (card:isKindOf("EightDiagram") and not (self:isEquip("EightDiagram") or getKnownCard(to, "EightDiagram", false) >0)))
 end
 
 sgs.ai_skill_use["@@leiji"]=function(self,prompt)
@@ -219,9 +227,6 @@ function sgs.ai_slash_prohibit.leiji(self, to, card)
 	if self:isEquip("EightDiagram", to) then return true end
 end
 
-function sgs.ai_cardneed.leiji(to, card, self)
-	return card:isKindOf("Jink") and self:getCardsNum("Jink")>1
-end
 
 local huangtianv_skill={}
 huangtianv_skill.name="huangtianv"
@@ -412,7 +417,8 @@ sgs.tianxiang_suit_value = {
 }
 
 function sgs.ai_cardneed.tianxiang(to, card)
-	return to:getCards("h"):length() <= 2 and (card:getSuit() == sgs.Card_Heart or (to:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade))
+	return (card:getSuit() == sgs.Card_Heart or (to:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade))
+		and getKnownCard(to, "heart", false) + getKnownCard(to, "spade", false) < 2
 end
 
 table.insert(sgs.ai_global_flags, "questioner")
@@ -578,4 +584,9 @@ end
 
 function sgs.ai_cardneed.guhuo(to, card)
 	return card:getSuit() == sgs.Card_Heart and (card:isKindOf("BasicCard") or card:isNDTrick())
+end
+
+
+function sgs.ai_cardneed.kuanggu(to, card)
+	return card:isKindOf("OffensiveHorse") and not (to:getOffensiveHorse() or getKnownCard(to, "OffensiveHorse", false) > 0)
 end

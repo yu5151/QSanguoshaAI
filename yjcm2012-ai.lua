@@ -13,6 +13,10 @@ sgs.ai_skill_invoke.zishou = function(self, data)
 			or ((self.player:getLostHp() + 2) - can_save_card_num + peach_num  <= chance_value)
 end
 
+function sgs.ai_cardneed.qianxi(to, card)
+	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0
+end
+
 sgs.ai_skill_invoke.qianxi = function(self, data)
 	local damage = data:toDamage()
 	local target = damage.to
@@ -489,6 +493,12 @@ sgs.ai_skill_playerchosen.zhuiyi = function(self, targets)
 	end
 end
 
+
+function sgs.ai_cardneed.lihuo(to, card)
+	local slash = card:isKindOf("Slash") and not (card:isKindOf("FireSlash") or card:isKindOf("ThunderSlash"))
+	return (card:isKindOf("FireSlash") and getKnownCard(to, "FireSlash", false) == 0) or (slash and getKnownCard(to, "Slash", false) == 0)
+end
+
 sgs.ai_skill_invoke.lihuo = function(self, data)
 	if not sgs.ai_skill_invoke.Fan(self, data) then return false end
 	local use = data:toCardUse()
@@ -533,6 +543,11 @@ lihuo_skill.getTurnUseCard=function(self)
 	
 	return fireslash
 		
+end
+
+
+function sgs.ai_cardneed.chunlao(to, card)
+	return card:isKindOf("Slash") and to:getPile("wine"):isEmpty()
 end
 
 sgs.ai_skill_use["@@chunlao"] = function(self, prompt)

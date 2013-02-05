@@ -121,7 +121,7 @@ duanliang_skill.getTurnUseCard=function(self)
 end
 
 sgs.ai_cardneed.duanliang = function(to, card)
-	return card:isBlack() and card:getTypeId() ~= sgs.Card_Trick
+	return card:isBlack() and card:getTypeId() ~= sgs.Card_Trick and getKnownCard(to, "club", false) + getKnownCard(to, "spade", false) < 2
 end
 
 sgs.duanliang_suit_value = {
@@ -133,6 +133,10 @@ sgs.ai_chaofeng.xuhuang = 4
 
 sgs.ai_skill_invoke.zaiqi = function(self, data)
 	return self.player:getLostHp() >= 2
+end
+
+sgs.ai_cardneed.lieren = function(to, card)
+	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0
 end
 
 sgs.ai_skill_invoke.lieren = function(self, data)
@@ -534,6 +538,21 @@ sgs.ai_view_as.jiuchi = function(card, player, card_place)
 		end
 	end
 end
+
+function sgs.ai_cardneed.jiuchi(to, card, self)
+	return card:isBlack() and getKnownCard(to, "club", false) + getKnownCard(to, "spade", false) == 0
+end
+
+function sgs.ai_cardneed.roulin(to, card, self)
+	for _, enemy in ipairs(self.enemies) do
+		if card:isKindOf("Slash") and to:canSlash(enemy, nil, true) and self:slashIsEffective(card, enemy) 
+				and not (enemy:hasSkill("kongcheng") and enemy:isKongcheng())
+				and sgs.isGoodTarget(enemy, self.enemies, self) and not self:slashProhibit(card, enemy) and enemy:isFemale() then
+			return getKnownCard(to, "Slash", true) == 0
+		end
+	end
+end
+
 
 sgs.ai_skill_cardask["@roulin1-jink-1"] = sgs.ai_skill_cardask["@wushuang-jink-1"]
 sgs.ai_skill_cardask["@roulin2-jink-1"] = sgs.ai_skill_cardask["@wushuang-jink-1"]

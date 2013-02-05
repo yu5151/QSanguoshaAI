@@ -2739,8 +2739,8 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 	if not from:hasSkill("jueqing") then	
 		if slash and from:hasSkill("wenjiu") and slash:isBlack() then dmg = dmg + 1 end
 		if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and (fireSlash or (jinxuandi and jinxuandi:getMark("@fire"))) then dmg = dmg + 1 end	
-		if fireSlash and jinxuandi and jinxuandi:getMark("@wind") then dmg = dmg + 1 end
-		if thunderSlash and jinxuandi and jinxuandi:getMark("@thunder") then dmg = dmg + 1 end
+		if fireSlash and jinxuandi and jinxuandi:getMark("@wind") > 0 then dmg = dmg + 1 end
+		if thunderSlash and jinxuandi and jinxuandi:getMark("@thunder") > 0 then dmg = dmg + 1 end
 		if from:hasWeapon("GudingBlade") and slash and to:isKongcheng() then dmg = dmg + 1 end	
 		if from:hasSkill("jieyuan") and to:getHp() >= from:getHp() and from:getHandcardNum() >= 3 then dmg = dmg + 1 end	
 		if to:hasSkill("jieyuan") and from:getHp() >= to:getHp()	
@@ -2748,7 +2748,7 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 		then
 			dmg = dmg - 1
 		end
-		if (fireSlash or thunderSlash) and jinxuandi and jinxuandi:getMark("@earth") and dmg > 1 then dmg = 1 end
+		if (fireSlash or thunderSlash) and jinxuandi and jinxuandi:getMark("@earth") > 0 and dmg > 1 then dmg = 1 end
 	end	
 	return (dmg > 1)
 end

@@ -1,3 +1,7 @@
+function sgs.ai_cardneed.dangxian(to, card)
+	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0
+end
+
 sgs.ai_skill_invoke.zishou = function(self, data)
 	local chance_value = 1
 	if (self.player:getHp() <= 2) then chance_value = chance_value + 1 end
@@ -46,6 +50,11 @@ sgs.ai_skill_playerchosen.miji = function(self, targets)
 end
 
 sgs.ai_playerchosen_intention.miji = -80
+
+
+function sgs.ai_cardneed.jiangchi(to, card)
+	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) < 2
+end
 
 sgs.ai_skill_choice.jiangchi = function(self, choices)
 	local target = 0
@@ -180,6 +189,10 @@ sgs.ai_skill_invoke.gongqi = function(self, data)
 	end
 end
 
+function sgs.ai_cardneed.gongqi(to, card)
+	return card:getTypeId() == sgs.Card_Equip and getKnownCard(to, "Equip", true) == 0
+end
+
 sgs.ai_use_value.GongqiCard = 2
 sgs.ai_use_priority.GongqiCard = 8
 
@@ -245,6 +258,10 @@ sgs.ai_skill_cardask["@jiefan-discard"] = function(self, data)
 end
 
 sgs.ai_card_intention.JiefanCard = -80
+
+function sgs.ai_cardneed.jiefan(to, card)
+	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0
+end
 
 anxu_skill={}
 anxu_skill.name="anxu"
@@ -473,10 +490,10 @@ sgs.ai_skill_playerchosen.zhuiyi = function(self, targets)
 end
 
 sgs.ai_skill_invoke.lihuo = function(self, data)
-	if not sgs.ai_skill_invoke.fan then return false end
+	if not sgs.ai_skill_invoke.Fan(self, data) then return false end
 	local use = data:toCardUse()
 	for _, player in sgs.qlist(use.to) do
-		if self:isEnemy(player) and not self:damageIsEffective(player) and self:damageIsEffective(player, sgs.DamageStruct_Fire) then return true end
+		if self:isEnemy(player) and self:damageIsEffective(player, sgs.DamageStruct_Fire) and sgs.isGoodTarget(player, self.enemies, self) then return true end
 	end
 	return false
 end

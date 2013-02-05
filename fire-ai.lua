@@ -517,7 +517,7 @@ local shuangxiong_skill={}
 shuangxiong_skill.name="shuangxiong"
 table.insert(sgs.ai_skills,shuangxiong_skill)
 shuangxiong_skill.getTurnUseCard=function(self)
-	if not self.player:getMark("shuangxiong") then return nil end
+	if self.player:getMark("shuangxiong") == 0 then return nil end
 	local mark=self.player:getMark("shuangxiong")
 
 	local cards = self.player:getCards("h")

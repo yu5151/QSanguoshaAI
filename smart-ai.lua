@@ -341,7 +341,7 @@ function SmartAI:getUseValue(card)
 		end
 	elseif card:getTypeId() == sgs.Card_Trick then
 		if self.player:getWeapon() and not self:hasSkills(sgs.lose_equip_skill) and card:isKindOf("Collateral") then v = 2 end
-		if self.player:getMark("shuangxiong") and card:isKindOf("Duel") then v = 8 end
+		if self.player:getMark("shuangxiong") > 0 and card:isKindOf("Duel") then v = 8 end
 		if self.player:hasSkill("jizhi") then v = 8.7 end
 		if self.player:hasSkill("wumou") and card:isNDTrick() and not card:isKindOf("AOE") then
 			if not (card:isKindOf("Duel") and self.player:hasUsed("WuqianCard")) then v = 1 end
@@ -2729,16 +2729,23 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 	local fireSlash = slash and (slash:isKindOf("FireSlash") or 
 		(slash:objectName() == "slash" and (from:hasWeapon("Fan") or (from:hasSkill("lihuo") and not self:isWeak(from))))) 
 	local thunderSlash = slash and slash:isKindOf("ThunderSlash")
+	local jinxuandi = self.room:findPlayerBySkillName("wuling")
+
+	if jinxuandi and jinxuandi:getMark("@fire") > 0 then
+		fireSlash = true
+		thunderSlash = false
+	end
+
 	if (slash and slash:hasFlag("drank")) or from:hasFlag("drank") then dmg = dmg + 1 end
 	if from:hasFlag("luoyi") then dmg = dmg + 1 end	
 	if from:hasFlag("neoluoyi") then dmg = dmg + 1 end
 	if from:hasSkill("drluoyi") and not from:getWeapon() then dmg = dmg + 1 end	
 	if slash and from:hasSkill("jie") and slash:isRed() then dmg = dmg + 1 end
 	
-	local jinxuandi = self.room:findPlayerBySkillName("wuling")
+	
 	if not from:hasSkill("jueqing") then	
 		if slash and from:hasSkill("wenjiu") and slash:isBlack() then dmg = dmg + 1 end
-		if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and (fireSlash or (jinxuandi and jinxuandi:getMark("@fire"))) then dmg = dmg + 1 end	
+		if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and fireSlash then dmg = dmg + 1 end	
 		if fireSlash and jinxuandi and jinxuandi:getMark("@wind") > 0 then dmg = dmg + 1 end
 		if thunderSlash and jinxuandi and jinxuandi:getMark("@thunder") > 0 then dmg = dmg + 1 end
 		if from:hasWeapon("GudingBlade") and slash and to:isKongcheng() then dmg = dmg + 1 end	
@@ -3441,6 +3448,10 @@ function SmartAI:damageIsEffective(player, nature, source)
 	player = player or self.player
 	source = source or self.room:getCurrent()
 	nature = nature or sgs.DamageStruct_Normal
+
+	local jinxuandi = self.room:findPlayerBySkillName("wuling")
+	if jinxuandi and jinxuandi:getMark("@fire") > 0 then nature = sgs.DamageStruct_Fire end
+
 
 	if source:hasSkill("jueqing") then return true end
 	if player:hasSkill("shenjun") and player:getGender() ~= source:getGender() and nature ~= sgs.DamageStruct_Thunder then

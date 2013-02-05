@@ -379,7 +379,7 @@ end
 sgs.ai_skill_invoke.zhaolie = function(self, data)
 	local enemynum = 0
 	for _, enemy in ipairs(self.enemies) do
-		if self.player:distanceTo(enemy) <= self.player:getAttackRange() then
+		if self.player:distanceTo(enemy) <= self.player:getAttackRange() and (not enemy:hasSkill("wuhun") or #self.enemies > 1 and sgs.turncount > 1) then			
 			enemynum = enemynum + 1
 		end
 	end
@@ -390,7 +390,7 @@ sgs.ai_skill_playerchosen.zhaolie = function(self, targets)
 	targets = sgs.QList2Table(targets)
 	self:sort(targets, "hp")
 	for _, target in ipairs(targets) do
-		if self:isEnemy(target) then 
+		if self:isEnemy(target) and not target:hasSkill("wuhun") then 
 			return target 
 		end 
 	end
@@ -398,6 +398,19 @@ sgs.ai_skill_playerchosen.zhaolie = function(self, targets)
 end
 
 sgs.ai_skill_choice.zhaolie = function(self, choices, data)
+	if self.player:hasSkill("wuhun") then
+		local mark = 0
+		local spliubei = self.room:findPlayerBySkillName("zhaolie")
+		local spmark = spliubei and spliubei:isLord() and spliubei:getMark("@nightmare") or 0
+		for _, ap in sgs.qlist(self.room:getAlivePlayers()) do
+			if ap:getMark("@nightmare") > 0 then
+				mark = ap:getMark("@nightmare")
+			end
+		end
+		if mark == 0 and spliubei and spliubei:isLord() then return "damage" end
+		if mark < self.player:getHp() + spmark then return "damage" end
+	end
+	if not self:damageIsEffective() then return "damage" end
 	local nobasic = data:toInt()
 	if self.player:hasSkill("manjuan") then	return "throw" end
 	if nobasic == 0 then return "damage" end

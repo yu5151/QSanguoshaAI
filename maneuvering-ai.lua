@@ -187,7 +187,7 @@ function SmartAI:useCardSupplyShortage(card, use)
 		if not enemy:faceUp() then value = value -10 end
 		if self:hasSkills("keji|shensu", enemy) then value = value - enemy:getHandcardNum() end
 		if self:hasSkills("guanxing|xiuluo|tiandu|guidao", enemy) then value = value - 5 end
-		if not sgs.isGoodTarget(enemy) then value = value - 1 end
+		if not sgs.isGoodTarget(enemy, self.enemies, self) then value = value - 1 end
 		return value
 	end
 
@@ -291,7 +291,7 @@ function SmartAI:useCardIronChain(card, use)
 	for _, enemy in ipairs(self.enemies) do
 		if not enemy:isChained() and not self.room:isProhibited(self.player, enemy, card) and not enemy:hasSkill("danlao")
 			and self:hasTrickEffective(card, enemy) and not (self:objectiveLevel(enemy) <= 3) 
-			and not self:getDamagedEffects(enemy) and not (enemy:getHp() > getBestHp(enemy)) and sgs.isGoodTarget(enemy,self.enemies) then
+			and not self:getDamagedEffects(enemy) and not (enemy:getHp() > getBestHp(enemy)) and sgs.isGoodTarget(enemy,self.enemies, self) then
 			table.insert(enemytargets, enemy)
 		end
 	end
@@ -417,7 +417,7 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 		return self:objectiveLevel(enemy) > 3 and not enemy:isKongcheng() and not self.room:isProhibited(self.player, enemy, fire_attack) 
 			and self:damageIsEffective(enemy, sgs.DamageStruct_Fire, self.player) and not self:cantbeHurt(enemy) 
 			and self:hasTrickEffective(fire_attack, enemy)
-			and sgs.isGoodTarget(enemy,self.enemies)
+			and sgs.isGoodTarget(enemy, self.enemies, self)
 			and not (enemy:hasSkill("jianxiong") and not self:isWeak(enemy) and not self.player:hasSkill("jueqing"))
 			and not (self:getDamagedEffects(enemy,self.player) and not self.player:hasSkill("jueqing"))
 			and not (enemy:isChained() and not self:isGoodChainTarget(enemy) and not self.player:hasSkill("jueqing"))

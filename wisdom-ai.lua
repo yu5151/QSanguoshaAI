@@ -190,7 +190,7 @@ sgs.ai_skill_playerchosen.beifa = function(self, targets)
 	for _, target in ipairs(targetlist) do
 		if self:isEnemy(target) then
 			if self:slashIsEffective(slash, target) then
-				if sgs.isGoodTarget(target, targetlist) then
+				if sgs.isGoodTarget(target, targetlist, self) then
 					self.player:speak("嘿！没想到吧？")
 					return target
 				end
@@ -198,7 +198,7 @@ sgs.ai_skill_playerchosen.beifa = function(self, targets)
 		end
 	end
 	for i=#targetlist, 1, -1 do
-		if sgs.isGoodTarget(targetlist[i], targetlist) then
+		if sgs.isGoodTarget(targetlist[i], targetlist, self) then
 			return targetlist[i]
 		end
 	end

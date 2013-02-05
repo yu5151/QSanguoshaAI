@@ -363,7 +363,7 @@ sgs.ai_skill_invoke.mouduan = function(self, data)
 			local hasTarget = false
 			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 			for _, enemy in ipairs(self.enemies) do
-				if not self:slashProhibit(slash, enemy) and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies) then
+				if not self:slashProhibit(slash, enemy) and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self) then
 					hasTarget = true
 					break
 				end

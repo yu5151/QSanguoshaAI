@@ -1153,7 +1153,8 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 			if self:isEnemy(nextplayer) and (not nextplayer:containsTrick("indulgence") or nextplayer:containsTrick("YanxiaoCard")) then
 				if nextplayer:hasSkill("lijian") and self.player:isMale() and lord:isMale() then
 					to_death = true
-				elseif nextplayer:hasSkill("quhu") and lord:getHp()>nextplayer:getHp() and not lord:isKongcheng() then
+				elseif nextplayer:hasSkill("quhu") and lord:getHp()>nextplayer:getHp() and not lord:isKongcheng() 
+					and lord:inMyAttackRange(self.player) then
 					to_death = true
 				end
 			end

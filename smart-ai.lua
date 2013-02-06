@@ -1856,9 +1856,6 @@ function SmartAI:filterEvent(event, player, data)
 		if card:isKindOf("Dismantlement") or card:isKindOf("Snatch") or card:isKindOf("YinlingCard") then
 			sgs.ai_snat_disma_effect = true
 			sgs.ai_snat_dism_from = struct.from
-			if to:getCards("j"):isEmpty() and not (to:getArmor() and to:getArmor():isKindOf("SilverLion")) then
-				sgs.updateIntention(from, to, 80)
-			end
 		end
 
 		if card:isKindOf("Slash") then
@@ -1970,29 +1967,31 @@ function SmartAI:filterEvent(event, player, data)
 			end
 			
 			if player:hasFlag("Playing") and sgs.turncount <= 3 and player:getPhase() == sgs.Player_Discard 
-					and reason.m_reason==sgs.CardMoveReason_S_REASON_RULEDISCARD then
-				if card:isKindOf("Slash") and player:canSlashWithoutCrossbow() then
+						and reason.m_reason==sgs.CardMoveReason_S_REASON_RULEDISCARD then
+
+				if isCard("Slash", card, player) and player:canSlashWithoutCrossbow() then
 					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
 						if player:canSlash(target, card, true) and self:slashIsEffective(card, target) 
 								and not self:slashProhibit(card, target) and sgs.isGoodTarget(target,self.enemies, self) then
-							sgs.updateIntention(player, target, -5)
-						end
-					end
-				end
-				if card:isKindOf("Indulgence") and not self.room:getLord():hasSkill("qiaobian") then
-					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
-						if not (target:containsTrick("indulgence") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
-							local aplayer = self:exclude( {target}, card)
-							if #aplayer ==1 then sgs.updateIntention(player, target, -5) end
+							if sgs.evaluateRoleTrends(player) == "neutral" then sgs.updateIntention(player, target, -5) end
 						end
 					end
 				end
 
-				if card:isKindOf("SupplyShortage") and not self.room:getLord():hasSkill("qiaobian") then
+				if isCard("Indulgence", card, player) and not self.room:getLord():hasSkill("qiaobian") then
+					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
+						if not (target:containsTrick("indulgence") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
+							local aplayer = self:exclude( {target}, card)
+							if #aplayer ==1 and sgs.evaluateRoleTrends(player) == "neutral" then sgs.updateIntention(player, target, -5) end
+						end
+					end
+				end
+
+				if isCard("SupplyShortage", card, player) and not self.room:getLord():hasSkill("qiaobian") then
 					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
 						if not (target:containsTrick("supply_shortage") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
 							local aplayer = self:exclude( {target}, card)
-							if #aplayer ==1 then sgs.updateIntention(player, target, -5) end
+							if #aplayer ==1 and sgs.evaluateRoleTrends(player) == "neutral" then sgs.updateIntention(player, target, -5) end
 						end
 					end
 				end

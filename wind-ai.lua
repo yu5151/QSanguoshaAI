@@ -418,7 +418,7 @@ sgs.tianxiang_suit_value = {
 
 function sgs.ai_cardneed.tianxiang(to, card)
 	return (card:getSuit() == sgs.Card_Heart or (to:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade))
-		and getKnownCard(to, "heart", false) + getKnownCard(to, "spade", false) < 2
+		and (getKnownCard(to, "heart", false) + getKnownCard(to, "spade", false)) < 2
 end
 
 table.insert(sgs.ai_global_flags, "questioner")

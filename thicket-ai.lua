@@ -121,7 +121,7 @@ duanliang_skill.getTurnUseCard=function(self)
 end
 
 sgs.ai_cardneed.duanliang = function(to, card)
-	return card:isBlack() and card:getTypeId() ~= sgs.Card_Trick and getKnownCard(to, "club", false) + getKnownCard(to, "spade", false) < 2
+	return card:isBlack() and card:getTypeId() ~= sgs.Card_Trick and (getKnownCard(to, "club", false) + getKnownCard(to, "spade", false)) < 2
 end
 
 sgs.duanliang_suit_value = {
@@ -555,7 +555,7 @@ sgs.ai_view_as.jiuchi = function(card, player, card_place)
 end
 
 function sgs.ai_cardneed.jiuchi(to, card, self)
-	return card:isBlack() and getKnownCard(to, "club", false) + getKnownCard(to, "spade", false) == 0
+	return card:getSuit() == sgs.Card_Spade and (getKnownCard(to, "club", false) + getKnownCard(to, "spade", false)) == 0
 end
 
 function sgs.ai_cardneed.roulin(to, card, self)

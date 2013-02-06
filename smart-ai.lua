@@ -2761,7 +2761,7 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 		if from:hasWeapon("GudingBlade") and slash and to:isKongcheng() then dmg = dmg + 1 end	
 		if from:hasSkill("jieyuan") and to:getHp() >= from:getHp() and from:getHandcardNum() >= 3 then dmg = dmg + 1 end	
 		if to:hasSkill("jieyuan") and from:getHp() >= to:getHp()	
-			and (to:getHandcardNum() > 3 or getKnownCard(to, "heart") + getKnownCard(to, "diamond") > 0)
+			and (to:getHandcardNum() > 3 or (getKnownCard(to, "heart") + getKnownCard(to, "diamond")) > 0)
 		then
 			dmg = dmg - 1
 		end

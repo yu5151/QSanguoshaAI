@@ -40,7 +40,7 @@ function sgs.ai_cardneed.huanshi(to, card, self)
 end
 
 function sgs.ai_cardneed.mingzhe(to, card, self)
-	return card:isRed() and getKnownCard(to, "heart", false) + getKnownCard(to, "diamond", false) < 2
+	return card:isRed() and (getKnownCard(to, "heart", false) + getKnownCard(to, "diamond", false)) < 2
 end
 
 sgs.ai_skill_invoke.hongyuan = function(self, data)

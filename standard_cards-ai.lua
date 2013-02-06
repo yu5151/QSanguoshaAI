@@ -1020,23 +1020,24 @@ sgs.ai_use_value.SavageAssault = 3.9
 sgs.ai_use_priority.SavageAssault = 3.5
 
 sgs.ai_skill_cardask.aoe = function(self, data, pattern, target, name)
-
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
-	if not self:damageIsEffective(nil, nil, target) then return "." end
-	local aoe = sgs.Sanguosha:cloneCard(name, sgs.Card_NoSuit, 0)	
-	if self.player:hasSkill("wuyan") then return "." end
-	if self.player:getMark("@fenyong") >0 and self.player:hasSkill("fenyong") then return "." end
 
+	local aoe = sgs.Sanguosha:cloneCard(name, sgs.Card_NoSuit, 0)
 	local menghuo = self.room:findPlayerBySkillName("huoshou")
-	local attacker=self.room:getCurrent()
+	local attacker = target
 	if menghuo and aoe:isKindOf("SavageAssault") then attacker = menghuo end
-	if self:getDamagedEffects(self.player,attacker) or self.player:getHp()>getBestHp(self.player) then return "." end
 
-	if target and target:hasSkill("wuyan") and not (menghuo and aoe:isKindOf("SavageAssault")) then return "." end
+	if not self:damageIsEffective(nil, nil, attacker) then return "." end
+	if self:getDamagedEffects(self.player, attacker) or self.player:getHp() > getBestHp(self.player) then return "." end
 
-	if self.player:hasSkill("jianxiong") and self:getAoeValue(aoe) > -10 and
-		(self.player:getHp()>1 or self:getAllPeachNum()>0) and not self.player:containsTrick("indulgence") then return "." end
+	if self.player:hasSkill("wuyan") and not attacker:hasSkill("jueqing") then return "." end
+	if attacker:hasSkill("wuyan") and not attacker:hasSkill("jueqing") then return "." end
+	if self.player:getMark("@fenyong") > 0 and not attacker:hasSkill("jueqing") then return "." end
+
+	if not attacker:hasSkill("jueqing") and self.player:hasSkill("jianxiong") and self:getAoeValue(aoe) > -10
+		and (self.player:getHp() > 1 or self:getAllPeachNum() > 0) and not self.player:containsTrick("indulgence") then return "." end
 end
+
 
 sgs.ai_skill_cardask["savage-assault-slash"] = function(self, data, pattern, target)
 	return sgs.ai_skill_cardask.aoe(self, data, pattern, target, "savage_assault")

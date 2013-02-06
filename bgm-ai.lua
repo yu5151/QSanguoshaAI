@@ -296,7 +296,7 @@ sgs.ai_skill_use_func.TanhuCard = function(card, use, self)
 	local slashcount = self:getCardsNum("Slash")
 	if max_card:isKindOf("Slash") then slashcount = slashcount - 1 end
 	if not ptarget:isKongcheng() and slashcount > 0 and self.player:canSlash(ptarget, nil, true) 
-	and not ptarget:hasSkill("kongcheng") and ptarget:getHandcardNum() == 1 then
+	and not (ptarget:hasSkill("kongcheng") and ptarget:getHandcardNum() == 1) then
 		local card_id = max_card:getEffectiveId()
 		local card_str = "@TanhuCard=" .. card_id
 		if use.to then
@@ -377,20 +377,19 @@ sgs.ai_skill_invoke.mouduan = function(self, data)
 end
 
 sgs.ai_skill_invoke.zhaolie = function(self, data)
-	local enemynum = 0
 	for _, enemy in ipairs(self.enemies) do
-		if self.player:distanceTo(enemy) <= self.player:getAttackRange() and (not enemy:hasSkill("wuhun") or #self.enemies > 1 and sgs.turncount > 1) then			
-			enemynum = enemynum + 1
+		if self.player:distanceTo(enemy) <= self.player:getAttackRange() and sgs.isGoodTarget(enemy, self.enemies, self) and self:objectiveLevel(enemy) > 3 then
+			return true
 		end
 	end
-	return enemynum > 0
+	return false
 end
 
 sgs.ai_skill_playerchosen.zhaolie = function(self, targets)
 	targets = sgs.QList2Table(targets)
 	self:sort(targets, "hp")
 	for _, target in ipairs(targets) do
-		if self:isEnemy(target) and not target:hasSkill("wuhun") then 
+		if self:isEnemy(target) and sgs.isGoodTarget(target, targets, self) and self:objectiveLevel(enemy) > 3 then 
 			return target 
 		end 
 	end

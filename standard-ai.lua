@@ -1383,8 +1383,9 @@ end
 
 function sgs.ai_slash_prohibit.liuli(self, to, card)
 	if self:isFriend(to) then return false end
+	if to:isNude() then return false end
 	for _, friend in ipairs(self.friends_noself) do
-		if to:canSlash(friend, card, true) and self:slashIsEffective(card, friend) then return true end
+		if to:canSlash(friend, card) and self:slashIsEffective(card, friend) then return true end
 	end
 end
 

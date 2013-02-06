@@ -4186,9 +4186,6 @@ function SmartAI:exclude(players, card)
 	local range_fix = 0
 	if card:isVirtualCard() then
 		for _, id in sgs.qlist(card:getSubcards()) do
-			if self.player:getWeapon() and self.player:getWeapon():getId() == id then
-				range_fix = range_fix + sgs.weapon_range[self.player:getWeapon():getClassName()]  - 1
-			end
 			if self.player:getOffensiveHorse() and self.player:getOffensiveHorse():getEffectiveId() == id then range_fix = range_fix + 1 end
 		end
 		if card:getSkillName() == "jixi" then range_fix = range_fix + 1 end

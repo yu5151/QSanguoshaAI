@@ -218,12 +218,12 @@ function sgs.ai_slash_prohibit.leiji(self, to, card)
 				break
 			end
 		end		
-		if not other_rebel and (self:hasSkills("hongyan") or self.player:getHp() >= 4) and (self:getKnownCard("Peach") > 0  or self.player:hasSkills("hongyan|ganglie|neoganglie"))  then
+		if not other_rebel and (self:hasSkills("hongyan") or self.player:getHp() >= 4) and (self:getCardsNum("Peach") > 0  or self.player:hasSkills("hongyan|ganglie|neoganglie"))  then
 			return false
 		end
 	end
 
-	if getKnownCard(to,"Jink",true)>=1 or (self:hasSuit("spade", true, to) and hcard>=2)then return true end
+	if getKnownCard(to,"Jink",true) >= 1 or (self:hasSuit("spade", true, to) and hcard >= 2) then return true end
 	if self:isEquip("EightDiagram", to) then return true end
 end
 

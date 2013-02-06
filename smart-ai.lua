@@ -450,6 +450,10 @@ function SmartAI:getDynamicUsePriority(card)
 			value = value + 10
 		end
 
+		if (self:hasHeavySlashDamage(self.player) or self:getOverflow() > 0) and use_card:isKindOf("QingnangCard") then 
+			value = math.min(sgs.ai_use_priority.Slash, sgs.ai_use_priority.Duel) - 0.1
+		end		
+		
 		
 		if use_card:isKindOf("KurouCard") and self.player:getHp()==1 and self.player:getRole()~="lord" 
 			and self.player:getRole()~="renegade" and self:getCardsNum("Analeptic")==0 then

@@ -866,7 +866,7 @@ Spear_skill.getTurnUseCard=function(self,inclusive)
 		if not card:isKindOf("Peach") and not (card:isKindOf("ExNihilo") and self.player:getPhase() == sgs.Player_Play) then table.insert(cards, card) end
 	end
 
-	if #cards < self.player:getHp() and not self:hasSkills("kongcheng|lianying|paoxiao",self.player) then return nil end
+	if #cards < self.player:getHp() and not self:hasHeavySlashDamage(self.player) and not self:hasSkills("kongcheng|lianying|paoxiao",self.player) then return nil end
 	if #cards<2 then return nil end
 
 	self:sortByUseValue(cards,true)

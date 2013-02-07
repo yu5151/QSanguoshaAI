@@ -23,20 +23,19 @@ sgs.ai_use_priority.Fan = 2.655
 sgs.ai_use_priority.Vine = 1.6
 
 sgs.ai_skill_invoke.Fan = function(self, data)
-	local use = data:toCardUse()	
+	local target = data:toSlashEffect().to	
 	local jinxuandi = self.room:findPlayerBySkillName("wuling")
 
-	for _, target in sgs.qlist(use.to) do
-		if self:isFriend(target) then
-			if not (target:isChained() and self:isGoodChainTarget(target)) then return false end			
-		else
-			if target:isChained() and not self:isGoodChainTarget(target) then return false end			
-		end
-		if not self:damageIsEffective(target, sgs.DamageStruct_Fire) then return self:isFriend(target) end
-		if self:isEquip("Vine", target) or target:getMark("@gale") > 0 or (jinxuandi and jinxuandi:getMark("@wind") > 0) then
+	if self:isFriend(target) then
+		if not self:damageIsEffective(target, sgs.DamageStruct_Fire) then return true end
+		if target:isChained() and self:isGoodChainTarget(target) then return true end			
+	else
+		if not self:damageIsEffective(target, sgs.DamageStruct_Fire) then return false end
+		if target:isChained() and not self:isGoodChainTarget(target) then return false end
+		if target:hasArmorEffect("Vine") or target:getMark("@gale") > 0 or (jinxuandi and jinxuandi:getMark("@wind") > 0) then
 			return true
 		end
-	end
+	end	
 	return false
 end
 

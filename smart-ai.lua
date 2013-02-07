@@ -3498,12 +3498,12 @@ function SmartAI:damageIsEffective(player, nature, source)
 	player = player or self.player
 	source = source or self.room:getCurrent()
 	nature = nature or sgs.DamageStruct_Normal
+	
+	if source:hasSkill("jueqing") then return true end
 
 	local jinxuandi = self.room:findPlayerBySkillName("wuling")
 	if jinxuandi and jinxuandi:getMark("@fire") > 0 then nature = sgs.DamageStruct_Fire end
 
-
-	if source:hasSkill("jueqing") then return true end
 	if player:hasSkill("shenjun") and player:getGender() ~= source:getGender() and nature ~= sgs.DamageStruct_Thunder then
 		return false
 	end

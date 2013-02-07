@@ -485,10 +485,9 @@ luanji_skill.getTurnUseCard=function(self)
 	end
 
 	if first_found and second_found then
-		local luanji_card = {}
-		local first_suit, first_number, first_id = first_card:getSuitString(), first_card:getNumberString(), first_card:getId()
-		local second_suit, second_number, second_id = second_card:getSuitString(), second_card:getNumberString(), second_card:getId()
-		local card_str = ("archery_attack:luanji[%s:%s]=%d+%d"):format(first_suit, first_number, first_id, second_id)
+		local first_id = first_card:getId()
+		local second_id = second_card:getId()
+		local card_str = ("archery_attack:luanji[to_be_decided:0]=%d+%d"):format(first_id, second_id)
 		local archeryattack = sgs.Card_Parse(card_str)
 		assert(archeryattack)
 		return archeryattack

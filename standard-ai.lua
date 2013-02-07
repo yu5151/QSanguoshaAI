@@ -908,14 +908,23 @@ sgs.longdan_keep_value = {
 
 sgs.ai_skill_invoke.tieji = function(self, data)
 	local target = data:toPlayer()
+	if self:isFriend(target) then return false end
+
 	local zj = self.room:findPlayerBySkillName("guidao")
-	if zj and self:isEnemy(zj) and self:canRetrial(zj) then
-		return false
-	else
-		return not self:isFriend(target) 
-	end 
-	--return not self:isFriend(effect.to) and (not effect.to:isKongcheng() or effect.to:getArmor())
+	if zj and self:isEnemy(zj) and self:canRetrial(zj) then return false end
+	
+	if target:hasArmorEffect("EightDiagram") then return true end
+	if target:hasLordSkill("hujia") then
+		for _, p in ipairs(self.enemies) do
+			if p:getKingdom() == "wei" and (p:hasArmorEffect("EightDiagram") or p:getHandcardNum() > 0) then return true end		
+		end
+	end	
+	if target:hasSkill("longhun") and target:getHp() == 1 and self:hasSuit("club", true, target) then return true end
+
+	if target:isKongcheng() or (self:getKnownNum(target) == target:getHandcardNum() and getKnownCard(target, "Jink", true) == 0) then return false end
+	return true
 end
+
 
 sgs.ai_chaofeng.machao = 1
 

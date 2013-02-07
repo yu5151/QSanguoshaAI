@@ -833,7 +833,6 @@ function sgs.ai_cardsview.Spear(class_name, player)
 		for _, card in ipairs(cards) do
 			if not card:isKindOf("Peach") and not (card:isKindOf("ExNihilo") and player:getPhase() == sgs.Player_Play) then table.insert(newcards, card) end
 		end
-		if #newcards < player:getHp() and not (player:hasSkill("paoxiao") or player:hasSkill("lianying") or player:hasSkill("kongcheng")) then return nil end
 		if #newcards<2 then return nil end
 
 		local suit1 = newcards[1]:getSuitString()

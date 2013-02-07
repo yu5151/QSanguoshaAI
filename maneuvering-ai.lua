@@ -376,6 +376,9 @@ sgs.ai_skill_cardask["@fire-attack"] = function(self, data, pattern, target)
 		end
 	end
 
+	local lord = self.room:getLord()
+	if isCard("Peach", card, self.player) and not self:isEnemy(lord) and sgs.isLordInDanger() then card = nil end
+
 	if card then
 		return card:getId()
 	else

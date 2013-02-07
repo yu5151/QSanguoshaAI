@@ -389,7 +389,7 @@ sgs.ai_skill_playerchosen.zhaolie = function(self, targets)
 	targets = sgs.QList2Table(targets)
 	self:sort(targets, "hp")
 	for _, target in ipairs(targets) do
-		if self:isEnemy(target) and sgs.isGoodTarget(target, targets, self) and self:objectiveLevel(enemy) > 3 then 
+		if self:isEnemy(target) and sgs.isGoodTarget(target, targets, self) and self:objectiveLevel(target) > 3 then 
 			return target 
 		end 
 	end

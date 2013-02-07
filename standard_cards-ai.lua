@@ -1934,13 +1934,12 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	
 	for _, card in ipairs(cards) do
 		if card:isKindOf("ExNihilo") then
-			if not self.player:containsTrick("indulgence") or self.player:containsTrick("YanxiaoCard")  or canNullification then 
-				return card:getEffectiveId()
-			elseif self.player:containsTrick("indulgence") and not nextplayercanuse then
+			if not (nextplayercanuse and not self:hasSkills("jizhi|zhiheng") and self:hasSkills("jizhi|zhiheng", nextp)) 
+			and (not self.player:containsTrick("indulgence") or self.player:containsTrick("YanxiaoCard")  or canNullification) then 
 				return card:getEffectiveId()
 			end
 		end
-	end	
+	end		
 	
 	if ( self:isWeak() or self:getCardsNum("Jink") == 0 ) and hasjink then
 		for _, card in ipairs(cards) do

@@ -378,7 +378,8 @@ end
 
 sgs.ai_skill_invoke.zhaolie = function(self, data)
 	for _, enemy in ipairs(self.enemies) do
-		if self.player:distanceTo(enemy) <= self.player:getAttackRange() and sgs.isGoodTarget(enemy, self.enemies, self) and self:objectiveLevel(enemy) > 3 then
+		if self.player:distanceTo(enemy) <= self.player:getAttackRange() and sgs.isGoodTarget(enemy, self.enemies, self) 
+			and self:objectiveLevel(enemy) > 3 and self:damageIsEffective(enemy) then
 			return true
 		end
 	end
@@ -389,7 +390,7 @@ sgs.ai_skill_playerchosen.zhaolie = function(self, targets)
 	targets = sgs.QList2Table(targets)
 	self:sort(targets, "hp")
 	for _, target in ipairs(targets) do
-		if self:isEnemy(target) and sgs.isGoodTarget(target, targets, self) and self:objectiveLevel(target) > 3 then 
+		if self:isEnemy(target) and sgs.isGoodTarget(target, targets, self) and self:objectiveLevel(target) > 3 and self:damageIsEffective(enemy) then 
 			return target 
 		end 
 	end
@@ -397,9 +398,9 @@ sgs.ai_skill_playerchosen.zhaolie = function(self, targets)
 end
 
 sgs.ai_skill_choice.zhaolie = function(self, choices, data)
+	local spliubei = self.room:findPlayerBySkillName("zhaolie")
 	if self.player:hasSkill("wuhun") then
 		local mark = 0
-		local spliubei = self.room:findPlayerBySkillName("zhaolie")
 		local spmark = spliubei and spliubei:isLord() and spliubei:getMark("@nightmare") or 0
 		for _, ap in sgs.qlist(self.room:getAlivePlayers()) do
 			if ap:getMark("@nightmare") > 0 then
@@ -413,6 +414,7 @@ sgs.ai_skill_choice.zhaolie = function(self, choices, data)
 	local nobasic = data:toInt()
 	if self.player:hasSkill("manjuan") then	return "throw" end
 	if nobasic == 0 then return "damage" end
+	if self:isEquip("SilverLion", self.player) and self.player:getHp() > 1 and not (spliubei and spliubei:hasSkill("jueqing")) then return "damage" end
 	if nobasic < 2 and self.player:getHp() > 1 then	return "damage" else return "throw" end
 end
 

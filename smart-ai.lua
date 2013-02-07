@@ -1765,6 +1765,7 @@ function SmartAI:filterEvent(event, player, data)
 		end
 	end
 
+	--if event ==sgs.AskForPeaches then endlessNiepan(data:toDying().who) end
 
 	sgs.lastevent = event
 	sgs.lasteventdata = eventdata
@@ -2030,7 +2031,6 @@ function SmartAI:filterEvent(event, player, data)
 		end
 
 	elseif event == sgs.GameStart then		
-		sgs.turncount = 0
 		sgs.debugmode = io.open("lua/ai/debug")
 		if sgs.debugmode then sgs.debugmode:close() end
 		--self.room:acquireSkill(self.room:getOwner(),"shenwei")
@@ -2138,7 +2138,7 @@ sgs.ai_skill_discard.gamerule = function(self, discard_num, min_num)
 	local to_discard = {}	
 	local peaches, jinks, analeptics, nullifications, slashes = {}, {}, {}, {}, {}
 	local keeparr = {}
-	local debugprint = true
+	local debugprint = false
 
 	local keepdata = {"peach1", "peach2", "jink1", "peach3", "analeptic", "jink2", "nullification", "slash" }
 
@@ -2585,7 +2585,7 @@ function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	if self.player:isDead() then return "." end
 	
 	if target and target:hasSkill("jueqing") then return end
-	if effect and target:hasSkill("qianxi") and target:distanceTo(self.player) == 1 then return end
+	if effect and effect.from and effect.from:hasSkill("qianxi") and effect.from:distanceTo(self.player) == 1 then return end
 
 	if not self:damageIsEffective(nil, damage_nature, target) then return "." end
 	if target and target:hasSkill("guagu") and self.player:isLord() then return "." end
@@ -3594,6 +3594,7 @@ local function getFilterSkillViewCard(card, player, card_place)
 end
 
 function isCard(class_name, card, player)
+	if not card then global_room:writeToConsole(debug.traceback()) return false end
 	if not player then player = global_room:getCurrent() end
 	local cardx = getFilterSkillViewCard(card, player, global_room:getCardPlace(card:getEffectiveId()))
 	if cardx and not cardx:isKindOf(class_name) then return false end

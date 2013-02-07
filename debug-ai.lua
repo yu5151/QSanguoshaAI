@@ -94,7 +94,7 @@ end
 
 function endlessNiepan(who)
 	local room = who:getRoom()	
-	if who:getGeneral2() then return end
+	if who:getGeneral2() or who:getHp() > 0 then return end
 
 	local rebel_value = sgs.role_evaluation[who:objectName()]["rebel"]
 	local renegade_value = sgs.role_evaluation[who:objectName()]["renegade"]

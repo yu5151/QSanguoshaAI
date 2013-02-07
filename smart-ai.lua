@@ -412,7 +412,7 @@ function SmartAI:adjustUsePriority(card,v)
 	for index,suit in ipairs(suits) do
 		suits_value[suit] = 10 - index*2 
 	end
-	v = v + suits_value[card:getSuitString()] / 100
+	v = v + (suits_value[card:getSuitString()] or 0) / 100
 	v = v + (13 - card:getNumber()) / 1000
 	return v
 end

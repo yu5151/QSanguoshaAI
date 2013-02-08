@@ -354,14 +354,16 @@ sgs.ai_card_intention.TanhuCard = 30
 sgs.dynamic_value.control_card.TanhuCard = true
 sgs.ai_use_priority.TanhuCard = 8
 
-sgs.ai_skill_invoke.mouduan = function(self, data)
+local function need_mouduan(self)
 	local cardsCount = self.player:getHandcardNum()
 	if cardsCount <= 3 then return false end
 	local current = self.room:getCurrent()
+	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	if current:objectName() == self.player:objectName() then
-		if self:isEquip("Crossbow") or self:getCardsNum("Crossbow") > 0 and self:getCardsNum("Slash") >= 3 then
+		if (self:hasCrossbowEffect() or self:getCardsNum("Crossbow") > 0)
+			and self:getCardsNum("Slash") >= 3
+			and (not self:willSkipPlayPhase() or self.player:hasSkill("dangxian")) then
 			local hasTarget = false
-			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 			for _, enemy in ipairs(self.enemies) do
 				if not self:slashProhibit(slash, enemy) and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self) then
 					hasTarget = true
@@ -375,6 +377,13 @@ sgs.ai_skill_invoke.mouduan = function(self, data)
 	end
 	return false
 end
+
+sgs.ai_skill_cardask["@mouduan"] = function(self, data)
+	if not need_mouduan(self) then return "." end
+	local to_discard = self:askForDiscard("mouduan", 1, 1, false, true)
+	if #to_discard > 0 then return "$" .. to_discard[1] else return "." end
+end
+
 
 sgs.ai_skill_invoke.zhaolie = function(self, data)
 	for _, enemy in ipairs(self.enemies) do

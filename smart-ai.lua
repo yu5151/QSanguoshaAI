@@ -2801,6 +2801,11 @@ function SmartAI:hasLoseHandcardEffective(player)
 	return player:getHandcardNum() > self:getLeastHandcardNum(player)
 end
 
+function SmartAI:hasCrossbowEffect(player)
+	player = player or self.player
+	return player:hasWeapon("Crossbow") or player:hasSkill("paoxiao")
+end
+
 function SmartAI:getCardNeedPlayer(cards)
 	cards = cards or sgs.QList2Table(self.player:getHandcards())
 

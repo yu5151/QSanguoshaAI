@@ -2602,7 +2602,7 @@ function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	if self.player:hasSkill("zili") and not self.player:hasSkill("paiyi") and self.player:getLostHp() < 2 then return "." end
 	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 and self.player:getHp() > 2 then return "." end
 	if self.player:hasSkill("tianxiang") then
-		local dmgStr = {damage = 1, nature = damage_nature}
+		local dmgStr = {damage = 1, nature = damage_nature or sgs.DamageStruct_Normal}
 		local willTianxiang = sgs.ai_skill_use["@@tianxiang"](self, dmgStr)
 		if willTianxiang ~= "." then return "." end
 	elseif self.player:hasSkill("longhun") and self.player:getHp() > 1 then

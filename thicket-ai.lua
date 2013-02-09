@@ -572,6 +572,18 @@ end
 sgs.ai_skill_cardask["@roulin1-jink-1"] = sgs.ai_skill_cardask["@wushuang-jink-1"]
 sgs.ai_skill_cardask["@roulin2-jink-1"] = sgs.ai_skill_cardask["@wushuang-jink-1"]
 
+sgs.ai_skill_choice.benghuai = function(self, choices, data)
+	for _, friend in ipairs(self.friends) do
+		if friend:hasSkill("tianxiang") and (self.player:getHp() >= 3 or (self:getCardsNum("Peach") + self:getCardsNum("Analeptic") > 0 and self.player:getHp() > 1)) then
+			return "hp"
+		end
+	end
+	if self.player:getMaxHp() >= self.player:getHp() + 2 then
+		return "maxhp"
+	else
+		return "hp"
+	end
+end
 sgs.ai_skill_invoke.baonue = function(self, data)
 	for _,p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if p:hasLordSkill("baonue") and self:isFriend(p) and not p:hasFlag("baonueused") and p:isAlive() and p:isWounded() then

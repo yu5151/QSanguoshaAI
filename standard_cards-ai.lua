@@ -1142,7 +1142,7 @@ sgs.ai_use_priority.GodSalvation = 1.1
 sgs.dynamic_value.benefit.GodSalvation = true
 
 function SmartAI:useCardDuel(duel, use)
-	if self.player:hasSkill("wuyan") then return end
+	if self.player:hasSkill("wuyan") and not self.player:hasSkill("jueqing") then return end
 	if self.player:hasSkill("noswuyan") then return end
 	self:sort(self.enemies,"defense")
 	local enemies = self:exclude(self.enemies, duel)
@@ -1224,8 +1224,8 @@ sgs.dynamic_value.damage_card.Duel = true
 
 sgs.ai_skill_cardask["duel-slash"] = function(self, data, pattern, target)
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
-	if target:hasSkill("wuyan") or self.player:hasSkill("wuyan") then return "." end
-	if self.player:getMark("@fenyong") >0 and self.player:hasSkill("fenyong") then return "." end
+	if (target:hasSkill("wuyan") or self.player:hasSkill("wuyan")) and not target:hasSkill("jueqing") then return "." end
+	if self.player:getMark("@fenyong") >0 and self.player:hasSkill("fenyong") and not target:hasSkill("jueqing") then return "." end
 
 	if self:cantbeHurt(target) then return "." end
 	if self.player:getPhase()==sgs.Player_Play then return self:getCardId("Slash") end

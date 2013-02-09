@@ -4152,19 +4152,11 @@ function SmartAI:aoeIsEffective(card, to, source)
 		return false
 	end
 
-	if self:hasSkills("wuyan|noswuyan") or self:hasSkills("wuyan|noswuyan", to) then
+	if self.player:hasSkill("noswuyan") or to:hasSkill("noswuyan") then
 		return false
 	end
 
-	if to:getMark("@fenyong") >0 and to:hasSkill("fenyong") then
-		return false
-	end
-
-	if to:hasSkill("wuyan") then
-		return false
-	end
-
-	if self.player:hasSkill("noswuyan") then
+	if to:hasSkill("wuyan") and not source:hasSkill("jueqing")  then
 		return false
 	end
 	
@@ -4182,7 +4174,7 @@ function SmartAI:aoeIsEffective(card, to, source)
 		return false
 	end
 
-	if to:getMark("@fog") > 0 then
+	if to:hasSkill("huangen") and to:getHp() > 0 and #players > 2 then
 		return false
 	end
 

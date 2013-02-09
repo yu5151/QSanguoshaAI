@@ -264,39 +264,48 @@ if sgs.GetConfig("EnableHegemony", false) then
 end
 
 -- AI for general
-local function xiaoguo_card(self, target)
-	for _, card in sgs.qlist(self.player:getHandcards()) do
-		if card:isKindOf("Peach") then has_peach = card
-		elseif card:isKindOf("Analeptic") then has_anal = card
-		elseif card:isKindOf("Slash") then has_slash = card
-		elseif card:isKindOf("Jink") then has_jink = card
-		end
-	end
-
-	if has_slash then return has_slash
-	elseif has_jink then return has_jink
-	elseif has_anal or has_peach then
-		if getCardsNum("Jink", target) == 0 and self:getAllPeachNum(target) == 0 and not self:isWeak() then
-			return has_anal or has_peach
-		end
-	end
-end
 
 sgs.ai_skill_cardask["@xiaoguo"] = function(self, data)
-	local currentplayer = self.room:getCurrent()
+	local currentplayer
+	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+		if player:getPhase() ~= sgs.Player_NotActive then
+			currentplayer = player
+			break
+		end
+	end
+	
+	local has_anal, has_slash, has_jink
+	for _, acard in sgs.qlist(self.player:getHandcards()) do
+		if acard:isKindOf("Analeptic") then has_anal = acard
+		elseif acard:isKindOf("Slash") then has_slash = acard
+		elseif acard:isKindOf("Jink") then has_jink = acard
+		end
+	end
+	
+	local card
+
+	if has_slash then card = has_slash
+	elseif has_jink then card = has_jink
+	elseif has_anal then
+		if (getCardsNum("EquipCard", currentplayer) == 0 and not self:isWeak()) or self:getCardsNum("Analeptic") > 1 then
+			card = has_anal
+		end
+	end
+
+	if not card then return "." end
 	if self:isFriend(currentplayer) then
-		if currentplayer:hasArmorEffect("SilverLion") and current:isWounded() then 
-			local card = xiaoguo_card(self, currentplayer)
-			if card and (card:isKindOf("Slash") or (card:isKindOf("Jink") and self:getCardsNum("Jink") > 1)) then
+		if currentplayer:hasArmorEffect("SilverLion") and currentplayer:isWounded() and self:isWeak(currentplayer) then 
+			if card:isKindOf("Slash") or (card:isKindOf("Jink") and self:getCardsNum("Jink") > 1) then
 				return "$" .. card:getEffectiveId()
+			else return "."
 			end
 		end
-		return "."
 	elseif self:isEnemy(currentplayer) then
 		if not self:damageIsEffective(currentplayer) then return "." end
-		local card = xiaoguo_card(self, currentplayer)
-		return card and ("$" .. card:getEffectiveId()) or "."
+		if self:hasSkills(sgs.lose_equip_skill, currentplayer) and currentplayer:getCards("e"):length() > 0 then return "." end
+		return "$" .. card:getEffectiveId()
 	end
+	return "."
 end
 
 sgs.ai_skill_cardask["@xiaoguo-discard"] = function(self, data)

@@ -389,9 +389,8 @@ sgs.ai_skill_cardask["@fire-attack"] = function(self, data, pattern, target)
 end
 
 function SmartAI:useCardFireAttack(fire_attack, use)  
-	if self.player:hasSkill("wuyan") then return end
+	if self.player:hasSkill("wuyan") and not self.player:hasSkill("jueqing") then return end
 	if self.player:hasSkill("noswuyan") then return end
-	if self.player:hasSkill("ayshuiyong") then return end
 
 	local lack = {
 		spade = true,
@@ -421,7 +420,7 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 
 	local can_attack =function(enemy)
 		if self.player:hasFlag("FireAttackFailed_" .. enemy:objectName()) then return false end
-		if self:getOverflow() <= 0 and not self:hasSkill("jizhi") then return false	end
+		if self:getOverflow() <= 0 and not self:hasSkill("jizhi") then return false end
 
 		return self:objectiveLevel(enemy) > 3 and not enemy:isKongcheng() and not self.room:isProhibited(self.player, enemy, fire_attack) 
 			and self:damageIsEffective(enemy, sgs.DamageStruct_Fire, self.player) and not self:cantbeHurt(enemy) 

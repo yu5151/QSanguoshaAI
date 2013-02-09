@@ -835,6 +835,9 @@ function sgs.ai_cardsview.Spear(class_name, player)
 		end
 		if #newcards<2 then return nil end
 
+		local card_id1 = newcards[1]:getEffectiveId()
+		local card_id2 = newcards[2]:getEffectiveId()
+		
 		local card_str = ("slash:Spear[to_be_decided:0]=%d+%d"):format(card_id1, card_id2)
 
 		return card_str

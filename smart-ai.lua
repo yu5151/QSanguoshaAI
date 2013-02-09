@@ -4159,6 +4159,10 @@ function SmartAI:aoeIsEffective(card, to, source)
 	if to:hasSkill("wuyan") and not source:hasSkill("jueqing")  then
 		return false
 	end
+
+	if self.player:hasSkill("wuyan") and not self.player:hasSkill("jueqing")  then
+		return false
+	end
 	
 	if card:isKindOf("SavageAssault") then
 		if to:hasSkill("huoshou") or to:hasSkill("juxiang") then

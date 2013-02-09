@@ -783,10 +783,60 @@ function sgs.ai_skill_choice.huashen(self, choices)
 	local str = choices
 	choices = str:split("+")
 	if self.player:getHp() < 1 and str:matchOne("buqu") then return "buqu" end
-	if self.player:getPhase() == sgs.Player_NotActive then
+	if self.player:getPhase() == sgs.Player_RoundStart then
+		if self.player:getHp() < 1 and str:matchOne("buqu") then return "buqu" end
+		if (self.player:getHandcardNum() >= self.player:getHp() and self.player:getHandcardNum() < 10 and not self:isWeak()) or self.player:isSkipped(sgs.Player_Play) then
+			if str:matchOne("keji") then return "keji" end
+		end
+		if self.player:getHandcardNum() > 4 then
+			for _, askill in ipairs(("shuangxiong|fuhun|tianyi|xianzhen|paoxiao|luanji|huoji|qixi|duanliang|guose|luoyi|bawang|dangxian|neoluoyi|rende|lirang|longluo"):split("|")) do
+				if str:matchOne(askill) then return askill end
+			end
+		end
+
+		if self.player:getHp() == 1 then
+			for _, askill in ipairs(("qingnang|jieyin|juejing|rende|miji|nosshangshi|shangshi|caizhaoji_hujia|kuiwei|neojushou|jushou|yinghun|zaiqi|kuanggu"):split("|")) do
+				if str:matchOne(askill) then return askill end
+			end
+		end
+
+		if self.player:getHandcardNum() < 2 then
+			if str:matchOne("haoshi") then return "haoshi" end
+		end
+
+		if self.player:isWounded() then
+			for _, askill in ipairs(("qingnang|jieyin|juejing|miji|rende"):split("|")) do
+				if str:matchOne(askill) then return askill end
+			end
+			if self.player:getHp() < 2 and self.player:getHandcardNum() == 1 then
+				if str:matchOne("shenzhi") then return "shenzhi" end
+			end
+		end
+
+		if self.player:getCards("e"):length() > 1 then
+			for _, askill in ipairs(("shuijian|xiaoji|xuanfeng|nosxuanfeng|shensu|neoluoyi"):split("|")) do
+				if str:matchOne(askill) then return askill end
+			end
+		end
+		
+		if self.player:getWeapon() then
+			for _, askill in ipairs(("qiangxi|zhulou"):split("|")) do
+				if str:matchOne(askill) then return askill end
+			end
+		end
+
+		for _, askill in ipairs(("tuxi|dimeng|haoshi|guanxing|manjuan|zhiheng|rende|qiaobian|qice|" ..
+		"lijian|neofanjian|shuijian|shelie|luoshen|yongsi|qingnang|biyue|yingzi|caizhaoji_hujia|anxu|fangquan|duyi|mizhao|quhu|fanjian|" ..
+		"gongxin|duanliang|guose|mingce|ganlu|tiaoxin|zhaolie|moukui|liegong|mengjin|tieji|wushuang|juejing|fuhun|qianxi|yanxiao|jueji|tanhu|guhuo|xuanhuo|nosxuanhuo|qiangxi|longluo|nosjujian|lieren|pojun|bawang|" ..
+		"qixi|yinling|jizhi|shude|zhaoxin|neoluoyi|luoyi|wenjiu|jie|jiangchi|wusheng|longdan|jueqing|longhun|jiuchi|qingcheng|shuangren|kuangfu|gongqi|wushen|paoxiao|lianhuan|chouliang|houyuan|jujian|shensu|jisu|luanji|chizhong|" ..
+		"zhijian|shuangxiong|xinzhan|zhenwei|jieyuan|duanbing|guidao|guicai|zhenlie|wansha|lianpo|mashu|zhengfeng|yicong|nosshangshi|shangshi|lianying|tianyi|xianzhen|kuiwei|neojushou|jushou|huoji|roulin|lihuo|xiaoji|xuanfeng|nosxuanfeng|" ..
+		"jiushi|dangxian|tannang|qicai|zongshi|keji|taichen|hongyan|kurou|lukang_weiyan|duoshi|yicai|beifa|qinyin|zonghuo|shaoying|shouye|hongyuan|yuwen|lianli|gongmou|weiwudi_guixin|wuling|shenfen"):split("|")) do
+			if str:matchOne(askill) then return askill end
+		end
+	else
 		if self.player:getHp() == 1 then
 			if str:matchOne("wuhun") then return "wuhun" end
-			for _, askill in ipairs(("wuhun|duanchang|jijiu|longhun|jiushi|jiuchi|buyi|huilei|dushi|juejing|zhuiyi|jincui"):split("|")) do
+			for _, askill in ipairs(("wuhun|duanchang|jijiu|longhun|jiushi|jiuchi|buyi|huilei|dushi|juejing|buqu|zhuiyi|jincui"):split("|")) do
 				if str:matchOne(askill) then return askill end
 			end
 		end
@@ -853,59 +903,6 @@ function sgs.ai_skill_choice.huashen(self, choices)
 		for _, askill in ipairs(("tongxin|gongmou|weiwudi_guixin|wuling|kuangbao"):split("|")) do
 			if str:matchOne(askill) then return askill end
 		end
-
-	else
-		assert(self.player:getPhase() == sgs.Player_RoundStart)
-		if self.player:getHp() < 1 and str:matchOne("buqu") then return "buqu" end
-		if (self.player:getHandcardNum() >= self.player:getHp() and self.player:getHandcardNum() < 10 and not self:isWeak()) or self.player:isSkipped(sgs.Player_Play) then
-			if str:matchOne("keji") then return "keji" end
-		end
-		if self.player:getHandcardNum() > 4 then
-			for _, askill in ipairs(("shuangxiong|fuhun|tianyi|xianzhen|paoxiao|luanji|huoji|qixi|duanliang|guose|luoyi|bawang|dangxian|neoluoyi|rende|lirang|longluo"):split("|")) do
-				if str:matchOne(askill) then return askill end
-			end
-		end
-
-		if self.player:getHp() == 1 then
-			for _, askill in ipairs(("qingnang|jieyin|juejing|rende|miji|nosshangshi|shangshi|caizhaoji_hujia|kuiwei|neojushou|jushou|yinghun|zaiqi|kuanggu"):split("|")) do
-				if str:matchOne(askill) then return askill end
-			end
-		end
-
-		if self.player:getHandcardNum() < 2 then
-			if str:matchOne("haoshi") then return "haoshi" end
-		end
-
-		if self.player:isWounded() then
-			for _, askill in ipairs(("qingnang|jieyin|juejing|miji|rende"):split("|")) do
-				if str:matchOne(askill) then return askill end
-			end
-			if self.player:getHp() < 2 and self.player:getHandcardNum() == 1 then
-				if str:matchOne("shenzhi") then return "shenzhi" end
-			end
-		end
-
-		if self.player:getCards("e"):length() > 1 then
-			for _, askill in ipairs(("shuijian|xiaoji|xuanfeng|nosxuanfeng|shensu|neoluoyi"):split("|")) do
-				if str:matchOne(askill) then return askill end
-			end
-		end
-		
-		if self.player:getWeapon() then
-			for _, askill in ipairs(("qiangxi|zhulou"):split("|")) do
-				if str:matchOne(askill) then return askill end
-			end
-		end
-
-		for _, askill in ipairs(("tuxi|dimeng|haoshi|guanxing|manjuan|zhiheng|rende|qiaobian|qice|" ..
-		"lijian|neofanjian|shuijian|shelie|luoshen|yongsi|qingnang|biyue|yingzi|caizhaoji_hujia|anxu|fangquan|duyi|mizhao|quhu|fanjian|" ..
-		"gongxin|duanliang|guose|mingce|ganlu|tiaoxin|zhaolie|moukui|liegong|mengjin|tieji|wushuang|juejing|fuhun|qianxi|yanxiao|jueji|tanhu|guhuo|xuanhuo|nosxuanhuo|qiangxi|longluo|nosjujian|lieren|pojun|bawang|" ..
-		"qixi|yinling|jizhi|shude|zhaoxin|neoluoyi|luoyi|wenjiu|jie|jiangchi|wusheng|longdan|jueqing|longhun|jiuchi|qingcheng|shuangren|kuangfu|gongqi|wushen|paoxiao|lianhuan|chouliang|houyuan|jujian|shensu|jisu|luanji|chizhong|" ..
-		"zhijian|shuangxiong|xinzhan|zhenwei|jieyuan|duanbing|guidao|guicai|zhenlie|wansha|lianpo|mashu|zhengfeng|yicong|nosshangshi|shangshi|lianying|tianyi|xianzhen|kuiwei|neojushou|jushou|huoji|roulin|lihuo|xiaoji|xuanfeng|nosxuanfeng|" ..
-		"jiushi|dangxian|tannang|qicai|zongshi|keji|taichen|hongyan|kurou|lukang_weiyan|duoshi|yicai|beifa|qinyin|zonghuo|shaoying|shouye|hongyuan|yuwen|lianli|gongmou|weiwudi_guixin|wuling|shenfen"):split("|")) do
-			if str:matchOne(askill) then return askill end
-		end
-
 	end
 	for index = #choices, 1, -1 do
 		if ("renjie|benghuai|shenjun|xunzhi|dongcha|yishe|" ..

@@ -38,7 +38,7 @@ sgs.ai_skill_invoke.Fan = function(self, data)
 			end
 		end
 	end
-	return true
+	return false
 end
 
 sgs.ai_view_as.Fan = function(card, player, card_place)

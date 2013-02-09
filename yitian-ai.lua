@@ -668,7 +668,7 @@ sgs.ai_skill_use_func.LexueCard = function(card, use, self)
 		end
 		if not target then
 			self:sort(self.enemies,"handcard")
-			if not self.enemies[1]:isKongcheng() then target = self.enemies[1] else return end
+			if self.enemies[1] and not self.enemies[1]:isKongcheng() then target = self.enemies[1] else return end
 		end
 		use.card = card
 		if use.to then use.to:append(target) end

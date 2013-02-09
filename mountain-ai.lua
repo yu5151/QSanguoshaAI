@@ -832,7 +832,7 @@ function sgs.ai_skill_choice.huashen(self, choices)
 		end
 
 		for _, askill in ipairs(("huangen|jianxiong|jiang|qianxun|danlao|juxiang|huoshou|zhichi|yicong|wusheng|wushuang|tianxiang|" ..
-		"leiji|guhuo|nosshangshi|shangshi|zhiyu|guidao|guicai|jijiu|buyi|lianying|tianming|jieyuan|gzmingshi|gzxiaoguo|gzshushen|shuiyong|tiandu|zhenlie"):split("|")) do
+		"leiji|guhuo|nosshangshi|shangshi|zhiyu|guidao|guicai|jijiu|buyi|lianying|tianming|jieyuan|mingshi|xiaoguo|shushen|shuiyong|tiandu|zhenlie"):split("|")) do
 			if str:matchOne(askill) then return askill end
 		end
 
@@ -842,7 +842,7 @@ function sgs.ai_skill_choice.huashen(self, choices)
 			end
 		end
 
-		for _, askill in ipairs(("xingshang|weidi|chizhong|jilei|gzsijian|badao|jizhi|anxian|wuhun|hongyan|buqu|dushi|zhuiyi|huilei|jincui|beifa|yanzheng"):split("|")) do
+		for _, askill in ipairs(("xingshang|weidi|chizhong|jilei|sijian|badao|jizhi|anxian|wuhun|hongyan|buqu|dushi|zhuiyi|huilei|jincui|beifa|yanzheng"):split("|")) do
 			if str:matchOne(askill) then return askill end
 		end
 
@@ -861,7 +861,7 @@ function sgs.ai_skill_choice.huashen(self, choices)
 			if str:matchOne("keji") then return "keji" end
 		end
 		if self.player:getHandcardNum() > 4 then
-			for _, askill in ipairs(("shuangxiong|fuhun|tianyi|xianzhen|paoxiao|luanji|huoji|qixi|duanliang|guose|luoyi|bawang|dangxian|neoluoyi|rende|gzlirang|longluo"):split("|")) do
+			for _, askill in ipairs(("shuangxiong|fuhun|tianyi|xianzhen|paoxiao|luanji|huoji|qixi|duanliang|guose|luoyi|bawang|dangxian|neoluoyi|rende|lirang|longluo"):split("|")) do
 				if str:matchOne(askill) then return askill end
 			end
 		end
@@ -881,7 +881,7 @@ function sgs.ai_skill_choice.huashen(self, choices)
 				if str:matchOne(askill) then return askill end
 			end
 			if self.player:getHp() < 2 and self.player:getHandcardNum() == 1 then
-				if str:matchOne("gzshenzhi") then return "gzshenzhi" end
+				if str:matchOne("shenzhi") then return "shenzhi" end
 			end
 		end
 
@@ -900,9 +900,9 @@ function sgs.ai_skill_choice.huashen(self, choices)
 		for _, askill in ipairs(("tuxi|dimeng|haoshi|guanxing|manjuan|zhiheng|rende|qiaobian|qice|" ..
 		"lijian|neofanjian|shuijian|shelie|luoshen|yongsi|qingnang|biyue|yingzi|caizhaoji_hujia|anxu|fangquan|duyi|mizhao|quhu|fanjian|" ..
 		"gongxin|duanliang|guose|mingce|ganlu|tiaoxin|zhaolie|moukui|liegong|mengjin|tieji|wushuang|juejing|fuhun|qianxi|yanxiao|jueji|tanhu|guhuo|xuanhuo|nosxuanhuo|qiangxi|longluo|nosjujian|lieren|pojun|bawang|" ..
-		"qixi|yinling|jizhi|shude|zhaoxin|neoluoyi|luoyi|wenjiu|jie|jiangchi|wusheng|longdan|jueqing|longhun|jiuchi|gzqingcheng|gzshuangren|gzkuangfu|gongqi|wushen|paoxiao|lianhuan|chouliang|houyuan|jujian|shensu|jisu|luanji|chizhong|" ..
-		"zhijian|shuangxiong|xinzhan|zhenwei|jieyuan|gzduanbing|guidao|guicai|zhenlie|wansha|lianpo|mashu|zhengfeng|yicong|nosshangshi|shangshi|lianying|tianyi|xianzhen|kuiwei|neojushou|jushou|huoji|roulin|lihuo|xiaoji|xuanfeng|nosxuanfeng|" ..
-		"jiushi|dangxian|tannang|qicai|zongshi|keji|taichen|hongyan|kurou|lukang_weiyan|gzduoshi|yicai|beifa|qinyin|zonghuo|shaoying|shouye|hongyuan|yuwen|lianli|gongmou|weiwudi_guixin|wuling|shenfen"):split("|")) do
+		"qixi|yinling|jizhi|shude|zhaoxin|neoluoyi|luoyi|wenjiu|jie|jiangchi|wusheng|longdan|jueqing|longhun|jiuchi|qingcheng|shuangren|kuangfu|gongqi|wushen|paoxiao|lianhuan|chouliang|houyuan|jujian|shensu|jisu|luanji|chizhong|" ..
+		"zhijian|shuangxiong|xinzhan|zhenwei|jieyuan|duanbing|guidao|guicai|zhenlie|wansha|lianpo|mashu|zhengfeng|yicong|nosshangshi|shangshi|lianying|tianyi|xianzhen|kuiwei|neojushou|jushou|huoji|roulin|lihuo|xiaoji|xuanfeng|nosxuanfeng|" ..
+		"jiushi|dangxian|tannang|qicai|zongshi|keji|taichen|hongyan|kurou|lukang_weiyan|duoshi|yicai|beifa|qinyin|zonghuo|shaoying|shouye|hongyuan|yuwen|lianli|gongmou|weiwudi_guixin|wuling|shenfen"):split("|")) do
 			if str:matchOne(askill) then return askill end
 		end
 

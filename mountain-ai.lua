@@ -17,19 +17,26 @@ local function card_for_qiaobian(self, who, return_prompt)
 		end
 
 		local equips = who:getCards("e")
+		local weak
 		if not target and not equips:isEmpty() and self:hasSkills(sgs.lose_equip_skill, who) then
 			for _, equip in sgs.qlist(equips) do
 				if equip:isKindOf("OffensiveHorse") then card = equip break
-				elseif equip:isKindOf("DefensiveHorse") then card = equip break
+				elseif equip:isKindOf("DefensiveHorse") then
+					card = equip
+					weak = self:isWeak(who)
+					break
 				elseif equip:isKindOf("Weapon") then card = equip break
-				elseif equip:isKindOf("Armor") then card = equip break
+				elseif equip:isKindOf("Armor") then
+					card = equip
+					weak = self:isWeak(who)
+					break
 				end
 			end
 
 			if card then
 				for _, friend in ipairs(self.friends) do
 					if friend == who then
-					elseif friend:getCards("e"):isEmpty() or not self:getSameEquip(card, friend) then
+					elseif not weak and (friend:getCards("e"):isEmpty() or not self:getSameEquip(card, friend)) then
 						target = friend
 						break
 					end
@@ -98,12 +105,16 @@ sgs.ai_skill_discard.qiaobian = function(self, discard_num, min_num, optional, i
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
 	self:sortByUseValue(cards, true)
-	local stealer = self.room:findPlayerBySkillName("tuxi")
-	local card
+	local stealer
+	for _, ap in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+		if ap:hasSkill("tuxi") and self:isEnemy(ap) then stealer = ap end
+	end
+	local card	
 	for i=1, #cards, 1 do
 		local isPeach = cards[i]:isKindOf("Peach")
 		if isPeach then
-			if stealer and self:isEnemy(stealer) and self.player:getHandcardNum()<=2 and not stealer:containsTrick("supply_shortage") then
+			if stealer and self:isEnemy(stealer) and self.player:getHandcardNum()<=2 and self.player:getHp() > 2 
+			and (not stealer:containsTrick("supply_shortage") or stealer:containsTrick("YanxiaoCard")) then
 				card = cards[i]
 				break
 			end
@@ -404,29 +415,49 @@ function sgs.ai_slash_prohibit.xiangle(self, to)
 end
 
 sgs.ai_skill_invoke.fangquan = function(self, data)
-
 	if #self.friends == 1 then return end
 	
 	local limit = self.player:getMaxCards()
 	if self.player:getHandcardNum() > limit + 2 then return end
 	if self.player:isKongcheng() then return end
 	if self:getCardsNum("Peach") >= limit and self.player:isWounded() then return end	
-
+	
+	local shouldUse, range_fix = 0, 0, 0
+	local crossbow, slashto
 	local cards = sgs.QList2Table(self.player:getHandcards())
-	local shouldUse = 0
 	for _ ,card in ipairs(cards) do
 		if card:isKindOf("TrickCard") and self:getUseValue(card) > 3.69 then
 			local dummy_use = { isDummy = true }
 			self:useTrickCard(card, dummy_use)
-			if dummy_use.card then shouldUse = shouldUse + 1 end
-		end
-		
-		if card:isKindOf("Slash") then
-			for _, enemy in ipairs(self.enemies) do
-				if (self:getCardsNum("Jink", enemy) < 1 or enemy:isKongcheng()) and self:slashIsEffective(card, enemy) and self.player:canSlash(enemy, nil, true) then
+			if dummy_use.card then
+				if card:isKindOf("ExNihilo") then
+					shouldUse = shouldUse + 2
+				else
 					shouldUse = shouldUse + 1
-					break
 				end
+			end
+		end
+		if card:isKindOf("Weapon") then
+			local new_range = sgs.weapon_range[card:getClassName()]	
+			local current_range = 1
+			if self.player:getWeapon() then current_range = sgs.weapon_range[self.player:getWeapon():getClassName()] end
+			range_fix = math.min(current_range - new_range, 0)
+		end	
+		if card:isKindOf("OffensiveHorse") and not self.player:getOffensiveHorse() then range_fix = range_fix - 1 end
+		if card:isKindOf("DefensiveHorse") or card:isKindOf("Armor") and not self:getSameEquip(card) and (self:isWeak() or self:getCardsNum("Jink") == 0) then shouldUse = shouldUse + 1 end
+		if card:isKindOf("Crossbow") or (self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow")) then crossbow = true end
+	end
+	
+	local slashs = self:getCards("Slash")
+	for _, enemy in ipairs(self.enemies) do
+		for _, slash in ipairs(slashs) do
+			if crossbow and self:getCardsNum("Slash") > 1 and self:slashIsEffective(slash, enemy) and self.player:canSlash(enemy, nil, true, range_fix) and self:slashIsAvailable() then
+				shouldUse = shouldUse + 2
+				crossbow = false
+				break
+			elseif not slashto and self:slashIsAvailable() and self:slashIsEffective(slash, enemy) and self.player:canSlash(enemy, nil, true, range_fix) and (self:getCardsNum("Jink", enemy) < 1 or enemy:isKongcheng()) then
+				shouldUse = shouldUse + 1
+				slashto = true
 			end
 		end		
 	end	

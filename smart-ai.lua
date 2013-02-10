@@ -2624,15 +2624,21 @@ function SmartAI:askForCard(pattern, prompt, data)
 	self.room:output(prompt)
 	local target, target2
 	local parsedPrompt = prompt:split(":")
+	local players
+	self.player:speak(parsedPrompt[1])
 	if parsedPrompt[2] then
-		local others = self.room:getOtherPlayers(self.player)
-		others = sgs.QList2Table(others)
-		for _, other in ipairs(others) do
-			if other:getGeneralName() == parsedPrompt[2] or other:objectName() == parsedPrompt[2] then target = other break end
+		if parsedPrompt[1] == "@fire-attack" then
+			players = self.room:getAlivePlayers()
+		else
+			players = self.room:getOtherPlayers(self.player)
+		end
+		players = sgs.QList2Table(players)
+		for _, ap in ipairs(players) do
+			if ap:getGeneralName() == parsedPrompt[2] or ap:objectName() == parsedPrompt[2] then target = ap break end
 		end
 		if parsedPrompt[3] then
-			for _, other in ipairs(others) do
-				if other:getGeneralName() == parsedPrompt[3] or other:objectName() == parsedPrompt[3] then target2 = other break end
+			for _, ap in ipairs(players) do
+				if ap:getGeneralName() == parsedPrompt[3] or ap:objectName() == parsedPrompt[3] then target2 = ap break end
 			end
 		end
 	end
@@ -4140,6 +4146,7 @@ end
 function SmartAI:aoeIsEffective(card, to, source)
 	local players = self.room:getAlivePlayers()
 	players = sgs.QList2Table(players)
+	source = source or self.room:getCurrent()
 
 	local armor = to:getArmor()
 	if armor and armor:isKindOf("Vine") then

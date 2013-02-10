@@ -3955,7 +3955,7 @@ function SmartAI:getAllPeachNum(player)
 	player = player or self.player
 	local n = 0
 	for _, friend in ipairs(self:getFriends(player)) do
-		n = n + self:getCardsNum("Peach")
+		n = n + getCardsNum("Peach", friend)
 	end
 	return n
 end

@@ -333,7 +333,7 @@ sgs.ai_skill_use["@@tianxiang"] = function(self, data)
 		dmg = data
 	end
 	
-	if dmg then self.room:writeToConsole(debug.traceback()) return false end
+	if not dmg then self.room:writeToConsole(debug.traceback()) return "." end
 	
 	local cards = self.player:getCards("h")
 	cards=sgs.QList2Table(cards)

@@ -1429,7 +1429,34 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			target = friend
 		end
 	end
-
+	
+	-- table.copyFrom不会破坏原来的排序吧？
+	local new_enemies = table.copyFrom(enemies)
+	local compare_JudgingArea = function(a, b)
+		return a:getJudgingArea():length() > b:getJudgingArea():length()
+	end
+	table.sort(new_enemies, compare_JudgingArea)	
+	local yanxiao_card, yanxiao_target, yanxiao_prior
+	for _, enemy in ipairs(new_enemies) do
+		for _, acard in sgs.qlist(enemy:getJudgingArea()) do
+			if acard:isKindOf("YanxiaoCard") and self:hasTrickEffective(card, enemy) then
+				yanxiao_card = acard
+				yanxiao_target = enemy
+				if enemy:containsTrick("indulgence") or enemy:containsTrick("supply_shortage") then yanxiao_prior = true end
+				break
+			end
+		end
+		if yanxiao_card and yanxiao_target then break end
+	end
+	if yanxiao_prior and yanxiao_card and yanxiao_target then
+		use.card = card
+		if use.to then 
+			sgs.ai_skill_cardchosen[name] = yanxiao_card:getEffectiveId()
+			use.to:append(yanxiao_target)
+		end
+	end
+	
+	
 	for _, enemy in ipairs(enemies) do
 		local cards = sgs.QList2Table(enemy:getHandcards())
 		local flag = string.format("%s_%s_%s","visible",self.player:objectName(),enemy:objectName())
@@ -1508,6 +1535,14 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 		end
 	end
 
+	if yanxiao_card and yanxiao_target then
+		use.card = card
+		if use.to then 
+			sgs.ai_skill_cardchosen[name] = yanxiao_card:getEffectiveId()
+			use.to:append(yanxiao_target)
+		end
+	end
+	
 	for _, enemy in ipairs(enemies) do
 		if not enemy:isNude() and self:hasTrickEffective(card, enemy) then
 			if self:getValuableCard(enemy) then

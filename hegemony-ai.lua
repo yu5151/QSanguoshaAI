@@ -302,6 +302,7 @@ sgs.ai_skill_cardask["@xiaoguo"] = function(self, data)
 		end
 	elseif self:isEnemy(currentplayer) then
 		if not self:damageIsEffective(currentplayer) then return "." end
+		if currentplayer:hasArmorEffect("SilverLion") and currentplayer:isWounded() and self:isWeak(currentplayer) then return "." end
 		if self:hasSkills(sgs.lose_equip_skill, currentplayer) and currentplayer:getCards("e"):length() > 0 then return "." end
 		return "$" .. card:getEffectiveId()
 	end
@@ -310,21 +311,54 @@ end
 
 sgs.ai_skill_cardask["@xiaoguo-discard"] = function(self, data)
 	local yuejin = self.room:findPlayerBySkillName("xiaoguo")
-	if not self:damageIsEffective(self.player, sgs.DamageStruct_Normal, yuejin) then
+	local player = self.player
+
+	if player:hasArmorEffect("SilverLion") and player:isWounded() and self:isWeak() then
+		return "$" .. player:getArmor():getEffectiveId()
+	end
+
+	if not self:damageIsEffective(player, sgs.DamageStruct_Normal, yuejin) then
 		return "."
 	end
-	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
-		return "$" .. self.player:getArmor():getEffectiveId()
+
+	if player:getHp() > getBestHp(player) then
+		return "."
 	end
-	for _, card in sgs.qlist(self.player:getCards("he")) do
-		if card:isKindOf("EquipCard") and not self.player:hasEquip(card) then
-			return "$" .. card:getEffectiveId()
+
+	if player:hasArmorEffect("SilverLion") and player:isWounded() then
+		return "$" .. player:getArmor():getEffectiveId()
+	end
+	
+	local card_id
+	if self:hasSkills(sgs.lose_equip_skill, player) then
+		if player:getWeapon() then card_id = player:getWeapon():getId()
+		elseif player:getOffensiveHorse() then card_id = player:getOffensiveHorse():getId()
+		elseif player:getDefensiveHorse() then card_id = player:getDefensiveHorse():getId()
+		elseif player:getArmor() then card_id = player:getArmor():getId()
 		end
 	end
-	for _, card in sgs.qlist(self.player:getCards("he")) do
-		if card:isKindOf("EquipCard") then
-			return "$" .. card:getEffectiveId()
+	
+	if not card_id then
+		for _, card in sgs.qlist(player:getCards("h")) do
+			if card:isKindOf("EquipCard") then
+				card_id = card:getEffectiveId()
+				break
+			end
 		end
+	end
+
+	if not card_id then
+		if player:getWeapon() then card_id = player:getWeapon():getId()
+		elseif player:getOffensiveHorse() then card_id = player:getOffensiveHorse():getId()
+		elseif player:getDefensiveHorse() then card_id = player:getDefensiveHorse():getId()
+		elseif player:getHp() < 4 and player:getArmor() then card_id = player:getArmor():getId()
+		end
+	end
+
+	if not card_id then
+		return "."
+	else
+		return "$" .. card_id
 	end
 	return "."
 end

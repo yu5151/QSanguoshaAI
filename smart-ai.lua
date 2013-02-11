@@ -2625,7 +2625,6 @@ function SmartAI:askForCard(pattern, prompt, data)
 	local target, target2
 	local parsedPrompt = prompt:split(":")
 	local players
-	self.player:speak(parsedPrompt[1])
 	if parsedPrompt[2] then
 		if parsedPrompt[1] == "@fire-attack" then
 			players = self.room:getAlivePlayers()

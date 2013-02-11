@@ -104,22 +104,20 @@ end
 sgs.ai_chaofeng.masu = -4
 
 sgs.ai_skill_invoke.enyuan = function(self, data)
-	local damage = data:toDamage()
-	if damage and damage.from then
-		if damage.from:isAlive() then
-			return self:isFriend(damage.from) and self:getOverflow(damage.from) > 2 or true
+	local move = data:toMoveOneTime()
+	if move and move.from and move.card_ids and move.card_ids:length() > 0 then
+		local from
+		for _, player in sgs.qlist(self.room:getAlivePlayers()) do
+			if player:objectName() == move.from:objectName() then from = player break end	
 		end
-	else
-		local move = data:toMoveOneTime()
-		if move and move.from then	
-			local from	
-			for _, player in sgs.qlist(self.room:getAlivePlayers()) do	
-				if player:objectName() == move.from:objectName() then from = move.from break end	
-			end	
-			if from then return self:isFriend(from) and not (from:hasSkill("kongcheng") and from:isKongcheng()) end
-		end	
-		return false
+		if from then return self:isFriend(from) and not (from:hasSkill("kongcheng") and from:isKongcheng()) end
+		return
 	end
+	local damage = data:toDamage()
+	if damage.from and damage.from:isAlive() then
+		return not self:isFriend(damage.from) or self:getOverflow(damage.from) > 2
+	end		
+	return
 end
 
 sgs.ai_skill_discard.enyuan = function(self, discard_num, min_num, optional, include_equip)

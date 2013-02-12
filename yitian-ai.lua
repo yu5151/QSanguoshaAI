@@ -828,11 +828,11 @@ sgs.ai_skill_invoke.xiliang = true
 
 sgs.ai_skill_choice.xiliang = function(self,choices)
 	if self.player:hasSkill("manjuan") then return "put" end
-	if self.player:containsTrick("indulgence") and not player:containsTrick("YanxiaoCard")
+	if self.player:containsTrick("indulgence") and not self.player:containsTrick("YanxiaoCard")
 	  and self.player:getHandcardNum() > 2 then
 		return "put"
 	end
-	if self:getOverflow() < 1 then return "obtain" end	
+	if self.player:getHandcardNum() < 3 then return "obtain" end	
 	if self:getOverflow() >= 1 then return "put" end
 	return "obtain"
 end

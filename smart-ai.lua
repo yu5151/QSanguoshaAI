@@ -1188,7 +1188,7 @@ function sgs.gameProcess(room,...)
 			if aplayer:getMaxHp() == 3 then loyal_value = loyal_value + 0.5 end
 			loyal_value = loyal_value + (loyal_hp + math.max(sgs.getDefense(aplayer) - loyal_hp * 2, 0) * 0.7)
 			if aplayer:getWeapon() and aplayer:getWeapon():getClassName() ~= "Weapon" then
-				loyal_value = loyal_value + math.min(1.2, math.min(sgs.weapon_range[aplayer:getWeapon():getClassName()],room:alivePlayerCount()/2)/2) * 0.4
+				loyal_value = loyal_value + math.min(1.2, math.min(sgs.weapon_range[aplayer:getWeapon():getClassName()] or 0,room:alivePlayerCount()/2)/2) * 0.4
 			end
 			if aplayer:getDefensiveHorse() then
 				loyal_value = loyal_value + 0.5

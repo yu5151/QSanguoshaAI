@@ -1454,6 +1454,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			sgs.ai_skill_cardchosen[name] = yanxiao_card:getEffectiveId()
 			use.to:append(yanxiao_target)
 		end
+		return
 	end	
 	
 	for _, enemy in ipairs(enemies) do
@@ -1507,7 +1508,6 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			end
 		end
 	end
-
 	
 	for i= 1,2,1 do
 		for _, enemy in ipairs(enemies) do
@@ -1540,6 +1540,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			sgs.ai_skill_cardchosen[name] = yanxiao_card:getEffectiveId()
 			use.to:append(yanxiao_target)
 		end
+		return
 	end
 	
 	for _, enemy in ipairs(enemies) do

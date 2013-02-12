@@ -1350,7 +1350,8 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	local tricks
 	players = self:exclude(players, card)
 	for _, player in ipairs(players) do
-		if (player:containsTrick("lightning") and self:getFinalRetrial(player) ==2 and self:hasTrickEffective(card, player)) or #self.enemies == 0 then 
+		if not player:getJudgingArea():isEmpty() and self:hasTrickEffective(card, player)
+		  and ((player:containsTrick("lightning") and self:getFinalRetrial(player) == 2) or #self.enemies == 0) then 
 			use.card = card
 			if use.to then 
 				tricks = player:getCards("j")
@@ -1364,13 +1365,12 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			return
 		end
 	end
-
 	
 	local enemies = {}
 
 	if #self.enemies ==0 and self:getOverflow() > 0 then
 		for _, player in ipairs(players) do
-			if not player:isLord() then	table.insert(enemies, player) end
+			if not player:isLord() then table.insert(enemies, player) end
 		end
 		enemies = self:exclude(enemies, card)
 		if sgs.turncount < 3 and #enemies > 0 then enemies = {enemies[1 + (os.time() % #enemies)]} end
@@ -1454,8 +1454,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			sgs.ai_skill_cardchosen[name] = yanxiao_card:getEffectiveId()
 			use.to:append(yanxiao_target)
 		end
-	end
-	
+	end	
 	
 	for _, enemy in ipairs(enemies) do
 		local cards = sgs.QList2Table(enemy:getHandcards())
@@ -1556,8 +1555,6 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			end
 		end
 	end
-
-
 
 	if hasLion then
 		use.card = card

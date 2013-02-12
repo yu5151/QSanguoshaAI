@@ -301,7 +301,7 @@ function SmartAI:getUseValue(card)
 		local userstring = card:toString()
 		userstring = (userstring:split(":"))[3]
 		local guhuocard = sgs.Sanguosha:cloneCard(userstring, card:getSuit(), card:getNumber())
-		local usevalue = self:getUseValue(guhuocard,player) + #self.enemies*0.3
+		local usevalue = self:getUseValue(guhuocard) + #self.enemies*0.3
 		if sgs.Sanguosha:getCard(card:getSubcards():first()):objectName() == userstring and card:getSuit() == sgs.Card_Heart then usevalue = usevalue + 3 end
 		return usevalue
 	end
@@ -316,7 +316,7 @@ function SmartAI:getUseValue(card)
 		if self.weaponUsed and card:isKindOf("Weapon") then v = 2 end
 		if self:hasSkills("qiangxi|taichen|zhulou") and card:isKindOf("Weapon") then v = 2 end
 		if self.player:hasSkill("kurou") and card:isKindOf("Crossbow") then return 9 end
-		if self:hasSkill("bazhen") or self:hasSkill("yizhong") and card:isKindOf("Armor") then v = 2 end
+		if (self:hasSkill("bazhen") or self:hasSkill("yizhong")) and card:isKindOf("Armor") then v = 2 end
 		if self.role == "loyalist" and self.player:getKingdom()=="wei" and not self.player:hasSkill("bazhen") and self.room:getLord():hasLordSkill("hujia") and card:isKindOf("EightDiagram") then
 			v = 9
 		end
@@ -4389,13 +4389,13 @@ function SmartAI:hasTrickEffective(card, player)
 	if player then
 		if self.room:isProhibited(self.player, player, card) then return false end
 		if (player:hasSkill("zhichi") and self.room:getTag("Zhichi"):toString() == player:objectName()) or player:hasSkill("noswuyan") then
-			if card and not (card:isKindOf("Indulgence") or card:isKindOf("SupplyShortage")) then return false end
+			if card and not (card:isKindOf("DelayedTrick")) then return false end
 		end
-		if player:hasSkill("wuyan") then
+		if player:hasSkill("wuyan") and not self.player:hasSkill("jueqing") then
 			if card and (card:isKindOf("Duel") or card:isKindOf("FireAttack")) then return false end
 		end
 
-		if player:getMark("@fenyong") >0 and player:hasSkill("fenyong") then
+		if player:getMark("@fenyong") >0 and player:hasSkill("fenyong") and not self.player:hasSkill("jueqing") then
 			if card and (card:isKindOf("Duel") or card:isKindOf("FireAttack")) then return false end
 		end
 
@@ -4403,7 +4403,7 @@ function SmartAI:hasTrickEffective(card, player)
 			sgs.dynamic_value.damage_card[card:getClassName()] then return false end
 		if player:hasSkill("zuixiang") and player:isLocked(card) then return false end
 	else
-		if self.player:hasSkill("wuyan") then
+		if self.player:hasSkill("wuyan") and not self.player:hasSkill("jueqing") then
 			if card:isKindOf("TrickCard") and 
 				(card:isKindOf("Duel") or card:isKindOf("FireAttack") or card:isKindOf("ArcheryAttack") or card:isKindOf("SavageAssault")) then
 			return false end

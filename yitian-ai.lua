@@ -820,6 +820,23 @@ sgs.ai_skill_use_func.YisheAskCard=function(card,use,self)
 	end
 end
 
+--[[
+	技能：惜粮
+	描述：你可将其他角色弃牌阶段弃置的红牌收为“米”或加入手牌。 
+]]--
+sgs.ai_skill_invoke.xiliang = true
+
+sgs.ai_skill_choice.xiliang = function(self,choices)
+	if self.player:hasSkill("manjuan") then return "put" end
+	if self.player:containsTrick("indulgence") and not player:containsTrick("YanxiaoCard")
+	  and self.player:getHandcardNum() > 2 then
+		return "put"
+	end
+	if self:getOverflow() < 1 then return "obtain" end	
+	if self:getOverflow() >= 1 then return "put" end
+	return "obtain"
+end
+
 sgs.ai_chaofeng.zhanggongqi = 4
 sgs.ai_use_priority.YisheAskCard = 9.1
 --[[

@@ -489,7 +489,7 @@ table.insert(sgs.ai_skills, shouye_skill)
 shouye_skill.getTurnUseCard=function(self)
 	if #self.friends_noself == 0 then return end
 	if self.player:getHandcardNum() > 0 then
-		local n = self.player:getMark("shouyeonce")
+		local n = self.player:getMark("jiehuo")
 		if n > 0 and self.player:hasUsed("ShouyeCard") then return end
 		local cards = self.player:getHandcards()
 		cards = sgs.QList2Table(cards)
@@ -503,11 +503,24 @@ end
 
 sgs.ai_skill_use_func.ShouyeCard = function(card, use, self)
 	self:sort(self.friends_noself, "handcard")
-	if self.friends_noself[1] then
-		if use.to then use.to:append(self.friends_noself[1]) end
+	local first_index, second_index
+	for i=1, #self.friends_noself do
+		if not self.friends_noself[i]:hasSkill("manjuan") 
+		and not (self.friends_noself[i]:hasSkill("kongcheng") and self.friends_noself[i]:isKongcheng()) then
+			if not first_index then
+				first_index = i
+			else
+				second_index = i
+			end
+		end
+		if second_index then break end
 	end
-	if self.friends_noself[2] then
-		if use.to then use.to:append(self.friends_noself[2]) end
+
+	if first_index then
+		if use.to then use.to:append(self.friends_noself[first_index]) end
+	end
+	if second_index then
+		if use.to then use.to:append(self.friends_noself[second_index]) end
 	end
 	use.card = card
 	return

@@ -2583,7 +2583,7 @@ end
 function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	local effect = data:toSlashEffect()
 	local damage_nature
-	if effect and effect.slash then damage_nature=effect.nature end
+	if effect and effect.slash then damage_nature = effect.nature end
 	
 	if self.player:isDead() then return "." end
 	
@@ -2767,8 +2767,7 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 	if from:hasFlag("luoyi") then dmg = dmg + 1 end	
 	if from:hasFlag("neoluoyi") then dmg = dmg + 1 end
 	if from:hasSkill("drluoyi") and not from:getWeapon() then dmg = dmg + 1 end	
-	if slash and from:hasSkill("jie") and slash:isRed() then dmg = dmg + 1 end
-	
+	if slash and from:hasSkill("jie") and slash:isRed() then dmg = dmg + 1 end	
 	
 	if not from:hasSkill("jueqing") then	
 		if slash and from:hasSkill("wenjiu") and slash:isBlack() then dmg = dmg + 1 end

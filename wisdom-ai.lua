@@ -153,14 +153,33 @@ end
 sgs.ai_skill_invoke.tanlan = function(self, data)
 	local damage = data:toDamage()
 	local max_card = self:getMaxCard()
-	if not max_card or self:isFriend(damage.from) then return end
-	if max_card:getNumber() > 10 or
-		(self.player:getHp() > 2 and self.player:getHandcardNum() > 2 and max_card:getNumber() > 4) or
-		(self.player:getHp() > 1 and self.player:getHandcardNum() > 1 and max_card:getNumber() > 7) or
-		(damage.from:getHandcardNum() <= 2 and max_card:getNumber() > 2) then
+	if not max_card then return end
+	if max_card:getNumber() > 10 and self:isFriend(damage.from) and damage.from:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng, damage.from) then return true end
+	if self:isFriend(damage.from) then return end
+	if max_card:getNumber() > 10 
+		or (self.player:getHp() > 2 and self.player:getHandcardNum() > 2 and max_card:getNumber() > 4)
+		or (self.player:getHp() > 1 and self.player:getHandcardNum() > 1 and max_card:getNumber() > 7)
+		or (damage.from:getHandcardNum() <= 2 and max_card:getNumber() > 2) 
+		or (damage.from:getHandcardNum() == 1 and not self:hasSkills(sgs.need_kongcheng, damage.from)) then
 		return true
 	end
 end
+
+function sgs.ai_skill_pindian.tanlan(minusecard, self, requestor, maxcard)
+	local cards, maxcard = sgs.QList2Table(self.player:getHandcards())
+	local function compare_func(a, b)
+		return a:getNumber() > b:getNumber()
+	end
+	table.sort(cards, compare_func)
+	for _, card in ipairs(cards) do
+		if card:getNumber() > 10 then return card end
+		if self:getUseValue(card) < 6 then maxcard = card break end
+	end
+	return maxcard or cards[1]
+end
+
+sgs.ai_cardneed.tanlan = sgs.ai_cardneed.bignumber
+
 --[[
 	技能：异才
 	描述：每当你使用一张非延时类锦囊时(在它结算之前)，可立即对攻击范围内的角色使用一张【杀】 
@@ -478,7 +497,7 @@ sgs.ai_skill_invoke.shipo = function(self, data)
 	end
 end
 
-sgs.ai_chaofeng.tianfeng = -3
+sgs.ai_chaofeng.tianfeng = -1
 --[[
 	技能：授业
 	描述：出牌阶段，你可以弃置一张红色手牌，指定最多两名其他角色各摸一张牌 

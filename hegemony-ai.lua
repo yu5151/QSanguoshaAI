@@ -363,6 +363,10 @@ sgs.ai_skill_cardask["@xiaoguo-discard"] = function(self, data)
 	return "."
 end
 
+sgs.ai_cardneed.xiaoguo = function(to, card)
+	return to:getHandcardNum() < 3 and card:getTypeId() == sgs.Card_Basic
+end
+
 sgs.ai_skill_use["@@shushen"] = function(self, prompt)
 	if #self.friends_noself == 0 then return "." end
 	self:sort(self.friends_noself, "defense")

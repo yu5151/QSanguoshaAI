@@ -367,6 +367,8 @@ sgs.ai_cardneed.xiaoguo = function(to, card)
 	return to:getHandcardNum() < 3 and card:getTypeId() == sgs.Card_Basic
 end
 
+sgs.ai_chaofeng.yuejin = 2
+
 sgs.ai_skill_use["@@shushen"] = function(self, prompt)
 	if #self.friends_noself == 0 then return "." end
 	self:sort(self.friends_noself, "defense")
@@ -597,9 +599,23 @@ sgs.ai_skill_use["@@shuangren"] = function(self, prompt)
 	return "."
 end
 
-sgs.ai_skill_playerchosen.shuangren_slash = sgs.ai_skill_playerchosen.zero_card_as_slash
+function sgs.ai_skill_pindian.shuangren(minusecard, self, requestor, maxcard)
+	local cards = sgs.QList2Table(self.player:getHandcards())
+	local function compare_func(a, b)
+		return a:getNumber() > b:getNumber()
+	end
+	table.sort(cards, compare_func)
+	for _, card in ipairs(cards) do
+		if card:getNumber()> 10 then return card end
+	end
+	self:sortByKeepValue(cards)
+	return cards[1]
+end
 
-sgs.ai_card_intention.ShuangrenCard = sgs.ai_card_intention.TianyiCard
+sgs.ai_chaofeng.jiling = 2
+sgs.ai_skill_playerchosen.shuangren_slash = sgs.ai_skill_playerchosen.zero_card_as_slash
+sgs.ai_card_intention.ShuangrenCard = 80
+sgs.ai_cardneed.shuangren = sgs.ai_cardneed.bignumber
 
 xiongyi_skill = {}
 xiongyi_skill.name = "xiongyi"
@@ -712,6 +728,7 @@ sgs.ai_skill_choice.qingcheng = function(self, choices, data)
 	end
 end
 
+sgs.ai_chaofeng.zoushi = 3
 sgs.ai_use_value.QingchengCard = 2
 sgs.ai_use_priority.QingchengCard = 2.2
 sgs.ai_card_intention.QingchengCard = 30

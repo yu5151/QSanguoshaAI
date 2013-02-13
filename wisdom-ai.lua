@@ -485,6 +485,10 @@ sgs.ai_skill_invoke.badao = function(self, data)
 		if self.player:canSlash(enemy, nil, true) and self:getCardsNum("Slash") > 0 then return true end
 	end
 end
+
+sgs.ai_cardneed.wenjiu = function(to, card)
+	return card:isBlack() and isCard("Slash", card, to)
+end
 --[[
 	技能：识破
 	描述：任意角色判定阶段判定前，你可以弃置两张牌，获得该角色判定区里的所有牌 
@@ -495,6 +499,10 @@ sgs.ai_skill_invoke.shipo = function(self, data)
 		(target:containsTrick("indulgence") and target:getHandcardNum() > target:getHp()-1)) then
 		return self:isFriend(target)
 	end
+end
+
+sgs.ai_cardneed.gushou = function(to, card)
+	return to:getHandcardNum() < 3 and card:getTypeId() == sgs.Card_Basic
 end
 
 sgs.ai_chaofeng.tianfeng = -1
@@ -543,6 +551,10 @@ sgs.ai_skill_use_func.ShouyeCard = function(card, use, self)
 	end
 	use.card = card
 	return
+end
+
+sgs.ai_cardneed.shouye = function(to, card)
+	return to:getMark("jiehuo") < 1 and to:getHandcardNum() < 3 and card:isRed()
 end
 
 sgs.ai_card_intention.ShouyeCard = -70

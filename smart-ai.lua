@@ -295,7 +295,10 @@ end
 
 function SmartAI:getUseValue(card)
 	local class_name = card:getClassName()
-	local v = 0
+	local v = sgs.ai_use_value[class_name] or 0
+	if class_name == "LuaSkillCard" and card:isKindOf("LuaSkillCard") then
+		v = sgs.ai_use_value[card:objectName()] or 0
+	end
 
 	if card:isKindOf("GuhuoCard") then
 		local userstring = card:toString()
@@ -352,15 +355,7 @@ function SmartAI:getUseValue(card)
 	if self:hasSkills(sgs.need_kongcheng) then
 		if self.player:getHandcardNum() == 1 then v = 10 end
 	end
-	if self.player:hasWeapon("Halberd") and card:isKindOf("Slash") and self.player:getHandcardNum() == 1 then v = 10 end
-	if card:getTypeId() == sgs.Card_Skill then
-		if v == 0 then v = 10 end
-	end
-
-	if v == 0 then v = sgs.ai_use_value[class_name] or 0 end
-	if class_name == "LuaSkillCard" and card:isKindOf("LuaSkillCard") then
-		v = sgs.ai_use_value[card:objectName()] or 0
-	end
+	if self.player:hasWeapon("Halberd") and card:isKindOf("Slash") and self.player:isLastHandCard(card) then v = 10 end
 	if self.player:getPhase()==sgs.Player_Play then v = self:adjustUsePriority(card, v) end
 	return v
 end
@@ -2289,7 +2284,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 	if positive then
 		if from and self:isEnemy(from) and (sgs.evaluateRoleTrends(from) ~= "neutral" or sgs.isRolePredictable()) then
 			--使用者是敌方，自己有技能“空城”且无懈可击为最后一张手牌->命中
-			if self:hasSkill("kongcheng") and self.player:getHandcardNum() == 1 and self.player:isLastHandcard(null_card) then return null_card end
+			if self:hasSkill("kongcheng") and self.player:getHandcardNum() == 1 and self.player:isLastHandCard(null_card) then return null_card end
 			--敌方在虚弱、需牌技、漫卷中使用无中生有->命中
 			if trick:isKindOf("ExNihilo") and (self:isWeak(from) or self:hasSkills(sgs.cardneed_skill, from) or from:hasSkill("manjuan")) then return null_card end
 			--铁索连环的目标没有藤甲->不管

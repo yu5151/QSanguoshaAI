@@ -480,38 +480,54 @@ fenxun_skill.getTurnUseCard = function(self)
 	if not self.player:isNude() then
 		local card
 		local card_id
+		local slashcount = self:getCardsNum("Slash")
+		local jinkcount = self:getCardsNum("Jink")
+		local cards = self.player:getHandcards()
+		cards = sgs.QList2Table(cards)
+		self:sortByKeepValue(cards)
+
 		if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
 			card = sgs.Card_Parse("@FenxunCard=" .. self.player:getArmor():getId())
-		elseif self.player:getHandcardNum() > self.player:getHp() then
-			local cards = self.player:getHandcards()
-			cards = sgs.QList2Table(cards)
-
+		elseif self.player:getHandcardNum() > 0 then
 			for _, acard in ipairs(cards) do
-				if (acard:isKindOf("BasicCard") or acard:isKindOf("EquipCard") or acard:isKindOf("AmazingGrace"))
-					and not isCard("Peach", acard, self.player) then
+				if (acard:isKindOf("Disaster") or acard:isKindOf("AmazingGrace") or acard:isKindOf("EquipCard"))
+					then
 					card_id = acard:getEffectiveId()
 					break
 				end
 			end
+		elseif jinkcount > 1 then
+			for _, acard in ipairs(cards) do
+				if acard:isKindOf("Jink") then
+					card_id = acard:getEffectiveId()
+					break
+				end
+			end
+		elseif slashcount > 1 then
+			for _, acard in ipairs(cards) do
+				if acard:isKindOf("Slash") then
+					slashcount = slashcount - 1
+					card_id = acard:getEffectiveId()
+					break
+				end
+			end		
 		elseif not self.player:getEquips():isEmpty() then
 			local player = self.player
 			if player:getWeapon() then card_id = player:getWeapon():getId()
-			elseif player:getOffensiveHorse() then card_id = player:getOffensiveHorse():getId()
-			elseif player:getDefensiveHorse() then card_id = player:getDefensiveHorse():getId()
-			elseif player:getArmor() and player:getHandcardNum() <= 1 then card_id = player:getArmor():getId()
 			end
 		end
+
 		if not card_id then
-			cards = sgs.QList2Table(self.player:getHandcards())
 			for _, acard in ipairs(cards) do
-				if (acard:isKindOf("BasicCard") or acard:isKindOf("EquipCard") or acard:isKindOf("AmazingGrace"))
-					and not isCard("Peach", acard, self.player) then
+				if (acard:isKindOf("Disaster") or acard:isKindOf("AmazingGrace") or acard:isKindOf("EquipCard") or acard:isKindOf("BasicCard"))
+					and not isCard("Peach", acard, self.player) and not isCard("Slash", acard, self.player) then
 					card_id = acard:getEffectiveId()
 					break
 				end
 			end
 		end
-		if not card_id then
+
+		if not card_id or slashcount < 1 then
 			return nil
 		else
 			card = sgs.Card_Parse("@FenxunCard=" .. card_id)
@@ -541,7 +557,7 @@ sgs.ai_skill_use_func.FenxunCard = function(card, use, self)
 end
 
 sgs.ai_use_value.FenxunCard = 5.5
-sgs.ai_use_priority.FenxunCard = 8
+sgs.ai_use_priority.FenxunCard = 4.1
 sgs.ai_card_intention.FenxunCard = 50
 
 sgs.ai_skill_choice.mingshi = function(self, choices, data)

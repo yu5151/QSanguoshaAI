@@ -475,7 +475,6 @@ sgs.ai_skill_choice.jincui = function(self, choices)
 	if sgs.jincui_discard then return "throw" else return "draw" end
 end
 
-sgs.ai_chaofeng.wiszhangzhao = -1
 --[[
 	技能：霸刀
 	描述：当你成为黑色的【杀】目标时，你可以对你攻击范围内的一名其他角色使用一张【杀】 

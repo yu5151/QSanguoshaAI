@@ -309,6 +309,16 @@ sgs.ai_skill_cardask["@xiaoguo"] = function(self, data)
 	return "."
 end
 
+sgs.ai_choicemade_filter.cardResponsed["@xiaoguo"] = function(player, promptlist)
+	if promptlist[#promptlist] ~= "_nil_" then
+		local current = player:getRoom():getCurrent()
+		if not current then return end
+		local intention = 50
+		if current:hasArmorEffect("SilverLion") and current:isWounded() and self:isWeak(current) then intention = -30 end
+		sgs.updateIntention(player, current, intention)
+	end
+end
+
 sgs.ai_skill_cardask["@xiaoguo-discard"] = function(self, data)
 	local yuejin = self.room:findPlayerBySkillName("xiaoguo")
 	local player = self.player

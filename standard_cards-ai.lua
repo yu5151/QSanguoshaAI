@@ -309,6 +309,7 @@ function SmartAI:useCardSlash(card, use)
 	end
 	local no_distance = self.slash_distance_limit
 	self.slash_targets = 1
+	if self.player:hasFlag("slashNoDistanceLimit") then no_distance = true end
 	if card:getSkillName() == "wushen" then no_distance = true end
 	if card:getSkillName() == "gongqi" then no_distance = true end
 	if self.player:hasFlag("tianyi_success") then self.slash_targets = self.slash_targets + 1 end

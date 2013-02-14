@@ -336,10 +336,12 @@ sgs.ai_skill_use_func.TianyiCard=function(card,use,self)
 	end
 	
 	local zhugeliang = self.room:findPlayerBySkillName("kongcheng")
+	
 	local slash = self:getCard("Slash")	
 	local dummy_use = {isDummy = true}
-
+	self.room:setPlayerFlag(self.player, "slashNoDistanceLimit")
 	if slash then self:useBasicCard(slash, dummy_use) end
+	self.room:setPlayerFlag(self.player, "-slashNoDistanceLimit")
 
 	if slashcount >= 1 and slash and dummy_use.card  then		
 		for _, enemy in ipairs(self.enemies) do
@@ -367,9 +369,8 @@ sgs.ai_skill_use_func.TianyiCard=function(card,use,self)
 		for index = #self.friends_noself, 1, -1 do
 			local friend = self.friends_noself[index]
 			if not friend:isKongcheng() then
-				local friend_min_card = self:getMinCard(enemy)
-				local friend_min_point =friend_min_card and friend_min_card:getNumber() or 100
-
+				local friend_min_card = self:getMinCard(friend)
+				local friend_min_point = friend_min_card and friend_min_card:getNumber() or 100
 				if  max_point > friend_min_point then
 					use.card = sgs.Card_Parse("@TianyiCard=" .. max_card:getId())
 					if use.to then use.to:append(friend) end

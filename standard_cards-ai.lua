@@ -305,7 +305,7 @@ function SmartAI:useCardSlash(card, use)
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
 	for _, acard in ipairs(cards) do
-		if acard:getTypeId() == sgs.Card_Basic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
+		if acard:getTypeId() == sgs.Card_TypeBasic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
 	end
 	local no_distance = self.slash_distance_limit
 	self.slash_targets = 1

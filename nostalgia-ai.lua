@@ -58,7 +58,7 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 		self:sortByUseValue(cards, true)
 		for _, card in ipairs(cards) do
 			if card:getTypeId() == sgs.Card_Trick and not card:isKindOf("ExNihilo") then trick_num = trick_num + 1
-			elseif card:getTypeId() == sgs.Card_Basic then basic_num = basic_num + 1
+			elseif card:getTypeId() == sgs.Card_TypeBasic then basic_num = basic_num + 1
 			elseif card:getTypeId() == sgs.Card_Equip then equip_num = equip_num + 1
 			end
 		end

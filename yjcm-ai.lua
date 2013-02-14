@@ -24,7 +24,7 @@ sgs.ai_skill_use["@@jujian"] = function(self, prompt)
 	else
 		self:sortByKeepValue(cards)
 		for _,card in ipairs(cards) do
-			if card:getTypeId() ~= sgs.Card_Basic then nobasiccard = card:getEffectiveId() end
+			if card:getTypeId() ~= sgs.Card_TypeBasic then nobasiccard = card:getEffectiveId() end
 		end
 	end
 	for _, friend in ipairs(self.friends_noself) do
@@ -438,7 +438,7 @@ sgs.ai_cardshow.buyi = function(self, requestor)
 
 	local cards = self.player:getHandcards()
 	for _, card in sgs.qlist(cards) do
-		if card:getTypeId() ~= sgs.Card_Basic then
+		if card:getTypeId() ~= sgs.Card_TypeBasic then
 			return card
 		end
 	end

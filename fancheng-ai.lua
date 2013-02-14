@@ -9,7 +9,7 @@ zhiyuan_skill.getTurnUseCard=function(self)
 	self:sortByUseValue(cards,true)
 
 	for _,card in ipairs(cards)  do
-		if card:getTypeId()==sgs.Card_Basic then
+		if card:getTypeId() == sgs.Card_TypeBasic then
 			if card:isKindOf("Slash") and (self:getCardsNum("Slash")<=1)then
 			elseif card:isKindOf("Jink") and (self:getCardsNum("Jink")<=1)then
 			elseif card:isKindOf("Peach") and (self.player:getHp()<=2)then

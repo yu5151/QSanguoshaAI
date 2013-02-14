@@ -547,7 +547,7 @@ sgs.ai_chaofeng.yanliangwenchou = 1
 
 sgs.ai_skill_invoke.mengjin = function(self, data)
 	local effect = data:toSlashEffect()
-	if effect.to:getCardCount(true) == 1 and effect.to:hasArmorEffect("SilverLion") then return false end
+	if effect.to:getCardCount(true) == 1 and effect.to:hasArmorEffect("SilverLion") and effect.to:isWounded() then return false end
 	return not self:isFriend(effect.to)
 end
 

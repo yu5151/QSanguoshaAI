@@ -3080,7 +3080,28 @@ function SmartAI:getCardNeedPlayer(cards)
 end
 
 function SmartAI:askForYiji(card_ids)
-	if not self.player:hasSkill("lirang") and self.player:getHandcardNum() <= 2 then
+	--All cards should be given out for LiRang
+	if self.player:hasFlag("lirang_InTempMoving") then
+		local tos = {}
+		for _, target in ipairs(self.friends_noself) do
+			if not target:hasSkill("manjuan") and not self:needKongcheng(target) then
+				table.insert(tos, target)
+			end
+		end
+
+		if #tos > 0 then
+			self:sort(tos, "defense")
+		else
+			return nil
+		end
+		local afriend = tos[1]
+		for _, acard_id in ipairs(card_ids) do
+			return afriend, acard_id
+		end
+		return nil
+	end
+
+	if self.player:getHandcardNum() <= 2 then
 		return nil, -1
 	end
 
@@ -3099,25 +3120,6 @@ function SmartAI:askForYiji(card_ids)
 					return afriend, acard_id
 				end
 			end
-		end
-	end
-	--All cards should be given out for LiRang
-	if self.player:hasFlag("lirang_InTempMoving") then
-		local tos = {}
-		for _, target in ipairs(self.friends_noself) do
-			if self:isFriend(target) and not target:hasSkill("manjuan") and not self:needKongcheng(target) then
-				table.insert(tos, target)
-			end
-		end
-
-		if #tos > 0 then
-			self:sort(tos, "defense")
-		else
-			return
-		end
-		local afriend = tos[1]
-		for _, acard_id in ipairs(card_ids) do
-			return afriend, acard_id
 		end
 	end
 end

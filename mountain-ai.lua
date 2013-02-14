@@ -145,7 +145,7 @@ sgs.ai_skill_discard.qiaobian = function(self, discard_num, min_num, optional, i
 				return to_discard
 			end
 		end
-	elseif current_phase == sgs.Player_Draw then
+	elseif current_phase == sgs.Player_Draw and not self.player:hasSkill("tuxi") then
 		local cardstr = sgs.ai_skill_use["@@tuxi"](self, "@tuxi")
 		if cardstr:match("->") then
 			return to_discard

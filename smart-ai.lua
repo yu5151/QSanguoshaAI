@@ -3080,7 +3080,7 @@ function SmartAI:getCardNeedPlayer(cards)
 end
 
 function SmartAI:askForYiji(card_ids)
-	if self.player:getHandcardNum() <= 2 then
+	if not self.player:hasSkill("lirang") and self.player:getHandcardNum() <= 2 then
 		return nil, -1
 	end
 

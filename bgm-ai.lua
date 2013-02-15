@@ -631,6 +631,9 @@ sgs.ai_skill_cardask["@anxian-discard"] = function(self, data)
 	end
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
+	
+	if #cards == self:getCardsNum("Peach") then return "." end
+
 	self:sortByKeepValue(cards)
 	for _, card in ipairs(cards) do
 		if not isCard("Peach", card, self.player) then

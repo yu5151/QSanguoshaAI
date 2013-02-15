@@ -569,7 +569,6 @@ sgs.ai_skill_playerchosen.shaoying = function(self, targets)
 	
 	if #tos > 0 then
 		tos = self:SortByAtomDamageCount(tos, self.player, sgs.DamageStruct_Fire, nil)
-		tos[1]:speak("有人趁火打劫啊！快去报警啊！")
 		return tos[1]
 	end
 end
@@ -741,7 +740,7 @@ sgs.ai_skill_playerchosen.toudu = function(self, targets)
 		if self:isEnemy(target) then
 			if self:slashIsEffective(slash, target) then
 				if sgs.isGoodTarget(target, targetlist, self) then
-					self.player:speak("嘿！没想到吧？")
+					self:speak("嘿！没想到吧？")
 					return target
 				end
 			end

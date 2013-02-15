@@ -27,7 +27,7 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
 					if use.to then 
 						use.to:append(friend) 
-						self.player:speak("顶住，你的快递马上就到了。")
+						self:speak("顶住，你的快递马上就到了。")
 					end
 					return
 				end
@@ -58,7 +58,7 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
 					if use.to then 
 						use.to:append(friend) 
-						self.player:speak("我知道你有什么牌，哼哼。")
+						self:speak("我知道你有什么牌，哼哼。")
 					end
 					return
 				end
@@ -96,7 +96,7 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
 					if use.to then 
 						use.to:append(enemy) 
-						self.player:speak("咱最擅长落井下石了。")
+						self:speak("咱最擅长落井下石了。")
 					end
 					return
 				else
@@ -125,7 +125,6 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 						use.card = sgs.Card_Parse("@JuaoCard="..table.concat(givecard, "+"))
 						if use.to then
 							use.to:append(enemy)
-							enemy:speak("你给我等着！")
 						end
 						return 
 					end
@@ -210,7 +209,7 @@ sgs.ai_skill_playerchosen.beifa = function(self, targets)
 		if self:isEnemy(target) then
 			if self:slashIsEffective(slash, target) then
 				if sgs.isGoodTarget(target, targetlist, self) then
-					self.player:speak("嘿！没想到吧？")
+					self:speak("嘿！没想到吧？")
 					return target
 				end
 			end
@@ -271,7 +270,7 @@ sgs.ai_skill_use_func.HouyuanCard = function(card, use, self)
 		end
 		use.card = sgs.Card_Parse("@HouyuanCard=" .. table.concat(usecards, "+"))
 		if use.to then
-			self.player:speak("有你这样出远门不带粮食的么？接好了！")
+			self:speak("有你这样出远门不带粮食的么？接好了！")
 		end
 	end
 	return 
@@ -390,7 +389,7 @@ end
 sgs.ai_skill_choice.fuzuo = function(self , choices)
 	--排除不能发动技能的情形
 	if self.player:isKongcheng() then
-		self.player:speak("空城看好戏，呵呵。")
+		self:speak("空城看好戏，呵呵。")
 		return "cancel"
 	end
 	local flag = true
@@ -403,7 +402,7 @@ sgs.ai_skill_choice.fuzuo = function(self , choices)
 		end
 	end
 	if flag then --没有点数小于8的手牌
-		self.player:speak("别看我，手里是真没货……")
+		self:speak("别看我，手里是真没货……")
 		return "cancel"
 	end
 	--现在choices应该是"nameA+nameB+cancel"形式的，下面开始获取具体选项
@@ -420,11 +419,11 @@ sgs.ai_skill_choice.fuzuo = function(self , choices)
 		if fromPosB > toPosA and toPosB == fromPosB then
 			nameB = string.sub(choices, toPosA+1, toPosB-1)
 		else
-			self.player:speak("呼叫程序员！我的AI又出错了！")
+			self:speak("呼叫程序员！我的AI又出错了！")
 			return "cancel"
 		end
 	else
-		self.player:speak("呼叫程序员！我的AI又出错了！")
+		self:speak("呼叫程序员！我的AI又出错了！")
 		return "cancel"
 	end
 	--现在选项内容已经确定为nameA和nameB，可以判断进行辅佐的目标了
@@ -436,7 +435,7 @@ sgs.ai_skill_choice.fuzuo = function(self , choices)
 			return nameB
 		end
 	end
-	self.player:speak("你们爱谁赢谁赢。")
+	self:speak("你们爱谁赢谁赢。")
 	return "cancel"
 end
 sgs.ai_skill_cardask["@fuzuo_card"] = function(self, data, pattern, target)

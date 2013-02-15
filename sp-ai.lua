@@ -497,6 +497,7 @@ end
 
 sgs.ai_use_value.SongciCard = 3
 sgs.ai_use_priority.SongciCard = 2.5
+sgs.ai_chaofeng.chenlin = 3
 
 sgs.ai_card_intention.SongciCard = function(card, from, tos, source)	
 	for _, to in ipairs(tos) do

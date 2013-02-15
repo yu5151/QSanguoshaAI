@@ -478,7 +478,6 @@ table.insert(sgs.ai_skills, fenxun_skill)
 fenxun_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("FenxunCard") then return end
 	if not self.player:isNude() then
-		local card
 		local card_id
 		local slashcount = self:getCardsNum("Slash")
 		local jinkcount = self:getCardsNum("Jink")
@@ -487,11 +486,10 @@ fenxun_skill.getTurnUseCard = function(self)
 		self:sortByKeepValue(cards)
 
 		if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
-			card = sgs.Card_Parse("@FenxunCard=" .. self.player:getArmor():getId())
+			return sgs.Card_Parse("@FenxunCard=" .. self.player:getArmor():getId())
 		elseif self.player:getHandcardNum() > 0 then
 			for _, acard in ipairs(cards) do
-				if (acard:isKindOf("Disaster") or acard:isKindOf("AmazingGrace") or acard:isKindOf("EquipCard"))
-					then
+				if (acard:isKindOf("Disaster") or acard:isKindOf("AmazingGrace") or acard:isKindOf("EquipCard")) then
 					card_id = acard:getEffectiveId()
 					break
 				end
@@ -513,8 +511,7 @@ fenxun_skill.getTurnUseCard = function(self)
 			end		
 		elseif not self.player:getEquips():isEmpty() then
 			local player = self.player
-			if player:getWeapon() then card_id = player:getWeapon():getId()
-			end
+			if player:getWeapon() then card_id = player:getWeapon():getId() end
 		end
 
 		if not card_id then
@@ -527,11 +524,8 @@ fenxun_skill.getTurnUseCard = function(self)
 			end
 		end
 
-		if not card_id or slashcount < 1 then
-			return nil
-		else
-			card = sgs.Card_Parse("@FenxunCard=" .. card_id)
-			return card
+		if slashcount > 0 and card_id then
+			return sgs.Card_Parse("@FenxunCard=" .. card_id)
 		end
 	end
 	return nil

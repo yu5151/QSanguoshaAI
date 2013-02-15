@@ -940,6 +940,7 @@ end
 
 sgs.ai_skill_choice.xuehen = function(self, choices)	
 	local current = self.room:getCurrent()
+	if self:isFriend(current) then return "slash" end
 	if self:isEnemy(current) then
 		if self:hasSkills("jijiu|tuntian|beige|qiaobian", current) and self.player:getLostHp() >= 2 and current:getCardCount(true) >= 2 then return "discard" end
 	end

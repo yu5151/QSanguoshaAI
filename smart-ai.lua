@@ -1763,7 +1763,7 @@ function SmartAI:filterEvent(event, player, data)
 		end
 	end
 
-	if event ==sgs.AskForPeaches then endlessNiepan(data:toDying().who) end
+	--if event ==sgs.AskForPeaches then endlessNiepan(data:toDying().who) end
 
 	sgs.lastevent = event
 	sgs.lasteventdata = eventdata

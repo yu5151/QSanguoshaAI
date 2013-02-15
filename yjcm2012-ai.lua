@@ -22,11 +22,13 @@ sgs.ai_skill_invoke.qianxi = function(self, data)
 	local target = damage.to
 	if self:isFriend(target) then return false end
 	if target:getLostHp() >= 2 and target:getHp() <= 1 then return false end
-	if damage.damage > 1 and target:getHp() <= 1 then return false end
+	if self:hasHeavySlashDamage(self.player, damage.card, target) and target:getHp() <= 1 then return false end
 	if self:hasSkills(sgs.masochism_skill,target) or self:hasSkills(sgs.recover_skill,target) or self:hasSkills("longhun|buqu",target) then return true end
-	if damage.damage > 1 then return false end
+	if self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
 	return (target:getMaxHp() - target:getHp()) < 2 
 end
+
+sgs.ai_chaofeng.madai = 3
 
 sgs.ai_skill_invoke.fuli = true
 
@@ -37,6 +39,8 @@ sgs.ai_skill_invoke.fuhun = function(self, data)
 	end
 	return target > 0 and not self.player:isSkipped(sgs.Player_Play)
 end
+
+sgs.ai_chaofeng.guanxingzhangbao = 2
 
 sgs.ai_skill_invoke.zhenlie = function(self, data)
 	local judge = data:toJudge()
@@ -55,6 +59,7 @@ end
 
 sgs.ai_playerchosen_intention.miji = -80
 
+sgs.ai_chaofeng.wangyi = -2
 
 function sgs.ai_cardneed.jiangchi(to, card)
 	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) < 2
@@ -470,8 +475,8 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 end
 
 sgs.ai_card_intention.AnxuCard = 0
-
 sgs.ai_use_priority.AnxuCard = 9.6
+sgs.ai_chaofeng.bulianshi = 4
 
 sgs.ai_skill_invoke.zhuiyi = function(self, data)
 	local damage = data:toDamageStar()
@@ -717,3 +722,4 @@ sgs.ai_skill_use_func.QiceCard=function(card,use,self)
 end
 
 sgs.ai_use_priority.QiceCard = 1.5
+sgs.ai_chaofeng.xunyou = 2

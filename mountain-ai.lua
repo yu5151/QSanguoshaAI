@@ -845,7 +845,7 @@ function sgs.ai_skill_choice.huashen(self, choices)
 		end
 
 		if self.player:getCards("e"):length() > 1 then
-			for _, askill in ipairs(("shuijian|xiaoji|xuanfeng|nosxuanfeng|shensu|neoluoyi"):split("|")) do
+			for _, askill in ipairs(("shuijian|xiaoji|xuanfeng|nosxuanfeng|shensu|neoluoyi|yuanhu"):split("|")) do
 				if str:matchOne(askill) then return askill end
 			end
 		end
@@ -860,7 +860,7 @@ function sgs.ai_skill_choice.huashen(self, choices)
 		"lijian|neofanjian|shuijian|shelie|luoshen|yongsi|qingnang|biyue|yingzi|caizhaoji_hujia|anxu|fangquan|duyi|mizhao|quhu|fanjian|" ..
 		"gongxin|duanliang|guose|mingce|baobian|ganlu|tiaoxin|zhaolie|moukui|liegong|mengjin|tieji|wushuang|juejing|fuhun|qianxi|yanxiao|jueji|tanhu|guhuo|xuanhuo|nosxuanhuo|qiangxi|longluo|nosjujian|lieren|pojun|bawang|" ..
 		"qixi|yinling|jizhi|shude|zhaoxin|neoluoyi|luoyi|wenjiu|jie|jiangchi|wusheng|longdan|jueqing|longhun|jiuchi|qingcheng|shuangren|kuangfu|gongqi|wushen|paoxiao|lianhuan|chouliang|houyuan|jujian|shensu|jisu|luanji|chizhong|" ..
-		"zhijian|shuangxiong|xinzhan|zhenwei|jieyuan|duanbing|guidao|guicai|zhenlie|wansha|lianpo|mashu|zhengfeng|yicong|nosshangshi|shangshi|lianying|tianyi|xianzhen|zongshi|keji|kuiwei|neojushou|jushou|huoji|roulin|lihuo|xiaoji|xuanfeng|nosxuanfeng|" ..
+		"zhijian|shuangxiong|xinzhan|zhenwei|jieyuan|duanbing|guidao|guicai|zhenlie|wansha|lianpo|mashu|zhengfeng|yicong|nosshangshi|shangshi|lianying|tianyi|xianzhen|zongshi|keji|kuiwei|yuanhu|neojushou|jushou|huoji|roulin|lihuo|xiaoji|xuanfeng|nosxuanfeng|" ..
 		"jiushi|dangxian|tannang|qicai|taichen|hongyan|kurou|lukang_weiyan|duoshi|yicai|beifa|qinyin|zonghuo|shaoying|shouye|hongyuan|yuwen|lianli|gongmou|weiwudi_guixin|wuling|shenfen"):split("|")) do
 			if str:matchOne(askill) then return askill end
 		end

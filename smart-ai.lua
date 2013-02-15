@@ -2477,7 +2477,7 @@ function SmartAI:askForCardChosen(who, flags, reason)
 			end
 		end
 	else
-		if flags:match("e") and self:hasSkills("jijiu|dimeng|guzheng|qiaobian|jieyin|lijian|beige|miji",who) then
+		if flags:match("e") and self:hasSkills("jijiu|dimeng|guzheng|qiaobian|jieyin|lijian|beige|miji|yingzi|tuxi|mingce|buyi|bifa|yongsi|noswuyan|weimu|anxu|tongxin|xiliang|chouliang|shouye|huoshui",who) then
 			if who:getDefensiveHorse() then return who:getDefensiveHorse():getId() end
 			if who:getArmor() then return who:getArmor():getId() end
 			if who:getOffensiveHorse() and ( (who:getOffensiveHorse():isRed() and who:hasSkill("jijiu")) or who:hasSkill("beige") ) then
@@ -2561,6 +2561,13 @@ function SmartAI:askForCardChosen(who, flags, reason)
 						end
 					end
 				end
+			end
+
+			if not self:hasLoseHandcardEffective(who) then
+				if who:getDefensiveHorse() then return who:getDefensiveHorse():getId() end
+				if who:getArmor() and not (who:hasArmorEffect("SilverLion") and who:isWounded() and self:isWeak(who)) then return who:getArmor():getId() end
+				if who:getOffensiveHorse() then return who:getOffensiveHorse():getId() end
+				if who:getWeapon() then return who:getWeapon():getId() end
 			end
 		end
 		if flags:match("h") then

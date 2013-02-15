@@ -1763,7 +1763,7 @@ function SmartAI:filterEvent(event, player, data)
 		end
 	end
 
-	--if event ==sgs.AskForPeaches then endlessNiepan(data:toDying().who) end
+	if event ==sgs.AskForPeaches then endlessNiepan(data:toDying().who) end
 
 	sgs.lastevent = event
 	sgs.lasteventdata = eventdata
@@ -1782,7 +1782,7 @@ function SmartAI:filterEvent(event, player, data)
 			promptlist = data:toString():split(":")
 			local callbacktable = sgs.ai_choicemade_filter[promptlist[1]]
 			if callbacktable and type(callbacktable) == "table" then
-				local index = 2
+				local index = 2 
 				if promptlist[1] == "cardResponsed" then index = 3 end
 				local callback = callbacktable[promptlist[index]] or callbacktable.general
 				if type(callback) == "function" then
@@ -4291,6 +4291,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 	else
 		if to:hasSkill("juxiang") and not card:isVirtualCard() then	value = value + 50 end
 		if to:hasSkill("danlao") and self.player:aliveCount() > 2 then value = value + 20 end
+		value = value + 50
 	end
 	return value
 end
@@ -4345,7 +4346,11 @@ function SmartAI:getAoeValue(card, player)
 	end
 
 	if self.role ~= "lord" and sgs.isLordInDanger() and self:aoeIsEffective(card, lord, attacker) and not canHelpLord() then
-		good = good + (self:isEnemy(lord) and 150 or -250)
+		if self:isEnemy(lord) then
+			good = good + (lord:getHp() == 1 and 250 or 150)
+		else
+			good = good - (lord:getHp() == 1 and -2013 or -250)
+		end
 	end
 
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do

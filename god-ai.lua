@@ -596,7 +596,7 @@ end
 function SmartAI:dangerousshenguanyu(player)
 	if not player then self.room:writeToConsole("Player is empty in dangerousshenguanyu!") return end
 	local good = 0
-	if player:hasSkill("wuhun") and player:getHp() == 1 and (not self:isEnemy(player) or #self.enemies > 1 and sgs.turncout > 1) then
+	if player:hasSkill("wuhun") and player:getHp() == 1 and (not self:isEnemy(player) or #self.enemies > 1 and sgs.turncount > 1) then
 		local maxnightmare = 0
 		local nightmareplayer = {}
 		for _, ap in sgs.qlist(self.room:getAlivePlayers()) do

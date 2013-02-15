@@ -530,6 +530,17 @@ end
 
 sgs.ai_skill_discard.shichou = sgs.ai_skill_discard.lihun
 
+
+sgs.ai_event_callback[sgs.ChoiceMade].shichou=function(self,player,data)
+	local choices= data:toString():split(":")
+	if choices[1] == "playerChosen" and choices[2] == "shichou" then
+		local target = findPlayerByObjectName(self.room, choices[3])
+		local intention = self:hasSkills("wuhun|zaiqi|nosenyuan|kuanggu|enyuan",target) and 0 or 100
+		sgs.updateIntention(player, target, intention)
+	end
+end
+
+
 function SmartAI:useCardYanxiaoCard(card, use)
 	local players = self.room:getOtherPlayers(self.player)
 	local tricks

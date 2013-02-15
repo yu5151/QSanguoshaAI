@@ -800,11 +800,18 @@ sgs.ai_skill_use_func.YisheAskCard=function(card,use,self)
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if player:hasSkill("yishe") and not player:getPile("rice"):isEmpty() then zhanglu=player cards=player:getPile("rice") break end
 	end	
-	if not zhanglu or not self:isFriend(zhanglu) then return end
+	if not zhanglu or self:isEnemy(zhanglu) then return end
 	cards = sgs.QList2Table(cards)
 	for _, pcard in ipairs(cards) do
 		use.card = card
 		return
+	end
+end
+
+sgs.ai_event_callback[sgs.ChoiceMade].yisheask=function(self,player,data)
+	local datastr= data:toString()
+	if datastr == "skillChoice:yisheask:allow" then
+		sgs.updateIntention(self.player, self.room:getCurrent(), -70)
 	end
 end
 

@@ -273,7 +273,7 @@ function SmartAI:isGoodChainTarget(who)
 			bad = bad-1 
 		end
 	end
-	return good > bad
+	return good > bad and who:isChained()
 end
 
 

@@ -445,7 +445,11 @@ function SmartAI:getDynamicUsePriority(card)
 		end
 
 		if self.player:getMark("shuangxiong") > 0 and use_card:isKindOf("Duel") then 
-			value = value + 10
+			value = sgs.ai_use_priority.ExNihilo - 0.1
+		end
+
+		if sgs.evaluateRoleTrends(self.player) == "neutral" and use_card:isKindOf("YisheAskCard") then 
+			value = sgs.ai_use_priority.Slash - 0.5
 		end
 
 		if (self:hasHeavySlashDamage(self.player) or self:getOverflow() > 0) and use_card:isKindOf("QingnangCard") then 

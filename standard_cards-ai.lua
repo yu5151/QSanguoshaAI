@@ -92,7 +92,6 @@ function SmartAI:canAttack(enemy, attacker, nature)
 	return true
 end
 
-
 function sgs.getDefenseSlash(player)	
 	local attacker = global_room:getCurrent()
 	local defense = getCardsNum("Jink",player)
@@ -305,7 +304,7 @@ function SmartAI:useCardSlash(card, use)
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
 	for _, acard in ipairs(cards) do
-		if acard:getTypeId() == sgs.Card_Basic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
+		if acard:getTypeId() == sgs.Card_TypeBasic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
 	end
 	local no_distance = self.slash_distance_limit
 	self.slash_targets = 1
@@ -346,7 +345,7 @@ function SmartAI:useCardSlash(card, use)
 			and friend:getHandcardNum() < 3)
 		or self:getDamagedEffects(friend,self.player) 
 		or (friend:hasSkill("leiji") and not self.player:hasFlag("luoyi") and self:hasSuit("spade", true, friend) 
-		and ( getKnownCard(friend,"Jink",true)>=1 or (not self:isWeak(friend) and self:isEquip("EightDiagram",friend)))
+		and ( getKnownCard(friend,"Jink",true) >= 1 or (not self:isWeak(friend) and self:isEquip("EightDiagram",friend)))
 		and (hasExplicitRebel(self.room) or not friend:isLord()))
 		or (friend:isLord() and self.player:hasSkill("guagu") and friend:getLostHp() >= 1 and getCardsNum("Jink", friend) == 0)
 		or (friend:hasSkill("jieming") and self.player:hasSkill("rende") and (huatuo and self:isFriend(huatuo)))
@@ -1425,7 +1424,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			
 			return
 		end
-		if self:isEquip("SilverLion", friend) and self:hasTrickEffective(card, friend) and self:isWeak(friend) and not self:hasSkills(sgs.use_lion_skill,friend) then
+		if self:isEquip("SilverLion", friend) and self:hasTrickEffective(card, friend) and self:isWeak(friend) and friend:isWounded() and not self:hasSkills(sgs.use_lion_skill,friend) then
 			hasLion = true
 			target = friend
 		end

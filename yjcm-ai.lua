@@ -540,7 +540,8 @@ sgs.ai_skill_choice.mingce = function(self, choices)
 	for _, player in sgs.qlist(self.room:getAlivePlayers()) do
 		if player:hasFlag("mingceTarget") then 
 			self.room:setPlayerFlag(player, "-mingceTarget")
-			return "use" 
+			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+			if not self:slashProhibit(slash ,player) then return "use" end
 		end
 	end
 	return "draw"

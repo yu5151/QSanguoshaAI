@@ -161,7 +161,7 @@ function SmartAI:initialize(player)
 		sgs.debugmode = false
 		global_room = self.room
 		global_room:writeToConsole(version .. ", Powered by " .. _VERSION)
-		
+				
 		setInitialTables()
 		if sgs.isRolePredictable() then
 			for _, aplayer in sgs.qlist(global_room:getOtherPlayers(global_room:getLord())) do
@@ -324,7 +324,7 @@ function SmartAI:getUseValue(card)
 			v = 9
 		end
 		if self:hasSkills(sgs.lose_equip_skill) then return 10 end
-	elseif card:getTypeId() == sgs.Card_TypeBasic then
+	elseif card:getTypeId() == sgs.Card_Basic then
 		if card:isKindOf("Slash") then
 			
 			v = sgs.ai_use_value[class_name] or 0
@@ -420,7 +420,7 @@ function SmartAI:getDynamicUsePriority(card)
 	dummy_use.isDummy = true
 	if type == sgs.Card_Trick then
 		self:useTrickCard(card, dummy_use)
-	elseif type == sgs.Card_TypeBasic then
+	elseif type == sgs.Card_Basic then
 		self:useBasicCard(card, dummy_use)
 	elseif type == sgs.Card_Equip then
 		self:useEquipCard(card, dummy_use)
@@ -1195,9 +1195,6 @@ function sgs.gameProcess(room,...)
 			else loyal_hp = aplayer:getHp() end
 			if aplayer:getMaxHp() == 3 then loyal_value = loyal_value + 0.5 end
 			loyal_value = loyal_value + (loyal_hp + math.max(sgs.getDefense(aplayer) - loyal_hp * 2, 0) * 0.7)
-			if aplayer:getWeapon() and aplayer:getWeapon():getClassName() ~= "Weapon" then
-				loyal_value = loyal_value + math.min(1.2, math.min(sgs.weapon_range[aplayer:getWeapon():getClassName()] or 0,room:alivePlayerCount()/2)/2) * 0.4
-			end
 			if aplayer:getDefensiveHorse() then
 				loyal_value = loyal_value + 0.5
 			end
@@ -4655,7 +4652,7 @@ function SmartAI:damageMinusHp(self, enemy, type)
 		local cards = self.player:getCards("he")
 		cards = sgs.QList2Table(cards)
 		for _, acard in ipairs(cards) do
-			if acard:getTypeId() == sgs.Card_TypeBasic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
+			if acard:getTypeId() == sgs.Card_Basic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
 		end
 		for _, acard in ipairs(cards) do
 			if ((acard:isKindOf("Duel") or acard:isKindOf("SavageAssault") or acard:isKindOf("ArcheryAttack") or acard:isKindOf("FireAttack")) 

@@ -500,7 +500,7 @@ sgs.ai_skill_invoke.shipo = function(self, data)
 end
 
 sgs.ai_cardneed.gushou = function(to, card)
-	return to:getHandcardNum() < 3 and card:getTypeId() == sgs.Card_TypeBasic
+	return to:getHandcardNum() < 3 and card:getTypeId() == sgs.Card_Basic
 end
 
 sgs.ai_chaofeng.tianfeng = -1

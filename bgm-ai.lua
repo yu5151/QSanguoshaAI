@@ -385,6 +385,11 @@ sgs.ai_skill_cardask["@mouduan"] = function(self, data)
 end
 
 
+sgs.ai_skill_invoke.mouduan = function(self, data)
+	return need_mouduan(self)
+end
+
+
 sgs.ai_skill_invoke.zhaolie = function(self, data)
 	for _, enemy in ipairs(self.enemies) do
 		if self.player:distanceTo(enemy) <= self.player:getAttackRange() and sgs.isGoodTarget(enemy, self.enemies, self) 

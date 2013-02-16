@@ -304,7 +304,7 @@ function SmartAI:useCardSlash(card, use)
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
 	for _, acard in ipairs(cards) do
-		if acard:getTypeId() == sgs.Card_TypeBasic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
+		if acard:getTypeId() == sgs.Card_Basic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
 	end
 	local no_distance = self.slash_distance_limit
 	self.slash_targets = 1
@@ -794,6 +794,8 @@ sgs.ai_skill_cardask["@Axe"] = function(self, data, pattern, target)
 		end
 	end
 end
+
+sgs.ai_skill_cardask["@axe"] = sgs.ai_skill_cardask["@Axe"]
 
 function sgs.ai_slash_weaponfilter.Axe(to, self)
 	return self:getOverflow() > 0
@@ -1436,7 +1438,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 		end
 	end
 	
-	-- table.copyFrom不会破坏原来的排序吧？
+
 	local new_enemies = table.copyFrom(enemies)
 	local compare_JudgingArea = function(a, b)
 		return a:getJudgingArea():length() > b:getJudgingArea():length()

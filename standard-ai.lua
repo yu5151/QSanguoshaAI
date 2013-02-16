@@ -1565,7 +1565,7 @@ sgs.ai_skill_use_func.JieyinCard=function(card,use,self)
 	end
 end
 
-sgs.ai_use_priority.JieyinCard = 3.0
+sgs.ai_use_priority.JieyinCard = 2.8	-- 下调至决斗之后
 
 sgs.ai_card_intention.JieyinCard = function(card, from, tos)
 	if not from:hasFlag("jieyin_isenemy_"..tos[1]:objectName()) then 

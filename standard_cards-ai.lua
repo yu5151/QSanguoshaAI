@@ -1746,6 +1746,59 @@ local function hp_subtract_handcard(a,b)
 	return diff1 < diff2
 end
 
+function SmartAI:enemiescontainstrick()
+	local trick_all, possible_indul_enemy, possible_ss_enemy = 0, 0, 0
+	local indul_num = self:getCardsNum("Indulgence")
+	local ss_num = self:getCardsNum("SupplyShortage")
+	
+	if self.player:hasSkill("guose") then
+		for _, acard in sgs.qlist(self.player:getCards("he")) do
+			if acard:getSuit() == sgs.Card_Diamond then indul_num = indul_num + 1 end
+		end
+	end	
+	
+	if self.player:hasSkill("duanliang") then
+		for _, acard in sgs.qlist(self.player:getCards("he")) do
+			if acard:getSuit() == sgs.Card_Club then ss_num = ss_num + 1 end
+		end
+	end
+	
+	for _, enemy in ipairs(self.enemies) do
+		if not enemy:containsTrick("YanxiaoCard") and not (self:hasSkills("qiaobian",enemy) and enemy:getHandcardNum() > 0) then
+			if not self:hasSkills("keji",enemy) then
+				if enemy:containsTrick("indulgence") then
+					trick_all = trick_all + 1 
+				else
+					possible_indul_enemy = possible_indul_enemy + 1
+				end
+			end
+			if not self:hasSkills("shensu",enemy) and (self.player:distanceTo(enemy) == 1 or self.player:hasSkill("duanliang") and self.player:distanceTo(enemy) <= 2) then
+				if enemy:containsTrick("supply_shortage") then
+					trick_all = trick_all + 1
+				else
+					possible_ss_enemy  = possible_ss_enemy + 1
+				end
+			end
+		end
+	end
+	
+	indul_num = math.min(possible_indul_enemy, indul_num)
+	ss_num = math.min(possible_ss_enemy, ss_num)
+	trick_all = trick_all + indul_num + ss_num
+	return trick_all
+end
+function SmartAI:playergetround(player)
+	player = player or self.player
+	if player:objectName() == self.player:objectName() then return 0 end
+	local aplayer = self.player
+	local round = 0
+	for i = 1 , self.room:alivePlayerCount() do
+		round = round + 1
+		if aplayer:getNextAlive():objectName() == player:objectName() then break end
+		aplayer = aplayer:getNextAlive()
+	end
+	return round
+end
 function SmartAI:useCardIndulgence(card, use)
 	local enemies = {}
 
@@ -1762,10 +1815,10 @@ function SmartAI:useCardIndulgence(card, use)
 	local zhanghe_seat = zhanghe and zhanghe:faceUp() and not zhanghe:isKongcheng() and self:isEnemy(zhanghe) and zhanghe:getSeat() or 0
 
 	if #enemies==0 then return end
-
+	
 	local getvalue=function(enemy)
-		if enemy:containsTrick("indulgence") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) then return -100 end
-		if zhanghe_seat>0 and (enemy:getSeat() - zhanghe_seat) % self.room:alivePlayerCount() <= zhanghe_seat then return -100	end
+		if enemy:containsTrick("indulgence") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) and self:enemiescontainstrick() <= 1 then return -100 end
+		if zhanghe_seat>0 and self:playergetround(zhanghe) <= self:playergetround(enemy) and self:enemiescontainstrick() <= 1 then return - 100 end
 
 		local value = enemy:getHandcardNum() - enemy:getHp()
 

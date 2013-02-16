@@ -835,10 +835,16 @@ function sgs.ai_cardsview.Spear(class_name, player)
 		end
 		if #newcards<2 then return nil end
 
+		local suit1 = newcards[1]:getSuitString()
 		local card_id1 = newcards[1]:getEffectiveId()
+
+		local suit2 = newcards[2]:getSuitString()
 		local card_id2 = newcards[2]:getEffectiveId()
-		
-		local card_str = ("slash:Spear[to_be_decided:0]=%d+%d"):format(card_id1, card_id2)
+
+		local suit="no_suit"
+		if newcards[1]:isBlack() == newcards[2]:isBlack() then suit = suit1 end
+
+		local card_str = ("slash:Spear[%s:%s]=%d+%d"):format(suit, 0, card_id1, card_id2)
 
 		return card_str
 	end

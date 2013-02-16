@@ -612,7 +612,11 @@ function SmartAI:useCardPeach(card, use)
 	if self.player:isLord() and (self.player:hasSkill("hunzi") and self.player:getMark("hunzi") == 0)
 		and self.player:getHp() < 4 and self.player:getHp() > peaches then return end
 	for _, enemy in ipairs(self.enemies) do
-		if (self:hasSkills(sgs.drawpeach_skill,enemy) and self.player:getHandcardNum() < 3) then
+		if self.player:getHandcardNum() < 3 and 
+				(self:hasSkills(sgs.drawpeach_skill,enemy) or getCardsNum("Dismantlement", enemy) >= 1 or
+				enemy:hasSkill("jixi") and enemy:getMark("@waked") > 0 and enemy:getPile("field"):length() >0 and enemy:distanceTo(self.player) == 1 or
+				enemy:hasSkill("qixi") and getKnownCard(enemy, "black", nil, "he") >= 1 or
+				getCardsNum("Snatch",enemy) >= 1 and enemy:distanceTo(self.player) == 1) then
 			mustusepeach = true
 		end
 	end
@@ -1754,7 +1758,7 @@ local function hp_subtract_handcard(a,b)
 	return diff1 < diff2
 end
 
-function SmartAI:enemiescontainstrick()
+function SmartAI:enemiesContainsTrick()
 	local trick_all, possible_indul_enemy, possible_ss_enemy = 0, 0, 0
 	local indul_num = self:getCardsNum("Indulgence")
 	local ss_num = self:getCardsNum("SupplyShortage")
@@ -1795,7 +1799,7 @@ function SmartAI:enemiescontainstrick()
 	trick_all = trick_all + indul_num + ss_num
 	return trick_all
 end
-function SmartAI:playergetround(player)
+function SmartAI:playerGetRound(player)
 	player = player or self.player
 	if player:objectName() == self.player:objectName() then return 0 end
 	local aplayer = self.player
@@ -1825,8 +1829,8 @@ function SmartAI:useCardIndulgence(card, use)
 	if #enemies==0 then return end
 	
 	local getvalue=function(enemy)
-		if enemy:containsTrick("indulgence") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) and self:enemiescontainstrick() <= 1 then return -100 end
-		if zhanghe_seat>0 and self:playergetround(zhanghe) <= self:playergetround(enemy) and self:enemiescontainstrick() <= 1 then return - 100 end
+		if enemy:containsTrick("indulgence") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) and self:enemiesContainsTrick() <= 1 then return -100 end
+		if zhanghe_seat>0 and self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() <= 1 then return - 100 end
 
 		local value = enemy:getHandcardNum() - enemy:getHp()
 

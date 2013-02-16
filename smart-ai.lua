@@ -2781,11 +2781,12 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 	end
 
 	if (slash and slash:hasFlag("drank")) or from:hasFlag("drank") then dmg = dmg + 1 end
-	if from:hasFlag("luoyi") then dmg = dmg + 1 end	
+	if from:hasFlag("luoyi") then dmg = dmg + 1 end
 	if from:hasFlag("neoluoyi") then dmg = dmg + 1 end
 	if from:hasSkill("drluoyi") and not from:getWeapon() then dmg = dmg + 1 end	
 	if slash and from:hasSkill("jie") and slash:isRed() then dmg = dmg + 1 end
 	if slash and from:hasSkill("wenjiu") and slash:isBlack() then dmg = dmg + 1 end
+	if slash and from:hasFlag("shenli") and from:getMark("@struggle") > 0 then dmg = dmg + math.min(3, from:getMark("@struggle")) end
 	
 	if not from:hasSkill("jueqing") then		
 		if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and fireSlash then dmg = dmg + 1 end	

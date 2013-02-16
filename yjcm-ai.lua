@@ -468,6 +468,17 @@ mingce_skill.getTurnUseCard=function(self)
 			end
 		end
 	end
+	if not card then
+		local ecards = self.player:getCards("e")
+		ecards = sgs.QList2Table(ecards)
+
+		for _, ecard in ipairs(ecards) do
+			if ecard:isKindOf("Weapon") or ecard:isKindOf("OffensiveHorse") then
+				card = ecard
+				break
+			end
+		end
+	end
 	if card then
 		card = sgs.Card_Parse("@MingceCard=" .. card:getEffectiveId())
 		return card

@@ -4311,7 +4311,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 			if self:isEquip("EightDiagram", to) then value = value + 30	end
 		end	
 	else
-		if to:hasSkill("juxiang") and not card:isVirtualCard() then	value = value + 50 end
+		if to:hasSkill("juxiang") and not card:isVirtualCard() then value = value + 50 end
 		if to:hasSkill("danlao") and self.player:aliveCount() > 2 then value = value + 20 end
 		value = value + 50
 	end
@@ -4359,7 +4359,7 @@ function SmartAI:getAoeValue(card, player)
 	end
 
 	local liuxie = self.room:findPlayerBySkillName("huangen")
-	if liuxie then
+	if liuxie and self.player:aliveCount() > 2 and liuxie:getHp() > 0 then
 		if self:isFriend(liuxie) then
 			good = good + 30 * liuxie:getHp()
 		else

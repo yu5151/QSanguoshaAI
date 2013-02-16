@@ -385,6 +385,11 @@ sgs.ai_skill_cardask["@mouduan"] = function(self, data)
 end
 
 
+sgs.ai_skill_invoke.mouduan = function(self, data)
+	return need_mouduan(self)
+end
+
+
 sgs.ai_skill_invoke.zhaolie = function(self, data)
 	for _, enemy in ipairs(self.enemies) do
 		if self.player:distanceTo(enemy) <= self.player:getAttackRange() and sgs.isGoodTarget(enemy, self.enemies, self) 
@@ -530,6 +535,17 @@ end
 
 sgs.ai_skill_discard.shichou = sgs.ai_skill_discard.lihun
 
+
+sgs.ai_event_callback[sgs.ChoiceMade].shichou=function(self,player,data)
+	local choices= data:toString():split(":")
+	if choices[1] == "playerChosen" and choices[2] == "shichou" then
+		local target = findPlayerByObjectName(self.room, choices[3])
+		local intention = self:hasSkills("wuhun|zaiqi|nosenyuan|kuanggu|enyuan",target) and 0 or 100
+		sgs.updateIntention(player, target, intention)
+	end
+end
+
+
 function SmartAI:useCardYanxiaoCard(card, use)
 	local players = self.room:getOtherPlayers(self.player)
 	local tricks
@@ -620,8 +636,9 @@ sgs.ai_skill_invoke.anxian = function(self, data)
 	local damage = data:toDamage()
 	local target = damage.to
 	if self:isFriend(target) and not self:hasSkills(sgs.masochism_skill, target) then return true end
+	if self:hasHeavySlashDamage(self.player, damage.card, damage.to) and damage.to:getHp() <= 1 then return false end
 	if self:isEnemy(target) and self:hasSkills(sgs.masochism_skill, target) then return true end
-	if damage.damage > 1 then return false end
+	if self:hasHeavySlashDamage(self.player, damage.card, damage.to) then return false end
 	return false
 end
 
@@ -631,6 +648,9 @@ sgs.ai_skill_cardask["@anxian-discard"] = function(self, data)
 	end
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
+	
+	if #cards == self:getCardsNum("Peach") then return "." end
+
 	self:sortByKeepValue(cards)
 	for _, card in ipairs(cards) do
 		if not isCard("Peach", card, self.player) then

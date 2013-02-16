@@ -24,7 +24,7 @@ sgs.ai_skill_use["@@jujian"] = function(self, prompt)
 	else
 		self:sortByKeepValue(cards)
 		for _,card in ipairs(cards) do
-			if card:getTypeId() ~= sgs.Card_TypeBasic then nobasiccard = card:getEffectiveId() end
+			if card:getTypeId() ~= sgs.Card_Basic then nobasiccard = card:getEffectiveId() end
 		end
 	end
 	for _, friend in ipairs(self.friends_noself) do
@@ -460,7 +460,7 @@ sgs.ai_cardshow.buyi = function(self, requestor)
 
 	local cards = self.player:getHandcards()
 	for _, card in sgs.qlist(cards) do
-		if card:getTypeId() ~= sgs.Card_TypeBasic then
+		if card:getTypeId() ~= sgs.Card_Basic then
 			return card
 		end
 	end
@@ -486,6 +486,17 @@ mingce_skill.getTurnUseCard=function(self)
 		for _, hcard in ipairs(hcards) do
 			if hcard:isKindOf("Slash") or hcard:isKindOf("EquipCard") then
 				card = hcard
+				break
+			end
+		end
+	end
+	if not card then
+		local ecards = self.player:getCards("e")
+		ecards = sgs.QList2Table(ecards)
+
+		for _, ecard in ipairs(ecards) do
+			if ecard:isKindOf("Weapon") or ecard:isKindOf("OffensiveHorse") then
+				card = ecard
 				break
 			end
 		end
@@ -634,8 +645,7 @@ end
 
 sgs.ai_skill_use_func.XianzhenSlashCard=function(card,use,self)
 	local target = self.player:getTag("XianzhenTarget"):toPlayer()
-	if self:askForUseCard("slash", "@xianzhen-slash") == "." then return end
-	
+	if self:askForCard("slash", "@xianzhen-slash") == "." then return end
 	if self:getCard("Slash") and self.player:canSlash(target, nil, false) and target:isAlive() then
 		use.card=card
 	end
@@ -723,13 +733,6 @@ sgs.ai_use_value.XianzhenCard = 9.2
 sgs.ai_use_priority.XianzhenCard = 9.2
 
 sgs.ai_skill_cardask["@xianzhen-slash"] = function(self)
-	if self.player:hasSkill("tianxiang") then
-		local dmgStr = {damage = 1, nature = 0}
-		local willTianxiang = sgs.ai_skill_use["@tianxiang"](self, dmgStr)
-		if willTianxiang ~= "." then return "." end
-	elseif self.player:hasSkill("longhun") and self.player:getHp() > 1 then
-		return "."
-	end
 	local target = self.player:getTag("XianzhenTarget"):toPlayer()
 	local slashes = self:getCards("Slash")
 	for _, slash in ipairs(slashes) do

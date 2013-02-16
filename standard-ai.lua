@@ -526,7 +526,7 @@ function SmartAI:willSkipPlayPhase(player)
 	local cp = self.room:getCurrent()
 	if self.player:objectName() == cp:objectName() and self.player:objectName() ~= player:objectName() and self:isFriend(player) then
 		for _, hcard in sgs.qlist(self.player:getCards("he")) do
-			if isCard("Snatch", hcard) and self.player:distanceTo(player) == 1 or isCard("Dismantlement", hcard) then
+			if (isCard("Snatch", hcard, self.player) and self.player:distanceTo(player) == 1) or isCard("Dismantlement", hcard, self.player) then
 				local trick = sgs.Sanguosha:cloneCard(hcard:objectName(), hcard:getSuit(), hcard:getNumber())
 				if self:hasTrickEffective(trick, player) then friend_santch_dismantlement = friend_santch_dismantlement + 1 end
 			end

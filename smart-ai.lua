@@ -161,7 +161,7 @@ function SmartAI:initialize(player)
 		sgs.debugmode = false
 		global_room = self.room
 		global_room:writeToConsole(version .. ", Powered by " .. _VERSION)
-		
+				
 		setInitialTables()
 		if sgs.isRolePredictable() then
 			for _, aplayer in sgs.qlist(global_room:getOtherPlayers(global_room:getLord())) do
@@ -324,7 +324,7 @@ function SmartAI:getUseValue(card)
 			v = 9
 		end
 		if self:hasSkills(sgs.lose_equip_skill) then return 10 end
-	elseif card:getTypeId() == sgs.Card_TypeBasic then
+	elseif card:getTypeId() == sgs.Card_Basic then
 		if card:isKindOf("Slash") then
 			
 			v = sgs.ai_use_value[class_name] or 0
@@ -420,7 +420,7 @@ function SmartAI:getDynamicUsePriority(card)
 	dummy_use.isDummy = true
 	if type == sgs.Card_Trick then
 		self:useTrickCard(card, dummy_use)
-	elseif type == sgs.Card_TypeBasic then
+	elseif type == sgs.Card_Basic then
 		self:useBasicCard(card, dummy_use)
 	elseif type == sgs.Card_Equip then
 		self:useEquipCard(card, dummy_use)
@@ -447,6 +447,15 @@ function SmartAI:getDynamicUsePriority(card)
 		if self.player:getMark("shuangxiong") > 0 and use_card:isKindOf("Duel") then 
 			value = sgs.ai_use_priority.ExNihilo - 0.1
 		end
+		
+		if use_card:isKindOf("Indulgence") and use_card:getSkillName() == "guose" then 
+			value = sgs.ai_use_priority.Indulgence + 0.01
+		end
+
+		if use_card:isKindOf("SupplyShortage") and use_card:getSkillName() == "duanliang" then 
+			value = sgs.ai_use_priority.SupplyShortage + 0.01
+		end
+		
 
 		if sgs.evaluateRoleTrends(self.player) == "neutral" and use_card:isKindOf("YisheAskCard") then 
 			value = sgs.ai_use_priority.Slash - 0.5
@@ -1186,9 +1195,6 @@ function sgs.gameProcess(room,...)
 			else loyal_hp = aplayer:getHp() end
 			if aplayer:getMaxHp() == 3 then loyal_value = loyal_value + 0.5 end
 			loyal_value = loyal_value + (loyal_hp + math.max(sgs.getDefense(aplayer) - loyal_hp * 2, 0) * 0.7)
-			if aplayer:getWeapon() and aplayer:getWeapon():getClassName() ~= "Weapon" then
-				loyal_value = loyal_value + math.min(1.2, math.min(sgs.weapon_range[aplayer:getWeapon():getClassName()] or 0,room:alivePlayerCount()/2)/2) * 0.4
-			end
 			if aplayer:getDefensiveHorse() then
 				loyal_value = loyal_value + 0.5
 			end
@@ -2772,11 +2778,12 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 	end
 
 	if (slash and slash:hasFlag("drank")) or from:hasFlag("drank") then dmg = dmg + 1 end
-	if from:hasFlag("luoyi") then dmg = dmg + 1 end	
+	if from:hasFlag("luoyi") then dmg = dmg + 1 end
 	if from:hasFlag("neoluoyi") then dmg = dmg + 1 end
 	if from:hasSkill("drluoyi") and not from:getWeapon() then dmg = dmg + 1 end	
 	if slash and from:hasSkill("jie") and slash:isRed() then dmg = dmg + 1 end
 	if slash and from:hasSkill("wenjiu") and slash:isBlack() then dmg = dmg + 1 end
+	if slash and from:hasFlag("shenli") and from:getMark("@struggle") > 0 then dmg = dmg + math.min(3, from:getMark("@struggle")) end
 	
 	if not from:hasSkill("jueqing") then		
 		if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and fireSlash then dmg = dmg + 1 end	
@@ -4302,7 +4309,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 			if self:isEquip("EightDiagram", to) then value = value + 30	end
 		end	
 	else
-		if to:hasSkill("juxiang") and not card:isVirtualCard() then	value = value + 50 end
+		if to:hasSkill("juxiang") and not card:isVirtualCard() then value = value + 50 end
 		if to:hasSkill("danlao") and self.player:aliveCount() > 2 then value = value + 20 end
 		value = value + 50
 	end
@@ -4350,7 +4357,7 @@ function SmartAI:getAoeValue(card, player)
 	end
 
 	local liuxie = self.room:findPlayerBySkillName("huangen")
-	if liuxie then
+	if liuxie and self.player:aliveCount() > 2 and liuxie:getHp() > 0 then
 		if self:isFriend(liuxie) then
 			good = good + 30 * liuxie:getHp()
 		else
@@ -4645,7 +4652,7 @@ function SmartAI:damageMinusHp(self, enemy, type)
 		local cards = self.player:getCards("he")
 		cards = sgs.QList2Table(cards)
 		for _, acard in ipairs(cards) do
-			if acard:getTypeId() == sgs.Card_TypeBasic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
+			if acard:getTypeId() == sgs.Card_Basic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
 		end
 		for _, acard in ipairs(cards) do
 			if ((acard:isKindOf("Duel") or acard:isKindOf("SavageAssault") or acard:isKindOf("ArcheryAttack") or acard:isKindOf("FireAttack")) 

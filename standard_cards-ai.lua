@@ -304,7 +304,7 @@ function SmartAI:useCardSlash(card, use)
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
 	for _, acard in ipairs(cards) do
-		if acard:getTypeId() == sgs.Card_TypeBasic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
+		if acard:getTypeId() == sgs.Card_Basic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
 	end
 	local no_distance = self.slash_distance_limit
 	self.slash_targets = 1
@@ -795,6 +795,8 @@ sgs.ai_skill_cardask["@Axe"] = function(self, data, pattern, target)
 	end
 end
 
+sgs.ai_skill_cardask["@axe"] = sgs.ai_skill_cardask["@Axe"]
+
 function sgs.ai_slash_weaponfilter.Axe(to, self)
 	return self:getOverflow() > 0
 end
@@ -835,10 +837,16 @@ function sgs.ai_cardsview.Spear(class_name, player)
 		end
 		if #newcards<2 then return nil end
 
+		local suit1 = newcards[1]:getSuitString()
 		local card_id1 = newcards[1]:getEffectiveId()
+
+		local suit2 = newcards[2]:getSuitString()
 		local card_id2 = newcards[2]:getEffectiveId()
-		
-		local card_str = ("slash:Spear[to_be_decided:0]=%d+%d"):format(card_id1, card_id2)
+
+		local suit="no_suit"
+		if newcards[1]:isBlack() == newcards[2]:isBlack() then suit = suit1 end
+
+		local card_str = ("slash:Spear[%s:%s]=%d+%d"):format(suit, 0, card_id1, card_id2)
 
 		return card_str
 	end
@@ -1430,7 +1438,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 		end
 	end
 	
-	-- table.copyFrom不会破坏原来的排序吧？
+
 	local new_enemies = table.copyFrom(enemies)
 	local compare_JudgingArea = function(a, b)
 		return a:getJudgingArea():length() > b:getJudgingArea():length()

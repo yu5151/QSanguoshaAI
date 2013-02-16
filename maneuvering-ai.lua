@@ -41,6 +41,26 @@ sgs.ai_skill_invoke.Fan = function(self, data)
 	return false
 end
 
+sgs.ai_skill_invoke.oldFan = function(self, data)
+	local target = data:toSlashEffect().to	
+	local jinxuandi = self.room:findPlayerBySkillName("wuling")	
+	
+	if self:isFriend(target) then
+		if not self:damageIsEffective(target, sgs.DamageStruct_Fire) then return true end
+		if target:isChained() and self:isGoodChainTarget(target) then return true end			
+	else
+		if not self:damageIsEffective(target, sgs.DamageStruct_Fire) then return false end
+		if target:isChained() and not self:isGoodChainTarget(target) then return false end
+		if target:hasArmorEffect("Vine") or target:getMark("@gale") > 0 or (jinxuandi and jinxuandi:getMark("@wind") > 0) then
+			return true
+		end
+	end
+	return false
+end
+
+if sgs.Sanguosha:getVersion() <= "20121221" then sgs.ai_skill_invoke.Fan = sgs.ai_skill_invoke.oldFan end
+
+
 sgs.ai_view_as.Fan = function(card, player, card_place)
 	local suit = card:getSuitString()
 	local number = card:getNumberString()

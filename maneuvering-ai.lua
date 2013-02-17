@@ -113,7 +113,7 @@ function sgs.ai_armor_value.Vine(player, self)
 		if getKnownCard(enemy, "FireSlash", true)>=1 or getKnownCard(enemy, "FireAttack", true)>=1 then return -1 end
 	end
 
-	if #(self:getEnemies(player)) < 3 or player:getHp()<=2 then return 3 end
+	if (#self.enemies < 3 and sgs.turncount > 2) or player:getHp() <= 2 then return 5 end
 	return -1
 end
 

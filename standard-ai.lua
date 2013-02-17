@@ -1393,7 +1393,8 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 		end
 	end
 
-	self:sort(self.friends_noself, "defense", true)
+	self:sort(self.friends_noself, "defense")
+	self.friends_noself = sgs.reverse(self.friends_noself)
 
 
 	for _, friend in ipairs(self.friends_noself) do

@@ -374,7 +374,8 @@ sgs.ai_skill_use_func.GanluCard = function(card, use, self)
 	end
 	table.sort(self.enemies, compare_func)
 	table.sort(self.friends, compare_func)
-	sgs.reverse(self.friends)
+	
+	self.friends = sgs.reverse(self.friends)
 	
 	for _, friend in ipairs(self.friends) do
 		for _, enemy in ipairs(self.enemies) do
@@ -786,7 +787,8 @@ sgs.ai_skill_use_func.PaiyiCard = function(card, use, self)
 			target = self.player
 		end
 	end
-	self:sort(self.friends_noself,"hp",true)
+	self:sort(self.friends_noself,"hp")
+	self.friends_noself = sgs.reverse(self.friends_noself)
 	if not target then
 		for _, friend in ipairs(self.friends_noself) do
 			if friend:getHandcardNum() > 1 and friend:getHandcardNum() + 2 > self.player:getHandcardNum() 

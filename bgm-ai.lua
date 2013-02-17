@@ -125,6 +125,7 @@ end
 
 sgs.ai_use_value.LihunCard = 8.5
 sgs.ai_use_priority.LihunCard = 6
+sgs.ai_card_intention.LihunCard = 80
 
 function sgs.ai_skill_invoke.kuiwei(self, data)
 	local weapon = 0
@@ -482,7 +483,8 @@ end
 
 sgs.ai_skill_playerchosen.shichou = function(self, targets)
 	targets = sgs.QList2Table(targets)
-	self:sort(targets, "hp", true)
+	self:sort(targets, "hp")
+	targets = sgs.reverse(targets)
 
 	if self.role=="rebel" and self.room:getLord():getKingdom()=="shu" then
 		return self.room:getLord()
@@ -735,7 +737,8 @@ sgs.ai_skill_use_func.YinlingCard = function(card, use, self)
 		end
 		enemies = self:exclude(enemies, card)
 		if sgs.turncount < 3 and #enemies > 0 then enemies = {enemies[1 + (os.time() % #enemies)]} end
-		self:sort(enemies,"defenseSlash", true)
+		self:sort(enemies,"defenseSlash")
+		enemies = sgs.reverse(enemies)
 	else
 		enemies = self:exclude(self.enemies, card)
 		self:sort(enemies,"defenseSlash")

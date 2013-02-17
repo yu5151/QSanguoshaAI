@@ -77,7 +77,7 @@ sgs.ai_need_damaged =		{}
 sgs.ai_debug_func =			{}
 sgs.ai_chat_func =			{}
 sgs.ai_event_callback =		{}
-sgs.processvalue = {loyalist ="忠大优", dilemma="左右为难", loyalish="忠小优" , rebelish="反小优", rebel="反大优",neutral= "平衡"}
+
 
 for i=sgs.NonTrigger, sgs.NumOfEvents, 1 do
 	sgs.ai_debug_func[i]	={}
@@ -607,11 +607,11 @@ sgs.ai_compare_funcs = {
 	end,
 }
 
-function SmartAI:sort(players, key, inverse)
+function SmartAI:sort(players, key)
 	if not players then self.room:writeToConsole(debug.traceback()) end
 	local func = sgs.ai_compare_funcs[key or "defense"]
 	table.sort(players, func)
-	if inverse then players = sgs.reverse(players) end
+	
 end
 
 function SmartAI:sortByKeepValue(cards,inverse,kept)
@@ -641,11 +641,11 @@ function SmartAI:sortByUseValue(cards,inverse)
 		local value2 = self:getUseValue(b)
 
 		if value1 ~= value2 then
-				if not inverse then return value1 > value2
-				else return value1 < value2
-				end
+			if not inverse then return value1 > value2 end
+			return value1 < value2
 		else
-				return a:getNumber() > b:getNumber()
+			if not inverse then return a:getNumber() > b:getNumber() end
+			return a:getNumber() < b:getNumber()
 		end
 	end
 
@@ -660,7 +660,7 @@ function SmartAI:sortByUsePriority(cards, player)
 		if value1 ~= value2 then
 			return value1 > value2
 		else
-			return a:getNumber() < b:getNumber()
+			return a:getNumber() > b:getNumber()
 		end
 	end
 
@@ -691,7 +691,7 @@ function SmartAI:sortByCardNeed(cards, inverse)
 			if value1 ~= value2 then
 				return value1 < value2
 			else
-				return a:getNumber() > b:getNumber()
+				return a:getNumber() < b:getNumber()
 			end
 		else
 			if value1 ~= value2 then

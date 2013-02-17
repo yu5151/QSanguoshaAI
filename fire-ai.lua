@@ -392,7 +392,7 @@ sgs.ai_skill_use_func.TianyiCard=function(card,use,self)
 			if not friend:isKongcheng() then
 				if max_point >= 7 then
 					use.card = sgs.Card_Parse("@TianyiCard=" .. max_card:getId())
-					if use.to then use.to:append(enemy) end
+					if use.to then use.to:append(friend) end
 					return
 				end
 			end

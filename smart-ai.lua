@@ -2913,8 +2913,8 @@ function SmartAI:getCardNeedPlayer(cards)
 		if (self.player:getHandcardNum() < 2 and self.player:usedTimes("RendeCard") == 0) then
 			return
 		end
-		if (self.player:getHandcardNum() == 2 and self.player:usedTimes("RendeCard") == 0) or
-			(self.player:getHandcardNum() == 1 and self.player:usedTimes("RendeCard") == 1) then
+		if ((self.player:getHandcardNum() == 2 and self.player:usedTimes("RendeCard") == 0) or
+			(self.player:getHandcardNum() == 1 and self.player:usedTimes("RendeCard") == 1)) and self:getOverflow() <= 0 then
 			for _, enemy in ipairs(self.enemies) do
 				if self:isEquip("GudingBlade", enemy) and 
 				(enemy:canSlash(self.player) or enemy:hasSkill("shensu") or enemy:hasSkill("wushen") or enemy:hasSkill("jiangchi")) then return end
@@ -3100,28 +3100,8 @@ function SmartAI:getCardNeedPlayer(cards)
 end
 
 function SmartAI:askForYiji(card_ids)
-	--All cards should be given out for LiRang
-	if self.player:hasFlag("lirang_InTempMoving") then
-		local tos = {}
-		for _, target in ipairs(self.friends_noself) do
-			if not target:hasSkill("manjuan") and not self:needKongcheng(target) then
-				table.insert(tos, target)
-			end
-		end
-
-		if #tos > 0 then
-			self:sort(tos, "defense")
-		else
-			return nil
-		end
-		local afriend = tos[1]
-		for _, acard_id in ipairs(card_ids) do
-			return afriend, acard_id
-		end
-		return nil
-	end
-
-	if self.player:getHandcardNum() <= 2 then
+	local isLirang = self.player:hasFlag("lirang_InTempMoving")
+	if not isLirang and self.player:getHandcardNum() <= 2 then
 		return nil, -1
 	end
 
@@ -3129,17 +3109,35 @@ function SmartAI:askForYiji(card_ids)
 	for _, card_id in ipairs(card_ids) do
 		table.insert(cards, sgs.Sanguosha:getCard(card_id))
 	end
-	
+
 	local card, friend = self:getCardNeedPlayer(cards)
-	if card and friend then return friend, card:getId() end
+	if card and friend and not (isLirang and friend:objectName() == self.player:objectName()) then return friend, card:getId() end
 	if #self.friends > 1 then
 		self:sort(self.friends, "handcard")
 		for _, afriend in ipairs(self.friends) do
-			if not (self:needKongcheng(afriend) or afriend:hasSkill("manjuan")) then
+			if not (self:needKongcheng(afriend) or afriend:hasSkill("manjuan")) and not (isLirang and afriend:objectName() == self.player:objectName()) then
 				for _, acard_id in ipairs(card_ids) do
 					return afriend, acard_id
 				end
 			end
+		end
+	end
+
+	--All cards should be given out for LiRang
+	if isLirang then
+		local tos = {}
+		for _, target in ipairs(self.friends_noself) do
+			if self:isFriend(target) and not (target:hasSkill("manjuan") and target:getPhase() == sgs.Player_NotActive)
+				and not self:needKongcheng(target) then
+				table.insert(tos, target)
+			end
+		end
+
+		if #tos == 0 then return end
+		self:sort(tos, "defense")
+		local afriend = tos[1]
+		for _, acard_id in ipairs(card_ids) do
+			return afriend, acard_id
 		end
 	end
 end

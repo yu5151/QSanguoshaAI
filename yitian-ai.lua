@@ -926,6 +926,9 @@ sgs.ai_skill_use_func.TaichenCard=function(card,use,self)
 	
 	if card_str then
 		if use.to then
+			if self:isFriend(target) then
+				self.room:setPlayerFlag(target, "TaichenOK")
+			end
 			use.to:append(target)
 		end
 		use.card = sgs.Card_Parse(card_str)
@@ -934,3 +937,15 @@ end
 
 sgs.ai_cardneed.taichen = sgs.ai_cardneed.weapon
 sgs.taichen_keep_value = sgs.qiangxi_keep_value
+sgs.ai_card_intention.TaichenCard = function(card, from, tos)
+	if #tos > 0 then
+		for _,to in ipairs(tos) do
+			if to:hasFlag("TaichenOK") then
+				sgs.updateIntention(from, to, -30)
+			else
+				sgs.updateIntention(from, to, 30)
+			end
+		end
+	end
+	return 0
+end

@@ -138,9 +138,9 @@ function sgs.getDefenseSlash(player)
 	if player:hasLordSkill("hujia") then
 			local lieges = global_room:getLieges("wei", player)			
 			for _, liege in sgs.qlist(lieges) do
-				if sgs.compareRoleEvaluation(liege,"rebel","loyalist")==sgs.compareRoleEvaluation(player,"rebel","loyalist") then
+				if sgs.compareRoleEvaluation(liege,"rebel","loyalist") == sgs.compareRoleEvaluation(player,"rebel","loyalist") then
 					hujiaJink = hujiaJink + getCardsNum("Jink",liege)
-					if liege:hasArmorEffect("EightDiagram") then hujiaJink=hujiaJink + 0.8 end
+					if liege:hasArmorEffect("EightDiagram") then hujiaJink = hujiaJink + 0.8 end
 				end
 			end
 			defense = defense + hujiaJink
@@ -302,6 +302,12 @@ end
 
 function SmartAI:useCardSlash(card, use)
 	if not self:slashIsAvailable() then return end
+	if card:isVirtualCard() and card:subcardsLength() > 0
+		and self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow")
+		and card:getSubcards():contains(self.player:getWeapon():getEffectiveId())
+		and not self.player:canSlashWithoutCrossbow() then
+		return
+	end
 	local basicnum = 0
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)

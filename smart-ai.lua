@@ -4708,6 +4708,15 @@ function getBestHp(player)
 	return player:getMaxHp()
 end
 
+function IgnoreArmor(from, to)
+	from = from or self.room:getCurrent()
+	to = to or self.player
+	if from:hasWeapon("QinggangSword") or to:hasFlag("wuqian") or to:getMark("qinggang") > 0 then
+		return true
+	end
+	return false
+end
+
 dofile "lua/ai/debug-ai.lua"
 dofile "lua/ai/imagine-ai.lua"
 dofile "lua/ai/standard_cards-ai.lua"

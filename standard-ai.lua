@@ -771,10 +771,9 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 
 	if not target then return self:getCardId("Slash") or "." end	
 	
-	local ignoreArmor = sgs.jijiangsource:hasUsed("WuqianCard") or sgs.jijiangsource:hasWeapon("QinggangSword") 
-						or sgs.jijiangsource:hasFlag("xianzhen_success") or not target:getArmor()
+	local ignoreArmor = IgnoreArmor(sgs.jijiangsource, target) or not target:getArmor()
 	
-	if self:isFriend(target) and not (target:getHp()>getBestHp(target) or self:getDamagedEffects(target, sgs.jijiangsource)) then return "." end
+	if self:isFriend(target) and not (target:getHp() > getBestHp(target) or self:getDamagedEffects(target, sgs.jijiangsource)) then return "." end
 
 	if ignoreArmor and not target:hasSkill("yizhong") then return self:getCardId("Slash") or "." end
 

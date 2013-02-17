@@ -395,8 +395,9 @@ sgs.ai_skill_use_func.XuejiCard=function(card,use,self)
 		end
 	end
 end
-
+--[[
 sgs.ai_card_intention.XuejiCard = function(self, card, from, tos)
+	--服务器报错：lua/ai/sp-ai.lua:400: attempt to index field 'room' (a nil value)
 	local huatuo = self.room:findPlayerBySkillName("jijiu")
 	for _, to in ipairs(tos) do
 		local intention = 60
@@ -410,6 +411,34 @@ sgs.ai_card_intention.XuejiCard = function(self, card, from, tos)
 		end
 		if to:hasSkill("hunzi") and to:getMark("hunzi") == 0
 			and to:objectName() == to:getNextAlive():objectName() and to:getHp() == 2 then intention = -20 end
+		sgs.updateIntention(from, to, intention)
+	end
+end
+]]--
+sgs.ai_card_intention.XuejiCard = function(card, from, tos)
+	local room = from:getRoom()
+	local huatuo = room:findPlayerBySkillName("jijiu")
+	for _,to in ipairs(tos) do
+		local intention = 60
+		if to:hasSkill("yiji") and not from:hasSkill("jueqing") then
+			if huatuo then
+				local roleHuatuo = sgs.compareRoleEvaluation(huatuo, "rebel", "loyalist")
+				local roleSource = sgs.compareRoleEvaluation(from, "rebel", "loyalist")
+				if roleHuatuo == roleSource then
+					if huatuo:getHandcardNum() >= 3 and huatuo:objectName() ~= from:objectName() then
+						intention = -30
+					end
+				end
+			end
+			if to:getLostHp() == 0 and to:getMaxHp() >= 3 then
+				intention = -10
+			end
+		end
+		if to:hasSkill("hunzi") and to:getMark("hunzi") == 0 then
+			if to:objectName() == to:getNextAlive():objectName() and to:getHp() == 2 then 
+				intention = -20 
+			end
+		end
 		sgs.updateIntention(from, to, intention)
 	end
 end

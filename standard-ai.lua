@@ -760,6 +760,9 @@ sgs.ai_choicemade_filter.cardResponsed["@jijiang-slash"] = function(player, prom
 	elseif sgs.jijiangsource and player:objectName() == player:getRoom():getLieges("shu", sgs.jijiangsource):last():objectName() then
 		clearJijiangTargetFlag(sgs.jijiangsource)
 		sgs.jijiangsource = nil
+	elseif sgs.jijiangsource and player:objectName() == player:getRoom():getLieges("shu", sgs.jijiangsource):last():objectName() then	
+	sgs.jijiangsource = nil
+	sgs.jijiangtarget = nil
 	end
 end
 
@@ -779,10 +782,9 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 
 	if not target then return self:getCardId("Slash") or "." end	
 	
-	local ignoreArmor = sgs.jijiangsource:hasUsed("WuqianCard") or sgs.jijiangsource:hasWeapon("QinggangSword") 
-						or sgs.jijiangsource:hasFlag("xianzhen_success") or not target:getArmor()
+	local ignoreArmor = IgnoreArmor(sgs.jijiangsource, target) or not target:getArmor()
 	
-	if self:isFriend(target) and not (target:getHp()>getBestHp(target) or self:getDamagedEffects(target, sgs.jijiangsource)) then return "." end
+	if self:isFriend(target) and not (target:getHp() > getBestHp(target) or self:getDamagedEffects(target, sgs.jijiangsource)) then return "." end
 
 	if ignoreArmor and not target:hasSkill("yizhong") then return self:getCardId("Slash") or "." end
 
@@ -940,7 +942,7 @@ sgs.ai_skill_invoke.tieji = function(self, data)
 	local zj = self.room:findPlayerBySkillName("guidao")
 	if zj and self:isEnemy(zj) and self:canRetrial(zj) then return false end
 	
-	if target:hasArmorEffect("EightDiagram") then return true end
+	if target:hasArmorEffect("EightDiagram") and not IgnoreArmor(self.player, target) then return true end
 	if target:hasLordSkill("hujia") then
 		for _, p in ipairs(self.enemies) do
 			if p:getKingdom() == "wei" and (p:hasArmorEffect("EightDiagram") or p:getHandcardNum() > 0) then return true end		

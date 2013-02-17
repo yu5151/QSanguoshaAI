@@ -214,7 +214,7 @@ function sgs.getDefense(player)
 	if player:hasSkill("jieming") or player:hasSkill("yiji") or player:hasSkill("guixin") then
 		defense = defense + 4
 	end
-	if player:getMark("@tied")>0 then
+	if player:getMark("@tied") > 0 then
 		defense = defense + 1
 	end
 	if player:hasSkill("qingguo") and player:getHandcardNum()>1 then
@@ -1872,11 +1872,9 @@ function SmartAI:filterEvent(event, player, data)
 		end
 
 		if card:isKindOf("Slash") then
-			if to:hasSkill("leiji") and (getCardsNum("Jink", to)>0 or to:hasArmorEffect("EightDiagram")) then
+			if to:hasSkill("leiji") and (getCardsNum("Jink", to) > 0 or to:hasArmorEffect("EightDiagram")) then
 				sgs.updateIntention(from, to, 3)
 				sgs.ai_leiji_effect = true
-			elseif from and from:hasSkill("gzkuangfu") then				
-				sgs.gzkuangfu_to = to
 			end
 		end	
 		
@@ -1884,7 +1882,7 @@ function SmartAI:filterEvent(event, player, data)
 		local damage = data:toDamage()
 		local card = damage.card
 		local from = damage.from
-		local to	= damage.to
+		local to = damage.to
 		local source = self.room:getCurrent()
 		
 		if not damage.card then
@@ -2765,7 +2763,7 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 	slash = slash or self:getCard("Slash", from)
 	to = to or self.player
 	if not from or not to then self.room:writeToConsole(debug.traceback()) return false end
-	if not from:hasSkill("jueqing") and to:hasArmorEffect("SilverLion") then return false end
+	if not from:hasSkill("jueqing") and (to:hasArmorEffect("SilverLion") and not IgnoreArmor(from, to)) then return false end
 	local dmg = 1
 	local fireSlash = slash and (slash:isKindOf("FireSlash") or 
 		(slash:objectName() == "slash" and (from:hasWeapon("Fan") or (from:hasSkill("lihuo") and not self:isWeak(from))))) 
@@ -2786,7 +2784,8 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 	if slash and from:hasFlag("shenli") and from:getMark("@struggle") > 0 then dmg = dmg + math.min(3, from:getMark("@struggle")) end
 	
 	if not from:hasSkill("jueqing") then		
-		if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and fireSlash then dmg = dmg + 1 end	
+		if to:hasArmorEffect("Vine") and not IgnoreArmor(from, to) and fireSlash then dmg = dmg + 1 end
+		if to:getMark("@gale") > 0 and fireSlash then dmg = dmg + 1 end
 		if fireSlash and jinxuandi and jinxuandi:getMark("@wind") > 0 then dmg = dmg + 1 end
 		if thunderSlash and jinxuandi and jinxuandi:getMark("@thunder") > 0 then dmg = dmg + 1 end
 		if from:hasWeapon("GudingBlade") and slash and to:isKongcheng() then dmg = dmg + 1 end	
@@ -4600,7 +4599,7 @@ function SmartAI:useEquipCard(card, use)
 		end
 		if self:hasSkills("paoxiao|fuhun", self.player) and card:isKindOf("Crossbow") then return end
 		if not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow() <= 0 and not canUseSlash then return end
-		if self:evaluateWeapon(card) > self:evaluateWeapon(self.player:getWeapon()) then
+		if not self.player:getWeapon() or self:evaluateWeapon(card) > self:evaluateWeapon(self.player:getWeapon()) then
 			if (not use.to) and self.weaponUsed and (not self:hasSkills(sgs.lose_equip_skill)) then return end
 			if self.player:getHandcardNum() <= self.player:getHp() - 2 then return end
 			use.card = card
@@ -4705,6 +4704,15 @@ function getBestHp(player)
 		end
 	end
 	return player:getMaxHp()
+end
+
+function IgnoreArmor(from, to)
+	from = from or self.room:getCurrent()
+	to = to or self.player
+	if from:hasWeapon("QinggangSword") or to:hasFlag("wuqian") or to:getMark("qinggang") > 0 then
+		return true
+	end
+	return false
 end
 
 dofile "lua/ai/debug-ai.lua"

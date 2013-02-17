@@ -103,8 +103,9 @@ function sgs.getDefenseSlash(player)
 	defense= defense + knownJink * 1.2
 	
 	local hasEightDiagram=false
-	local ignoreArmor = attacker:hasUsed("WuqianCard") or attacker:hasWeapon("QinggangSword") or attacker:hasFlag("xianzhen_success")
-	if (player:hasArmorEffect("EightDiagram") or (player:hasSkill("bazhen") and not player:getArmor())) and not ignoreArmor then
+	
+	if (player:hasArmorEffect("EightDiagram") or (player:hasSkill("bazhen") and not player:getArmor())) 
+	  and not IgnoreArmor(attacker, player) then
 		hasEightDiagram=true
 	end
 
@@ -124,7 +125,7 @@ function sgs.getDefenseSlash(player)
 		defense = defense + 10
 	end
 
-	if player:hasSkill("rende") and player:getHp() > 2 then  defense = defense + 3 end
+	if player:hasSkill("rende") and player:getHp() > 2 then defense = defense + 3 end
 	if player:hasSkill("kuanggu") and player:getHp() > 1 then defense = defense + 0.2 end
 	if player:hasSkill("zaiqi") and player:getHp() > 1 then defense = defense + 0.35 end
 	
@@ -137,21 +138,21 @@ function sgs.getDefenseSlash(player)
 	if player:hasLordSkill("hujia") then
 			local lieges = global_room:getLieges("wei", player)			
 			for _, liege in sgs.qlist(lieges) do
-				if sgs.compareRoleEvaluation(liege,"rebel","loyalist")==sgs.compareRoleEvaluation(player,"rebel","loyalist") then
+				if sgs.compareRoleEvaluation(liege,"rebel","loyalist") == sgs.compareRoleEvaluation(player,"rebel","loyalist") then
 					hujiaJink = hujiaJink + getCardsNum("Jink",liege)
-					if liege:hasArmorEffect("EightDiagram") then hujiaJink=hujiaJink + 0.8 end
+					if liege:hasArmorEffect("EightDiagram") then hujiaJink = hujiaJink + 0.8 end
 				end
 			end
 			defense = defense + hujiaJink
 	end
 
-	if player:getMark("@tied")>0 then
+	if player:getMark("@tied") > 0 then
 		defense = defense + 1
 	end
 	
 	if player:getHp() > getBestHp(player) then defense = defense + 1.3 end
 
-	if player:getHp()<=2 then
+	if player:getHp() <= 2 then
 		defense = defense - 0.4
 	end
 	
@@ -162,17 +163,18 @@ function sgs.getDefenseSlash(player)
 
 	if player:hasSkill("tianxiang") then defense = defense + player:getHandcardNum() * 0.5 end
 
-	if player:getHandcardNum()==0 and hujiaJink==0 and not player:hasSkill("kongcheng") then
-		if player:getHp()<=1 then defense = defense - 2.5 end
-		if player:getHp()==2 then defense = defense - 1.5 end
+	if player:getHandcardNum() == 0 and hujiaJink == 0 and not player:hasSkill("kongcheng") then
+		if player:getHp() <= 1 then defense = defense - 2.5 end
+		if player:getHp() == 2 then defense = defense - 1.5 end
 		if not hasEightDiagram then defense = defense - 2 end
-		if attacker:hasWeapon("GudingBlade") and player:getHandcardNum()==0 and (not player:hasArmorEffect("SilverLion") or ignoreArmor) then
+		if attacker:hasWeapon("GudingBlade") and player:getHandcardNum() == 0 
+		  and not (player:hasArmorEffect("SilverLion") and not IgnoreArmor(attacker, player)) then
 			defense = defense - 2
 		end
 	end
 
 	local has_fire_slash
-	local cards= sgs.QList2Table(attacker:getHandcards())
+	local cards = sgs.QList2Table(attacker:getHandcards())
 	for i = 1, #cards, 1 do		
 		if (attacker:hasWeapon("Fan") and cards[i]:isKindOf("Slash") and not cards[i]:isKindOf("ThunderSlash")) or cards[i]:isKindOf("FireSlash")  then
 			has_fire_slash = true
@@ -180,7 +182,7 @@ function sgs.getDefenseSlash(player)
 		end
 	end
 	
-	if player:hasArmorEffect("Vine") and not ignoreArmor and has_fire_slash then 
+	if player:hasArmorEffect("Vine") and not IgnoreArmor(attacker, player) and has_fire_slash then 
 		defense = defense - 0.6
 	end	
 
@@ -273,7 +275,7 @@ function SmartAI:slashIsEffective(slash, to)
 	if self.player:hasSkill("zonghuo") then nature = sgs.DamageStruct_Fire end
 	if not self:damageIsEffective(to, nature) then return false end
 
-	if self.player:hasWeapon("QinggangSword") or (self.player:hasFlag("xianzhen_success") and self.room:getTag("XianzhenTarget"):toPlayer() == to) then
+	if IgnoreArmor(self.player, to) then
 		return true
 	end
 
@@ -300,6 +302,12 @@ end
 
 function SmartAI:useCardSlash(card, use)
 	if not self:slashIsAvailable() then return end
+	if card:isVirtualCard() and card:subcardsLength() > 0
+		and self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow")
+		and card:getSubcards():contains(self.player:getWeapon():getEffectiveId())
+		and not self.player:canSlashWithoutCrossbow() then
+		return
+	end
 	local basicnum = 0
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
@@ -310,7 +318,7 @@ function SmartAI:useCardSlash(card, use)
 	self.slash_targets = 1
 	if self.player:hasFlag("slashNoDistanceLimit") then no_distance = true end
 	if card:getSkillName() == "wushen" then no_distance = true end
-	if card:getSkillName() == "gongqi" then no_distance = true end
+	if card:getSkillName() == "nosgongqi" then no_distance = true end
 	if self.player:hasFlag("tianyi_success") then self.slash_targets = self.slash_targets + 1 end
 	if self.player:hasSkill("lihuo") and card:isKindOf("FireSlash") then self.slash_targets = self.slash_targets + 1 end
 	if (self.player:getHandcardNum() == 1
@@ -429,7 +437,8 @@ function SmartAI:useCardSlash(card, use)
 				end
 
 				local anal = self:searchForAnaleptic(use, target, card)
-				if anal and not self:isEquip("SilverLion", target) and (self:isWeak(target) or sgs.getDefenseSlash(target) <= 2.5 or self:getCardsNum("Analeptic") > 1 ) then
+				if anal and not (self:isEquip("SilverLion", target) and not IgnoreArmor(self.player, target) and not self.player:hasSkill("jueqing"))
+				  and (self:isWeak(target) or sgs.getDefenseSlash(target) <= 2.5 or self:getCardsNum("Analeptic") > 1 ) then
 					if anal:getEffectiveId() ~= card:getEffectiveId() then use.card = anal return end
 				end
 			end

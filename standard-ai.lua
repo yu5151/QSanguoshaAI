@@ -46,6 +46,8 @@ sgs.ai_choicemade_filter.cardResponsed["@hujia-jink"] = function(player, promptl
 	if promptlist[#promptlist] ~= "_nil_" then
 		sgs.updateIntention(player, sgs.hujiasource, -80)
 		sgs.hujiasource = nil
+	elseif sgs.hujiasource and player:objectName() == player:getRoom():getLieges("wei", sgs.hujiasource):last():objectName() then
+		sgs.hujiasource = nil
 	end
 end
 
@@ -719,7 +721,7 @@ sgs.ai_skill_use_func.JijiangCard=function(card,use,self)
 end
 
 
--- 主公刘备是自己，经测试 sgs.cardEffect 不行， 不知道刘备主是AI会怎样，反正自己是不行的。 sgs.TargetConfirmed 可以
+
 sgs.ai_event_callback[sgs.TargetConfirmed].jijiang=function(self, player, data)
 	local use = data:toCardUse()
 	local to = sgs.QList2Table(use.to)
@@ -744,8 +746,19 @@ sgs.ai_use_value.JijiangCard = 8.5
 sgs.ai_use_priority.JijiangCard = 3
 
 sgs.ai_choicemade_filter.cardResponsed["@jijiang-slash"] = function(player, promptlist)
+	local clearJijiangTargetFlag = function(jijiangsource)
+		if not jijiangsource then return end
+		for _, p in sgs.qlist(player:getRoom():getOtherPlayers(jijiangsource)) do
+			local flag = string.format("jijiang_%s_%s", jijiangsource:objectName(), p:objectName())
+			if jijiangsource:hasFlag(flag) then player:getRoom():setPlayerFlag(jijiangsource, "-"..flag) end
+		end
+	end
 	if promptlist[#promptlist] ~= "_nil_" then
 		sgs.updateIntention(player, sgs.jijiangsource, -40)
+		clearJijiangTargetFlag(sgs.jijiangsource)
+		sgs.jijiangsource = nil
+	elseif sgs.jijiangsource and player:objectName() == player:getRoom():getLieges("shu", sgs.jijiangsource):last():objectName() then
+		clearJijiangTargetFlag(sgs.jijiangsource)
 		sgs.jijiangsource = nil
 	end
 end

@@ -429,7 +429,8 @@ function SmartAI:useCardSlash(card, use)
 				end
 
 				local anal = self:searchForAnaleptic(use, target, card)
-				if anal and not self:isEquip("SilverLion", target) and (self:isWeak(target) or sgs.getDefenseSlash(target) <= 2.5 or self:getCardsNum("Analeptic") > 1 ) then
+				if anal and not (self:isEquip("SilverLion", target) and not self.player:hasWeapon("QinggangSword") and not self.player:hasSkill("jueqing"))
+				  and (self:isWeak(target) or sgs.getDefenseSlash(target) <= 2.5 or self:getCardsNum("Analeptic") > 1 ) then
 					if anal:getEffectiveId() ~= card:getEffectiveId() then use.card = anal return end
 				end
 			end

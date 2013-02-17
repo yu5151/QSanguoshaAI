@@ -351,6 +351,7 @@ sgs.ai_card_intention.WeidaiCard = sgs.ai_card_intention.Peach
 sgs.ai_skill_cardask["@weidai-analeptic"] = function(self, data)
 	local who = data:toPlayer()
 	if self:isEnemy(who) then return "." end
+	if self:needBear() and who:getHp() > 0 then return "." end
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
 	for _, fcard in ipairs(cards) do

@@ -109,11 +109,12 @@ function sgs.ai_armor_value.Vine(player, self)
 	if not self:damageIsEffective(player, sgs.DamageStruct_Fire) then return 6 end
 
 	for _, enemy in ipairs(self:getEnemies(player)) do
-		if (enemy:canSlash(player) and self:isEquip("Fan",enemy)) or self:hasSkills("huoji|shaoying|yeyan", enemy) then return -1 end
-		if getKnownCard(enemy, "FireSlash", true)>=1 or getKnownCard(enemy, "FireAttack", true)>=1 then return -1 end
+		if (enemy:canSlash(player) and self:isEquip("Fan",enemy)) or self:hasSkills("huoji|shaoying|zonghuo|wuling", enemy)
+		  or (enemy:hasSkill("yeyan") and enemy:getMark("@flame") > 0) then return -1 end
+		if getKnownCard(enemy, "FireSlash", true) >= 1 or getKnownCard(enemy, "FireAttack", true) >= 1 then return -1 end
 	end
 
-	if #(self:getEnemies(player)) < 3 or player:getHp()<=2 then return 3 end
+	if (#self.enemies < 3 and sgs.turncount >= 2) or player:getHp() <= 2 then return 5 end
 	return -1
 end
 
@@ -121,7 +122,7 @@ function SmartAI:searchForAnaleptic(use,enemy,slash)
 	if not self.toUse then return nil end
 
 	for _,card in ipairs(self.toUse) do
-		if card:getId()~= slash:getId() then return nil end
+		if card:getId() ~= slash:getId() then return nil end
 	end
 
 	if not use.to then return nil end

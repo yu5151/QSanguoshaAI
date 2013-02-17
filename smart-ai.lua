@@ -214,7 +214,7 @@ function sgs.getDefense(player)
 	if player:hasSkill("jieming") or player:hasSkill("yiji") or player:hasSkill("guixin") then
 		defense = defense + 4
 	end
-	if player:getMark("@tied")>0 then
+	if player:getMark("@tied") > 0 then
 		defense = defense + 1
 	end
 	if player:hasSkill("qingguo") and player:getHandcardNum()>1 then
@@ -4601,7 +4601,7 @@ function SmartAI:useEquipCard(card, use)
 		end
 		if self:hasSkills("paoxiao|fuhun", self.player) and card:isKindOf("Crossbow") then return end
 		if not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow() <= 0 and not canUseSlash then return end
-		if self:evaluateWeapon(card) > self:evaluateWeapon(self.player:getWeapon()) then
+		if self.player:getWeapon() and self:evaluateWeapon(card) > self:evaluateWeapon(self.player:getWeapon()) then
 			if (not use.to) and self.weaponUsed and (not self:hasSkills(sgs.lose_equip_skill)) then return end
 			if self.player:getHandcardNum() <= self.player:getHp() - 2 then return end
 			use.card = card

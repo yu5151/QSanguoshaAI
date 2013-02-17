@@ -22,11 +22,13 @@ sgs.ai_skill_invoke.qianxi = function(self, data)
 	local target = damage.to
 	if self:isFriend(target) then return false end
 	if target:getLostHp() >= 2 and target:getHp() <= 1 then return false end
-	if damage.damage > 1 and target:getHp() <= 1 then return false end
+	if self:hasHeavySlashDamage(self.player, damage.card, target) and target:getHp() <= 1 then return false end
 	if self:hasSkills(sgs.masochism_skill,target) or self:hasSkills(sgs.recover_skill,target) or self:hasSkills("longhun|buqu",target) then return true end
-	if damage.damage > 1 then return false end
+	if self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
 	return (target:getMaxHp() - target:getHp()) < 2 
 end
+
+sgs.ai_chaofeng.madai = 3
 
 sgs.ai_skill_invoke.fuli = true
 
@@ -37,6 +39,8 @@ sgs.ai_skill_invoke.fuhun = function(self, data)
 	end
 	return target > 0 and not self.player:isSkipped(sgs.Player_Play)
 end
+
+sgs.ai_chaofeng.guanxingzhangbao = 2
 
 sgs.ai_skill_invoke.zhenlie = function(self, data)
 	local judge = data:toJudge()
@@ -55,6 +59,7 @@ end
 
 sgs.ai_playerchosen_intention.miji = -80
 
+sgs.ai_chaofeng.wangyi = -2
 
 function sgs.ai_cardneed.jiangchi(to, card)
 	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) < 2
@@ -470,8 +475,8 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 end
 
 sgs.ai_card_intention.AnxuCard = 0
-
 sgs.ai_use_priority.AnxuCard = 9.6
+sgs.ai_chaofeng.bulianshi = 4
 
 sgs.ai_skill_invoke.zhuiyi = function(self, data)
 	local damage = data:toDamageStar()
@@ -683,12 +688,14 @@ qice_skill.getTurnUseCard=function(self)
 	for i=1, #aoenames do
 		local newqice = aoenames[i]
 		aoe = sgs.Sanguosha:cloneCard(newqice, sgs.Card_NoSuit, 0)
-		if self:getAoeValue(aoe) > -5 and caocao and self:isFriend(caocao) and caocao:getHp()>1  and not caocao:containsTrick("indulgence") then
+		if self:getAoeValue(aoe) > -5 and caocao and self:isFriend(caocao) and caocao:getHp()>1 and not caocao:containsTrick("indulgence")
+		and not self.player:hasSkill("jueqing") and self:aoeIsEffective(aoe, caocao, self.player) then
 			local parsed_card=sgs.Card_Parse("@QiceCard=" .. table.concat(allcard,"+") .. ":" .. newqice)
 			return parsed_card
 		end
 	end
-	if self:getCardsNum("Jink") == 0 and self:getCardsNum("Peach") == 0 and self:getCardsNum("Analeptic") == 0 and self:getCardsNum("Nullification") == 0 then
+	if self:getCardsNum("Jink") == 0 and self:getCardsNum("Peach") == 0 and self:getCardsNum("Analeptic") == 0 
+	and self:getCardsNum("Nullification") == 0 and self.player:getHandcardNum() <= 3 then
 		if good > bad and self.player:isWounded() then
 			local parsed_card=sgs.Card_Parse("@QiceCard=" .. table.concat(allcard,"+") .. ":" .. "god_salvation")
 			return parsed_card
@@ -703,8 +710,16 @@ sgs.ai_skill_use_func.QiceCard=function(card,use,self)
 	userstring=(userstring:split(":"))[3]
 	local qicecard=sgs.Sanguosha:cloneCard(userstring, card:getSuit(), card:getNumber())
 	self:useTrickCard(qicecard,use) 
-	if not use.card then return end
-	use.card=card
+	if use.card then
+		for _, acard in sgs.qlist(self.player:getHandcards()) do
+			if acard:isKindOf("Peach") and self.player:getHandcardNum() > 1 and self.player:isWounded() then
+				use.card = acard
+				return
+			end
+		end	
+		use.card=card
+	end
 end
 
 sgs.ai_use_priority.QiceCard = 1.5
+sgs.ai_chaofeng.xunyou = 2

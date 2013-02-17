@@ -336,10 +336,12 @@ sgs.ai_skill_use_func.TianyiCard=function(card,use,self)
 	end
 	
 	local zhugeliang = self.room:findPlayerBySkillName("kongcheng")
+	
 	local slash = self:getCard("Slash")	
 	local dummy_use = {isDummy = true}
-
+	self.room:setPlayerFlag(self.player, "slashNoDistanceLimit")
 	if slash then self:useBasicCard(slash, dummy_use) end
+	self.room:setPlayerFlag(self.player, "-slashNoDistanceLimit")
 
 	if slashcount >= 1 and slash and dummy_use.card  then		
 		for _, enemy in ipairs(self.enemies) do
@@ -367,9 +369,8 @@ sgs.ai_skill_use_func.TianyiCard=function(card,use,self)
 		for index = #self.friends_noself, 1, -1 do
 			local friend = self.friends_noself[index]
 			if not friend:isKongcheng() then
-				local friend_min_card = self:getMinCard(enemy)
-				local friend_min_point =friend_min_card and friend_min_card:getNumber() or 100
-
+				local friend_min_card = self:getMinCard(friend)
+				local friend_min_point = friend_min_card and friend_min_card:getNumber() or 100
 				if  max_point > friend_min_point then
 					use.card = sgs.Card_Parse("@TianyiCard=" .. max_card:getId())
 					if use.to then use.to:append(friend) end
@@ -461,36 +462,43 @@ local luanji_skill={}
 luanji_skill.name="luanji"
 table.insert(sgs.ai_skills,luanji_skill)
 luanji_skill.getTurnUseCard=function(self)
-	local first_found, second_found = false, false
-	local first_card, second_card
-	if self.player:getHandcardNum() >= 2 then
-		local cards = self.player:getHandcards()
-		local same_suit=false
-		cards = sgs.QList2Table(cards)
-		for _, fcard in ipairs(cards) do
-			if not (fcard:isKindOf("Peach") or fcard:isKindOf("ExNihilo") or fcard:isKindOf("AOE")) then
-				first_card = fcard
-				first_found = true
-				for _, scard in ipairs(cards) do
-					if first_card ~= scard and scard:getSuitString() == first_card:getSuitString() and 
-						not (scard:isKindOf("Peach") or scard:isKindOf("ExNihilo") or scard:isKindOf("AOE")) then
-						second_card = scard
-						second_found = true
-						break
+	local archery = sgs.Sanguosha:cloneCard("archery_attack", sgs.Card_NoSuit, 0)
+	local dummy_use = {isDummy = true}
+	self:useTrickCard(archery, dummy_use)
+	if dummy_use.card then
+		local first_found, second_found = false, false
+		local first_card, second_card
+		if self.player:getHandcardNum() >= 2 then
+			local cards = self.player:getHandcards()
+			local same_suit=false
+			cards = sgs.QList2Table(cards)
+			for _, fcard in ipairs(cards) do
+				if not (fcard:isKindOf("Peach") or fcard:isKindOf("ExNihilo") or fcard:isKindOf("AOE")) then
+					first_card = fcard
+					first_found = true
+					for _, scard in ipairs(cards) do
+						if first_card ~= scard and scard:getSuitString() == first_card:getSuitString() and 
+							not (scard:isKindOf("Peach") or scard:isKindOf("ExNihilo") or scard:isKindOf("AOE")) then
+							second_card = scard
+							second_found = true
+							break
+						end
 					end
+					if second_card then break end
 				end
-				if second_card then break end
 			end
 		end
-	end
 
-	if first_found and second_found then
-		local first_id = first_card:getId()
-		local second_id = second_card:getId()
-		local card_str = ("archery_attack:luanji[to_be_decided:0]=%d+%d"):format(first_id, second_id)
-		local archeryattack = sgs.Card_Parse(card_str)
-		assert(archeryattack)
-		return archeryattack
+		if first_found and second_found then
+			local first_id, second_id =  first_card:getId(), second_card:getId()
+			local suit="no_suit"
+			if first_card:isBlack() == second_card:isBlack() then suit = first_card:getSuitString() end
+
+			local card_str = ("archery_attack:luanji[%s:%s]=%d+%d"):format(suit, 0, first_id, second_id)
+			local archeryattack = sgs.Card_Parse(card_str)
+			assert(archeryattack)
+			return archeryattack
+		end
 	end
 end
 
@@ -546,7 +554,10 @@ sgs.ai_chaofeng.yanliangwenchou = 1
 
 sgs.ai_skill_invoke.mengjin = function(self, data)
 	local effect = data:toSlashEffect()
-	if effect.to:getCardCount(true) == 1 and effect.to:hasArmorEffect("SilverLion") then return false end
+	if effect.to:getCardCount(true) == 1 and effect.to:hasArmorEffect("SilverLion")
+	  and effect.to:isWounded() and self:isWeak(effect.to) then 
+		return false 
+	end
 	return not self:isFriend(effect.to)
 end
 

@@ -522,13 +522,23 @@ end
 function SmartAI:willSkipPlayPhase(player)
 	local player = player or self.player
 	local friend_null = 0
+	local friend_santch_dismantlement = 0
+	local cp = self.room:getCurrent()
+	if self.player:objectName() == cp:objectName() and self.player:objectName() ~= player:objectName() and self:isFriend(player) then
+		for _, hcard in sgs.qlist(self.player:getCards("he")) do
+			if (isCard("Snatch", hcard, self.player) and self.player:distanceTo(player) == 1) or isCard("Dismantlement", hcard, self.player) then
+				local trick = sgs.Sanguosha:cloneCard(hcard:objectName(), hcard:getSuit(), hcard:getNumber())
+				if self:hasTrickEffective(trick, player) then friend_santch_dismantlement = friend_santch_dismantlement + 1 end
+			end
+		end
+	end		
 	for _, p in sgs.qlist(self.room:getAllPlayers()) do
 		if self:isFriend(p, player) then friend_null = friend_null + getCardsNum("Nullification", p) end
 		if self:isEnemy(p, player) then friend_null = friend_null - getCardsNum("Nullification", p) end
 	end	
 	if player:containsTrick("indulgence") then
 		if player:containsTrick("YanxiaoCard") or self:hasSkills("keji",player) or (self:hasSkills("qiaobian",player) and not player:isKongcheng()) then return false end
-		if friend_null > 1 then return false end
+		if friend_null + friend_santch_dismantlement > 1 then return false end
 		return true
 	end
 	return false
@@ -744,6 +754,7 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 	if not sgs.jijiangsource then return "." end
 	if not self:isFriend(sgs.jijiangsource) then return "." end
 	if self:needBear() then return "." end
+	if self.player:hasFlag("JijiangTarget") and self.player:getRole() == "renegade" and sgs.isGoodTarget(self.player, nil, self) then return "." end
 	local target
 	for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		local flag = string.format("jijiang_%s_%s", sgs.jijiangsource:objectName(), p:objectName())
@@ -757,6 +768,9 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 	
 	local ignoreArmor = sgs.jijiangsource:hasUsed("WuqianCard") or sgs.jijiangsource:hasWeapon("QinggangSword") 
 						or sgs.jijiangsource:hasFlag("xianzhen_success") or not target:getArmor()
+	
+	if self:isFriend(target) and not (target:getHp()>getBestHp(target) or self:getDamagedEffects(target, sgs.jijiangsource)) then return "." end
+
 	if ignoreArmor and not target:hasSkill("yizhong") then return self:getCardId("Slash") or "." end
 
 	local slashes = self:getCards("Slash")
@@ -1551,7 +1565,7 @@ sgs.ai_skill_use_func.JieyinCard=function(card,use,self)
 	end
 end
 
-sgs.ai_use_priority.JieyinCard = 3.0
+sgs.ai_use_priority.JieyinCard = 2.8	-- 下调至决斗之后
 
 sgs.ai_card_intention.JieyinCard = function(card, from, tos)
 	if not from:hasFlag("jieyin_isenemy_"..tos[1]:objectName()) then 
@@ -1625,6 +1639,8 @@ sgs.jijiu_suit_value = {
 	heart = 6,
 	diamond = 6
 }
+
+sgs.ai_cardneed.jijiu = sgs.ai_cardneed.wusheng
 
 sgs.ai_chaofeng.huatuo = 6
 

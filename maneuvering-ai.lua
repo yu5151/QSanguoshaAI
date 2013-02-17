@@ -41,6 +41,26 @@ sgs.ai_skill_invoke.Fan = function(self, data)
 	return false
 end
 
+sgs.ai_skill_invoke.oldFan = function(self, data)
+	local target = data:toSlashEffect().to	
+	local jinxuandi = self.room:findPlayerBySkillName("wuling")	
+	
+	if self:isFriend(target) then
+		if not self:damageIsEffective(target, sgs.DamageStruct_Fire) then return true end
+		if target:isChained() and self:isGoodChainTarget(target) then return true end			
+	else
+		if not self:damageIsEffective(target, sgs.DamageStruct_Fire) then return false end
+		if target:isChained() and not self:isGoodChainTarget(target) then return false end
+		if target:hasArmorEffect("Vine") or target:getMark("@gale") > 0 or (jinxuandi and jinxuandi:getMark("@wind") > 0) then
+			return true
+		end
+	end
+	return false
+end
+
+if sgs.Sanguosha:getVersion() <= "20121221" then sgs.ai_skill_invoke.Fan = sgs.ai_skill_invoke.oldFan end
+
+
 sgs.ai_view_as.Fan = function(card, player, card_place)
 	local suit = card:getSuitString()
 	local number = card:getNumberString()
@@ -178,8 +198,8 @@ function SmartAI:useCardSupplyShortage(card, use)
 	if #enemies==0 then return end
 
 	local getvalue=function(enemy)
-		if enemy:containsTrick("supply_shortage") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) then return -100 end
-		if zhanghe_seat>0 and (enemy:getSeat() - zhanghe_seat) % self.room:alivePlayerCount() <= zhanghe_seat then return -100	end
+		if enemy:containsTrick("supply_shortage") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) and self:enemiesContainsTrick() <= 1 then return -100 end
+		if zhanghe_seat>0 and self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() <= 1 then return - 100 end
 
 		local value = 0 - enemy:getHandcardNum()
 
@@ -273,7 +293,7 @@ function SmartAI:isGoodChainTarget(who)
 			bad = bad-1 
 		end
 	end
-	return good > bad
+	return good > bad and who:isChained()
 end
 
 

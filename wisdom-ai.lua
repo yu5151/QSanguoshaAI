@@ -27,7 +27,7 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
 					if use.to then 
 						use.to:append(friend) 
-						self.player:speak("顶住，你的快递马上就到了。")
+						self:speak("顶住，你的快递马上就到了。")
 					end
 					return
 				end
@@ -58,7 +58,7 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
 					if use.to then 
 						use.to:append(friend) 
-						self.player:speak("我知道你有什么牌，哼哼。")
+						self:speak("我知道你有什么牌，哼哼。")
 					end
 					return
 				end
@@ -96,7 +96,7 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
 					if use.to then 
 						use.to:append(enemy) 
-						self.player:speak("咱最擅长落井下石了。")
+						self:speak("咱最擅长落井下石了。")
 					end
 					return
 				else
@@ -125,7 +125,6 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 						use.card = sgs.Card_Parse("@JuaoCard="..table.concat(givecard, "+"))
 						if use.to then
 							use.to:append(enemy)
-							enemy:speak("你给我等着！")
 						end
 						return 
 					end
@@ -153,14 +152,33 @@ end
 sgs.ai_skill_invoke.tanlan = function(self, data)
 	local damage = data:toDamage()
 	local max_card = self:getMaxCard()
-	if not max_card or self:isFriend(damage.from) then return end
-	if max_card:getNumber() > 10 or
-		(self.player:getHp() > 2 and self.player:getHandcardNum() > 2 and max_card:getNumber() > 4) or
-		(self.player:getHp() > 1 and self.player:getHandcardNum() > 1 and max_card:getNumber() > 7) or
-		(damage.from:getHandcardNum() <= 2 and max_card:getNumber() > 2) then
+	if not max_card then return end
+	if max_card:getNumber() > 10 and self:isFriend(damage.from) and damage.from:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng, damage.from) then return true end
+	if self:isFriend(damage.from) then return end
+	if max_card:getNumber() > 10 
+		or (self.player:getHp() > 2 and self.player:getHandcardNum() > 2 and max_card:getNumber() > 4)
+		or (self.player:getHp() > 1 and self.player:getHandcardNum() > 1 and max_card:getNumber() > 7)
+		or (damage.from:getHandcardNum() <= 2 and max_card:getNumber() > 2) 
+		or (damage.from:getHandcardNum() == 1 and not self:hasSkills(sgs.need_kongcheng, damage.from)) then
 		return true
 	end
 end
+
+function sgs.ai_skill_pindian.tanlan(minusecard, self, requestor, maxcard)
+	local cards, maxcard = sgs.QList2Table(self.player:getHandcards())
+	local function compare_func(a, b)
+		return a:getNumber() > b:getNumber()
+	end
+	table.sort(cards, compare_func)
+	for _, card in ipairs(cards) do
+		if card:getNumber() > 10 then return card end
+		if self:getUseValue(card) < 6 then maxcard = card break end
+	end
+	return maxcard or cards[1]
+end
+
+sgs.ai_cardneed.tanlan = sgs.ai_cardneed.bignumber
+
 --[[
 	技能：异才
 	描述：每当你使用一张非延时类锦囊时(在它结算之前)，可立即对攻击范围内的角色使用一张【杀】 
@@ -191,7 +209,7 @@ sgs.ai_skill_playerchosen.beifa = function(self, targets)
 		if self:isEnemy(target) then
 			if self:slashIsEffective(slash, target) then
 				if sgs.isGoodTarget(target, targetlist, self) then
-					self.player:speak("嘿！没想到吧？")
+					self:speak("嘿！没想到吧？")
 					return target
 				end
 			end
@@ -252,7 +270,7 @@ sgs.ai_skill_use_func.HouyuanCard = function(card, use, self)
 		end
 		use.card = sgs.Card_Parse("@HouyuanCard=" .. table.concat(usecards, "+"))
 		if use.to then
-			self.player:speak("有你这样出远门不带粮食的么？接好了！")
+			self:speak("有你这样出远门不带粮食的么？接好了！")
 		end
 	end
 	return 
@@ -371,7 +389,7 @@ end
 sgs.ai_skill_choice.fuzuo = function(self , choices)
 	--排除不能发动技能的情形
 	if self.player:isKongcheng() then
-		self.player:speak("空城看好戏，呵呵。")
+		self:speak("空城看好戏，呵呵。")
 		return "cancel"
 	end
 	local flag = true
@@ -384,7 +402,7 @@ sgs.ai_skill_choice.fuzuo = function(self , choices)
 		end
 	end
 	if flag then --没有点数小于8的手牌
-		self.player:speak("别看我，手里是真没货……")
+		self:speak("别看我，手里是真没货……")
 		return "cancel"
 	end
 	--现在choices应该是"nameA+nameB+cancel"形式的，下面开始获取具体选项
@@ -401,11 +419,11 @@ sgs.ai_skill_choice.fuzuo = function(self , choices)
 		if fromPosB > toPosA and toPosB == fromPosB then
 			nameB = string.sub(choices, toPosA+1, toPosB-1)
 		else
-			self.player:speak("呼叫程序员！我的AI又出错了！")
+			self:speak("呼叫程序员！我的AI又出错了！")
 			return "cancel"
 		end
 	else
-		self.player:speak("呼叫程序员！我的AI又出错了！")
+		self:speak("呼叫程序员！我的AI又出错了！")
 		return "cancel"
 	end
 	--现在选项内容已经确定为nameA和nameB，可以判断进行辅佐的目标了
@@ -417,7 +435,7 @@ sgs.ai_skill_choice.fuzuo = function(self , choices)
 			return nameB
 		end
 	end
-	self.player:speak("你们爱谁赢谁赢。")
+	self:speak("你们爱谁赢谁赢。")
 	return "cancel"
 end
 sgs.ai_skill_cardask["@fuzuo_card"] = function(self, data, pattern, target)
@@ -456,7 +474,6 @@ sgs.ai_skill_choice.jincui = function(self, choices)
 	if sgs.jincui_discard then return "throw" else return "draw" end
 end
 
-sgs.ai_chaofeng.wiszhangzhao = -1
 --[[
 	技能：霸刀
 	描述：当你成为黑色的【杀】目标时，你可以对你攻击范围内的一名其他角色使用一张【杀】 
@@ -465,6 +482,10 @@ sgs.ai_skill_invoke.badao = function(self, data)
 	for _, enemy in ipairs(self.enemies) do
 		if self.player:canSlash(enemy, nil, true) and self:getCardsNum("Slash") > 0 then return true end
 	end
+end
+
+sgs.ai_cardneed.wenjiu = function(to, card)
+	return card:isBlack() and isCard("Slash", card, to)
 end
 --[[
 	技能：识破
@@ -478,7 +499,11 @@ sgs.ai_skill_invoke.shipo = function(self, data)
 	end
 end
 
-sgs.ai_chaofeng.tianfeng = -3
+sgs.ai_cardneed.gushou = function(to, card)
+	return to:getHandcardNum() < 3 and card:getTypeId() == sgs.Card_Basic
+end
+
+sgs.ai_chaofeng.tianfeng = -1
 --[[
 	技能：授业
 	描述：出牌阶段，你可以弃置一张红色手牌，指定最多两名其他角色各摸一张牌 
@@ -489,7 +514,7 @@ table.insert(sgs.ai_skills, shouye_skill)
 shouye_skill.getTurnUseCard=function(self)
 	if #self.friends_noself == 0 then return end
 	if self.player:getHandcardNum() > 0 then
-		local n = self.player:getMark("shouyeonce")
+		local n = self.player:getMark("jiehuo")
 		if n > 0 and self.player:hasUsed("ShouyeCard") then return end
 		local cards = self.player:getHandcards()
 		cards = sgs.QList2Table(cards)
@@ -503,14 +528,31 @@ end
 
 sgs.ai_skill_use_func.ShouyeCard = function(card, use, self)
 	self:sort(self.friends_noself, "handcard")
-	if self.friends_noself[1] then
-		if use.to then use.to:append(self.friends_noself[1]) end
+	local first_index, second_index
+	for i=1, #self.friends_noself do
+		if not self.friends_noself[i]:hasSkill("manjuan") 
+		and not (self.friends_noself[i]:hasSkill("kongcheng") and self.friends_noself[i]:isKongcheng()) then
+			if not first_index then
+				first_index = i
+			else
+				second_index = i
+			end
+		end
+		if second_index then break end
 	end
-	if self.friends_noself[2] then
-		if use.to then use.to:append(self.friends_noself[2]) end
+
+	if first_index then
+		if use.to then use.to:append(self.friends_noself[first_index]) end
+	end
+	if second_index then
+		if use.to then use.to:append(self.friends_noself[second_index]) end
 	end
 	use.card = card
 	return
+end
+
+sgs.ai_cardneed.shouye = function(to, card)
+	return to:getMark("jiehuo") < 1 and to:getHandcardNum() < 3 and card:isRed()
 end
 
 sgs.ai_card_intention.ShouyeCard = -70

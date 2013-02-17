@@ -309,6 +309,16 @@ sgs.ai_skill_cardask["@xiaoguo"] = function(self, data)
 	return "."
 end
 
+sgs.ai_choicemade_filter.cardResponsed["@xiaoguo"] = function(player, promptlist)
+	if promptlist[#promptlist] ~= "_nil_" then
+		local current = player:getRoom():getCurrent()
+		if not current then return end
+		local intention = 50
+		if current:hasArmorEffect("SilverLion") and current:isWounded() and self:isWeak(current) then intention = -30 end
+		sgs.updateIntention(player, current, intention)
+	end
+end
+
 sgs.ai_skill_cardask["@xiaoguo-discard"] = function(self, data)
 	local yuejin = self.room:findPlayerBySkillName("xiaoguo")
 	local player = self.player
@@ -318,6 +328,10 @@ sgs.ai_skill_cardask["@xiaoguo-discard"] = function(self, data)
 	end
 
 	if not self:damageIsEffective(player, sgs.DamageStruct_Normal, yuejin) then
+		return "."
+	end
+
+	if self:getDamagedEffects(self.player) then
 		return "."
 	end
 
@@ -362,6 +376,12 @@ sgs.ai_skill_cardask["@xiaoguo-discard"] = function(self, data)
 	end
 	return "."
 end
+
+sgs.ai_cardneed.xiaoguo = function(to, card)
+	return getKnownCard(to, "BasicCard", true) == 0 and card:getTypeId() == sgs.Card_Basic
+end
+
+sgs.ai_chaofeng.yuejin = 2
 
 sgs.ai_skill_use["@@shushen"] = function(self, prompt)
 	if #self.friends_noself == 0 then return "." end
@@ -462,44 +482,54 @@ table.insert(sgs.ai_skills, fenxun_skill)
 fenxun_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("FenxunCard") then return end
 	if not self.player:isNude() then
-		local card
 		local card_id
-		if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
-			card = sgs.Card_Parse("@FenxunCard=" .. self.player:getArmor():getId())
-		elseif self.player:getHandcardNum() > self.player:getHp() then
-			local cards = self.player:getHandcards()
-			cards = sgs.QList2Table(cards)
+		local slashcount = self:getCardsNum("Slash")
+		local jinkcount = self:getCardsNum("Jink")
+		local cards = self.player:getHandcards()
+		cards = sgs.QList2Table(cards)
+		self:sortByKeepValue(cards)
 
+		if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
+			return sgs.Card_Parse("@FenxunCard=" .. self.player:getArmor():getId())
+		elseif self.player:getHandcardNum() > 0 then
 			for _, acard in ipairs(cards) do
-				if (acard:isKindOf("BasicCard") or acard:isKindOf("EquipCard") or acard:isKindOf("AmazingGrace"))
-					and not isCard("Peach", acard, self.player) then
+				if (acard:isKindOf("Disaster") or acard:isKindOf("AmazingGrace") or acard:isKindOf("EquipCard")) then
 					card_id = acard:getEffectiveId()
 					break
 				end
 			end
+		elseif jinkcount > 1 then
+			for _, acard in ipairs(cards) do
+				if acard:isKindOf("Jink") then
+					card_id = acard:getEffectiveId()
+					break
+				end
+			end
+		elseif slashcount > 1 then
+			for _, acard in ipairs(cards) do
+				if acard:isKindOf("Slash") then
+					slashcount = slashcount - 1
+					card_id = acard:getEffectiveId()
+					break
+				end
+			end		
 		elseif not self.player:getEquips():isEmpty() then
 			local player = self.player
-			if player:getWeapon() then card_id = player:getWeapon():getId()
-			elseif player:getOffensiveHorse() then card_id = player:getOffensiveHorse():getId()
-			elseif player:getDefensiveHorse() then card_id = player:getDefensiveHorse():getId()
-			elseif player:getArmor() and player:getHandcardNum() <= 1 then card_id = player:getArmor():getId()
-			end
+			if player:getWeapon() then card_id = player:getWeapon():getId() end
 		end
+
 		if not card_id then
-			cards = sgs.QList2Table(self.player:getHandcards())
 			for _, acard in ipairs(cards) do
-				if (acard:isKindOf("BasicCard") or acard:isKindOf("EquipCard") or acard:isKindOf("AmazingGrace"))
-					and not isCard("Peach", acard, self.player) then
+				if (acard:isKindOf("Disaster") or acard:isKindOf("AmazingGrace") or acard:isKindOf("EquipCard") or acard:isKindOf("BasicCard"))
+					and not isCard("Peach", acard, self.player) and not isCard("Slash", acard, self.player) then
 					card_id = acard:getEffectiveId()
 					break
 				end
 			end
 		end
-		if not card_id then
-			return nil
-		else
-			card = sgs.Card_Parse("@FenxunCard=" .. card_id)
-			return card
+
+		if slashcount > 0 and card_id then
+			return sgs.Card_Parse("@FenxunCard=" .. card_id)
 		end
 	end
 	return nil
@@ -525,7 +555,7 @@ sgs.ai_skill_use_func.FenxunCard = function(card, use, self)
 end
 
 sgs.ai_use_value.FenxunCard = 5.5
-sgs.ai_use_priority.FenxunCard = 8
+sgs.ai_use_priority.FenxunCard = 4.1
 sgs.ai_card_intention.FenxunCard = 50
 
 sgs.ai_skill_choice.mingshi = function(self, choices, data)
@@ -593,9 +623,23 @@ sgs.ai_skill_use["@@shuangren"] = function(self, prompt)
 	return "."
 end
 
-sgs.ai_skill_playerchosen.shuangren_slash = sgs.ai_skill_playerchosen.zero_card_as_slash
+function sgs.ai_skill_pindian.shuangren(minusecard, self, requestor, maxcard)
+	local cards = sgs.QList2Table(self.player:getHandcards())
+	local function compare_func(a, b)
+		return a:getNumber() > b:getNumber()
+	end
+	table.sort(cards, compare_func)
+	for _, card in ipairs(cards) do
+		if card:getNumber()> 10 then return card end
+	end
+	self:sortByKeepValue(cards)
+	return cards[1]
+end
 
-sgs.ai_card_intention.ShuangrenCard = sgs.ai_card_intention.TianyiCard
+sgs.ai_chaofeng.jiling = 2
+sgs.ai_skill_playerchosen.shuangren_slash = sgs.ai_skill_playerchosen.zero_card_as_slash
+sgs.ai_card_intention.ShuangrenCard = 80
+sgs.ai_cardneed.shuangren = sgs.ai_cardneed.bignumber
 
 xiongyi_skill = {}
 xiongyi_skill.name = "xiongyi"
@@ -708,6 +752,7 @@ sgs.ai_skill_choice.qingcheng = function(self, choices, data)
 	end
 end
 
+sgs.ai_chaofeng.zoushi = 3
 sgs.ai_use_value.QingchengCard = 2
 sgs.ai_use_priority.QingchengCard = 2.2
 sgs.ai_card_intention.QingchengCard = 30

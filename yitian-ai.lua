@@ -11,8 +11,8 @@ local function findPlayerForModifyKingdom(self, players) --从目标列表中选
 	local isGood = self:isFriend(lord) --自己是否为忠方
 
 	for _, player in sgs.qlist(players) do
-		if not player:isLord() or player:hasLordSkill("weidai") then
-			if  sgs.evaluateRoleTrends(player) == "loyalist" and not self:hasSkills("huashen|liqian",player) then
+		if not player:isLord() then
+			if sgs.evaluateRoleTrends(player) == "loyalist" and not self:hasSkills("huashen|liqian",player) then
 				local sameKingdom = player:getKingdom() == lord:getKingdom() 
 				if isGood ~= sameKingdom then
 					return player
@@ -569,7 +569,6 @@ sgs.ai_skill_playerchosen.shaoying = function(self, targets)
 	
 	if #tos > 0 then
 		tos = self:SortByAtomDamageCount(tos, self.player, sgs.DamageStruct_Fire, nil)
-		tos[1]:speak("有人趁火打劫啊！快去报警啊！")
 		return tos[1]
 	end
 end
@@ -741,7 +740,7 @@ sgs.ai_skill_playerchosen.toudu = function(self, targets)
 		if self:isEnemy(target) then
 			if self:slashIsEffective(slash, target) then
 				if sgs.isGoodTarget(target, targetlist, self) then
-					self.player:speak("嘿！没想到吧？")
+					self:speak("嘿！没想到吧？")
 					return target
 				end
 			end
@@ -781,20 +780,9 @@ sgs.ai_skill_use_func.YisheCard=function(card,use,self)
 	end
 end
 
-table.insert(sgs.ai_global_flags, "yisheasksource")
-local yisheask_filter = function(player, carduse)
-	if carduse.card:isKindOf("YisheAskCard") then
-		sgs.yisheasksource = player
-	else
-		sgs.yisheasksource = nil
-	end
-end
-
-table.insert(sgs.ai_choicemade_filter.cardUsed, yisheask_filter)
 
 sgs.ai_skill_choice.yisheask=function(self,choices)
-	assert(sgs.yisheasksource)
-	if self:isFriend(sgs.yisheasksource) then return "allow" else return "disallow" end
+	if self:isFriend(self.room:getCurrent()) then return "allow" else return "disallow" end
 end
 
 local yisheask_skill={name="yisheask"}
@@ -812,12 +800,36 @@ sgs.ai_skill_use_func.YisheAskCard=function(card,use,self)
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if player:hasSkill("yishe") and not player:getPile("rice"):isEmpty() then zhanglu=player cards=player:getPile("rice") break end
 	end	
-	if not zhanglu or not self:isFriend(zhanglu) then return end
+	if not zhanglu or self:isEnemy(zhanglu) then return end
 	cards = sgs.QList2Table(cards)
 	for _, pcard in ipairs(cards) do
 		use.card = card
 		return
 	end
+end
+
+sgs.ai_event_callback[sgs.ChoiceMade].yisheask=function(self,player,data)
+	local datastr= data:toString()
+	if datastr == "skillChoice:yisheask:allow" then
+		sgs.updateIntention(self.player, self.room:getCurrent(), -70)
+	end
+end
+
+--[[
+	技能：惜粮
+	描述：你可将其他角色弃牌阶段弃置的红牌收为“米”或加入手牌。 
+]]--
+sgs.ai_skill_invoke.xiliang = true
+
+sgs.ai_skill_choice.xiliang = function(self,choices)
+	if self.player:hasSkill("manjuan") then return "put" end
+	if self.player:containsTrick("indulgence") and not self.player:containsTrick("YanxiaoCard")
+	  and self.player:getHandcardNum() > 2 then
+		return "put"
+	end
+	if self.player:getHandcardNum() < 3 then return "obtain" end	
+	if self:getOverflow() >= 1 then return "put" end
+	return "obtain"
 end
 
 sgs.ai_chaofeng.zhanggongqi = 4

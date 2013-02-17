@@ -3703,15 +3703,17 @@ function SmartAI:getKnownNum(player)
 end
 
 
-function getKnownCard(player,class_name,viewas)
-	local cards = player:getHandcards()
+function getKnownCard(player,class_name,viewas,flags)
+	flags = flags or "h"
+	local cards = player:getCards(flags)
 	local known = 0
 	local suits={["club"]=1, ["spade"]=1, ["diamond"]=1, ["heart"]=1}
 	for _, card in sgs.qlist(cards) do
 		local flag=string.format("%s_%s_%s","visible",global_room:getCurrent():objectName(),player:objectName())
 		if card:hasFlag("visible") or card:hasFlag(flag) or player:objectName() == global_room:getCurrent():objectName() then
 			if (viewas and isCard(class_name, card, player)) or card:isKindOf(class_name) or 
-					(suits[class_name] and card:getSuitString() == class_name) then
+					(suits[class_name] and card:getSuitString() == class_name) or
+					(card:isRed() and class_name == "red") or (card:isBlack() and class_name == "black") then
 				known = known + 1 
 			end
 		end

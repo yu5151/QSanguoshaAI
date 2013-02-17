@@ -259,6 +259,9 @@ sgs.ai_skill_use["@qiaobian"] = function(self, prompt)
 	local card = cards[1]
 
 	if prompt == "@qiaobian-2" then
+		if self.player:hasSkill("tuxi") then --巧变和突袭同时存在时不发动巧变
+			return "."
+		end
 		local cardstr = sgs.ai_skill_use["@@tuxi"](self, "@tuxi")
 		if cardstr:match("->") then
 			local targetstr = cardstr:split("->")[2]

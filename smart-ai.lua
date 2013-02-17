@@ -1514,18 +1514,21 @@ function SmartAI:updatePlayers(clear_flags)
 	sgs.draw_pile = global_room:getDrawPile()
 	
 	if sgs.isRolePredictable() then
-		local friends= sgs.QList2Table(self.lua_ai:getFriends())		
-		for i=1, #friends,1 do
-			if friends[i]:isDead() or friends[i]:objectName() == self.player:objectName() then table.remove(friends, i) end
+		self.friends = {}
+		self.friends_noself = {}
+		local friends = sgs.QList2Table(self.lua_ai:getFriends())
+		for i = 1, #friends, 1 do
+			if friends[i]:isAlive() and friends[i]:objectName() ~= self.player:objectName() then
+				table.insert(self.friends, friends[i])
+				table.insert(self.friends_noself, friends[i])
+			end
 		end
+		table.insert(self.friends, self.player)
 
-		local enemies= sgs.QList2Table(self.lua_ai:getEnemies())
-		for i=1, #enemies,1 do
+		local enemies = sgs.QList2Table(self.lua_ai:getEnemies())
+		for i = 1, #enemies, 1 do
 			if enemies[i]:isDead() or enemies[i]:objectName() == self.player:objectName() then table.remove(enemies, i) end
 		end
-		self.friends = friends
-		table.insert(self.friends, self.player)
-		self.friends_noself = friends
 		self.enemies = enemies
 		
 		self.retain = 2
@@ -1542,6 +1545,7 @@ function SmartAI:updatePlayers(clear_flags)
 			table.insert(self.enemies, neutrality[1])
 			return
 		end
+		return
 	end
 
 	self.enemies = {}
@@ -2640,18 +2644,14 @@ function SmartAI:askForCard(pattern, prompt, data)
 	local parsedPrompt = prompt:split(":")
 	local players
 	if parsedPrompt[2] then
-		if parsedPrompt[1] == "@fire-attack" then
-			players = self.room:getAlivePlayers()
-		else
-			players = self.room:getOtherPlayers(self.player)
-		end
+		local players = self.room:getPlayers()
 		players = sgs.QList2Table(players)
-		for _, ap in ipairs(players) do
-			if ap:getGeneralName() == parsedPrompt[2] or ap:objectName() == parsedPrompt[2] then target = ap break end
+		for _, player in ipairs(players) do
+			if player:getGeneralName() == parsedPrompt[2] or player:objectName() == parsedPrompt[2] then target = player break end
 		end
 		if parsedPrompt[3] then
-			for _, ap in ipairs(players) do
-				if ap:getGeneralName() == parsedPrompt[3] or ap:objectName() == parsedPrompt[3] then target2 = ap break end
+			for _, player in ipairs(players) do
+				if player:getGeneralName() == parsedPrompt[3] or player:objectName() == parsedPrompt[3] then target2 = player break end
 			end
 		end
 	end

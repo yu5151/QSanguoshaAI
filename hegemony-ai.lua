@@ -579,7 +579,7 @@ sgs.ai_skill_use["@@sijian"] = function(self, prompt)
 		end
 	end
 
-	for _, friend in ipairs(self.friends) do
+	for _, friend in ipairs(self.friends_noself) do
 		if friend:hasArmorEffect("SilverLion") and not self:hasSkills(sgs.use_lion_skill, friend)
 		  and friend:isWounded() and self:isWeak(friend) then
 			return ("@SijianCard=.->%s"):format(friend:objectName())

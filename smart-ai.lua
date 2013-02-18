@@ -2494,7 +2494,8 @@ function SmartAI:askForCardChosen(who, flags, reason)
 			end
 		end
 	else
-		if flags:match("e") and self:hasSkills("jijiu|dimeng|guzheng|qiaobian|jieyin|lijian|beige|miji|yingzi|tuxi|mingce|buyi|bifa|yongsi|noswuyan|weimu|anxu|tongxin|xiliang|chouliang|shouye|huoshui",who) then
+		if flags:match("e") and self:hasSkills("jijiu|dimeng|guzheng|qiaobian|jieyin|lijian|beige|miji|yingzi|tuxi|" ..
+		  "mingce|buyi|bifa|yongsi|noswuyan|weimu|anxu|tongxin|xiliang|chouliang|shouye|huoshui",who) then
 			if who:getDefensiveHorse() then return who:getDefensiveHorse():getId() end
 			if who:getArmor() then return who:getArmor():getId() end
 			if who:getOffensiveHorse() and ( (who:getOffensiveHorse():isRed() and who:hasSkill("jijiu")) or who:hasSkill("beige") ) then
@@ -2834,18 +2835,18 @@ function SmartAI:getCardNeedPlayer(cards)
 	local specialnum = 0
 	local keptslash = 0
 	local friends={}
-	local cmpByAction=function(a,b)
+	local cmpByAction = function(a,b)
 		return a:getRoom():getFront(a, b):objectName() == a:objectName()
 	end
 
-	local cmpByNumber=function(a,b)
+	local cmpByNumber = function(a,b)
 		return a:getNumber()>b:getNumber()
 	end
 
 
 	for _,player in ipairs(self.friends_noself) do
-		local exclude =self:needKongcheng(player) or (player:containsTrick("indulgence") and not player:containsTrick("YanxiaoCard"))
-		if self:hasSkills("keji|qiaobian|shensu",player) or player:getHp() - player:getHandcardNum() >=3 or (player:isLord() 
+		local exclude = self:needKongcheng(player) or (player:containsTrick("indulgence") and not player:containsTrick("YanxiaoCard"))
+		if self:hasSkills("keji|qiaobian|shensu",player) or player:getHp() - player:getHandcardNum() >= 3 or (player:isLord() 
 				and self:isWeak(player) and self:getEnemyNumBySeat(self.player,player)>=1 ) then
 			exclude = false
 		end

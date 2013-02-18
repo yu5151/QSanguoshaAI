@@ -568,6 +568,8 @@ sgs.ai_skill_invoke.lirang = function(self, data)
 end
 
 sgs.ai_skill_use["@@sijian"] = function(self, prompt)
+	local zhugeliang = self.room:findPlayerBySkillName("kongcheng")
+
 	self:sort(self.enemies, "defense")
 	for _, enemy in ipairs(self.enemies) do
 		if not enemy:isNude() then
@@ -583,6 +585,11 @@ sgs.ai_skill_use["@@sijian"] = function(self, prompt)
 			return ("@SijianCard=.->%s"):format(friend:objectName())
 		end
 	end
+
+	if zhugeliang and self:isFriend(zhugeliang) and zhugeliang:getHandcardNum() == 1 and self:getEnemyNumBySeat(self.player,zhugeliang) > 0
+	  and zhugeliang:getHp() <= 2 then
+		return ("@SijianCard=.->%s"):format(zhugeliang:objectName())
+	end	
 
 	for _, enemy in ipairs(self.enemies) do
 		if not enemy:isNude() then
@@ -603,9 +610,18 @@ sgs.ai_skill_use["@@sijian"] = function(self, prompt)
 			end
 		end
 	end
+	
+	for _, enemy in ipairs(self.enemies) do
+		if enemy:getCards("e"):length() > 0 and not (enemy:hasSkill("tuntian") and enemy:getPhase() == sgs.Player_NotActive) 
+		 and not (self:hasSkills(sgs.lose_equip_skill, enemy) and enemy:isKongcheng())
+		 and not (enemy:getCardCount(true) == 1 and enemy:hasArmorEffect("SilverLion") and enemy:isWounded() and self:isWeak(enemy)) then
+			return ("@SijianCard=.->%s"):format(enemy:objectName())
+		end
+	end	
 
 	for _, enemy in ipairs(self.enemies) do
-		if not enemy:isNude() and self:hasLoseHandcardEffective(enemy) then
+		if not enemy:isNude() and self:hasLoseHandcardEffective(enemy) 
+		  and not (enemy:hasSkill("tuntian") and enemy:getPhase() == sgs.Player_NotActive) then
 			return ("@SijianCard=.->%s"):format(enemy:objectName())
 		end
 	end

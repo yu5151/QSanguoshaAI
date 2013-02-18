@@ -165,7 +165,8 @@ end
 
 sgs.ai_skill_use_func.JuejiCard=function(card,use,self)
 	local zhugeliang = self.room:findPlayerBySkillName("kongcheng")
-	if zhugeliang and self:isFriend(zhugeliang) and zhugeliang:getHandcardNum() == 1 and zhugeliang:objectName()~=self.player:objectName() then
+	if zhugeliang and self:isFriend(zhugeliang) and zhugeliang:getHandcardNum() == 1 and zhugeliang:objectName() ~= self.player:objectName()
+	  and self:getEnemyNumBySeat(self.player,zhugeliang) > 0 then
 		local cards = sgs.QList2Table(self.player:getHandcards())
 		self:sortByUseValue(cards,true)
 		use.card = sgs.Card_Parse("@JuejiCard=" .. cards[1]:getId())
@@ -177,7 +178,7 @@ sgs.ai_skill_use_func.JuejiCard=function(card,use,self)
 	local max_card = self:getMaxCard()
 	local max_point = max_card:getNumber()
 	
-	if self:hasSkills(sgs.need_kongcheng, self.player) and self.player:getHandcardNum()==1 then
+	if self:hasSkills(sgs.need_kongcheng, self.player) and self.player:getHandcardNum() == 1 then
 		for _, enemy in ipairs(self.enemies) do
 			if not enemy:isKongcheng() then
 				use.card = sgs.Card_Parse("@JuejiCard=" .. max_card:getId())

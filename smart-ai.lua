@@ -2426,7 +2426,7 @@ function SmartAI:getCardRandomly(who, flags)
 	if cards:isEmpty() then return end
 	local r = math.random(0, cards:length()-1)
 	local card = cards:at(r)
-	if self:isEquip("SilverLion", who) then
+	if who:hasArmorEffect("SilverLion") then
 		if self:isEnemy(who) and who:isWounded() and card == who:getArmor() then
 			if r ~= (cards:length()-1) then
 				card = cards:at(r+1)
@@ -2484,7 +2484,7 @@ function SmartAI:askForCardChosen(who, flags, reason)
 		end
 
 		if flags:match("e") then
-			if who:isWounded() and self:isEquip("SilverLion", who)
+			if who:isWounded() and who:hasArmorEffect("SilverLion")
 				and not self:hasSkills(sgs.use_lion_skill, who) then return who:getArmor():getId() end
 			if self:evaluateArmor(who:getArmor(), who)<-5 then return who:getArmor():getId() end
 			if self:hasSkills(sgs.lose_equip_skill, who) and self:isWeak(who) then
@@ -3403,7 +3403,7 @@ function SmartAI:needRetrial(judge)
 		if self:hasSkills("wuyan|hongyan",who) then return false end
 
 		if (who:isLord() or (who:isChained() and lord:isChained())) and self:objectiveLevel(lord) <= 3 then
-			if self:isEquip("SilverLion", lord) and lord:getHp() >= 2 and self:isGoodChainTarget(lord) then return false end
+			if lord:hasArmorEffect("SilverLion") and lord:getHp() >= 2 and self:isGoodChainTarget(lord) then return false end
 			return self:damageIsEffective(lord, sgs.DamageStruct_Thunder) and not judge:isGood()
 		end
 
@@ -4672,15 +4672,15 @@ function SmartAI:damageMinusHp(self, enemy, type)
 			elseif acard:isKindOf("Slash") and self:slashIsEffective(acard, enemy) and ( slash_damagenum == 0 or self:isEquip("Crossbow", self.player)) 
 				and (self.player:distanceTo(enemy) <= self.player:getAttackRange()) then
 				if not (enemy:hasSkill("xiangle") and basicnum < 2) then slash_damagenum = slash_damagenum + 1 end
-				if self:getCardsNum("Analeptic") > 0 and analepticpowerup == 0 and 
-					not ((self:isEquip("SilverLion", enemy) or self:isEquip("EightDiagram", enemy) or 
-						(not enemy:getArmor() and enemy:hasSkill("bazhen"))) and not self:isEquip("QinggangSword", self.player)) then 
-						slash_damagenum = slash_damagenum + 1 
-						analepticpowerup = analepticpowerup + 1 
+				if self:getCardsNum("Analeptic") > 0 and analepticpowerup == 0
+				  and not (enemy:hasArmorEffect("SilverLion") or self:isEquip("EightDiagram", enemy))
+				  and not IgnoreArmor(self.player, enemy) then 
+					slash_damagenum = slash_damagenum + 1 
+					analepticpowerup = analepticpowerup + 1 
 				end
 				if self:isEquip("GudingBlade", self.player)
 					and (enemy:isKongcheng() or (self.player:hasSkill("lihun") and enemy:isMale() and not enemy:hasSkill("kongcheng")))
-					and not self:isEquip("SilverLion", enemy) then
+					and not (enemy:hasArmorEffect("SilverLion") and not IgnoreArmor(self.player, enemy)) then
 					slash_damagenum = slash_damagenum + 1 
 				end
 			end

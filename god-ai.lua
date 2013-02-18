@@ -677,13 +677,13 @@ sgs.ai_skill_use_func.ShenfenCard=function(card,use,self)
 		if friend:getRole() == "lord" then 
 			good = good - 1
 		end
-		if self:isEquip("SilverLion", friend) and friend:getHp()>1 and friend:isWounded() then good = good +0.5 end
-		if friend:getHp() == 1 and friend:getMark("@fog") <1 and friend:getMark("@fenyong")<1 and self:getAllPeachNum() < 1 then
+		if friend:hasArmorEffect("SilverLion") and friend:getHp() > 1 then good = good + 0.5 end
+		if friend:getHp() == 1 and friend:getMark("@fog") < 1 and friend:getMark("@fenyong") < 1 and self:getAllPeachNum() < 1 then
 			if friend:getRole() == "lord" then
 				good = good - 100 
 			else 
 				good = good - 1 end
-		elseif friend:getMark("@fog") >0 or friend:getMark("@fenyong")>0 then
+		elseif friend:getMark("@fog") > 0 or friend:getMark("@fenyong") > 0 then
 			good = good + 1
 		end
 		if friend:hasSkill("guixin") and friend:getHp()>1 then good = good + 1 end
@@ -703,10 +703,10 @@ sgs.ai_skill_use_func.ShenfenCard=function(card,use,self)
 		elseif enemy:getMark("@fog") >0 or enemy:getMark("@fenyong")>0 then
 			good = good - 1
 		end
-		if enemy:hasSkill("guixin") and enemy:getHp()>1 then good = good - 1 end
-		if enemy:hasSkill("ganglie") and enemy:getHp()>1 then good = good - 1 end
-		if enemy:hasSkill("xuehen") and enemy:getHp()>1 then good = good - 1 end
-		if self:isEquip("SilverLion", enemy) and enemy:getHp()>1 and enemy:isWounded() then good = good - 0.5 end
+		if enemy:hasSkill("guixin") and enemy:getHp() > 1 then good = good - 1 end
+		if enemy:hasSkill("ganglie") and enemy:getHp() > 1 then good = good - 1 end
+		if enemy:hasSkill("xuehen") and enemy:getHp() > 1 then good = good - 1 end
+		if enemy:hasArmorEffect("SilverLion") and enemy:getHp() > 1 then good = good - 0.5 end
 	end
 	
 	good = good - (friendscards - enemiescards)/4

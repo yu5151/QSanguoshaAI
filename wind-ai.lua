@@ -188,7 +188,7 @@ sgs.ai_skill_use["@@leiji"]=function(self,prompt)
 	self:updatePlayers()
 	self:sort(self.enemies,"hp")
 	for _,enemy in ipairs(self.enemies) do
-		if not self:isEquip("SilverLion", enemy) and not enemy:hasSkill("hongyan") and
+		if not enemy:hasArmorEffect("SilverLion") and not enemy:hasSkill("hongyan") and
 			self:objectiveLevel(enemy) > 3 and not self:cantbeHurt(enemy) and not (enemy:isChained() and not self:isGoodChainTarget(enemy)) then
 			return "@LeijiCard=.->"..enemy:objectName()
 		end

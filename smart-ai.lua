@@ -1874,7 +1874,7 @@ function SmartAI:filterEvent(event, player, data)
 
 		if card:isKindOf("Slash") then
 			if to:hasSkill("leiji") and (getCardsNum("Jink", to) > 0 or to:hasArmorEffect("EightDiagram")) then
-				sgs.updateIntention(from, to, 3)
+				if to:isLord() and not hasExplicitRebel(self.room) then sgs.updateIntention(from, to, 50) end
 				sgs.ai_leiji_effect = true
 			end
 		end	
@@ -1989,9 +1989,18 @@ function SmartAI:filterEvent(event, player, data)
 					
 				if isCard("Slash", card, player) and player:canSlashWithoutCrossbow() then
 					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
-						if player:canSlash(target, card, true) and self:slashIsEffective(card, target) 
-								and not self:slashProhibit(card, target) and sgs.isGoodTarget(target,self.enemies, self) then
-							if is_neutral then sgs.updateIntention(player, target, -5) end
+						local has_slash_prohibit_skill = false
+						for _, askill in sgs.qlist(target:getVisibleSkillList()) do
+							local filter = sgs.ai_slash_prohibit[askill:objectName()]
+							if filter and type(filter) == "function" then
+								has_slash_prohibit_skill = true
+								break
+							end
+						end
+
+						if player:canSlash(target, card, true) and self:slashIsEffective(card, target)
+								and not has_slash_prohibit_skill and sgs.isGoodTarget(target,self.enemies, self) then
+							if is_neutral then sgs.updateIntention(player, target, -35) end
 						end
 					end
 				end
@@ -2000,7 +2009,7 @@ function SmartAI:filterEvent(event, player, data)
 					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
 						if not (target:containsTrick("indulgence") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
 							local aplayer = self:exclude( {target}, card)
-							if #aplayer ==1 and is_neutral then sgs.updateIntention(player, target, -5) end
+							if #aplayer ==1 and is_neutral then sgs.updateIntention(player, target, -35) end
 						end
 					end
 				end
@@ -2009,7 +2018,7 @@ function SmartAI:filterEvent(event, player, data)
 					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
 						if not (target:containsTrick("supply_shortage") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
 							local aplayer = self:exclude( {target}, card)
-							if #aplayer ==1 and is_neutral then sgs.updateIntention(player, target, -5) end
+							if #aplayer ==1 and is_neutral then sgs.updateIntention(player, target, -35) end
 						end
 					end
 				end

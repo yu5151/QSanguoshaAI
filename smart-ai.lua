@@ -1815,14 +1815,13 @@ function SmartAI:filterEvent(event, player, data)
 				end
 			end
 		end
-	elseif event == sgs.CardUsed or event == sgs.CardEffect or event == sgs.GameStart
-				or event == sgs.EventPhaseStart then
+	elseif event == sgs.CardUsed or event == sgs.CardEffect or event == sgs.GameStart or event == sgs.EventPhaseStart then
 		self:updatePlayers()
-	elseif event == sgs.Death or event == sgs.HpChanged or event == sgs.MaxHpChanged then
+	elseif event == sgs.Death or event == sgs.HpChanged or event == sgs.MaxHpChanged or event == sgs.BuryVictim then
 		self:updatePlayers(false)
 	end
 	
-	if event == sgs.Death then
+	if event == sgs.Death or event == sgs.BuryVictim then
 		if self == sgs.recorder then self:updateAlivePlayerRoles() end
 	end
 	if event == sgs.EventPhaseStart then
@@ -1918,7 +1917,15 @@ function SmartAI:filterEvent(event, player, data)
 		end
 	elseif event == sgs.CardsMoveOneTime then
 		local move = data:toMoveOneTime()
-		local from = move.from
+		local from = nil -- convert move.from from const Player * to ServerPlayer *
+		if move.from then
+			for _, p in sgs.qlist(global_room:getAlivePlayers()) do
+				if p:objectName() == move.from:objectName() then
+					from = p
+					break
+				end
+			end
+		end
 		local reason = move.reason
 
 		for i = 0, move.card_ids:length()-1 do
@@ -1954,27 +1961,23 @@ function SmartAI:filterEvent(event, player, data)
 				end				
 				if from then sgs.updateIntention(sgs.ai_snat_dism_from, from, intention) end
 			end
-
-			if move.to_place==sgs.Player_PlaceHand and move.to then
+			
+			if move.to_place == sgs.Player_PlaceHand and move.to and player:objectName() == move.to:objectName() then
 				if card:hasFlag("visible") then
-					if isCard("Slash",card, move.to) then sgs.card_lack[move.to:objectName()]["Slash"]=0 end
-					if isCard("Jink",card, move.to) then sgs.card_lack[move.to:objectName()]["Jink"]=0 end
+					if isCard("Slash",card, player) then sgs.card_lack[player:objectName()]["Slash"]=0 end
+					if isCard("Jink",card, player) then sgs.card_lack[player:objectName()]["Jink"]=0 end
 				else
-					sgs.card_lack[move.to:objectName()]["Slash"]=0
-					sgs.card_lack[move.to:objectName()]["Jink"]=0
+					sgs.card_lack[player:objectName()]["Slash"]=0
+					sgs.card_lack[player:objectName()]["Jink"]=0
 				end
 			end
 
-			if move.to_place==sgs.Player_PlaceHand and move.to and place~=sgs.Player_DrawPile then
-				local flag="visible"
-				if move.from and move.from:objectName()~=move.to:objectName() and place == sgs.Player_PlaceHand and not card:hasFlag("visible") then
-					flag=string.format("%s_%s_%s","visible",move.from:objectName(),move.to:objectName())					
+			if move.to_place == sgs.Player_PlaceHand and move.to and place ~= sgs.Player_DrawPile then
+				if move.from and player:objectName() == move.from:objectName()
+					and move.from:objectName() ~= move.to:objectName() and place == sgs.Player_PlaceHand and not card:hasFlag("visible") then
+					local flag = string.format("%s_%s_%s", "visible", move.from:objectName(), move.to:objectName())
+					global_room:setCardFlag(card_id, flag, from)
 				end
-				global_room:setCardFlag(card_id,flag)
-			end
-
-			if move.to_place==sgs.Player_DiscardPile then								
-				global_room:clearCardFlag(card)				
 			end
 			
 			if player:hasFlag("Playing") and sgs.turncount <= 3 and player:getPhase() == sgs.Player_Discard 

@@ -1101,6 +1101,7 @@ end
 function sgs.isLordHealthy()
 	local lord = global_room:getLord()
 	local lord_hp
+	if not lord then return true end
 	if lord:hasSkill("benghuai") and lord:getHp() > 4 then lord_hp = 4 
 	else lord_hp = lord:getHp() end
 	return lord_hp > 3 or (lord_hp > 2 and sgs.getDefense(lord) > 3)
@@ -1109,6 +1110,7 @@ end
 function sgs.isLordInDanger()
 	local lord = global_room:getLord()
 	local lord_hp
+	if not lord then return false end
 	if lord:hasSkill("benghuai") and lord:getHp() > 4 then lord_hp = 4 
 	else lord_hp = lord:getHp() end
 	return lord_hp < 3 
@@ -1552,7 +1554,7 @@ function SmartAI:updatePlayers(clear_flags)
 	self.friends = {}
 	self.friends_noself = {}
 
-	local lord = self.room:getLord()
+	
 	local role = self.role
 	self.retain = 2
 	self.harsh_retain = true
@@ -1910,6 +1912,7 @@ function SmartAI:filterEvent(event, player, data)
 			local card = struct.card
 			local lord = self.room:getLord()
 			local who = struct.to:first()
+			if not lord then return end
 			if (card:isKindOf("Snatch") or card:isKindOf("Dismantlement") or card:isKindOf("YinlingCard")) and sgs.evaluateRoleTrends(who) == "neutral" then
 				local aplayer = self:exclude({lord}, card)
 				if #aplayer ==1 then sgs.updateIntention(player, lord, -70) end

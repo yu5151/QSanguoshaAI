@@ -9,45 +9,12 @@ if sgs.GetConfig("EnableHegemony", false) then
 		init(self, player)
 	end
 	sgs.ai_skill_choice.RevealGeneral = function(self, choices)
-		local event = self.player:getTag("event"):toInt()
-		local data = self.player:getTag("event_data")
-		local generals = self.player:getTag("roles"):toString():split("+")
-		local players = {}
-		for _, general in ipairs(generals) do
-			local player = sgs.ServerPlayer(self.room)
-			player:setGeneral(sgs.Sanguosha:getGeneral(general))
-			table.insert(players, player)
-		end
+		
+		if askForShowGeneral(self, choices) == "yes" then return "yes" end
 
-		local anjiang = {}
-		for _, player in sgs.qlist(self.room:getAllPlayers()) do
-			if player:getGeneralName() == "anjiang" then table.insert(anjiang, player:getSeat()) end
-		end
-
-		if event == sgs.DamageInflicted then
-			local damage = data:toDamage()
-			for _, player in ipairs(players) do
-				if self:hasSkills(sgs.masochism_skill, player) and self:isEnemy(damage.from) then return "yes" end
-				if damage.damage > self.player:getHp() + self:getAllPeachNum() then return "yes" end
-			end
-		elseif event == sgs.CardEffected then
-			local effect = data:toCardEffect()
-			for _, player in ipairs(players) do
-				if self.room:isProhibited(effect.from, player, effect.card) and self:isEnemy(effect.from) then return "yes" end
-			end
-		end
-
-		if sgs.getValue(self.player) < 6 then return "no" end
 		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 			if self:isFriend(player) then return "yes" end
 		end
-		local vequips, defense = 0
-		if self.player:getWeapon() or self:hasHegSkills("yitian", players) then vequips = vequips + 1 end
-		if (self.player:getArmor() and self:evaluateArmor() > 0) or self:hasHegSkills("bazhen|yizhong", players) then
-			vequips = vequips + 2 defense = true end
-		if self.player:getDefensiveHorse() or self:hasHegSkills("feiying", players) then vequips = vequips + 1.5 defense = true end
-		if self.player:getOffensiveHorse() or self:hasHegSkills("mashu", players) then vequips = vequips + 0.5 end
-		if vequips < 2.5 or not defense then return "no" end
 
 		if sgs.ai_loyalty[self:getHegKingdom()][self.player:objectName()] == 160 then return "yes" end
 

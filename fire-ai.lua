@@ -40,17 +40,21 @@ sgs.ai_skill_use_func.QuhuCard = function(card, use, self)
 			end
 		end
 	end
-	if not self.player:isWounded() or (self.player:getHp() == 1 and self:getCardsNum("Analeptic") > 0) then
+	if (not self.player:isWounded() or (self.player:getHp() == 1 and self:getCardsNum("Analeptic") > 0 and self.player:getHandcardNum() >= 2))
+	  and self.player:hasSkill("jieming") then
 		local use_quhu
 		for _, friend in ipairs(self.friends) do
 			if math.min(5, friend:getMaxHp()) - friend:getHandcardNum() >= 2 then
 				self:sort(self.enemies, "handcard")
-				if self.enemies[#self.enemies]:getHandcardNum() > 0 then use_quhu = true break end
+				if self.enemies[#self.enemies]:getHandcardNum() > 0 then
+					use_quhu = true
+					break
+				end
 			end
 		end
 		if use_quhu then
 			for _, enemy in ipairs(self.enemies) do
-				if not enemy:isKongcheng() and self.player:getHp() < enemy:getHp() then
+				if not enemy:isKongcheng() and self.player:getHp() < enemy:getHp() and not enemy:hasSkill("jueqing") then
 					local cards = self.player:getHandcards()
 					cards = sgs.QList2Table(cards)
 					self:sortByUseValue(cards, true)
@@ -554,8 +558,8 @@ sgs.ai_chaofeng.yanliangwenchou = 1
 
 sgs.ai_skill_invoke.mengjin = function(self, data)
 	local effect = data:toSlashEffect()
-	if effect.to:getCardCount(true) == 1 and effect.to:hasArmorEffect("SilverLion")
-	  and effect.to:isWounded() and self:isWeak(effect.to) then 
+	if self:isEnemy(effect.to) and effect.to:getCardCount(true) == 1 and effect.to:hasArmorEffect("SilverLion") and not IgnoreArmor(self.player, effect.to)
+	  and effect.to:isWounded() and self:isWeak(effect.to) then
 		return false 
 	end
 	return not self:isFriend(effect.to)

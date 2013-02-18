@@ -8,7 +8,7 @@ sgs.ai_skill_choice.moukui = function(self, choices, data)
 	local target = sgs.moukui_target
 	local equip_num = target:getEquips():length()
 	if target:isKongcheng() and equip_num > 0 then
-		if self:hasSkills(sgs.lose_equip_skill, target) or (self:isEquip("SilverLion", target) and target:isWounded() and equip_num == 1) then
+		if self:hasSkills(sgs.lose_equip_skill, target) or (target:hasArmorEffect("SilverLion") and target:isWounded() and equip_num == 1) then
 			return "draw"
 		end
 	end
@@ -54,15 +54,15 @@ sgs.ai_skill_invoke.tianming = function(self, data)
 			end
 		end
 	
-		if self.player:getWeapon() and self.player:getHandcardNum()<3 then
+		if self.player:getWeapon() and self.player:getHandcardNum() < 3 then
 			table.insert(unpreferedCards, self.player:getWeapon():getId())
 		end
 				
-		if (self:isEquip("SilverLion") and self.player:isWounded()) then
+		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) then
 			table.insert(unpreferedCards, self.player:getArmor():getId())
 		end	
 
-		if self.player:getOffensiveHorse() and self.player:getWeapon() then
+		if self.player:getOffensiveHorse() then
 			table.insert(unpreferedCards, self.player:getOffensiveHorse():getId())
 		end
 	end	
@@ -117,11 +117,11 @@ sgs.ai_skill_discard.tianming = function(self, discard_num, min_num, optional, i
 			table.insert(unpreferedCards, self.player:getWeapon():getId())
 		end
 				
-		if (self:isEquip("SilverLion") and self.player:isWounded()) then
+		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) then
 			table.insert(unpreferedCards, self.player:getArmor():getId())
 		end	
 
-		if self.player:getOffensiveHorse() and self.player:getWeapon() then
+		if self.player:getOffensiveHorse() then
 			table.insert(unpreferedCards, self.player:getOffensiveHorse():getId())
 		end
 	end	
@@ -211,8 +211,8 @@ sgs.ai_skill_cardask["@JieyuanIncrease"] = function(self, data)
 	local damage = data:toDamage()
 	local target = damage.to
 	if self:isFriend(target) then return "." end
-	if self:isEquip("SilverLion", target) then return "." end
-	local cards=sgs.QList2Table(self.player:getHandcards())
+	if target:hasArmorEffect("SilverLion") then return "." end
+	local cards = sgs.QList2Table(self.player:getHandcards())
 	self:sortByKeepValue(cards)
 	for _,card in ipairs(cards) do
 		if card:isBlack() then return "$" .. card:getEffectiveId() end
@@ -222,8 +222,9 @@ end
 
 sgs.ai_skill_cardask["@JieyuanDecrease"] = function(self, data)
 	local damage = data:toDamage()
-	if self:hasSkills(sgs.masochism_skill) and damage.damage <= 1 and self.player:getHp() > 1 then return "." end
-	local cards=sgs.QList2Table(self.player:getHandcards())
+	if (self:hasSkills(sgs.masochism_skill) or self:getDamagedEffects(self.player) or self.player:getHp() > getBestHp(self.player))
+	  and damage.damage <= 1 and self.player:getHp() > 1 then return "." end
+	local cards = sgs.QList2Table(self.player:getHandcards())
 	self:sortByKeepValue(cards)
 	for _,card in ipairs(cards) do
 		if card:isRed() then return "$" .. card:getEffectiveId() end

@@ -19,7 +19,7 @@ table.insert(sgs.ai_skills,lihun_skill)
 lihun_skill.getTurnUseCard=function(self)
 	if self.player:hasUsed("LihunCard") or self.player:isNude() then return end
 	local card_id
-	if (self:isEquip("SilverLion") and self.player:isWounded()) or self:evaluateArmor() < -5 then
+	if (self.payer:hasArmorEffect("SilverLion") and self.player:isWounded()) or self:evaluateArmor() < -5 then
 		return sgs.Card_Parse("@LihunCard=" .. self.player:getArmor():getId())
 	elseif self.player:getHandcardNum() > self.player:getHp() then
 		local cards = self.player:getHandcards()
@@ -101,7 +101,7 @@ sgs.ai_skill_discard.lihun = function(self, discard_num, min_num, optional, incl
 	local temp = table.copyFrom(card_ids)
 	for i = 1, #temp, 1 do
 		local card = sgs.Sanguosha:getCard(temp[i])
-		if (self:isEquip("SilverLion") and self.player:isWounded()) and card:isKindOf("SilverLion") then
+		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) and card:isKindOf("SilverLion") then
 			table.insert(to_discard, temp[i])
 			table.removeOne(card_ids, temp[i])
 			if #to_discard == discard_num then
@@ -429,7 +429,7 @@ sgs.ai_skill_choice.zhaolie = function(self, choices, data)
 	local nobasic = data:toInt()
 	if self.player:hasSkill("manjuan") then	return "throw" end
 	if nobasic == 0 then return "damage" end
-	if self:isEquip("SilverLion", self.player) and self.player:getHp() > 1 and not (spliubei and spliubei:hasSkill("jueqing")) then return "damage" end
+	if self.player:hasArmorEffect("SilverLion") and self.player:getHp() > 1 and not (spliubei and spliubei:hasSkill("jueqing")) then return "damage" end
 	if nobasic < 2 and self.player:getHp() > 1 then	return "damage" else return "throw" end
 end
 
@@ -763,8 +763,8 @@ sgs.ai_skill_use_func.YinlingCard = function(card, use, self)
 	end
 
 	for _, friend in ipairs(friends) do
-		if self:isEquip("SilverLion", friend) and
-			friend:isWounded() and not self:hasSkills(sgs.use_lion_skill, friend) then
+		if friend:hasArmorEffect("SilverLion") and not self:hasSkills(sgs.use_lion_skill, friend)
+		  and friend:isWounded() and self:isWeak(friend) then
 			hasLion = true
 			target = friend
 		end
@@ -803,7 +803,7 @@ sgs.ai_skill_use_func.YinlingCard = function(card, use, self)
 	end
 
 	for _, enemy in ipairs(enemies) do
-		if not enemy:isNude() and self:hasTrickEffective(card, enemy) then
+		if not enemy:isNude() then
 			if self:hasSkills("jijiu|qingnang|jieyin", enemy) then
 				local cardchosen
 				local equips = { enemy:getDefensiveHorse(), enemy:getArmor(), enemy:getOffensiveHorse(), enemy:getWeapon() }
@@ -896,7 +896,7 @@ sgs.ai_playerchosen_intention.junwei = 80
 sgs.ai_skill_playerchosen.junwei = function(self, targets)
 	local tos = {}
 	for _, target in sgs.qlist(targets) do
-		if self:isEnemy(target) and not (self:isEquip("SilverLion", target) and target:getCards("e"):length() == 1)then
+		if self:isEnemy(target) and not (target:hasArmorEffect("SilverLion") and target:getCards("e"):length() == 1)then
 			table.insert(tos, target)
 		end
 	end 

@@ -19,7 +19,7 @@ sgs.ai_skill_use["@@jujian"] = function(self, prompt)
 	local nobasiccard = -1
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
-	if self:isEquip("SilverLion") and self.player:isWounded() then
+	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
 			nobasiccard = self.player:getArmor():getId()
 	else
 		self:sortByKeepValue(cards)
@@ -415,7 +415,7 @@ sgs.ai_skill_use_func.GanluCard = function(card, use, self)
 	
 	target = nil
 	for _,friend in ipairs(self.friends) do
-		if (self:isEquip("SilverLion", friend) and friend:isWounded()) or (self:hasSkills(sgs.lose_equip_skill, friend)
+		if (friend:hasArmorEffect("SilverLion") and friend:isWounded()) or (self:hasSkills(sgs.lose_equip_skill, friend)
 			and not friend:getEquips():isEmpty()) then target = friend break end
 	end
 	if not target then return end
@@ -476,7 +476,7 @@ mingce_skill.getTurnUseCard=function(self)
 	if self.player:hasUsed("MingceCard") then return end
 
 	local card
-	if self.player:getArmor() and (self.player:getArmor():objectName() == "SilverLion" and self.player:isWounded()) then
+	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
 		card = self.player:getArmor()
 	end
 	if not card then

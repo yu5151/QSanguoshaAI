@@ -222,8 +222,9 @@ end
 
 sgs.ai_skill_cardask["@JieyuanDecrease"] = function(self, data)
 	local damage = data:toDamage()
-	if (self:hasSkills(sgs.masochism_skill) or self:getDamagedEffects(self.player)) and damage.damage <= 1 and self.player:getHp() > 1 then return "." end
-	local cards=sgs.QList2Table(self.player:getHandcards())
+	if (self:hasSkills(sgs.masochism_skill) or self:getDamagedEffects(self.player) or self.player:getHp() > getBestHp(self.player))
+	  and damage.damage <= 1 and self.player:getHp() > 1 then return "." end
+	local cards = sgs.QList2Table(self.player:getHandcards())
 	self:sortByKeepValue(cards)
 	for _,card in ipairs(cards) do
 		if card:isRed() then return "$" .. card:getEffectiveId() end

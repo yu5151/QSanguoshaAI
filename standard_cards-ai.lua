@@ -977,7 +977,7 @@ sgs.ai_skill_invoke.EightDiagram = function(self, data)
 	if self:hasSkills("guidao", self.enemies) and self:getFinalRetrial(sgs.hujiasource) == 2 then
 		return false
 	end	
-	if self:getDamagedEffects(self.player) or self.player:getHp()>getBestHp(self.player) then return false end
+	if self:getDamagedEffects(self.player) or self.player:getHp() > getBestHp(self.player) then return false end
 	return true
 end
 
@@ -1207,8 +1207,8 @@ function SmartAI:useCardDuel(duel, use)
 		local useduel 
 		local n2 =getCardsNum("Slash",enemy)
 		if sgs.card_lack[enemy:objectName()]["Slash"] == 1 then n2 = 0 end
-		useduel = n1>=n2 or self.player:getHp()>getBestHp(self.player) or self:getDamagedEffects(self.player,enemy) or (n2<1 and sgs.isGoodHp(self.player))
-		useduel = useduel and not (enemy:getHp()>getBestHp(enemy)) and not self:getDamagedEffects(enemy,self.player)
+		useduel = n1 >= n2 or self.player:getHp() > getBestHp(self.player) or self:getDamagedEffects(self.player, enemy) or (n2 < 1 and sgs.isGoodHp(self.player))
+		useduel = useduel and not (enemy:getHp() > getBestHp(enemy)) and not self:getDamagedEffects(enemy, self.player)
 		useduel = useduel and not (enemy:hasSkill("jianxiong") and not self:isWeak(enemy) and not self.player:hasSkill("jueqing"))
 		if self:objectiveLevel(enemy) > 3 and canUseDuelTo(enemy) and not self:cantbeHurt(enemy) and useduel and sgs.isGoodTarget(enemy, enemies, self) then
 			local godsalvation = self:getCard("GodSalvation")
@@ -1253,11 +1253,11 @@ sgs.ai_skill_cardask["duel-slash"] = function(self, data, pattern, target)
 	if self.player:getPhase()==sgs.Player_Play then return self:getCardId("Slash") end
 	
 	if self:isFriend(target) and target:hasSkill("rende") and self.player:hasSkill("jieming") then return "." end
-	if self:isEnemy(target) and not self:isWeak() and self:getDamagedEffects(self.player,target) then return "." end
+	if self:isEnemy(target) and not self:isWeak() and self:getDamagedEffects(self.player, target) then return "." end
 
 	if self:isFriend(target) then 
-		if self:getDamagedEffects(self.player,target) or self.player:getHp()>getBestHp(self.player) then return "." end
-		if self:getDamagedEffects(target,self.player) or target:getHp()>getBestHp(target) then
+		if self:getDamagedEffects(self.player,target) or self.player:getHp() > getBestHp(self.player) then return "." end
+		if self:getDamagedEffects(target,self.player) or target:getHp() > getBestHp(target) then
 			return self:getCardId("Slash")
 		else
 			if target:isLord() and not sgs.isLordInDanger() and not sgs.isGoodHp(self.player) then return self:getCardId("Slash") end
@@ -1734,7 +1734,7 @@ sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target,
 			end
 		end
 		for _, slash in ipairs(self:getCards("Slash")) do
-			if not self:getDamagedEffects(target2,self.player) and self:isEnemy(target2) then 
+			if not self:getDamagedEffects(target2, self.player) and self:isEnemy(target2) then 
 				return slash:toString()
 			end
 		end

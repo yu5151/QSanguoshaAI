@@ -601,7 +601,7 @@ sgs.ai_skill_use["@@sijian"] = function(self, prompt)
 
 	for _, enemy in ipairs(self.enemies) do
 		local cards = sgs.QList2Table(enemy:getHandcards())
-		local flag = string.format("%s_%s_%s","visible", self.player:objectName(), enemy:objectName())
+		local flag = string.format("%s_%s_%s", "visible", self.player:objectName(), enemy:objectName())
 		if #cards <= 2 and not enemy:isKongcheng() then
 			for _, cc in ipairs(cards) do
 				if (cc:hasFlag("visible") or cc:hasFlag(flag)) and (cc:isKindOf("Peach") or cc:isKindOf("Analeptic")) then
@@ -629,7 +629,13 @@ sgs.ai_skill_use["@@sijian"] = function(self, prompt)
 	return "."
 end
 
-sgs.ai_card_intention.SijianCard = 80
+sgs.ai_card_intention.SijianCard = function(self, card, from, tos)
+	local intention = 80
+	if tos[1]:hasSkill("kongcheng") and tos[1]:getHandcardNum() == 1 then
+		intention = -30
+	end
+	sgs.updateIntention(from, tos[1], intention)
+end
 
 sgs.ai_skill_choice.suishi1 = function(self, choices)
 	local tianfeng = self.room:findPlayerBySkillName("suishi")

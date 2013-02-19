@@ -1837,7 +1837,6 @@ function SmartAI:filterEvent(event, player, data)
 		local struct = data:toCardUse()
 		local from  = struct.from
 		if from and from:objectName() == player:objectName() then
-
 			local card = struct.card
 			local to = sgs.QList2Table(struct.to)
 
@@ -1859,13 +1858,26 @@ function SmartAI:filterEvent(event, player, data)
 					end
 				end
 			end
-
 		end
+		
+		local lord = self.room:getLord()
+		if struct.card and lord:getHp() == 1 and self:aoeIsEffective(struct.card, lord, from) then
+			if struct.card:isKindOf("SavageAssault") then
+				self.room:setPlayerFlag(lord, "lord_in_danger_SA")
+			elseif struct.card:isKindOf("ArcheryAttack") then
+				self.room:setPlayerFlag(lord, "lord_in_danger_AA")			
+			end
+		end
+		
 	elseif event == sgs.CardEffect then
 		local struct = data:toCardEffect()
 		local card = struct.card
 		local from = struct.from
 		local to = struct.to
+		if card and card:isKindOf("AOE") and to and to:isLord() and (to:hasFlag("lord_in_danger_SA") or to:hasFlag("lord_in_danger_AA")) then
+			self.room:setPlayerFlag(to, "-lord_in_danger_AA")
+			self.room:setPlayerFlag(to, "-lord_in_danger_SA")
+		end
 		if card:isKindOf("Collateral") then sgs.ai_collateral = true end
 		if card:isKindOf("Dismantlement") or card:isKindOf("Snatch") or card:isKindOf("YinlingCard") then
 			sgs.ai_snat_disma_effect = true
@@ -1878,7 +1890,23 @@ function SmartAI:filterEvent(event, player, data)
 				sgs.ai_leiji_effect = true
 			end
 		end	
-		
+	elseif event == sgs.PreHpReduced then
+		local damage = data:toDamage()
+		local lord = self.room:getLord()
+		if damage.trigger_chain and lord:isChained() and self:damageIsEffective(lord, damage.nature, from) then
+			if lord:hasArmorEffect("Vine") and damage.nature == sgs.DamageStruct_Fire and lord:getHp() <= damage.damage + 1 then
+				sgs.LordNeedPeach = damage.damage + 2 - lord:getHp()
+				lord:speak("TEST:我要死了,我要"..sgs.LordNeedPeach.."个桃子,你们别乱用桃")
+			elseif lord:getHp() <= damage.damage then
+				sgs.LordNeedPeach = damage.damage + 1 - lord:getHp()
+				local msg = sgs.LogMessage()
+				msg.type = "lordchain"
+				self.room:sendLog(msg)
+				lord:speak("TEST:我要死了,我要"..sgs.LordNeedPeach.."个桃子,你们别乱用桃")
+			end
+		else
+			sgs.LordNeedPeach = nil
+		end			
 	elseif event == sgs.Damaged then
 		local damage = data:toDamage()
 		local card = damage.card
@@ -1930,6 +1958,7 @@ function SmartAI:filterEvent(event, player, data)
 			end
 		end
 		local reason = move.reason
+		local from_places=sgs.QList2Table(move.from_places)
 
 		for i = 0, move.card_ids:length()-1 do
 			local place = move.from_places:at(i)
@@ -1982,6 +2011,44 @@ function SmartAI:filterEvent(event, player, data)
 					global_room:setCardFlag(card_id, flag, from)
 				end
 			end
+
+			if reason.m_skillName == "qiaobian" and from and move.to  then
+				local zhanghe = self.room:getCurrent()
+				if zhanghe:getPhase() == sgs.Player_Draw and move.to:objectName() == zhanghe:objectName() and move.to_place == sgs.Player_PlaceHand
+						and not self:hasSkills("kongcheng|lianying|zhiji|tuntian", from) then
+					sgs.updateIntention(zhanghe, from, 80)
+				end
+				
+				if table.contains(from_places,sgs.Player_PlaceDelayedTrick) then
+					if card:isKindOf("YanxiaoCard") then
+						sgs.updateIntention(zhanghe, from, 80)
+						sgs.updateIntention(zhanghe, move.to, -80)
+					end
+					if card:isKindOf("SupplyShortage") or card:isKindOf("Indulgence") then
+						sgs.updateIntention(zhanghe, from, -80)
+						sgs.updateIntention(zhanghe, move.to, 80)
+					end
+				end
+
+				if table.contains(from_places,sgs.Player_PlaceEquip) then
+					sgs.updateIntention(zhanghe, move.to, -80)
+				end
+
+			end
+
+			if reason.m_skillName == "yiji" and reason.m_reason == sgs.CardMoveReason_S_REASON_PREVIEW and move.to then			
+				global_room:setCardFlag(card_id, "yijicard", move.to)
+			end
+			if move.to_place == sgs.Player_PlaceHand and place == sgs.Player_PlaceHand and move.to and from 
+					and from:hasSkill("yiji") and card:hasFlag("yijicard") and reason.m_reason == sgs.CardMoveReason_S_REASON_GIVE then
+				if move.to:hasSkill("manjuan") and move.to:getPhase() == sgs.Player_NotActive then
+				elseif move.to:hasSkill("kongcheng") and move.to:isKongcheng() then
+					sgs.updateIntention(from, move.to, 30)
+				else
+					sgs.updateIntention(from, move.to, -70)
+				end				
+			end
+
 			
 			if player:hasFlag("Playing") and sgs.turncount <= 3 and player:getPhase() == sgs.Player_Discard 
 						and reason.m_reason==sgs.CardMoveReason_S_REASON_RULEDISCARD then
@@ -3215,9 +3282,36 @@ function SmartAI:askForSinglePeach(dying)
 			(sgs.current_mode_players["loyalist"] == sgs.current_mode_players["rebel"] or self.room:getCurrent():objectName() == self.player:objectName()) then
 		return "."
 	end
-
+	
 	if self:isFriend(dying) then
 		if self:needDeath(dying) then return "." end
+		
+		local lord = self.room:getLord()
+		if self.player:objectName() ~= dying:objectName() and not dying:isLord() and (self.role == "loyalist" or self.role == "renegade" and self.room:alivePlayerCount() > 2) and			
+		 (sgs.LordNeedPeach and #self:getCards("Peach") <= sgs.LordNeedPeach or 
+		 lord:hasFlag("lord_in_danger_SA") and getCardsNum("Slash", lord) <= 1 and #self:getCards("Peach") < 2 or
+		 lord:hasFlag("lord_in_danger_AA") and getCardsNum("Jink", lord) <= 1 and #self:getCards("Peach") < 2) then
+			self.player:speak("TEST:需要救主公")
+			return "." 
+		end	
+		
+		if sgs.turncount > 1 and not dying:isLord() and dying:objectName() ~= self.player:objectName() then
+			local possible_friend = 0
+			local currentp = self.room:getCurrent()
+			for _, friend in ipairs(self.friends_noself) do
+				if (self:getKnownNum(friend) == friend:getHandcardNum() and getCardsNum("Peach", friend) == 0) or
+					(self:playerGetRound(friend, currentp) < self:playerGetRound(self.player, currentp)) then
+				elseif friend:getHandcardNum() > 0 or getCardsNum("Peach", friend) > 0 then
+								-- 还需要补充判断：队友虽然有牌，但是上轮友方求桃时，他并没有出桃救人。这种情况应该判断为无桃。
+					possible_friend = possible_friend + 1
+				end
+			end
+			if possible_friend == 0 and #self:getCards("Peach") < 1 - dying:getHp() then
+				self.player:speak("TEST:桃不够,救个毛")
+				return "." 
+			end
+		end
+		
 		local buqu = dying:getPile("buqu")
 		local weaklord = 0
 		if not buqu:isEmpty() then
@@ -4614,6 +4708,7 @@ function SmartAI:useEquipCard(card, use)
 		if not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow() <= 0 and not canUseSlash then return end
 		if not self.player:getWeapon() or self:evaluateWeapon(card) > self:evaluateWeapon(self.player:getWeapon()) then
 			if (not use.to) and self.weaponUsed and (not self:hasSkills(sgs.lose_equip_skill)) then return end
+			if self.player:hasSkill("zhiheng") and not self.player:hasUsed("ZhihengCard") and self.player:getWeapon() then return end
 			if self.player:getHandcardNum() <= self.player:getHp() - 2 then return end
 			use.card = card
 			return

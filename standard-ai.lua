@@ -361,13 +361,13 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 	
 	local others = self.room:getOtherPlayers(self.player)
 	for _, other in sgs.qlist(others) do
-		if self:objectiveLevel(other)>=0 and add_player(other)==2 then
+		if self:objectiveLevel(other)>=0 and not self:hasSkills("tuntian",other) and add_player(other)==2  then
 			return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2])
 		end
 	end
 
 	for _, other in sgs.qlist(others) do
-		if self:objectiveLevel(other) >= 0 and add_player(other) == 1 and math.random(0, 5) <= 1 and not self:hasSkills("qiaobian") then
+		if self:objectiveLevel(other) >= 0 and not self:hasSkills("tuntian",other) and add_player(other) == 1 and math.random(0, 5) <= 1 and not self:hasSkills("qiaobian") then
 			return ("@TuxiCard=.->%s"):format(targets[1])
 		end
 	end
@@ -636,7 +636,16 @@ end
 sgs.ai_use_value.RendeCard = 8.5
 sgs.ai_use_priority.RendeCard = 8.8
 
-sgs.ai_card_intention.RendeCard = -70
+sgs.ai_card_intention.RendeCard = function(card, from, tos)
+	local to = tos[1]
+	local intention = -70
+	if to:hasSkill("manjuan") and to:getPhase() == sgs.Player_NotActive then
+		intention = 0
+	elseif to:hasSkill("kongcheng") and to:isKongcheng() then
+		intention = 30
+	end
+	sgs.updateIntention(from, to, intention)
+end
 
 sgs.dynamic_value.benefit.RendeCard = true
 

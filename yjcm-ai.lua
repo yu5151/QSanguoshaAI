@@ -388,8 +388,6 @@ sgs.ai_skill_use_func.GanluCard = function(card, use, self)
 					if self:hasSkills(sgs.lose_equip_skill, friend) then
 						use.card = sgs.Card_Parse("@GanluCard=.")
 						if use.to then
-							self.player:speak("1.friend:"..friend:getGeneralName())
-							self.player:speak("1.enemy:"..enemy:getGeneralName())
 							use.to:append(friend)
 							use.to:append(enemy)
 						end
@@ -405,8 +403,6 @@ sgs.ai_skill_use_func.GanluCard = function(card, use, self)
 	if min_friend and max_enemy then
 		use.card = sgs.Card_Parse("@GanluCard=.")
 		if use.to then 
-			self.player:speak("2.min_friend:"..min_friend:getGeneralName())
-			self.player:speak("2.max_enemy:"..max_enemy:getGeneralName())
 			use.to:append(min_friend)
 			use.to:append(max_enemy)
 		end
@@ -423,8 +419,6 @@ sgs.ai_skill_use_func.GanluCard = function(card, use, self)
 		if friend:objectName() ~= target:objectName() and math.abs(friend:getEquips():length() - target:getEquips():length()) <= lost_hp then
 			use.card = sgs.Card_Parse("@GanluCard=.")			
 			if use.to then
-				self.player:speak("3.target:"..target:getGeneralName())
-				self.player:speak("3.friend:"..friend:getGeneralName())
 				use.to:append(friend)
 				use.to:append(target)
 			end

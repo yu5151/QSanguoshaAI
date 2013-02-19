@@ -159,6 +159,7 @@ gzfenxunvs_skill.name="gzfenxunvs"
 table.insert(sgs.ai_skills,gzfenxunvs_skill)
 gzfenxunvs_skill.getTurnUseCard=function(self,inclusive)
 	if self.player:hasUsed("#gzfenxuncard") then return nil end
+	if self:needBear(self.player) then return nil end --攒忍时不发动技能
 	return sgs.Card_Parse("#gzfenxuncard:.:")
 end
 

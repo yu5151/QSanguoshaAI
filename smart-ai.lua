@@ -2036,6 +2036,19 @@ function SmartAI:filterEvent(event, player, data)
 
 			end
 
+			if reason.m_skillName == "yiji" and reason.m_reason == sgs.CardMoveReason_S_REASON_PREVIEW and move.to then			
+				global_room:setCardFlag(card_id, "yijicard", move.to)
+			end
+			if move.to_place == sgs.Player_PlaceHand and place == sgs.Player_PlaceHand and move.to and from 
+					and from:hasSkill("yiji") and card:hasFlag("yijicard") and reason.m_reason == sgs.CardMoveReason_S_REASON_GIVE then
+				if move.to:hasSkill("manjuan") and move.to:getPhase() == sgs.Player_NotActive then
+				elseif move.to:hasSkill("kongcheng") and move.to:isKongcheng() then
+					sgs.updateIntention(from, move.to, 30)
+				else
+					sgs.updateIntention(from, move.to, -70)
+				end				
+			end
+
 			
 			if player:hasFlag("Playing") and sgs.turncount <= 3 and player:getPhase() == sgs.Player_Discard 
 						and reason.m_reason==sgs.CardMoveReason_S_REASON_RULEDISCARD then

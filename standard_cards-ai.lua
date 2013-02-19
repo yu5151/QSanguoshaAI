@@ -1811,10 +1811,10 @@ function SmartAI:enemiesContainsTrick()
 	trick_all = trick_all + indul_num + ss_num
 	return trick_all
 end
-function SmartAI:playerGetRound(player)
+function SmartAI:playerGetRound(player, source)
 	player = player or self.player
 	if player:objectName() == self.player:objectName() then return 0 end
-	local aplayer = self.player
+	local aplayer = source or self.player
 	local round = 0
 	for i = 1 , self.room:alivePlayerCount() do
 		round = round + 1

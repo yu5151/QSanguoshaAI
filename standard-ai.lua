@@ -401,10 +401,11 @@ end
 
 sgs.ai_chaofeng.zhangliao = 4
 
-sgs.ai_skill_invoke.luoyi=function(self,data)
+sgs.ai_skill_invoke.luoyi = function(self,data)
 	if self.player:isSkipped(sgs.Player_Play) then return false end
-	local cards=self.player:getHandcards()
-	cards=sgs.QList2Table(cards)
+	if self:needBear() then return false end
+	local cards = self.player:getHandcards()
+	cards = sgs.QList2Table(cards)
 	local slashtarget = 0
 	local dueltarget = 0
 	self:sort(self.enemies,"hp")
@@ -1286,7 +1287,7 @@ sgs.ai_skill_use_func.FanjianCard=function(card,use,self)
 	self:sort(self.enemies, "defense")
 			
 	for _, enemy in ipairs(self.enemies) do
-		if self:canAttack(enemy) and not self:hasSkills("qingnang|jijiu",enemy) then
+		if self:canAttack(enemy) and not self:hasSkills("qingnang|jijiu|tianxiang",enemy) then
 			use.card = card
 			if use.to then use.to:append(enemy) end
 			return
@@ -1492,14 +1493,15 @@ sgs.ai_chaofeng.daqiao = 2
 sgs.ai_chaofeng.luxun = -1
 
 local jieyin_skill={}
-jieyin_skill.name="jieyin"
+jieyin_skill.name = "jieyin"
 table.insert(sgs.ai_skills,jieyin_skill)
 jieyin_skill.getTurnUseCard=function(self)
-	if self.player:getHandcardNum()<2 then return nil end
+	if self.player:getHandcardNum() < 2 then return nil end
 	if self.player:hasUsed("JieyinCard") then return nil end
+	if self:needBear() and not self.player:isWounded() and self:isWeak() then return nil end
 	
 	local cards = self.player:getHandcards()
-	cards=sgs.QList2Table(cards)
+	cards = sgs.QList2Table(cards)
 	
 	local first, second
 	self:sortByUseValue(cards,true)

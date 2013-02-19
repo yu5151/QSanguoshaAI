@@ -146,7 +146,7 @@ sgs.ai_skill_discard.qiaobian = function(self, discard_num, min_num, optional, i
 			break
 		end
 	end
-	if card==nil then return {} end
+	if card == nil then return {} end
 	table.insert(to_discard, card:getEffectiveId())
 	current_phase = self.player:getMark("qiaobianPhase")
 	if current_phase == sgs.Player_Judge then
@@ -215,6 +215,7 @@ sgs.ai_skill_discard.qiaobian = function(self, discard_num, min_num, optional, i
 		self:sortByKeepValue(cards)
 		table.remove(to_discard)
 		table.insert(to_discard, cards[1]:getEffectiveId())
+		if self:needBear() then return end
 		if self.player:getHandcardNum()-1 > self.player:getHp() then
 			return to_discard
 		end

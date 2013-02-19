@@ -3,6 +3,7 @@ function sgs.ai_cardneed.dangxian(to, card)
 end
 
 sgs.ai_skill_invoke.zishou = function(self, data)
+	if self:needBear() then return true end
 	local chance_value = 1
 	if (self.player:getHp() <= 2) then chance_value = chance_value + 1 end
 
@@ -33,6 +34,7 @@ sgs.ai_chaofeng.madai = 3
 sgs.ai_skill_invoke.fuli = true
 
 sgs.ai_skill_invoke.fuhun = function(self, data)
+	if self:needBear() then return false end
 	local target = 0
 	for _,enemy in ipairs(self.enemies) do
 		if (self.player:distanceTo(enemy) <= self.player:getAttackRange())  then target = target + 1 end
@@ -89,16 +91,17 @@ sgs.ai_skill_choice.jiangchi = function(self, choices)
 	end
 
 	for _,enemy in ipairs(self.enemies) do
-			if self.player:canSlash(enemy) then
-				target = target + 1
-				break
-			end
+		if self.player:canSlash(enemy) then
+			target = target + 1
+			break
+		end
 	end
 
 	if slashnum > 1 or (slashnum > 0 and goodtarget > 0) then needburst = 1 end
 	self:sort(self.enemies,"defenseSlash")
 	local can_save_card_num = self.player:getMaxCards() - self.player:getHandcardNum()
 	if target == 0 or can_save_card_num > 1 or self.player:isSkipped(sgs.Player_Play) then return "jiang" end
+	if self:needBear() then return "jiang" end
 	
 	for _,enemy in ipairs(self.enemies) do
 		local def=sgs.getDefense(enemy)
@@ -106,7 +109,7 @@ sgs.ai_skill_choice.jiangchi = function(self, choices)
 		local eff = self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
 
 		if self:slashProhibit(slash, enemy) then
-		elseif eff and def<8 and needburst > 0 then return "chi"
+		elseif eff and def < 8 and needburst > 0 then return "chi"
 		end
 	end
 
@@ -114,12 +117,13 @@ sgs.ai_skill_choice.jiangchi = function(self, choices)
 end
 
 local gongqi_skill={}
-gongqi_skill.name="gongqi"
+gongqi_skill.name = "gongqi"
 table.insert(sgs.ai_skills, gongqi_skill)
-gongqi_skill.getTurnUseCard=function(self,inclusive)
+gongqi_skill.getTurnUseCard = function(self,inclusive)
 	if self.player:hasUsed("GongqiCard") then return end
+	if self:needBear() then return end
 	local cards = self.player:getCards("he")
-	cards=sgs.QList2Table(cards)
+	cards = sgs.QList2Table(cards)
 	if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
 		or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
 		return sgs.Card_Parse("@GongqiCard=" .. self.player:getArmor():getEffectiveId())

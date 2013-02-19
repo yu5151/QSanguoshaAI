@@ -145,6 +145,7 @@ mizhao_skill.name="mizhao"
 table.insert(sgs.ai_skills, mizhao_skill)
 mizhao_skill.getTurnUseCard=function(self)
 	if self.player:hasUsed("MizhaoCard") or self.player:isKongcheng() then return end
+	if self:needBear() then return end
 	local cards = self.player:getHandcards()
 	local allcard = {}
 	cards = sgs.QList2Table(cards)
@@ -249,6 +250,7 @@ mixin_skill.name="mixin"
 table.insert(sgs.ai_skills, mixin_skill)
 mixin_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("MixinCard") or self.player:isKongcheng() then return end
+	if self:needBear() then return end
 	local cards = self.player:getHandcards()
 	local allcard = {}
 	cards = sgs.QList2Table(cards)
@@ -340,6 +342,7 @@ sgs.ai_skill_choice.duanzhi = function(self, choices)
 end
 
 sgs.ai_skill_use["@@fengyin"] = function(self, data)
+	if self:needBear() then return "." end
 	local cards = self.player:getHandcards()
 	local card
 	cards = sgs.QList2Table(cards)

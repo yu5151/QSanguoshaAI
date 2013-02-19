@@ -2763,6 +2763,9 @@ function SmartAI:askForCard(pattern, prompt, data)
 end
 
 function SmartAI:askForUseCard(pattern, prompt, method)
+	if prompt and prompt == "jiefan-slash:"..self.room:getCurrent():objectName() then
+		return sgs.ai_skill_use["jiefan-slash"](self, prompt, method) 
+	end
 	local use_func = sgs.ai_skill_use[pattern]
 	if use_func then
 		return use_func(self, prompt, method) or "."

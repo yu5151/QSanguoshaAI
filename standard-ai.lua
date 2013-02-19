@@ -636,7 +636,16 @@ end
 sgs.ai_use_value.RendeCard = 8.5
 sgs.ai_use_priority.RendeCard = 8.8
 
-sgs.ai_card_intention.RendeCard = -70
+sgs.ai_card_intention.RendeCard = function(card, from, tos)
+	local to = tos[1]
+	local intention = -70
+	if to:hasSkill("manjuan") and to:getPhase() == sgs.Player_NotActive then
+		intention = 0
+	elseif to:hasSkill("kongcheng") and to:isKongcheng() then
+		intention = 30
+	end
+	sgs.updateIntention(from, to, intention)
+end
 
 sgs.dynamic_value.benefit.RendeCard = true
 
@@ -1415,6 +1424,14 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 		end
 	end
 
+	for _, player in ipairs(others) do
+		if self:objectiveLevel(player) == 0 and not (source and (source:objectName() == player:objectName())) then
+			local ret = doLiuli(player)
+			if ret ~= "." then return ret end
+		end
+	end
+
+
 	self:sort(self.friends_noself, "defense")
 	self.friends_noself = sgs.reverse(self.friends_noself)
 
@@ -1517,7 +1534,7 @@ function SmartAI:getWoundedFriend(maleOnly)
 		if p:isLord() and self:isWeak(p) then hp = hp - 10 end
 		if p:objectName()==self.player:objectName() and self:isWeak(p) and p:hasSkill("qingnang") then hp = hp - 5 end
 		if p:hasSkill("buqu") and p:getPile("buqu"):length()<=2 then hp = hp + 5 end
-		if self:hasSkills("rende|kuanggu|zaiqi", friend) and friend:getHp() >= 2 then hp = hp + 5 end
+		if self:hasSkills("rende|kuanggu|zaiqi", p) and p:getHp() >= 2 then hp = hp + 5 end
 		return hp
 	end
 

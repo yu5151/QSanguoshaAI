@@ -1930,6 +1930,7 @@ function SmartAI:filterEvent(event, player, data)
 			end
 		end
 		local reason = move.reason
+		local from_places=sgs.QList2Table(move.from_places)
 
 		for i = 0, move.card_ids:length()-1 do
 			local place = move.from_places:at(i)
@@ -1982,6 +1983,31 @@ function SmartAI:filterEvent(event, player, data)
 					global_room:setCardFlag(card_id, flag, from)
 				end
 			end
+
+			if reason.m_skillName == "qiaobian" and from and move.to  then
+				local zhanghe = self.room:getCurrent()
+				if zhanghe:getPhase() == sgs.Player_Draw and move.to:objectName() == zhanghe:objectName() and move.to_place == sgs.Player_PlaceHand
+						and not self:hasSkills("kongcheng|lianying|zhiji|tuntian", from) then
+					sgs.updateIntention(zhanghe, from, 80)
+				end
+				
+				if table.contains(from_places,sgs.Player_PlaceDelayedTrick) then
+					if card:isKindOf("YanxiaoCard") then
+						sgs.updateIntention(zhanghe, from, 80)
+						sgs.updateIntention(zhanghe, move.to, -80)
+					end
+					if card:isKindOf("SupplyShortage") or card:isKindOf("Indulgence") then
+						sgs.updateIntention(zhanghe, from, -80)
+						sgs.updateIntention(zhanghe, move.to, 80)
+					end
+				end
+
+				if table.contains(from_places,sgs.Player_PlaceEquip) then
+					sgs.updateIntention(zhanghe, move.to, -80)
+				end
+
+			end
+
 			
 			if player:hasFlag("Playing") and sgs.turncount <= 3 and player:getPhase() == sgs.Player_Discard 
 						and reason.m_reason==sgs.CardMoveReason_S_REASON_RULEDISCARD then

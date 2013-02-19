@@ -2119,6 +2119,9 @@ function SmartAI:filterEvent(event, player, data)
 			self.room:setTag("humanCount",sgs.QVariant(humanCount))
 
 			if humanCount == 1 then global_room:writeToConsole(msg) end
+
+			--self.room:changeHero(player, "wissunce", false, false, false, false)
+			--self.room:setPlayerProperty(player, "kingdom", sgs.QVariant("wu"))
 		end
 
 	elseif event == sgs.GameStart then		

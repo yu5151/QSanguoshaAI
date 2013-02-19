@@ -338,9 +338,24 @@ sgs.ai_card_intention.BawangCard = sgs.ai_card_intention.ShensuCard
 	技能：危殆（主公技）
 	描述：当你需要使用一张【酒】时，所有吴势力角色按行动顺序依次选择是否打出一张黑桃2~9的手牌，视为你使用了一张【酒】，直到有一名角色或没有任何角色决定如此做时为止 
 ]]--
-sgs.ai_skill_use["@@weidai"] = function(self, prompt)
-	return "@WeidaiCard=.->."
+
+function sgs.ai_cardsview.weidai(class_name, player)
+	if class_name == "Analeptic" and player:hasLordSkill("weidai") and ((player:getHp() >= 1 and not player:hasFlags("weidaiFailed")) or player:getHp() < 1) then
+		local room = player:getRoom()		
+		for _, liege in sgs.qlist(room:getLieges("wu", player)) do
+			local tohelp = sgs.QVariant()					
+			tohelp:setValue(player)
+			local prompt = "@weidai-analeptic:" .. player:objectName()
+			local card = room:askForCard(liege, ".|spade|2~9|hand", prompt, tohelp, sgs.Card_MethodDiscard, player)
+			if card then
+				return string.format("analeptic:weidai[%s:%d]=.", card:getSuitString(), card:getNumberString())
+			end
+		end
+		room:setPlayerFlag(player, "weidaiFailed")
+	end
 end
+
+
 
 sgs.ai_skill_use_func.WeidaiCard = function(card, use, self)
 	use.card = card

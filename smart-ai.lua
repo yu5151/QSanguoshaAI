@@ -97,7 +97,7 @@ function setInitialTables()
 	sgs.wizard_skill = 			"guicai|guidao|jilve|tiandu"
 	sgs.wizard_harm_skill = 	"guicai|guidao|jilve"
 	sgs.priority_skill = 		"dimeng|haoshi|qingnang|jizhi|guzheng|qixi|jieyin|guose|duanliang|jujian|fanjian|neofanjian|lijian|manjuan|lihun"
-	sgs.save_skill = 			"jijiu|buyi|jiefan|chunlao"
+	sgs.save_skill = 			"jijiu|buyi|nosjiefan|chunlao"
 	sgs.exclusive_skill = 		"huilei|duanchang|enyuan|wuhun|buqu|yiji|ganglie|guixin|jieming|miji"
 	sgs.cardneed_skill =		"paoxiao|tianyi|xianzhen|shuangxiong|jizhi|guose|duanliang|qixi|qingnang|" ..
 								"jieyin|renjie|zhiheng|rende|jujian|guicai|guidao|jilve|longhun|wusheng|longdan"
@@ -1305,8 +1305,8 @@ function SmartAI:objectiveLevel(player)
 					return 5
 				end
 			end	
-		elseif process == "neutral" or (sgs.turncount <=1 and sgs.isLordHealthy()) then			
-			if sgs.turncount <=1 and sgs.isLordHealthy() then return 0 end
+		elseif process == "neutral" or (sgs.turncount <= 1 and sgs.isLordHealthy()) then			
+			if sgs.turncount <= 1 and sgs.isLordHealthy() then return 0 end
 			if player:isLord() then return -1 end
 
 			local renegade_attack_skill = string.format("buqu|%s|%s|%s|%s",sgs.priority_skill,sgs.save_skill,sgs.recover_skill,sgs.drawpeach_skill)
@@ -1897,7 +1897,7 @@ function SmartAI:filterEvent(event, player, data)
 				intention = 100 
 			end
 
-			if sgs.ai_ganglie_effect and sgs.ai_ganglie_effect ==string.format("%s_%s_%d",from:objectName(), to:objectName(),sgs.turncount)  then
+			if sgs.ai_ganglie_effect and sgs.ai_ganglie_effect ==string.format("%s_%s_%d",from:objectName(), to:objectName(), sgs.turncount)  then
 				sgs.ai_ganglie_effect = nil
 				intention = -30
 			end
@@ -2041,7 +2041,7 @@ function SmartAI:filterEvent(event, player, data)
 		sgs.debugmode = io.open("lua/ai/debug")
 		if sgs.debugmode then sgs.debugmode:close() end
 
-		if sgs.turncount==1 and player:isLord() then			
+		if sgs.turncount == 1 and player:isLord() then			
 			local msg = ""
 			local humanCount = 0
 			for _, aplayer in sgs.qlist(self.room:getAllPlayers()) do
@@ -3283,10 +3283,6 @@ function SmartAI:getTurnUse()
 		slashAvail = slashAvail+1
 		self.slash_distance_limit = true
 	end
-
-	if self.player:hasFlag("jiefanUsed") then
-		self.slash_distance_limit = true
-	end
 	
 	if self.player:getMark("huxiao") > 0 then
 		slashAvail = slashAvail + self.player:getMark("huxiao")
@@ -4465,7 +4461,7 @@ function SmartAI:useTrickCard(card, use)
 	if card:isKindOf("AOE") then
 		if self.player:hasSkill("wuyan") then return end
 		if self.player:hasSkill("noswuyan") then return end
-		if self.player:isLord() and sgs.turncount < 2 and card:isKindOf("ArcheryAttack") and self:getOverflow()<1 then return end
+		if self.player:isLord() and sgs.turncount < 2 and card:isKindOf("ArcheryAttack") and self:getOverflow() < 1 then return end
 		if self.role == "loyalist" and not self.player:isLord() and sgs.turncount < 2 and card:isKindOf("ArcheryAttack") then return end
 		if self.role == "rebel" and sgs.turncount < 2 and card:isKindOf("SavageAssault") then return end
 		local others = self.room:getOtherPlayers(self.player)
@@ -4592,7 +4588,7 @@ function SmartAI:useEquipCard(card, use)
 	if same then
 		if (self:hasSkills("rende|qingnang|nosgongqi"))
 		or (self.player:hasSkill("yongsi") and self:getOverflow() < 3)
-		or (self.player:hasSkill("renjie") and self:getOverflow() < 1)
+		or (self.player:hasSkill("renjie") and self:getOverflow() < 2)
 		or (self:hasSkills("qixi|duanliang") and (card:isBlack() or same:isBlack()))
 		or (self:hasSkills("guose|longhun") and (card:getSuit() == sgs.Card_Diamond or same:getSuit() == sgs.Card_Diamond))
 		or (self:hasSkill("jijiu") and (card:isRed() or same:isRed())) then return end

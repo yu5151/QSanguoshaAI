@@ -383,75 +383,45 @@ sgs.ai_playerchosen_intention.longluo = -60
 sgs.ai_skill_invoke.longluo = function(self, data)
 	return #self.friends > 1
 end
+
 --[[
 	技能：辅佐
 	描述：当有角色拼点时，你可以打出一张点数小于8的手牌，让其中一名角色的拼点牌加上这张牌点数的二分之一（向下取整）
 ]]--
-sgs.ai_skill_choice.fuzuo = function(self , choices)
-	--排除不能发动技能的情形
-	if self.player:isKongcheng() then
-		self:speak("空城看好戏，呵呵。")
-		return "cancel"
-	end
-	local flag = true
-	local handcards = self.player:getHandcards()
-	for _,card in sgs.qlist(handcards) do
-		local point = card:getNumber()
-		if point > 1 and point < 8 then --因为是向下取整，所以可用范围是2～7。
-			flag = false
-			break
-		end
-	end
-	if flag then --没有点数小于8的手牌
-		self:speak("别看我，手里是真没货……")
-		return "cancel"
-	end
-	--现在choices应该是"nameA+nameB+cancel"形式的，下面开始获取具体选项
-	local nameA = ""
-	local nameB = ""
-	local fromPosA = -1
-	local toPosA = -1
-	local fromPosB = -1
-	local toPosB = -1
-	fromPosA, toPosA = string.find(choices, "+")
-	if fromPosA > 1 and toPosA == fromPosA then
-		nameA = string.sub(choices, 1, fromPosA-1)
-		fromPosB, toPosB = string.find(choices, "+", toPosA+1)
-		if fromPosB > toPosA and toPosB == fromPosB then
-			nameB = string.sub(choices, toPosA+1, toPosB-1)
-		else
-			self:speak("呼叫程序员！我的AI又出错了！")
-			return "cancel"
-		end
-	else
-		self:speak("呼叫程序员！我的AI又出错了！")
-		return "cancel"
-	end
-	--现在选项内容已经确定为nameA和nameB，可以判断进行辅佐的目标了
-	for _,p in pairs(self.friends) do
-		if p:getGeneralName() == nameA then
-			return nameA
-		end
-		if p:getGeneralName() == nameB then
-			return nameB
-		end
-	end
-	self:speak("你们爱谁赢谁赢。")
-	return "cancel"
-end
-sgs.ai_skill_cardask["@fuzuo_card"] = function(self, data, pattern, target)
-	local handcards = self.player:getHandcards()
+sgs.ai_skill_use["@@fuzuo"] = function(self, prompt, method)
+	if self.player:isKongcheng() then return "." end
+	if 2013 then return "." end				--等para更新data
 	local cards = {}
-	for _,card in sgs.qlist(handcards) do
-		local point = card:getNumber()
-		if point > 1 and point < 8 then
-			table.insert(cards, card)
+	for _, acard in sgs.qlist(self.player:getHandcards()) do
+		if acard:getNumber() > 1 and acard:getNumber() < 8 then
+			table.insert(cards, acard)
 		end
 	end
+	if #cards == 0 then return "." end
 	self:sortByKeepValue(cards)
-	local fzcard = cards[1]
-	return fzcard:getEffectiveId()
+	if cards[1]:isKindOf("Jink") and self:getCardsNum("Jink") == 1 then return "." end
+	if cards[1]:isKindOf("Peach") and self:getCardsNum("Peach") == 1 and self.player:isWounded() then return "." end
+		
+	local targets = {}
+	for  _, ap in sgs.qlist(self.room:getAlivePlayers()) do
+		if ap:hasFlag("fuzuo_target") then
+			table.insert(targets, ap)
+			if #targets == 2 then break end
+		end
+	end
+	if #targets < 2 then return "." end
+	if self:isFriend( targets[1]) and self:isFriend(targets[2]) then return "." end
+	
+	--tianyi|sunce_zhiba|dahe|xianzhen|jueji|tanlan
+	--zhiba_pindian
+	for _, target in ipairs(targets) do
+		if self:isFriend(target) then
+			return "@FuzuoCard="..cards[1]:getEffectiveId().."->"..target:objectName()
+		end
+	end
+	return "."
 end
+
 --[[
 	技能：尽瘁
 	描述：当你死亡时，可令一名角色摸取或者弃置三张牌 

@@ -1426,7 +1426,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 
 	for _, player in ipairs(others) do
 		if self:objectiveLevel(player) == 0 and not (source and (source:objectName() == player:objectName())) then
-			local ret = doLiuli(enemy)
+			local ret = doLiuli(player)
 			if ret ~= "." then return ret end
 		end
 	end

@@ -2,23 +2,26 @@ sgs.ai_skill_use["@@shensu1"]=function(self,prompt)
 	self:updatePlayers()
 	self:sort(self.enemies,"defense")
 	if self.player:containsTrick("lightning") and self.player:getCards("j"):length()==1
-		and self:hasWizard(self.friends) and not self:hasWizard(self.enemies,true) then return false end
+	  and self:hasWizard(self.friends) and not self:hasWizard(self.enemies, true) then 
+		return "."
+	end
 	
-	local selfSub = self.player:getHp()-self.player:getHandcardNum()
+	if self:needBear() then return "." end
+
+	local selfSub = self.player:getHp() - self.player:getHandcardNum()
 	local selfDef = sgs.getDefense(self.player)
 	
 	for _,enemy in ipairs(self.enemies) do
-		local def=sgs.getDefense(enemy)
+		local def = sgs.getDefense(enemy)
 		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 		local eff = self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
 			
 		if not self.player:canSlash(enemy, slash, false) then
 		elseif self:slashProhibit(nil, enemy) then
-		elseif def<6 and eff then return "@ShensuCard=.->"..enemy:objectName()
+		elseif def < 6 and eff then return "@ShensuCard=.->"..enemy:objectName()
 
-		elseif selfSub>=2 then return "."
-		elseif selfDef<6 then return "." end
-		
+		elseif selfSub >= 2 then return "."
+		elseif selfDef < 6 then return "." end	
 	end
 	
 	for _,enemy in ipairs(self.enemies) do
@@ -28,13 +31,13 @@ sgs.ai_skill_use["@@shensu1"]=function(self,prompt)
 
 		if not self.player:canSlash(enemy, slash, false) then
 		elseif self:slashProhibit(nil, enemy) then
-		elseif eff and def<8 then return "@ShensuCard=.->"..enemy:objectName()
+		elseif eff and def < 8 then return "@ShensuCard=.->"..enemy:objectName()
 		else return "." end
 	end
 	return "."
 end
 
-sgs.ai_get_cardType=function(card)
+sgs.ai_get_cardType = function(card)
 	if card:isKindOf("Weapon") then return 1 end
 	if card:isKindOf("Armor") then return 2 end
 	if card:isKindOf("OffensiveHorse")then return 3 end
@@ -45,7 +48,7 @@ sgs.ai_skill_use["@@shensu2"]=function(self,prompt)
 	self:updatePlayers()
 	self:sort(self.enemies,"defenseSlash")
 	
-	local selfSub = self.player:getHp()-self.player:getHandcardNum()
+	local selfSub = self.player:getHp() - self.player:getHandcardNum()
 	local selfDef = sgs.getDefense(self.player)
 	
 	local cards = self.player:getCards("he")
@@ -63,7 +66,7 @@ sgs.ai_skill_use["@@shensu2"]=function(self,prompt)
 	
 	for _,card in ipairs(cards) do
 		if card:isKindOf("EquipCard") then
-			if hasCard[sgs.ai_get_cardType(card)]>1 or sgs.ai_get_cardType(card)>3 then
+			if hasCard[sgs.ai_get_cardType(card)] > 1 or sgs.ai_get_cardType(card) > 3 then
 				eCard = card
 				break
 			end
@@ -71,6 +74,11 @@ sgs.ai_skill_use["@@shensu2"]=function(self,prompt)
 		end
 	end
 	
+	if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
+	  or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
+		eCard = self.player:getArmor()
+	end
+
 	if not eCard then return "." end
 	
 	local effectslash, best_target, target
@@ -90,7 +98,7 @@ sgs.ai_skill_use["@@shensu2"]=function(self,prompt)
 			end
 			target = enemy
 		end
-		if selfSub<0 then return "." end
+		if selfSub < 0 then return "." end
 	end
 	
 	if best_target then return "@ShensuCard="..eCard:getEffectiveId().."->"..best_target:objectName() end

@@ -33,10 +33,11 @@ sgs.dynamic_value.damage_card.NosFanjianCard = true
 
 sgs.ai_chaofeng.noszhouyu = sgs.ai_chaofeng.zhouyu
 
-nosjujian_skill={}
-nosjujian_skill.name="nosjujian"
-table.insert(sgs.ai_skills,nosjujian_skill)
+nosjujian_skill = {}
+nosjujian_skill.name = "nosjujian"
+table.insert(sgs.ai_skills, nosjujian_skill)
 nosjujian_skill.getTurnUseCard=function(self)
+	if self:needBear() then return end
 	if not self.player:hasUsed("NosJujianCard") then return sgs.Card_Parse("@NosJujianCard=.") end
 end
 
@@ -157,10 +158,11 @@ sgs.ai_need_damaged.nosenyuan = function (self, attacker)
 	return false
 end
 
-nosxuanhuo_skill={}
-nosxuanhuo_skill.name="nosxuanhuo"
-table.insert(sgs.ai_skills,nosxuanhuo_skill)
-nosxuanhuo_skill.getTurnUseCard=function(self)
+nosxuanhuo_skill = {}
+nosxuanhuo_skill.name = "nosxuanhuo"
+table.insert(sgs.ai_skills, nosxuanhuo_skill)
+nosxuanhuo_skill.getTurnUseCard = function(self)
+	if self:needBear() then return end
 	if not self.player:hasUsed("NosXuanhuoCard") then
 		return sgs.Card_Parse("@NosXuanhuoCard=.")
 	end
@@ -168,7 +170,7 @@ end
 
 sgs.ai_skill_use_func.NosXuanhuoCard = function(card, use, self)
 	local cards = self.player:getHandcards()
-	cards=sgs.QList2Table(cards)
+	cards = sgs.QList2Table(cards)
 	self:sortByUseValue(cards,true)
 
 	local target

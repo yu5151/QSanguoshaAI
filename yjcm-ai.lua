@@ -627,9 +627,10 @@ sgs.ai_filterskill_filter.jinjiu = function(card, card_place)
 end
 
 local xianzhen_skill={}
-xianzhen_skill.name="xianzhen"
+xianzhen_skill.name = "xianzhen"
 table.insert(sgs.ai_skills,xianzhen_skill)
-xianzhen_skill.getTurnUseCard=function(self)
+xianzhen_skill.getTurnUseCard = function(self)
+	if self:needBear() then return end
 	if not self.player:hasUsed("XianzhenCard") and not self.player:isKongcheng() then return sgs.Card_Parse("@XianzhenCard=.") 
 	elseif self.player:hasUsed("XianzhenCard") and self.player:hasFlag("xianzhen_success") then
 		local card_str = "@XianzhenSlashCard=."
@@ -638,11 +639,11 @@ xianzhen_skill.getTurnUseCard=function(self)
 	end
 end
 
-sgs.ai_skill_use_func.XianzhenSlashCard=function(card,use,self)
+sgs.ai_skill_use_func.XianzhenSlashCard = function(card,use,self)
 	local target = self.player:getTag("XianzhenTarget"):toPlayer()
 	if self:askForCard("slash", "@xianzhen-slash") == "." then return end
 	if self:getCard("Slash") and self.player:canSlash(target, nil, false) and target:isAlive() then
-		use.card=card
+		use.card = card
 	end
 end
 

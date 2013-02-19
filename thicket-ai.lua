@@ -289,12 +289,13 @@ function sgs.ai_cardneed.haoshi(to, card, self)
 	return not self:willSkipDrawPhase(to)
 end
 
-dimeng_skill={}
-dimeng_skill.name="dimeng"
+dimeng_skill = {}
+dimeng_skill.name = "dimeng"
 table.insert(sgs.ai_skills,dimeng_skill)
-dimeng_skill.getTurnUseCard=function(self)
+dimeng_skill.getTurnUseCard = function(self)
+	if self:needBear() then return end
 	if self.player:hasUsed("DimengCard") then return end
-	card=sgs.Card_Parse("@DimengCard=.")
+	card = sgs.Card_Parse("@DimengCard=.")
 	return card
 
 end

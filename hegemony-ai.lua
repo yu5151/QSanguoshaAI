@@ -150,6 +150,7 @@ duoshi_skill.getTurnUseCard = function(self, inclusive)
 
 	local red_card
 	if self.player:getCardCount(false) <= 2 then return end
+	if self:needBear() then return end
 	self:sortByUseValue(cards, true)
 
 	for _, card in ipairs(cards) do
@@ -214,6 +215,7 @@ fenxun_skill.name = "fenxun"
 table.insert(sgs.ai_skills, fenxun_skill)
 fenxun_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("FenxunCard") then return end
+	if self:needBear() then return end
 	if not self.player:isNude() then
 		local card_id
 		local slashcount = self:getCardsNum("Slash")
@@ -222,7 +224,8 @@ fenxun_skill.getTurnUseCard = function(self)
 		cards = sgs.QList2Table(cards)
 		self:sortByKeepValue(cards)
 
-		if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
+		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
+		  or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
 			return sgs.Card_Parse("@FenxunCard=" .. self.player:getArmor():getId())
 		elseif self.player:getHandcardNum() > 0 then
 			for _, acard in ipairs(cards) do
@@ -468,6 +471,7 @@ qingcheng_skill.name = "qingcheng"
 table.insert(sgs.ai_skills, qingcheng_skill)
 qingcheng_skill.getTurnUseCard = function(self, inclusive)
 	local equipcard
+	if self:needBear() then return end
 	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
 		equipcard = self.player:getArmor()
 	else

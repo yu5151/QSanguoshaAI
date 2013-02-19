@@ -238,8 +238,10 @@ sgs.ai_skill_invoke.lukang_weiyan = function(self, data)
 
 	local prompt = data:toString()
 	if prompt == "draw2play" then
-		return handcard >= max_card and #(self:getTurnUse())>0
+		if self:needBear() then return false end
+		return handcard >= max_card and #(self:getTurnUse()) > 0
 	elseif prompt == "play2draw" then
+		if self:needBear() then return true end
 		return handcard < max_card or #(self:getTurnUse()) == 0
 	end
 end
@@ -758,23 +760,24 @@ end
 	技能：义舍
 	描述：出牌阶段，你可将任意数量手牌正面朝上移出游戏称为“米”（至多存在五张）或收回；其他角色在其出牌阶段可选择一张“米”询问你，若你同意，该角色获得这张牌，每阶段限两次 
 ]]--
-local yishe_skill={name="yishe"}
+local yishe_skill = {name = "yishe"}
 table.insert(sgs.ai_skills,yishe_skill)
 yishe_skill.getTurnUseCard = function(self)
+	if self:needBear() then return end
 	return sgs.Card_Parse("@YisheCard=.")
 end
 
 sgs.ai_skill_use_func.YisheCard=function(card,use,self)
 	if self.player:getPile("rice"):isEmpty() then
-		local cards=self.player:getHandcards()
-		cards=sgs.QList2Table(cards)
-		local usecards={}
+		local cards = self.player:getHandcards()
+		cards = sgs.QList2Table(cards)
+		local usecards = {}
 		local discards = self:askForDiscard("yishe", math.min(self:getOverflow(),5-#usecards), math.min(self:getOverflow(),5-#usecards))
 		for _,card in ipairs(discards) do
 			table.insert(usecards,card)
 		end
-		if #usecards>0 then
-			use.card=sgs.Card_Parse("@YisheCard=" .. table.concat(usecards,"+"))
+		if #usecards > 0 then
+			use.card = sgs.Card_Parse("@YisheCard=" .. table.concat(usecards,"+"))
 		end
 	else
 		if not self.player:hasUsed("YisheCard") then use.card=card return end
@@ -782,7 +785,7 @@ sgs.ai_skill_use_func.YisheCard=function(card,use,self)
 end
 
 
-sgs.ai_skill_choice.yisheask=function(self,choices)
+sgs.ai_skill_choice.yisheask = function(self,choices)
 	if self:isFriend(self.room:getCurrent()) then return "allow" else return "disallow" end
 end
 

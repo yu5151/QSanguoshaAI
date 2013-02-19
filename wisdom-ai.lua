@@ -5,7 +5,8 @@
 local juao_skill={}
 juao_skill.name = "juao"
 table.insert(sgs.ai_skills, juao_skill)
-juao_skill.getTurnUseCard=function(self)
+juao_skill.getTurnUseCard = function(self)
+	if self:needBear() then return end
 	if not self.player:hasUsed("JuaoCard") and self.player:getHandcardNum() > 1 then
 		local card_id = self:getCardRandomly(self.player, "h")
 		return sgs.Card_Parse("@JuaoCard=" .. card_id)
@@ -184,6 +185,7 @@ sgs.ai_cardneed.tanlan = sgs.ai_cardneed.bignumber
 	描述：每当你使用一张非延时类锦囊时(在它结算之前)，可立即对攻击范围内的角色使用一张【杀】 
 ]]--
 sgs.ai_skill_invoke.yicai = function(self, data)
+	if self:needBear() then return false end
 	for _, enemy in ipairs(self.enemies) do
 		if self.player:canSlash(enemy, nil, true) then
 			if self:getCardsNum("Slash") > 0 then 
@@ -228,10 +230,11 @@ sgs.ai_chaofeng.wisjiangwei = 2
 	技能：后援
 	描述：出牌阶段，你可以弃置两张手牌，指定一名其他角色摸两张牌，每阶段限一次 
 ]]--
-local houyuan_skill={}
-houyuan_skill.name="houyuan"
-table.insert(sgs.ai_skills,houyuan_skill)
-houyuan_skill.getTurnUseCard=function(self)
+local houyuan_skill = {}
+houyuan_skill.name = "houyuan"
+table.insert(sgs.ai_skills, houyuan_skill)
+houyuan_skill.getTurnUseCard = function(self)
+	if self:needBear() then return end
 	if not self.player:hasUsed("HouyuanCard") and self.player:getHandcardNum() > 1 then
 		local givecard = {}
 		local index = 0

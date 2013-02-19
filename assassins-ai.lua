@@ -222,7 +222,7 @@ end
 
 sgs.ai_skill_cardask["@JieyuanDecrease"] = function(self, data)
 	local damage = data:toDamage()
-	if (self:hasSkills(sgs.masochism_skill) or self:getDamagedEffects(self.player) or self.player:getHp() > getBestHp(self.player))
+	if (self:getDamagedEffects(self.player) or self.player:getHp() > getBestHp(self.player))
 	  and damage.damage <= 1 and self.player:getHp() > 1 then return "." end
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	self:sortByKeepValue(cards)
@@ -247,7 +247,7 @@ end
 local mixin_skill={}
 mixin_skill.name="mixin"
 table.insert(sgs.ai_skills, mixin_skill)
-mixin_skill.getTurnUseCard=function(self)
+mixin_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("MixinCard") or self.player:isKongcheng() then return end
 	local cards = self.player:getHandcards()
 	local allcard = {}
@@ -284,7 +284,7 @@ end
 sgs.ai_skill_playerchosen.mixin = sgs.ai_skill_playerchosen.zero_card_as_slash
 
 sgs.ai_use_priority.MixinCard = 0
-sgs.ai_card_intention.MixinCard = 20
+sgs.ai_card_intention.MixinCard = -20
 
 sgs.ai_skill_invoke.cangni = function(self, data)
 	local target = self.room:getCurrent()

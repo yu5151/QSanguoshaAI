@@ -19,7 +19,7 @@ table.insert(sgs.ai_skills,lihun_skill)
 lihun_skill.getTurnUseCard=function(self)
 	if self.player:hasUsed("LihunCard") or self.player:isNude() then return end
 	local card_id
-	if (self.payer:hasArmorEffect("SilverLion") and self.player:isWounded()) or self:evaluateArmor() < -5 then
+	if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) or self:evaluateArmor() < -5 then
 		return sgs.Card_Parse("@LihunCard=" .. self.player:getArmor():getId())
 	elseif self.player:getHandcardNum() > self.player:getHp() then
 		local cards = self.player:getHandcards()

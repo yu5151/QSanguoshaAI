@@ -1,4 +1,4 @@
-local function hasExplicitRebel(room)
+function hasExplicitRebel(room)
 	for _, player in sgs.qlist(room:getAllPlayers()) do
 		if sgs.isRolePredictable() and  sgs.evaluatePlayerRole(player) == "rebel" then return true end
 		if sgs.compareRoleEvaluation(player, "rebel", "loyalist") == "rebel" then return true end
@@ -825,7 +825,7 @@ sgs.ai_skill_cardask["blade-slash"] = function(self, data, pattern, target)
 		return "."
 	end
 	for _, slash in ipairs(self:getCards("Slash")) do
-		if self:slashIsEffective(slash, target) and (self:isWeak(target) or self:getOverflow()>0) then
+		if self:slashIsEffective(slash, target) and (self:isWeak(target) or self:getOverflow() > 0) then
 			return slash:toString()
 		end 
 	end
@@ -965,7 +965,7 @@ end
 
 sgs.ai_skill_invoke.EightDiagram = function(self, data)
 	local dying = 0
-	local handang = self.room:findPlayerBySkillName("jiefan")
+	local handang = self.room:findPlayerBySkillName("nosjiefan")
 	for _, aplayer in sgs.qlist(self.room:getAlivePlayers()) do
 		if aplayer:getHp() < 1 and not aplayer:hasSkill("buqu") then dying = 1 break end
 	end
@@ -1316,7 +1316,7 @@ function SmartAI:getValuableCard(who)
 		return defhorse:getEffectiveId()
 	end
 
-	if armor and self:evaluateArmor(armor,who)>3 and not who:hasSkill("nosxuanfeng") then
+	if armor and self:evaluateArmor(armor,who) > 3 and not who:hasSkill("nosxuanfeng") then
 		return armor:getEffectiveId()
 	end
 
@@ -1337,8 +1337,8 @@ function SmartAI:getValuableCard(who)
 		if who:hasSkill("duanliang") and equip:isBlack() then  return equip:getEffectiveId() end
 	end
 
-	if armor and self:evaluateArmor(armor, who)>0
-		and not (armor:isKindOf("SilverLion") and who:isWounded()) then
+	if armor and self:evaluateArmor(armor, who) > 0
+		and not (armor:isKindOf("SilverLion") and who:isWounded() and self:isWeak(who)) then
 		return armor:getEffectiveId()
 	end
 
@@ -1536,7 +1536,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	for i= 1,2,1 do
 		for _, enemy in ipairs(enemies) do
 			if not enemy:isNude() and self:hasTrickEffective(card, enemy) and not self:needKongcheng(enemy) and not self:hasSkills("kongcheng|lianying|shangshi",enemy) then
-				if enemy:getHandcardNum() == i and sgs.getDefenseSlash(enemy)<3 and enemy:getHp()<=3 then
+				if enemy:getHandcardNum() == i and sgs.getDefenseSlash(enemy) < 3 and enemy:getHp() <= 3 then
 					local cardchosen
 					if self.player:distanceTo(enemy) == self.player:getAttackRange()+1 and enemy:getDefensiveHorse() then
 						cardchosen = enemy:getDefensiveHorse():getEffectiveId()

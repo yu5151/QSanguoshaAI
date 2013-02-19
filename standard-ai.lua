@@ -1425,6 +1425,14 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 		end
 	end
 
+	for _, player in ipairs(others) do
+		if self:objectiveLevel(player) == 0 and not (source and (source:objectName() == player:objectName())) then
+			local ret = doLiuli(player)
+			if ret ~= "." then return ret end
+		end
+	end
+
+
 	self:sort(self.friends_noself, "defense")
 	self.friends_noself = sgs.reverse(self.friends_noself)
 

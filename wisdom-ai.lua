@@ -334,18 +334,8 @@ sgs.ai_card_intention.BawangCard = sgs.ai_card_intention.ShensuCard
 ]]--
 
 function sgs.ai_cardsview.weidai(class_name, player)
-	if class_name == "Analeptic" and player:hasLordSkill("weidai") and ((player:getHp() >= 1 and not player:hasFlags("weidaiFailed")) or player:getHp() < 1) then
-		local room = player:getRoom()		
-		for _, liege in sgs.qlist(room:getLieges("wu", player)) do
-			local tohelp = sgs.QVariant()					
-			tohelp:setValue(player)
-			local prompt = "@weidai-analeptic:" .. player:objectName()
-			local card = room:askForCard(liege, ".|spade|2~9|hand", prompt, tohelp, sgs.Card_MethodDiscard, player)
-			if card then
-				return string.format("analeptic:weidai[%s:%d]=.", card:getSuitString(), card:getNumberString())
-			end
-		end
-		room:setPlayerFlag(player, "weidaiFailed")
+	if class_name == "Analeptic" and player:hasLordSkill("weidai") and not player:hasFlag("weidai_failed") then
+		return "@WeidaiCard=.->."
 	end
 end
 
@@ -369,6 +359,20 @@ sgs.ai_skill_cardask["@weidai-analeptic"] = function(self, data)
 		end
 	end
 	return "."
+end
+
+sgs.ai_event_callback[sgs.ChoiceMade].weidai=function(self, player, data)
+	local choices= data:toString():split(":")	
+	if choices[1] == "cardResponded" and choices[3] == "@weidai-analeptic" then
+		local target = findPlayerByObjectName(self.room, choices[4])
+		local card = choices[#choices]
+		if card ~= "_nil_" then
+			self.room:setPlayerFlag(target, "-weidai_failed")
+			sgs.updateIntention(player, target, -80)
+		elseif player:objectName() == player:getRoom():getLieges("wu", target):last():objectName() then
+			self.room:setPlayerFlag(target, "weidai_failed")
+		end
+	end	
 end
 
 sgs.ai_chaofeng.wis_sunce = 1

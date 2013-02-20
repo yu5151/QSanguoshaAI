@@ -284,7 +284,17 @@ function SmartAI:slashIsEffective(slash, to)
 		if armor:objectName() == "RenwangShield" then
 			return not slash:isBlack()
 		elseif armor:objectName() == "Vine" then
-			return nature ~= sgs.DamageStruct_Normal or self.player:hasWeapon("Fan") or (self.player:hasSkill("lihuo") and not self:isWeak())
+			local skill_name = slash:getSkillName() or ""
+			local can_convert = false
+			if skill_name == "guhuo" then
+				can_convert = true
+			else
+				local skill = sgs.Sanguosha:getSkill(skill_name)
+				if skill and skill:inherits("FilterSkill") then
+					can_convert = true
+				end
+			end
+			return nature ~= sgs.DamageStruct_Normal or (can_convert and (self.player:hasWeapon("Fan") or (self.player:hasSkill("lihuo") and not self:isWeak())))
 		end
 	end
 

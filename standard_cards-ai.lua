@@ -290,7 +290,7 @@ function SmartAI:slashIsEffective(slash, to)
 				can_convert = true
 			else
 				local skill = sgs.Sanguosha:getSkill(skill_name)
-				if skill and skill:inherits("FilterSkill") then
+				if not skill or skill:inherits("FilterSkill") then
 					can_convert = true
 				end
 			end

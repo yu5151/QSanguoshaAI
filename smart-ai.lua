@@ -448,11 +448,11 @@ function SmartAI:getDynamicUsePriority(card)
 			value = sgs.ai_use_priority.ExNihilo - 0.1
 		end
 		
-		if use_card:isKindOf("Indulgence") and use_card:getSkillName() == "guose" then 
+		if use_card:isKindOf("Indulgence") and use_card:isVirtualCard() and use_card:subcardsLength() > 0 then 
 			value = sgs.ai_use_priority.Indulgence - 0.01
 		end
 
-		if use_card:isKindOf("SupplyShortage") and use_card:getSkillName() == "duanliang" then 
+		if use_card:isKindOf("SupplyShortage") and use_card:isVirtualCard() and use_card:subcardsLength() > 0 then 
 			value = sgs.ai_use_priority.SupplyShortage - 0.01
 		end
 		

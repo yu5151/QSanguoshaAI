@@ -320,7 +320,7 @@ sgs.ai_skill_use_func.DuyiCard = function(card,use,self)
 end
 
 sgs.ai_skill_playerchosen.duyi = function(self, targets)
-	local to = player_to_discard(self, "noself")
+	local to = player_to_draw(self, "all")
 	if to then return to
 	else return self.player
 	end

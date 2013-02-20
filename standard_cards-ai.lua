@@ -1833,13 +1833,13 @@ function SmartAI:enemiesContainsTrick()
 end
 function SmartAI:playerGetRound(player, source)
 	if not player then return self.room:writeToConsole(debug.traceback()) end
-	if player:objectName() == self.player:objectName() then return 0 end
-	local aplayer = source or self.player
+	local source = source or self.player
+	if player:objectName() == source:objectName() then return 0 end
 	local round = 0
 	for i = 1 , self.room:alivePlayerCount() do
 		round = round + 1
-		if aplayer:getNextAlive():objectName() == player:objectName() then break end
-		aplayer = aplayer:getNextAlive()
+		if source:getNextAlive():objectName() == player:objectName() then break end
+		source = source:getNextAlive()
 	end
 	return round
 end

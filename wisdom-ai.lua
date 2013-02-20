@@ -399,8 +399,6 @@ end
 sgs.ai_skill_use["@@fuzuo"] = function(self, prompt, method)
 	if self.player:isKongcheng() then return "." end
 	
-	if 2013 then return "." end				--待更新
-	
 	local function find_a_card(number)
 		local card
 		number = math.abs(number)
@@ -420,8 +418,8 @@ sgs.ai_skill_use["@@fuzuo"] = function(self, prompt, method)
 	local from_num, to_num = pindian.from_number, pindian.to_number
 	local reason = pindian.reason
 	local PDcards = {}
-	table.insert(pindiancards, pindian.from_card)
-	table.insert(pindiancards, pindian.to_card)
+	table.insert(PDcards, pindian.from_card)
+	table.insert(PDcards, pindian.to_card)
 	
 	if math.abs(from_num - to_num) >= 3 then return "." end
 	

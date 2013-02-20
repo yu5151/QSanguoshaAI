@@ -45,11 +45,11 @@ liubei              8
 liubiao             1         
 liushan             5         
 luboyan             4         
-lvbu                2         
 lukang              1         
-lvmeng              1         
 lusu                8         
 luxun               2         
+lvbu                2         
+lvmeng              1         
 machao              4         
 madai               7         
 masu                1         
@@ -66,7 +66,6 @@ shensimayi          5
 shenzhaoyun         2         
 shenzhouyu          6         
 shenzhugeliang      2         
-yanliangwenchou     6         
 simayi              5         
 sp_guanyu           1         
 sunce               2         
@@ -97,6 +96,7 @@ xunyu               8
 xusheng             3         
 xushu               3         
 yangxiu             1         
+yanliangwenchou     6         
 yitianjian          3         
 yuanshao            8         
 yuanshu             4         

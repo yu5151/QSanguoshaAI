@@ -859,8 +859,13 @@ function sgs.ai_cardsview.Spear(class_name, player)
 
 		local suit="no_suit"
 		if newcards[1]:isBlack() == newcards[2]:isBlack() then suit = suit1 end
-
-		local card_str = ("slash:Spear[%s:%s]=%d+%d"):format(suit, 0, card_id1, card_id2)
+		
+		local card_str
+		if sgs.Sanguosha:getVersion() <= "20121221" then
+			card_str = ("slash:Spear[%s:%s]=%d+%d"):format(suit, 0, card_id1, card_id2)
+		else
+			card_str = ("slash:Spear[to_be_decided:0]=%d+%d"):format(card_id1, card_id2)
+		end
 
 		return card_str
 	end
@@ -930,7 +935,13 @@ Spear_skill.getTurnUseCard=function(self,inclusive)
 
 	end
 
-	local card_str = ("slash:Spear[%s:%s]=%d+%d"):format(suit, 0, card_id1, card_id2)
+	local card_str
+	if sgs.Sanguosha:getVersion() <= "20121221" then
+		card_str = ("slash:Spear[%s:%s]=%d+%d"):format(suit, 0, card_id1, card_id2)
+	else
+		card_str = ("slash:Spear[to_be_decided:0]=%d+%d"):format(card_id1, card_id2)
+	end
+
 	local slash = sgs.Card_Parse(card_str)
 
 	return slash	

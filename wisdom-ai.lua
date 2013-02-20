@@ -225,7 +225,7 @@ sgs.ai_skill_playerchosen.beifa = function(self, targets)
 	return targetlist[#targetlist]
 end
 
-sgs.ai_chaofeng.wisjiangwei = 2
+sgs.ai_chaofeng.wis_jiangwei = 2
 --[[
 	技能：后援
 	描述：出牌阶段，你可以弃置两张手牌，指定一名其他角色摸两张牌，每阶段限一次 
@@ -272,7 +272,7 @@ end
 
 sgs.ai_card_intention.HouyuanCard = -70
 
-sgs.ai_chaofeng.wisjiangwan = 6
+sgs.ai_chaofeng.wis_jiangwan = 6
 --[[
 	技能：霸王
 	描述：当你使用的【杀】被【闪】响应时，你可以和对方拼点：若你赢，可以选择最多两个目标角色，视为对其分别使用了一张【杀】
@@ -371,7 +371,7 @@ sgs.ai_skill_cardask["@weidai-analeptic"] = function(self, data)
 	return "."
 end
 
-sgs.ai_chaofeng.wissunce = 1
+sgs.ai_chaofeng.wis_sunce = 1
 --[[
 	技能：笼络
 	描述：回合结束阶段开始时，你可以选择一名其他角色摸取与你弃牌阶段弃牌数量相同的牌 
@@ -394,36 +394,102 @@ end
 ]]--
 sgs.ai_skill_use["@@fuzuo"] = function(self, prompt, method)
 	if self.player:isKongcheng() then return "." end
-	if self:needBear() then return "." end
-	if 2013 then return "." end				--等para更新data
-	local cards = {}
-	for _, acard in sgs.qlist(self.player:getHandcards()) do
-		if acard:getNumber() > 1 and acard:getNumber() < 8 then
-			table.insert(cards, acard)
-		end
-	end
-	if #cards == 0 then return "." end
-	self:sortByKeepValue(cards)
-	if cards[1]:isKindOf("Jink") and self:getCardsNum("Jink") == 1 then return "." end
-	if cards[1]:isKindOf("Peach") and self:getCardsNum("Peach") == 1 and self.player:isWounded() then return "." end
-		
-	local targets = {}
-	for  _, ap in sgs.qlist(self.room:getAlivePlayers()) do
-		if ap:hasFlag("fuzuo_target") then
-			table.insert(targets, ap)
-			if #targets == 2 then break end
-		end
-	end
-	if #targets < 2 then return "." end
-	if self:isFriend( targets[1]) and self:isFriend(targets[2]) then return "." end
 	
-	--tianyi|sunce_zhiba|dahe|xianzhen|jueji|tanlan
-	--zhiba_pindian
-	for _, target in ipairs(targets) do
-		if self:isFriend(target) then
-			return "@FuzuoCard="..cards[1]:getEffectiveId().."->"..target:objectName()
+	if 2013 then return "." end				--待更新
+	
+	local function find_a_card(number)
+		local card
+		number = math.abs(number)
+		local cards = sgs.QList2Table(self.player:getHandcards())
+		self:sortByKeepValue(cards)		
+		for _, acard in ipairs(cards) do
+			local anum = acard:getNumber()
+			if math.ceil(anum/2) > number and anum < 8 then
+				card = acard
+			end
+		end
+		return card
+	end
+	
+	local pindian = self.room:getTag("FuzuoPindianData"):toPindian()
+	local from, to = pindian.from, pindian.to
+	local from_num, to_num = pindian.from_number, pindian.to_number
+	local reason = pindian.reason
+	local PDcards = {}
+	table.insert(pindiancards, pindian.from_card)
+	table.insert(pindiancards, pindian.to_card)
+	
+	if math.abs(from_num - to_num) >= 3 then return "." end
+	
+	local card = find_a_card(from_num - to_num)
+	if not card then return "." end
+	
+	local Valuable
+	for _, acard in ipairs(PDcards) do
+		if acard:isKindOf("ExNihilo") or acard:isKindOf("Peach") or acard:isKindOf("Snatch") or acard:isKindOf("Dismantlement") or acard:isKindOf("Duel") then
+			Valuable = true
+			break
+		elseif acard:isKindOf("Slash") and self:isEquip("Crossbow", from) and reason ~= "zhiba_pindian" then
+			Valuable = true
 		end
 	end
+	
+	local onlyone_Jink_Peach
+	if isCard("Peach",card, self.player) and self:getCardsNum("Peach") <= 1 and self.player:isWounded() then
+		onlyone_Jink_Peach = true
+	elseif isCard("Jink",card, self.player) and self:getCardsNum("Jink") <= 1 then
+		onlyone_Jink_Peach = true
+	end
+	
+	if reason == "zhiba_pindian" then
+		if Valuable or not onlyone_Jink_Peach or self:getOverflow() > 0 and self:willSkipPlayPhase() then
+			if self:isFriend(to) and from_num > to_num then			
+				return "@FuzuoCard="..card:getEffectiveId().."->"..to:objectName()
+			elseif not self:isFriend(to) and to_num > from_num then
+				return "@FuzuoCard="..card:getEffectiveId().."->"..from:objectName()
+			end
+		end		
+	elseif reason == "dahe" or reason == "mizhao" or reason == "shuangren" then
+		if self:isFriend(from) and from_num < to_num then
+			return "@FuzuoCard="..card:getEffectiveId().."->"..from:objectName()
+		elseif not self:isFriend(from) and from_num > to_num then
+			return "@FuzuoCard="..card:getEffectiveId().."->"..to:objectName()
+		end
+		
+	elseif reason == " lieren" or reason == "tanlan"  or reason == "jueji" then
+		if Valuable or not onlyone_Jink_Peach or self:getOverflow() > 0 and self:willSkipPlayPhase() then
+			if self:isFriend(from) and not self:isFriend(to) and from_num < to_num then
+				return "@FuzuoCard="..card:getEffectiveId().."->"..from:objectName() 
+			elseif self:isFriend(to) and not self:isFriend(from) and to_num < from_num then
+				return "@FuzuoCard="..card:getEffectiveId().."->"..to:objectName()
+			end		
+		end
+		
+	elseif reason == "tianyi" or reason == "xianzhen" then		
+		if self:isFriend(from) and from_num < to_num and getCardsNum("Slash", from) >= 1 then			
+			return "@FuzuoCard="..card:getEffectiveId().."->"..from:objectName()
+		elseif not self:isFriend(from) and self:isFriend(to) and from_num > to_num and getCardsNum("Slash", from) >= 1 then
+			return "@FuzuoCard="..card:getEffectiveId().."->"..to:objectName()
+		end
+		
+	elseif reason == "quhu"  then
+		if not self:isFriend(from) and self:isFriend(to) and from_num > to_num then
+			return "@FuzuoCard="..card:getEffectiveId().."->"..to:objectName()
+		elseif self:isFriend(from) and from_num >= 10 and from_num < to_num then
+			return "@FuzuoCard="..card:getEffectiveId().."->"..from:objectName()
+		end
+		
+	else
+		if self:isFriend(from) and self:isFriend(to) then return "." end
+		if not onlyone_Jink_Peach or self:getOverflow() > 0 and self:willSkipPlayPhase() then
+			if self:isFriend(from) and from_num < to_num then
+				return "@FuzuoCard="..card:getEffectiveId().."->"..from:objectName()
+			elseif not self:isFriend(to) and to_num < from_num then
+				return "@FuzuoCard="..card:getEffectiveId().."->"..to:objectName()
+			end
+		end			
+	end
+	
 	return "."
 end
 
@@ -544,4 +610,4 @@ sgs.ai_skill_invoke.shien = function(self, data)
 	return false
 end
 
-sgs.ai_chaofeng.wisshuijing = 5
+sgs.ai_chaofeng.wis_shuijing = 5

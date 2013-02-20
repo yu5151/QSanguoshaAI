@@ -500,7 +500,14 @@ luanji_skill.getTurnUseCard=function(self)
 			local suit="no_suit"
 			if first_card:isBlack() == second_card:isBlack() then suit = first_card:getSuitString() end
 
-			local card_str = ("archery_attack:luanji[%s:%s]=%d+%d"):format(suit, 0, first_id, second_id)
+			local card_str
+
+			if sgs.Sanguosha:getVersion() <= "20121221" then
+				card_str = ("archery_attack:luanji[%s:%s]=%d+%d"):format(suit, 0, first_id, second_id)
+			else
+				card_str = ("archery_attack:luanji[to_be_decided:0]=%d+%d"):format(first_id, second_id)
+			end
+
 			local archeryattack = sgs.Card_Parse(card_str)
 			assert(archeryattack)
 			return archeryattack

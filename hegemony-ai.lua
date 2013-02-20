@@ -118,15 +118,8 @@ sgs.ai_chaofeng.yuejin = 2
 
 sgs.ai_skill_use["@@shushen"] = function(self, prompt)
 	if #self.friends_noself == 0 then return "." end
-	self:sort(self.friends_noself, "defense")
-	
-	for _, friend in ipairs(self.friends_noself) do
-		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive)
-			and not (friend:hasSkill("kongcheng") and friend:isKongcheng()) then
-			return ("@ShushenCard=.->%s"):format(friend:objectName())
-		end
-	end
-
+	local to = player_to_draw(self, "noself")
+	if to then return ("@ShushenCard=.->%s"):format(to:objectName()) end
 	return "."
 end
 
@@ -313,8 +306,12 @@ end
 sgs.ai_card_intention.SijianCard = function(card, from, tos)
 	local intention = 80
 	local to = tos[1]
-	if to:hasSkill("kongcheng") and to:getHandcardNum() == 1 then
+	if to:hasSkill("kongcheng") and to:getHandcardNum() == 1 and to:getHp() <= 2 then
 		intention = -30
+	end
+	if to:hasArmorEffect("SilverLion") and not self:hasSkills(sgs.use_lion_skill, to)
+	  and to:isWounded() and self:isWeak(to) then
+		  intention = -30
 	end
 	sgs.updateIntention(from, tos[1], intention)
 end

@@ -55,7 +55,10 @@ sgs.ai_skill_playerchosen.miji = function(self, targets)
 	targets = sgs.QList2Table(targets)
 	self:sort(targets, "defense")
 	for _, target in ipairs(targets) do
-		if self:isFriend(target) then return target end 
+		if self:isFriend(target) and not (target:hasSkill("manjuan") and target:getPhase() == sgs.Player_NotActive) 
+		  and not (target:hasSkill("kongcheng") and target:isKongcheng()) then
+			return target
+		end 
 	end
 end
 
@@ -183,12 +186,19 @@ end
 sgs.ai_skill_use_func.GongqiCard = function(card, use, self)
 	use.card = card
 end
-	
-sgs.ai_skill_invoke.gongqi = true
 
-sgs.ai_skill_playerchosen.gongqi = function(self, players)
+sgs.ai_skill_invoke.gongqi = function(self, data)
 	local player = player_to_discard(self, "noself")
-	return player
+	if player then 
+		return true
+	end
+end
+
+sgs.ai_skill_playerchosen.gongqi = function(self, targets)
+	local player = player_to_discard(self, "noself")
+	if player then 
+		return player
+	end
 end
 
 function sgs.ai_cardneed.gongqi(to, card)

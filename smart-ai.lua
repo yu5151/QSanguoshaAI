@@ -600,7 +600,7 @@ sgs.ai_compare_funcs = {
 			end
 		end
 
-		local c1 = sgs.ai_chaofeng[a:getGeneralName()]	or 0
+		local c1 = sgs.ai_chaofeng[a:getGeneralName()] or 0
 		local c2 = sgs.ai_chaofeng[b:getGeneralName()] or 0
 
 		return d1+c1/2 > d2+c2/2
@@ -2890,7 +2890,7 @@ end
 
 function SmartAI:needKongcheng(player)
 	return (player:isKongcheng() and (player:hasSkill("kongcheng") or (player:hasSkill("zhiji") and player:getMark("zhiji") == 0))) or
-			(not self:isWeak(player) and self:hasSkills(sgs.need_kongcheng,player))
+			(not self:isWeak(player) and self:hasSkills(sgs.need_kongcheng, player))
 end
 
 function SmartAI:getLeastHandcardNum(player)
@@ -4839,6 +4839,8 @@ function player_to_discard(self, prompt)
 				table.insert(enemies, player)
 			end
 		end
+	else
+		global_room:writeToConsole(debug.traceback()) return
 	end
 
 	if #targets == 0 then return end
@@ -4862,7 +4864,7 @@ function player_to_discard(self, prompt)
 		  and friend:getHp() <= 2 then
 			return friend
 		end
-	end	
+	end
 
 	for _, enemy in ipairs(enemies) do
 		if not enemy:isNude() then
@@ -4918,6 +4920,58 @@ function player_to_discard(self, prompt)
 	end
 
 	return
+end
+
+function player_to_draw(self, prompt)
+	local friends = {}
+	if prompt == "noself" then
+		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do 	
+			if self:isFriend(player) and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive)
+			  and not (player:hasSkill("kongcheng") and player:isKongcheng()) then
+				table.insert(friends, player)
+			end
+		end	
+	elseif prompt == "all" then
+		for _, player in sgs.qlist(self.room:getAlivePlayers()) do 	
+			if self:isFriend(player) and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive)
+			  and not (player:hasSkill("kongcheng") and player:isKongcheng()) then
+				table.insert(friends, player)
+			end
+		end
+	elseif prompt == "nos_xuanhuo" then
+		for _, player in sgs.qlist(self.room:getAlivePlayers()) do 	
+			if self:isFriend(player) and not player:hasFlag("nosxuanhuo_target") and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive)
+			  and not (player:hasSkill("kongcheng") and player:isKongcheng()) then
+				table.insert(friends, player)
+			end
+		end
+	else
+		global_room:writeToConsole(debug.traceback()) return
+	end
+
+	if #friends == 0 then return end
+	self:sort(friends, "defense")
+	
+	for _, friend in ipairs(friends) do
+		if friend:getHandcardNum() < 2 then
+			return friend
+		end
+	end
+	
+	for _, friend in ipairs(friends) do
+		if self:hasSkills("jijiu|qingnang|xinzhan|leiji|jieyin|beige|kanpo|liuli|qiaobian|zhiheng|guidao|longhun|xuanfeng|tianxiang|"..
+		  "lijian|jieyuan|rende|lirang|longluo", friend) then
+			return friend
+		end
+	end
+
+	for _, friend in ipairs(friends) do
+		if self:hasSkills(sgs.cardneed_skill, friend) then
+			return friend
+		end
+	end
+
+	return friends[1]
 end
 
 dofile "lua/ai/debug-ai.lua"

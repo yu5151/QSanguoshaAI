@@ -180,15 +180,26 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 
 	if #self.friends > 1 then
 		for _, friend in ipairs(self.friends_noself) do
-			if self:hasSkills(sgs.lose_equip_skill, friend) and friend:isAlive() then
+			if self:hasSkills(sgs.lose_equip_skill, friend) and not friend:hasSkill("manjuan") and friend:isAlive() then
 				self.yinghun = friend
 				self.yinghunchoice = "dxt1"
 				break
 			end
 		end
-		self:sort(self.friends_noself, "chaofeng")
-		for _, afriend in ipairs(self.friends_noself) do
-			if not afriend:hasSkill("manjuan") and afriend:isAlive() then self.yinghun = afriend end
+		if not self.yinghun then
+			for _, friend in ipairs(self.friends_noself) do
+				if friend:hasSkill("tuntian") and not friend:hasSkill("manjuan") and friend:isAlive() then
+					self.yinghun = friend
+					self.yinghunchoice = "dxt1"
+					break
+				end
+			end
+		end
+		if not self.yinghun then
+			self:sort(self.friends_noself, "chaofeng")
+			for _, afriend in ipairs(self.friends_noself) do
+				if not afriend:hasSkill("manjuan") and afriend:isAlive() then self.yinghun = afriend end
+			end
 		end
 		if self.yinghun and not self.yinghunchoice then self.yinghunchoice = "dxt1" end
 	else
@@ -215,6 +226,7 @@ end
 function sgs.ai_card_intention.YinghunCard(card, from, tos, source)
 	local intention = -80
 	if from:hasFlag("yinghun_to_enemy") then intention = -intention end
+	if tos[1]:hasSkill("manjuan") then intention = -intention end
 	sgs.updateIntention(from, tos[1], intention)
 end
 

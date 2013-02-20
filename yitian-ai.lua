@@ -831,7 +831,7 @@ sgs.ai_skill_choice.xiliang = function(self,choices)
 	  and self.player:getHandcardNum() > 2 then
 		return "put"
 	end
-	if self.player:getHandcardNum() < 3 then return "obtain" end	
+	if self.player:getHandcardNum() < 3 or self:getCardsNum("Jink") < 1 then return "obtain" end
 	if self:getOverflow() >= 1 then return "put" end
 	return "obtain"
 end

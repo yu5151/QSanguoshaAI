@@ -225,7 +225,7 @@ sgs.ai_skill_playerchosen.beifa = function(self, targets)
 	return targetlist[#targetlist]
 end
 
-sgs.ai_chaofeng.wisjiangwei = 2
+sgs.ai_chaofeng.wis_jiangwei = 2
 --[[
 	技能：后援
 	描述：出牌阶段，你可以弃置两张手牌，指定一名其他角色摸两张牌，每阶段限一次 
@@ -281,7 +281,7 @@ end
 
 sgs.ai_card_intention.HouyuanCard = -70
 
-sgs.ai_chaofeng.wisjiangwan = 6
+sgs.ai_chaofeng.wis_jiangwan = 6
 --[[
 	技能：霸王
 	描述：当你使用的【杀】被【闪】响应时，你可以和对方拼点：若你赢，可以选择最多两个目标角色，视为对其分别使用了一张【杀】
@@ -380,7 +380,7 @@ sgs.ai_skill_cardask["@weidai-analeptic"] = function(self, data)
 	return "."
 end
 
-sgs.ai_chaofeng.wissunce = 1
+sgs.ai_chaofeng.wis_sunce = 1
 --[[
 	技能：笼络
 	描述：回合结束阶段开始时，你可以选择一名其他角色摸取与你弃牌阶段弃牌数量相同的牌 
@@ -558,4 +558,4 @@ sgs.ai_skill_invoke.shien = function(self, data)
 	return false
 end
 
-sgs.ai_chaofeng.wisshuijing = 5
+sgs.ai_chaofeng.wis_shuijing = 5

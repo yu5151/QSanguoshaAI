@@ -75,6 +75,14 @@ sunshangxiang       6
 taishichi           7         
 wangyi              2         
 weiyan              1         
+wis_huaxiong        5         
+wis_jiangwan        5         
+wis_jiangwei        4         
+wis_simahui         5         
+wis_sunce           3         
+wis_tianfeng        3         
+wis_xuyou           3         
+wis_zhangzhao       3         
 wishuaxiong         5         
 wisjiangwan         5         
 wisjiangwei         4         

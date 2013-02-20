@@ -367,10 +367,7 @@ sgs.ai_event_callback[sgs.ChoiceMade].weidai=function(self, player, data)
 		local target = findPlayerByObjectName(self.room, choices[4])
 		local card = choices[#choices]
 		if card ~= "_nil_" then
-			self.room:setPlayerFlag(target, "-weidai_failed")
 			sgs.updateIntention(player, target, -80)
-		elseif player:objectName() == player:getRoom():getLieges("wu", target):last():objectName() then
-			self.room:setPlayerFlag(target, "weidai_failed")
 		end
 	end	
 end

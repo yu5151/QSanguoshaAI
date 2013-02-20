@@ -54,6 +54,7 @@ end
 
 function sgs.ai_slash_prohibit.wuhun(self, to)
 	if self.player:hasSkill("jueqing") or (self.player:hasSkill("qianxi") and self.player:distanceTo(to) == 1) then return false end
+	if self.player:hasFlag("nosjiefanUsed") then return false end
 	local maxfriendmark = 0
 	local maxenemymark = 0
 	for _, friend in ipairs(self.friends) do

@@ -704,6 +704,8 @@ end
 	描述：杀死你的角色获得崩坏技能直到游戏结束 
 ]]--
 function sgs.ai_slash_prohibit.dushi(self, to)	
+	if self.player:hasSkill("jueqing") then return false end
+	if self.player:hasFlag("nosjiefanUsed") then return false end
 	return self.player:isLord() and #self.enemies > 1
 end
 --[[

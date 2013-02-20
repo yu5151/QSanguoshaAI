@@ -65,7 +65,18 @@ sgs.ai_view_as.Fan = function(card, player, card_place)
 	local suit = card:getSuitString()
 	local number = card:getNumberString()
 	local card_id = card:getEffectiveId()
-	if card:isKindOf("Slash") and not (card:isKindOf("FireSlash") or card:isKindOf("ThunderSlash")) then
+
+	local skill_name = card:getSkillName() or ""
+	local can_convert = false
+	if skill_name == "guhuo" then
+		can_convert = true
+	else
+		local skill = sgs.Sanguosha:getSkill(skill_name)
+		if not skill or skill:inherits("FilterSkill") then
+			can_convert = true
+		end
+	end
+	if can_convert and card:isKindOf("Slash") and not (card:isKindOf("FireSlash") or card:isKindOf("ThunderSlash")) then
 		return ("fire_slash:Fan[%s:%s]=%d"):format(suit, number, card_id)
 	end
 end

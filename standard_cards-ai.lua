@@ -290,7 +290,7 @@ function SmartAI:slashIsEffective(slash, to)
 				can_convert = true
 			else
 				local skill = sgs.Sanguosha:getSkill(skill_name)
-				if skill and skill:inherits("FilterSkill") then
+				if not skill or skill:inherits("FilterSkill") then
 					can_convert = true
 				end
 			end
@@ -474,12 +474,35 @@ function SmartAI:useCardSlash(card, use)
 end
 
 sgs.ai_skill_use.slash = function(self, prompt)
-	local slash = self:getCard("Slash")
-	if not slash then return "." end
-	for _, enemy in ipairs(self.enemies) do
-		if self.player:canSlash(enemy, slash, true) and not self:slashProhibit(slash, enemy) 
-		and self:slashIsEffective(slash, enemy) and not (self.player:hasFlag("slashTargetFix") and not enemy:hasFlag("SlashAssignee")) then
-			return ("%s->%s"):format(slash:toString(), enemy:objectName())
+	local parsedPrompt = prompt:split(":")
+	local callback = sgs.ai_skill_cardask[parsedPrompt[1]] -- for askForUseSlashTo
+	if type(callback) == "function" then
+		local slash
+		local target
+		if self.player:hasFlag("slashTargetFix") then
+			for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+				if player:hasFlag("SlashAssignee") then target = player break end
+			end
+		end
+		if not target then return "." end
+		local ret
+		if parsedPrompt[1] == "collateral-slash" then ret = callback(self, nil, nil, nil, target) else ret = callback(self, nil, nil, target) end
+		if ret == nil or ret == "." then return "." end
+		slash = sgs.Card_Parse(ret)
+		-- what about 20121221?
+		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, card) > 50 or self.player:hasFlag("slashNoDistanceLimit")
+		if self.player:canSlash(target, slash, not no_distance) then return ret .. "->" .. target:objectName() end
+		return "."
+	end
+	local slashes = self:getCards("Slash")
+	for _, slash in ipairs(slashes) do
+		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, card) > 50 or self.player:hasFlag("slashNoDistanceLimit")
+		for _, enemy in ipairs(self.enemies) do
+			if self.player:canSlash(enemy, slash, not no_distance) and not self:slashProhibit(slash, enemy)
+				and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
+				and not (self.player:hasFlag("slashTargetFix") and not enemy:hasFlag("SlashAssignee")) then
+				return ("%s->%s"):format(slash:toString(), enemy:objectName())
+			end
 		end
 	end
 	return "."

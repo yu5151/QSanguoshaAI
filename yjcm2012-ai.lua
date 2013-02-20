@@ -52,14 +52,9 @@ sgs.ai_skill_invoke.zhenlie = function(self, data)
 end
 
 sgs.ai_skill_playerchosen.miji = function(self, targets)
-	targets = sgs.QList2Table(targets)
-	self:sort(targets, "defense")
-	for _, target in ipairs(targets) do
-		if self:isFriend(target) and not (target:hasSkill("manjuan") and target:getPhase() == sgs.Player_NotActive) 
-		  and not (target:hasSkill("kongcheng") and target:isKongcheng()) then
-			return target
-		end 
-	end
+	local to = player_to_draw(self, "all")
+	if to then return to end
+	return self.player
 end
 
 sgs.ai_playerchosen_intention.miji = -80

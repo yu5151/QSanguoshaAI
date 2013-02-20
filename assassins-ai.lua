@@ -310,22 +310,20 @@ end
 duyi_skill={}
 duyi_skill.name="duyi"
 table.insert(sgs.ai_skills, duyi_skill)
-duyi_skill.getTurnUseCard=function(self)
+duyi_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("DuyiCard") then return end
 	return sgs.Card_Parse("@DuyiCard=.")
 end
 
-sgs.ai_skill_use_func.DuyiCard=function(card,use,self)
+sgs.ai_skill_use_func.DuyiCard = function(card,use,self)
 	use.card = card
 end
 
-sgs.ai_skill_playerchosen.duyi=function(self, targets)
-	local targetlist=sgs.QList2Table(targets)
-	self:sort(targetlist,"hp")
-	for _, target in sgs.qlist(targets) do
-		if self:isFriend(target) and target:objectName() ~= self.player:objectName() then return target end
+sgs.ai_skill_playerchosen.duyi = function(self, targets)
+	local to = player_to_discard(self, "noself")
+	if to then return to
+	else return self.player
 	end
-	return targetlist[#targetlist]
 end
 
 -- 需要data

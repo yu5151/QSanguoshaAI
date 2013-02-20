@@ -180,7 +180,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 
 	if #self.friends > 1 then
 		for _, friend in ipairs(self.friends_noself) do
-			if self:hasSkills(sgs.lose_equip_skill, friend) and friend:isAlive() then
+			if self:hasSkills(sgs.lose_equip_skill, friend) and not friend:hasSkill("manjuan") and friend:isAlive() then
 				self.yinghun = friend
 				self.yinghunchoice = "dxt1"
 				break

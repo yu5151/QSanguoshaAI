@@ -253,16 +253,7 @@ end
 sgs.ai_skill_use_func.HouyuanCard = function(card, use, self)
 	if #self.friends == 1 then return end
 	local target
-	local max_x = 20
-	for _, friend in ipairs(self.friends_noself) do
-		if not friend:hasSkill("manjuan") then --不能对漫卷队友发动
-			local x = friend:getHandcardNum()
-			if x < max_x then
-				max_x = x
-				target = friend
-			end
-		end
-	end
+	target = player_to_draw(self, "noself")
 	local cards = self.player:getCards("h")
 	cards = sgs.QList2Table(cards)
 	self:sortByUseValue(cards, true)
@@ -386,13 +377,8 @@ sgs.ai_chaofeng.wissunce = 1
 	描述：回合结束阶段开始时，你可以选择一名其他角色摸取与你弃牌阶段弃牌数量相同的牌 
 ]]--
 sgs.ai_skill_playerchosen.longluo = function(self, targets)
-	for _, player in sgs.qlist(targets) do
-		if self:isFriend(player) and player:getHp() > player:getHandcardNum() then
-			if not player:hasSkill("manjuan") then --对漫卷队友无效
-				return player
-			end
-		end
-	end
+	local to = player_to_draw(self, "noself")
+	if to then return to end
 	return self.friends_noself[1]
 end
 

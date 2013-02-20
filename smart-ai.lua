@@ -2050,7 +2050,7 @@ function SmartAI:filterEvent(event, player, data)
 
 			
 			if player:hasFlag("Playing") and sgs.turncount <= 3 and player:getPhase() == sgs.Player_Discard 
-						and reason.m_reason==sgs.CardMoveReason_S_REASON_RULEDISCARD then
+						and reason.m_reason==sgs.CardMoveReason_S_REASON_RULEDISCARD and not player:hasSkill("renjie") then
 				local is_neutral = sgs.evaluateRoleTrends(player) == "neutral"
 					
 				if isCard("Slash", card, player) and player:canSlashWithoutCrossbow() then
@@ -2058,7 +2058,7 @@ function SmartAI:filterEvent(event, player, data)
 						local has_slash_prohibit_skill = false
 						for _, askill in sgs.qlist(target:getVisibleSkillList()) do
 							local filter = sgs.ai_slash_prohibit[askill:objectName()]
-							if filter and type(filter) == "function" then
+							if filter and type(filter) == "function" and not (askill == "tiandu" or askill == "hujia" or askill == "huilei" or askill == "weidi") then
 								has_slash_prohibit_skill = true
 								break
 							end

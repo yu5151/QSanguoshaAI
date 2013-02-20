@@ -398,7 +398,7 @@ end
 
 function sgs.ai_slash_prohibit.xiangle(self, to)
 	if self:isFriend(to) then return false end
-	return self:getCardsNum("Slash")+self:getCardsNum("Analpetic")+math.max(self:getCardsNum("Jink")-1,0) < 2
+	return self:getCardsNum("Slash") + self:getCardsNum("Analpetic") + math.max(self:getCardsNum("Jink")-1, 0) < 2
 end
 
 sgs.ai_skill_invoke.fangquan = function(self, data)
@@ -790,6 +790,7 @@ end
 
 function sgs.ai_slash_prohibit.duanchang(self, to)
 	if self.player:hasSkill("jueqing") or (self.player:hasSkill("qianxi") and self.player:distanceTo(to) == 1) then return false end
+	if self.player:hasFlag("nosjiefanUsed") then return false end
 	if to:getHp() > 1 or #self.enemies == 1 then return false end
 
 	if self.player:getMaxHp() == 3 and self.player:getArmor() and self.player:getDefensiveHorse() then return false end

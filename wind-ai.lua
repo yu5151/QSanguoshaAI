@@ -53,10 +53,10 @@ sgs.ai_skill_use["@@shensu2"]=function(self,prompt)
 	
 	local cards = self.player:getCards("he")
 	
-	cards=sgs.QList2Table(cards)
+	cards = sgs.QList2Table(cards)
 	
 	local eCard
-	local hasCard={0, 0, 0, 0}
+	local hasCard = {0, 0, 0, 0}
 	
 	for _,card in ipairs(cards) do
 		if card:isKindOf("EquipCard") then

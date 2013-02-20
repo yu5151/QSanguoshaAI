@@ -74,11 +74,11 @@ sgs.ai_skill_invoke.fankui = function(self, data)
 	if sgs.ai_need_damaged.fankui(self, target) then return true end
 
 	if self:isFriend(target) then
-		if self:getOverflow(target)>2 then return true end
+		if self:getOverflow(target) > 2 then return true end
 		return (target:hasSkill("xiaoji") and not target:getEquips():isEmpty()) or (target:hasArmorEffect("SilverLion") and target:isWounded())
 	end
 	if self:isEnemy(target) then				---fankui without zhugeliang and luxun
-		if target:hasSkill("tuntian") then return false end
+		if target:hasSkill("tuntian") and target:getPhase() == sgs.Player_NotActive then return false end
 		if (self:needKongcheng(target) or self:getLeastHandcardNum(target) == 1) and target:getHandcardNum() == 1 then
 			if not target:getEquips():isEmpty() then return true
 			else return false
@@ -1731,7 +1731,7 @@ lijian_skill.getTurnUseCard=function(self)
 			if player:getWeapon() then card_id=player:getWeapon():getId()
 			elseif player:getOffensiveHorse() then card_id=player:getOffensiveHorse():getId()
 			elseif player:getDefensiveHorse() then card_id=player:getDefensiveHorse():getId()
-			elseif player:getArmor() and player:getHandcardNum()<=1 then card_id=player:getArmor():getId()
+			elseif player:getArmor() and player:getHandcardNum() <= 1 then card_id=player:getArmor():getId()
 			end
 		end
 		if not card_id then
@@ -1755,7 +1755,7 @@ lijian_skill.getTurnUseCard=function(self)
 end
 
 sgs.ai_skill_use_func.LijianCard=function(card,use,self)
-	local findFriend_maxSlash=function(self,first)
+	local findFriend_maxSlash = function(self, first)
 		self:log("Looking for the friend!")
 		local maxSlash = 0
 		local friend_maxSlash
@@ -1768,7 +1768,7 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 		if friend_maxSlash then
 			local safe = false
 			if self:hasSkills("ganglie|fankui|enyuan|neoganglie|nosenyuan", first) and not self:hasSkills("wuyan|noswuyan", first) then
-				if (first:getHp()<=1 and first:getHandcardNum()==0) then safe=true end
+				if (first:getHp() <= 1 and first:getHandcardNum() == 0) then safe=true end
 			elseif (getCardsNum("Slash", friend_maxSlash) >= getCardsNum("Slash", first)) then safe=true end
 			if safe then return friend_maxSlash end
 		else self:log("unfound")
@@ -1788,7 +1788,7 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 			if enemy:isMale() and not self:hasSkills("wuyan|noswuyan", enemy) then
 				if enemy:hasSkill("kongcheng") and enemy:isKongcheng() then	zhugeliang_kongcheng=enemy
 				else
-					if #males == 0 and self:hasTrickEffective(duel, enemy) then table.insert(males, enemy)
+					if #males == 0 and self:hasTrickEffective(duel, enemy) and not enemy:hasSkill("mingshi") then table.insert(males, enemy)
 					elseif #males == 1 and self:damageIsEffective(enemy, sgs.DamageStruct_Normal, males[1]) then table.insert(males, enemy) end
 				end
 				if #males >= 2 then	break end
@@ -1808,7 +1808,7 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 			first = males[1]
 			second = males[2]
 			local lord = self.room:getLord()
-			if (first:getHp()<=1) then
+			if (first:getHp() <= 1) then
 				if self.player:isLord() or sgs.isRolePredictable() then 
 					local friend_maxSlash = findFriend_maxSlash(self,first)
 					if friend_maxSlash then second=friend_maxSlash end

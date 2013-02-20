@@ -122,6 +122,7 @@ table.insert(sgs.ai_skills, gongqi_skill)
 gongqi_skill.getTurnUseCard = function(self,inclusive)
 	if self.player:hasUsed("GongqiCard") then return end
 	if self:needBear() then return end
+	if #self.enemies == 0 then return end
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
 	if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
@@ -183,14 +184,11 @@ sgs.ai_skill_use_func.GongqiCard = function(card, use, self)
 	use.card = card
 end
 	
-sgs.ai_skill_invoke.gongqi = function(self, data)
-	self:sort(self.enemies)
-	for _, enemy in ipairs(self.enemies) do
-		if not enemy:isNude() and not (enemy:isKongcheng() and self:hasSkills(sgs.lose_equip_skill, enemy)) then
-			sgs.ai_skill_playerchosen.gongqi = enemy
-			return true
-		end
-	end
+sgs.ai_skill_invoke.gongqi = true
+
+sgs.ai_skill_playerchosen.gongqi = function(self, players)
+	local player = player_to_discard(self, "noself")
+	return player
 end
 
 function sgs.ai_cardneed.gongqi(to, card)

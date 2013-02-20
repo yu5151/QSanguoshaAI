@@ -408,6 +408,7 @@ end
 ]]--
 sgs.ai_skill_use["@@fuzuo"] = function(self, prompt, method)
 	if self.player:isKongcheng() then return "." end
+	if self:needBear() then return "." end
 	if 2013 then return "." end				--等para更新data
 	local cards = {}
 	for _, acard in sgs.qlist(self.player:getHandcards()) do

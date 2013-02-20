@@ -2578,7 +2578,7 @@ function SmartAI:askForCardChosen(who, flags, reason)
 		if flags:match("e") and self:hasSkills("jijiu|dimeng|guzheng|qiaobian|jieyin|lijian|beige|miji|yingzi|tuxi|" ..
 		  "mingce|buyi|bifa|noswuyan|weimu|anxu|tongxin|xiliang|chouliang|shouye|huoshui|qixi",who) then
 			if who:getDefensiveHorse() then return who:getDefensiveHorse():getId() end
-			if who:getArmor() then return who:getArmor():getId() end
+			if who:getArmor() and not who:hasArmorEffect("SilverLion") then return who:getArmor():getId() end
 			if who:getOffensiveHorse() and ( (who:getOffensiveHorse():isRed() and who:hasSkill("jijiu")) or who:hasSkill("beige") ) then
 				return who:getOffensiveHorse():getId()
 			end
@@ -3255,8 +3255,8 @@ function SmartAI:askForPindian(requestor, reason)
 end
 
 sgs.ai_skill_playerchosen.damage = function(self, targets)
-	local targetlist=sgs.QList2Table(targets)
-	self:sort(targetlist,"hp")
+	local targetlist = sgs.QList2Table(targets)
+	self:sort(targetlist, "hp")
 	for _, target in ipairs(targetlist) do
 		if self:isEnemy(target) then return target end
 	end
@@ -4826,6 +4826,98 @@ function IgnoreArmor(from, to)
 		return true
 	end
 	return false
+end
+
+function player_to_discard(self, prompt)
+	local targets, friends, enemies = {}, {}, {}
+	if prompt == "noself" then
+		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+			table.insert(targets, player) 	
+			if self:isFriend(player) then
+				table.insert(friends, player)
+			elseif self:isEnemy(player) then
+				table.insert(enemies, player)
+			end
+		end
+	end
+
+	if #targets == 0 then return end
+
+	self:sort(enemies, "defense")
+	for _, enemy in ipairs(enemies) do
+		if self:getDangerousCard(enemy) then
+			return enemy
+		end
+	end
+
+	for _, friend in ipairs(friends) do
+		if friend:hasArmorEffect("SilverLion") and not self:hasSkills(sgs.use_lion_skill, friend)
+		  and friend:isWounded() and self:isWeak(friend) then
+			return friend
+		end
+	end
+
+	for _, friend in ipairs(friends) do
+		if friend:hasSkill("kongcheng") and friend:getHandcardNum() == 1 and self:getEnemyNumBySeat(self.player, friend) > 0
+		  and friend:getHp() <= 2 then
+			return friend
+		end
+	end	
+
+	for _, enemy in ipairs(enemies) do
+		if not enemy:isNude() then
+			if self:getValuableCard(enemy) then
+				return enemy
+			end
+		end
+	end
+
+	for _, enemy in ipairs(enemies) do
+		local cards = sgs.QList2Table(enemy:getHandcards())
+		local flag = string.format("%s_%s_%s", "visible", self.player:objectName(), enemy:objectName())
+		if #cards <= 2 and not enemy:isKongcheng() then
+			for _, cc in ipairs(cards) do
+				if (cc:hasFlag("visible") or cc:hasFlag(flag)) and (cc:isKindOf("Peach") or cc:isKindOf("Analeptic")) then
+					return enemy
+				end
+			end
+		end
+	end
+
+	for _, enemy in ipairs(enemies) do
+		if not enemy:isNude() then
+			if self:hasSkills("jijiu|dimeng|guzheng|qiaobian|jieyin|lijian|beige|miji|neofanjian|fanjian|tuxi|" ..
+			  "mingce|buyi|bifa|noswuyan|weimu|anxu|tongxin|xiliang|chouliang|shouye|huoshui|qixi",enemy) then
+				local equips = { enemy:getDefensiveHorse(), enemy:getArmor(), enemy:getOffensiveHorse(), enemy:getWeapon() }
+				if enemy:getDefensiveHorse() then return enemy end
+				if enemy:getArmor() and not enemy:hasArmorEffect("SilverLion") then
+					return enemy	
+				end
+				for _ , equip in ipairs(equips) do
+					if equip and equip:isRed() and enemy:hasSkill("jijiu") then 
+						return enemy
+					end
+				end	        
+			end
+		end
+	end
+
+	for _, enemy in ipairs(enemies) do
+		if enemy:getCards("e"):length() > 0 and not (enemy:hasSkill("tuntian") and enemy:getPhase() == sgs.Player_NotActive) 
+		 and not (self:hasSkills(sgs.lose_equip_skill, enemy) and enemy:isKongcheng())
+		 and not (enemy:getCardCount(true) == 1 and enemy:hasArmorEffect("SilverLion") and enemy:isWounded() and self:isWeak(enemy)) then
+			return enemy
+		end
+	end	
+
+	for _, enemy in ipairs(enemies) do
+		if not enemy:isNude() and self:hasLoseHandcardEffective(enemy) 
+		  and not (enemy:hasSkill("tuntian") and enemy:getPhase() == sgs.Player_NotActive) then
+			return enemy
+		end
+	end
+
+	return
 end
 
 dofile "lua/ai/debug-ai.lua"

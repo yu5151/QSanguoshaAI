@@ -1282,7 +1282,7 @@ function SmartAI:useCardDuel(duel, use)
 		if self:getDamagedEffects(b, self.player) then v2 = v2 + 20 then
 
 		if not self:isWeak(a) and a:hasSkill("jianxiong") and not self.player:hasSkill("jueqing") then v1 = v1 + 10 end
-		if not self:isWeak(b) and a:hasSkill("jianxiong") and not self.player:hasSkill("jueqing") then v2 = v2 + 10 end
+		if not self:isWeak(b) and b:hasSkill("jianxiong") and not self.player:hasSkill("jueqing") then v2 = v2 + 10 end
 
 		if a:getHp() > getBestHp(a) then v1 = v1 + 5 end
 		if b:getHp() > getBestHp(b) then v2 = v2 + 5 end
@@ -1291,10 +1291,10 @@ function SmartAI:useCardDuel(duel, use)
 		if self:hasSkills(sgs.masochism_skill, b) then v2 = v2 + 5 end		
 
 		if not self:isWeak(a) and a:hasSkill("jiang") then v1 = v1 + 5 end
-		if not self:isWeak(b) and a:hasSkill("jiang") then v2 = v2 + 5 end
+		if not self:isWeak(b) and b:hasSkill("jiang") then v2 = v2 + 5 end
 
-		if a:hasLordSkill("jijiang") then v1 = v1 + 5 end
-		if b:hasLordSkill("jijiang") then v2 = v2 + 5 end
+		if a:hasLordSkill("jijiang") then v1 = v1 + 10 end
+		if b:hasLordSkill("jijiang") then v2 = v2 + 10 end
 
 		if v1 == v2 then return sgs.getDefenseSlash(a) < sgs.getDefenseSlash(b) end
 

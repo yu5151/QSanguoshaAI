@@ -502,14 +502,14 @@ sgs.ai_skill_use.slash = function(self, prompt)
 		if parsedPrompt[1] == "collateral-slash" then ret = callback(self, nil, nil, nil, target) else ret = callback(self, nil, nil, target, target2) end
 		if ret == nil or ret == "." then return "." end
 		slash = sgs.Card_Parse(ret)
-		-- what about 20121221?
-		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, card) > 50 or self.player:hasFlag("slashNoDistanceLimit")
+
+		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, slash) > 50 or self.player:hasFlag("slashNoDistanceLimit")
 		if self.player:canSlash(target, slash, not no_distance) then return ret .. "->" .. target:objectName() end
 		return "."
 	end
 	local slashes = self:getCards("Slash")
 	for _, slash in ipairs(slashes) do
-		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, card) > 50 or self.player:hasFlag("slashNoDistanceLimit")
+		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, slash) > 50 or self.player:hasFlag("slashNoDistanceLimit")
 		for _, enemy in ipairs(self.enemies) do
 			if self.player:canSlash(enemy, slash, not no_distance) and not self:slashProhibit(slash, enemy)
 				and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)

@@ -1841,7 +1841,7 @@ function SmartAI:useCardCollateral(card, use)
 			if not n then
 				for _, friend in ipairs(toList) do
 					if enemy:canSlash(friend) and self:objectiveLevel(friend) < 0 and enemy:objectName() ~= friend:objectName() 
-							and getKnownCard(player, "Jink", true, "he") >= 2 then
+							and getKnownCard(friend, "Jink", true, "he") >= 2 then
 						n = 1
 						final_enemy = friend
 						break

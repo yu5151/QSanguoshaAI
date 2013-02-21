@@ -1838,6 +1838,17 @@ function SmartAI:useCardCollateral(card, use)
 				end
 			end
 
+			if not n then
+				for _, friend in ipairs(toList) do
+					if enemy:canSlash(friend) and self:objectiveLevel(friend) < 0 and enemy:objectName() ~= friend:objectName() 
+							and getKnownCard(friend, "Jink", true, "he") >= 2 then
+						n = 1
+						final_enemy = friend
+						break
+					end
+				end
+			end
+
 			if n then 
 				use.card = card
 				if use.to then use.to:append(enemy) end

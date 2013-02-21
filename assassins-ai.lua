@@ -145,6 +145,7 @@ mizhao_skill.name="mizhao"
 table.insert(sgs.ai_skills, mizhao_skill)
 mizhao_skill.getTurnUseCard=function(self)
 	if self.player:hasUsed("MizhaoCard") or self.player:isKongcheng() then return end
+	if self:needBear() then return end
 	local cards = self.player:getHandcards()
 	local allcard = {}
 	cards = sgs.QList2Table(cards)
@@ -249,6 +250,7 @@ mixin_skill.name="mixin"
 table.insert(sgs.ai_skills, mixin_skill)
 mixin_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("MixinCard") or self.player:isKongcheng() then return end
+	if self:needBear() then return end
 	local cards = self.player:getHandcards()
 	local allcard = {}
 	cards = sgs.QList2Table(cards)
@@ -308,38 +310,36 @@ end
 duyi_skill={}
 duyi_skill.name="duyi"
 table.insert(sgs.ai_skills, duyi_skill)
-duyi_skill.getTurnUseCard=function(self)
+duyi_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("DuyiCard") then return end
 	return sgs.Card_Parse("@DuyiCard=.")
 end
 
-sgs.ai_skill_use_func.DuyiCard=function(card,use,self)
+sgs.ai_skill_use_func.DuyiCard = function(card,use,self)
 	use.card = card
 end
 
-sgs.ai_skill_playerchosen.duyi=function(self, targets)
-	local targetlist=sgs.QList2Table(targets)
-	self:sort(targetlist,"hp")
-	for _, target in sgs.qlist(targets) do
-		if self:isFriend(target) and target:objectName() ~= self.player:objectName() then return target end
+sgs.ai_skill_playerchosen.duyi = function(self, targets)
+	local to = player_to_draw(self, "all")
+	if to then return to
+	else return self.player
 	end
-	return targetlist[#targetlist]
 end
 
--- 需要data
--- sgs.ai_skill_invoke.duanzhi = function(self, data)
-	-- local use = data:toCardUse()
-	-- if self:isEnemy(use.from) and use.card:getSubtype() == "attack_card" and self.player:getHp() == 1 and not self:getCard("Peach") and not self:getCard("Analeptic") then
-		-- return true
-	-- end
-	-- return self:isEnemy(use.from) and self.player:getHp() > 2
--- end
+sgs.ai_skill_invoke.duanzhi = function(self, data)
+	local use = data:toCardUse()
+	if self:isEnemy(use.from) and use.card:getSubtype() == "attack_card" and self.player:getHp() == 1 and not self:getCard("Peach") and not self:getCard("Analeptic") then
+		return true
+	end
+	return self:isEnemy(use.from) and self.player:getHp() > 2
+end
 
 sgs.ai_skill_choice.duanzhi = function(self, choices)
 	return "discard"
 end
 
 sgs.ai_skill_use["@@fengyin"] = function(self, data)
+	if self:needBear() then return "." end
 	local cards = self.player:getHandcards()
 	local card
 	cards = sgs.QList2Table(cards)

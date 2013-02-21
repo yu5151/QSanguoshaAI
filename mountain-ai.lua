@@ -146,7 +146,7 @@ sgs.ai_skill_discard.qiaobian = function(self, discard_num, min_num, optional, i
 			break
 		end
 	end
-	if card==nil then return {} end
+	if card == nil then return {} end
 	table.insert(to_discard, card:getEffectiveId())
 	current_phase = self.player:getMark("qiaobianPhase")
 	if current_phase == sgs.Player_Judge then
@@ -215,6 +215,7 @@ sgs.ai_skill_discard.qiaobian = function(self, discard_num, min_num, optional, i
 		self:sortByKeepValue(cards)
 		table.remove(to_discard)
 		table.insert(to_discard, cards[1]:getEffectiveId())
+		if self:needBear() then return end
 		if self.player:getHandcardNum()-1 > self.player:getHp() then
 			return to_discard
 		end
@@ -397,7 +398,7 @@ end
 
 function sgs.ai_slash_prohibit.xiangle(self, to)
 	if self:isFriend(to) then return false end
-	return self:getCardsNum("Slash")+self:getCardsNum("Analpetic")+math.max(self:getCardsNum("Jink")-1,0) < 2
+	return self:getCardsNum("Slash") + self:getCardsNum("Analpetic") + math.max(self:getCardsNum("Jink")-1, 0) < 2
 end
 
 sgs.ai_skill_invoke.fangquan = function(self, data)
@@ -529,7 +530,7 @@ sgs.ai_skill_use_func.TiaoxinCard = function(card,use,self)
 	local targets = {}
 	for _, enemy in ipairs(self.enemies) do
 		if enemy:distanceTo(self.player) <= enemy:getAttackRange() and
-			(getCardsNum("Slash", enemy) == 0 or self:getCardsNum("Jink") > 0) and
+			(getCardsNum("Slash", enemy) < 1 or self:getCardsNum("Jink") > 0) and
 			not enemy:isNude() then
 			table.insert(targets, enemy)
 		end
@@ -789,6 +790,7 @@ end
 
 function sgs.ai_slash_prohibit.duanchang(self, to)
 	if self.player:hasSkill("jueqing") or (self.player:hasSkill("qianxi") and self.player:distanceTo(to) == 1) then return false end
+	if self.player:hasFlag("nosjiefanUsed") then return false end
 	if to:getHp() > 1 or #self.enemies == 1 then return false end
 
 	if self.player:getMaxHp() == 3 and self.player:getArmor() and self.player:getDefensiveHorse() then return false end

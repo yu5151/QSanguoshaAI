@@ -118,15 +118,8 @@ sgs.ai_chaofeng.yuejin = 2
 
 sgs.ai_skill_use["@@shushen"] = function(self, prompt)
 	if #self.friends_noself == 0 then return "." end
-	self:sort(self.friends_noself, "defense")
-	
-	for _, friend in ipairs(self.friends_noself) do
-		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive)
-			and not (friend:hasSkill("kongcheng") and friend:isKongcheng()) then
-			return ("@ShushenCard=.->%s"):format(friend:objectName())
-		end
-	end
-
+	local to = player_to_draw(self, "noself")
+	if to then return ("@ShushenCard=.->%s"):format(to:objectName()) end
 	return "."
 end
 
@@ -150,6 +143,7 @@ duoshi_skill.getTurnUseCard = function(self, inclusive)
 
 	local red_card
 	if self.player:getCardCount(false) <= 2 then return end
+	if self:needBear() then return end
 	self:sortByUseValue(cards, true)
 
 	for _, card in ipairs(cards) do
@@ -214,6 +208,7 @@ fenxun_skill.name = "fenxun"
 table.insert(sgs.ai_skills, fenxun_skill)
 fenxun_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("FenxunCard") then return end
+	if self:needBear() then return end
 	if not self.player:isNude() then
 		local card_id
 		local slashcount = self:getCardsNum("Slash")
@@ -222,7 +217,8 @@ fenxun_skill.getTurnUseCard = function(self)
 		cards = sgs.QList2Table(cards)
 		self:sortByKeepValue(cards)
 
-		if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
+		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
+		  or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
 			return sgs.Card_Parse("@FenxunCard=" .. self.player:getArmor():getId())
 		elseif self.player:getHandcardNum() > 0 then
 			for _, acard in ipairs(cards) do
@@ -293,7 +289,7 @@ sgs.ai_card_intention.FenxunCard = 50
 
 sgs.ai_skill_choice.mingshi = function(self, choices, data)
 	local damage = data:toDamage()
-	return (damage.to and self:isEnemy(damage.to) and damage.damage == 1) and "yes" or "no"
+	return damage.to and self:isFriend(damage.to) and "no" or "yes"
 end
 
 sgs.ai_skill_invoke.lirang = function(self, data)
@@ -301,71 +297,20 @@ sgs.ai_skill_invoke.lirang = function(self, data)
 end
 
 sgs.ai_skill_use["@@sijian"] = function(self, prompt)
-	local zhugeliang = self.room:findPlayerBySkillName("kongcheng")
-
-	self:sort(self.enemies, "defense")
-	for _, enemy in ipairs(self.enemies) do
-		if not enemy:isNude() then
-			if self:getDangerousCard(enemy) then
-				return ("@SijianCard=.->%s"):format(enemy:objectName())
-			end
-		end
-	end
-
-	for _, friend in ipairs(self.friends_noself) do
-		if friend:hasArmorEffect("SilverLion") and not self:hasSkills(sgs.use_lion_skill, friend)
-		  and friend:isWounded() and self:isWeak(friend) then
-			return ("@SijianCard=.->%s"):format(friend:objectName())
-		end
-	end
-
-	if zhugeliang and self:isFriend(zhugeliang) and zhugeliang:getHandcardNum() == 1 and self:getEnemyNumBySeat(self.player,zhugeliang) > 0
-	  and zhugeliang:getHp() <= 2 then
-		return ("@SijianCard=.->%s"):format(zhugeliang:objectName())
-	end	
-
-	for _, enemy in ipairs(self.enemies) do
-		if not enemy:isNude() then
-			if self:getValuableCard(enemy) then
-				return ("@SijianCard=.->%s"):format(enemy:objectName())
-			end
-		end
-	end
-
-	for _, enemy in ipairs(self.enemies) do
-		local cards = sgs.QList2Table(enemy:getHandcards())
-		local flag = string.format("%s_%s_%s", "visible", self.player:objectName(), enemy:objectName())
-		if #cards <= 2 and not enemy:isKongcheng() then
-			for _, cc in ipairs(cards) do
-				if (cc:hasFlag("visible") or cc:hasFlag(flag)) and (cc:isKindOf("Peach") or cc:isKindOf("Analeptic")) then
-					return ("@SijianCard=.->%s"):format(enemy:objectName())
-				end
-			end
-		end
-	end
-	
-	for _, enemy in ipairs(self.enemies) do
-		if enemy:getCards("e"):length() > 0 and not (enemy:hasSkill("tuntian") and enemy:getPhase() == sgs.Player_NotActive) 
-		 and not (self:hasSkills(sgs.lose_equip_skill, enemy) and enemy:isKongcheng())
-		 and not (enemy:getCardCount(true) == 1 and enemy:hasArmorEffect("SilverLion") and enemy:isWounded() and self:isWeak(enemy)) then
-			return ("@SijianCard=.->%s"):format(enemy:objectName())
-		end
-	end	
-
-	for _, enemy in ipairs(self.enemies) do
-		if not enemy:isNude() and self:hasLoseHandcardEffective(enemy) 
-		  and not (enemy:hasSkill("tuntian") and enemy:getPhase() == sgs.Player_NotActive) then
-			return ("@SijianCard=.->%s"):format(enemy:objectName())
-		end
-	end
-
+	local to
+	to = player_to_discard(self, "noself")
+	if to then return ("@SijianCard=.->%s"):format(to:objectName()) end
 	return "."
 end
 
-sgs.ai_card_intention.SijianCard = function(self, card, from, tos)
+sgs.ai_card_intention.SijianCard = function(card, from, tos)
 	local intention = 80
-	if tos[1]:hasSkill("kongcheng") and tos[1]:getHandcardNum() == 1 then
+	local to = tos[1]
+	if to:hasSkill("kongcheng") and to:getHandcardNum() == 1 and to:getHp() <= 2 then
 		intention = -30
+	end
+	if to:hasArmorEffect("SilverLion") and to:isWounded() then
+		  intention = -30
 	end
 	sgs.updateIntention(from, tos[1], intention)
 end
@@ -468,6 +413,7 @@ qingcheng_skill.name = "qingcheng"
 table.insert(sgs.ai_skills, qingcheng_skill)
 qingcheng_skill.getTurnUseCard = function(self, inclusive)
 	local equipcard
+	if self:needBear() then return end
 	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
 		equipcard = self.player:getArmor()
 	else

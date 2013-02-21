@@ -9,14 +9,15 @@ end
 
 sgs.ai_slash_prohibit.chongzhen = function(self, to, card)
 	if self:isFriend(to) then return false end
-	if to:hasSkill("longdan") and to:getHandcardNum()>=3 and self.player:getHandcardNum() > 1 then return true end	
+	if to:hasSkill("longdan") and to:getHandcardNum() >= 3 and self.player:getHandcardNum() > 1 then return true end	
 	return false	
 end
 
-local lihun_skill={}
-lihun_skill.name="lihun"
+local lihun_skill = {}
+lihun_skill.name = "lihun"
 table.insert(sgs.ai_skills,lihun_skill)
-lihun_skill.getTurnUseCard=function(self)
+lihun_skill.getTurnUseCard = function(self)
+	if self:needBear() then return end
 	if self.player:hasUsed("LihunCard") or self.player:isNude() then return end
 	local card_id
 	if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) or self:evaluateArmor() < -5 then
@@ -33,11 +34,11 @@ lihun_skill.getTurnUseCard=function(self)
 			end
 		end
 	elseif not self.player:getEquips():isEmpty() then
-		local player=self.player
-		if player:getWeapon() then card_id=player:getWeapon():getId()
+		local player = self.player
+		if player:getWeapon() then card_id = player:getWeapon():getId()
 		elseif player:getOffensiveHorse() then card_id=player:getOffensiveHorse():getId()
 		elseif player:getDefensiveHorse() then card_id=player:getDefensiveHorse():getId()
-		elseif player:getArmor() and player:getHandcardNum()<=1 then card_id=player:getArmor():getId()
+		elseif player:getArmor() and player:getHandcardNum() <= 1 then card_id = player:getArmor():getId()
 		end
 	end
 	if not card_id then
@@ -58,8 +59,8 @@ lihun_skill.getTurnUseCard=function(self)
 end
 
 sgs.ai_skill_use_func.LihunCard = function(card,use,self)
-	local cards=self.player:getHandcards()
-	cards=sgs.QList2Table(cards)
+	local cards = self.player:getHandcards()
+	cards = sgs.QList2Table(cards)
 
 	if not self.player:hasUsed("LihunCard") then
 		self:sort(self.enemies, "handcard", true)
@@ -189,10 +190,11 @@ sgs.ai_cardneed.jie = function(to, card)
 	return card:isRed() and isCard("Slash", card, to)
 end
 
-local dahe_skill={}
-dahe_skill.name="dahe"
+local dahe_skill = {}
+dahe_skill.name = "dahe"
 table.insert(sgs.ai_skills,dahe_skill)
-dahe_skill.getTurnUseCard=function(self)
+dahe_skill.getTurnUseCard = function(self)
+	if self:needBear() then return end
 	if not self.player:hasUsed("DaheCard") and not self.player:isKongcheng() then return sgs.Card_Parse("@DaheCard=.") end
 end
 
@@ -202,7 +204,7 @@ sgs.ai_skill_use_func.DaheCard=function(card,use,self)
 	local max_point = max_card:getNumber()
 	local slashcount = self:getCardsNum("Slash")
 	if max_card:isKindOf("Slash") then slashcount = slashcount - 1 end
-	if self.player:hasSkill("kongcheng") and self.player:getHandcardNum()==1 then
+	if self.player:hasSkill("kongcheng") and self.player:getHandcardNum() == 1 then
 		for _, enemy in ipairs(self.enemies) do
 			if not enemy:isKongcheng() then
 				use.card = sgs.Card_Parse("@DaheCard=" .. max_card:getId())
@@ -279,10 +281,11 @@ sgs.dynamic_value.control_card.DaheCard = true
 sgs.ai_use_value.DaheCard = 8.5
 sgs.ai_use_priority.DaheCard = 8
 
-local tanhu_skill={}
-tanhu_skill.name="tanhu"
+local tanhu_skill = {}
+tanhu_skill.name = "tanhu"
 table.insert(sgs.ai_skills,tanhu_skill)
 tanhu_skill.getTurnUseCard=function(self)
+	if self:needBear() then return end
 	if not self.player:hasUsed("TanhuCard") and not self.player:isKongcheng() then
 		local max_card = self:getMaxCard()
 		return sgs.Card_Parse("@TanhuCard=" .. max_card:getEffectiveId())
@@ -958,7 +961,9 @@ sgs.ai_skill_invoke.fenyong = function(self, data)
 end
 
 function sgs.ai_slash_prohibit.fenyong(self, to)
-	return to:getMark("@fenyong") >0 and to:hasSkill("fenyong")
+	if self.player:hasSkill("jueqing") then return false end
+	if self.player:hasSkill("qianxi") and self.player:distanceTo(self.player) == 1 then return false end
+	return to:getMark("@fenyong") > 0 and to:hasSkill("fenyong")
 end
 
 sgs.ai_skill_choice.xuehen = function(self, choices)	

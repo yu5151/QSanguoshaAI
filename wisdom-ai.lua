@@ -5,7 +5,8 @@
 local juao_skill={}
 juao_skill.name = "juao"
 table.insert(sgs.ai_skills, juao_skill)
-juao_skill.getTurnUseCard=function(self)
+juao_skill.getTurnUseCard = function(self)
+	if self:needBear() then return end
 	if not self.player:hasUsed("JuaoCard") and self.player:getHandcardNum() > 1 then
 		local card_id = self:getCardRandomly(self.player, "h")
 		return sgs.Card_Parse("@JuaoCard=" .. card_id)
@@ -184,6 +185,7 @@ sgs.ai_cardneed.tanlan = sgs.ai_cardneed.bignumber
 	描述：每当你使用一张非延时类锦囊时(在它结算之前)，可立即对攻击范围内的角色使用一张【杀】 
 ]]--
 sgs.ai_skill_invoke.yicai = function(self, data)
+	if self:needBear() then return false end
 	for _, enemy in ipairs(self.enemies) do
 		if self.player:canSlash(enemy, nil, true) then
 			if self:getCardsNum("Slash") > 0 then 
@@ -223,15 +225,16 @@ sgs.ai_skill_playerchosen.beifa = function(self, targets)
 	return targetlist[#targetlist]
 end
 
-sgs.ai_chaofeng.wisjiangwei = 2
+sgs.ai_chaofeng.wis_jiangwei = 2
 --[[
 	技能：后援
 	描述：出牌阶段，你可以弃置两张手牌，指定一名其他角色摸两张牌，每阶段限一次 
 ]]--
-local houyuan_skill={}
-houyuan_skill.name="houyuan"
-table.insert(sgs.ai_skills,houyuan_skill)
-houyuan_skill.getTurnUseCard=function(self)
+local houyuan_skill = {}
+houyuan_skill.name = "houyuan"
+table.insert(sgs.ai_skills, houyuan_skill)
+houyuan_skill.getTurnUseCard = function(self)
+	if self:needBear() then return end
 	if not self.player:hasUsed("HouyuanCard") and self.player:getHandcardNum() > 1 then
 		local givecard = {}
 		local index = 0
@@ -250,16 +253,7 @@ end
 sgs.ai_skill_use_func.HouyuanCard = function(card, use, self)
 	if #self.friends == 1 then return end
 	local target
-	local max_x = 20
-	for _, friend in ipairs(self.friends_noself) do
-		if not friend:hasSkill("manjuan") then --不能对漫卷队友发动
-			local x = friend:getHandcardNum()
-			if x < max_x then
-				max_x = x
-				target = friend
-			end
-		end
-	end
+	target = player_to_draw(self, "noself")
 	local cards = self.player:getCards("h")
 	cards = sgs.QList2Table(cards)
 	self:sortByUseValue(cards, true)
@@ -278,7 +272,7 @@ end
 
 sgs.ai_card_intention.HouyuanCard = -70
 
-sgs.ai_chaofeng.wisjiangwan = 6
+sgs.ai_chaofeng.wis_jiangwan = 6
 --[[
 	技能：霸王
 	描述：当你使用的【杀】被【闪】响应时，你可以和对方拼点：若你赢，可以选择最多两个目标角色，视为对其分别使用了一张【杀】
@@ -338,9 +332,14 @@ sgs.ai_card_intention.BawangCard = sgs.ai_card_intention.ShensuCard
 	技能：危殆（主公技）
 	描述：当你需要使用一张【酒】时，所有吴势力角色按行动顺序依次选择是否打出一张黑桃2~9的手牌，视为你使用了一张【酒】，直到有一名角色或没有任何角色决定如此做时为止 
 ]]--
-sgs.ai_skill_use["@@weidai"] = function(self, prompt)
-	return "@WeidaiCard=.->."
+
+function sgs.ai_cardsview.weidai(class_name, player)
+	if class_name == "Analeptic" and player:hasLordSkill("weidai") and not player:hasFlag("weidai_failed") then
+		return "@WeidaiCard=.->."
+	end
 end
+
+
 
 sgs.ai_skill_use_func.WeidaiCard = function(card, use, self)
 	use.card = card
@@ -362,19 +361,25 @@ sgs.ai_skill_cardask["@weidai-analeptic"] = function(self, data)
 	return "."
 end
 
-sgs.ai_chaofeng.wissunce = 1
+sgs.ai_event_callback[sgs.ChoiceMade].weidai=function(self, player, data)
+	local choices= data:toString():split(":")	
+	if choices[1] == "cardResponded" and choices[3] == "@weidai-analeptic" then
+		local target = findPlayerByObjectName(self.room, choices[4])
+		local card = choices[#choices]
+		if card ~= "_nil_" then
+			sgs.updateIntention(player, target, -80)
+		end
+	end	
+end
+
+sgs.ai_chaofeng.wis_sunce = 1
 --[[
 	技能：笼络
 	描述：回合结束阶段开始时，你可以选择一名其他角色摸取与你弃牌阶段弃牌数量相同的牌 
 ]]--
 sgs.ai_skill_playerchosen.longluo = function(self, targets)
-	for _, player in sgs.qlist(targets) do
-		if self:isFriend(player) and player:getHp() > player:getHandcardNum() then
-			if not player:hasSkill("manjuan") then --对漫卷队友无效
-				return player
-			end
-		end
-	end
+	local to = player_to_draw(self, "noself")
+	if to then return to end
 	return self.friends_noself[1]
 end
 
@@ -383,75 +388,110 @@ sgs.ai_playerchosen_intention.longluo = -60
 sgs.ai_skill_invoke.longluo = function(self, data)
 	return #self.friends > 1
 end
+
 --[[
 	技能：辅佐
 	描述：当有角色拼点时，你可以打出一张点数小于8的手牌，让其中一名角色的拼点牌加上这张牌点数的二分之一（向下取整）
 ]]--
-sgs.ai_skill_choice.fuzuo = function(self , choices)
-	--排除不能发动技能的情形
-	if self.player:isKongcheng() then
-		self:speak("空城看好戏，呵呵。")
-		return "cancel"
+sgs.ai_skill_use["@@fuzuo"] = function(self, prompt, method)
+	if self.player:isKongcheng() then return "." end
+	
+	local function find_a_card(number)
+		local card
+		number = math.abs(number)
+		local cards = sgs.QList2Table(self.player:getHandcards())
+		self:sortByKeepValue(cards)		
+		for _, acard in ipairs(cards) do
+			local anum = acard:getNumber()
+			if math.ceil(anum/2) > number and anum < 8 then
+				card = acard
+			end
+		end
+		return card
 	end
-	local flag = true
-	local handcards = self.player:getHandcards()
-	for _,card in sgs.qlist(handcards) do
-		local point = card:getNumber()
-		if point > 1 and point < 8 then --因为是向下取整，所以可用范围是2～7。
-			flag = false
+	
+	local pindian = self.room:getTag("FuzuoPindianData"):toPindian()
+	local from, to = pindian.from, pindian.to
+	local from_num, to_num = pindian.from_number, pindian.to_number
+	local reason = pindian.reason
+	local PDcards = {}
+	table.insert(PDcards, pindian.from_card)
+	table.insert(PDcards, pindian.to_card)
+	
+	if math.abs(from_num - to_num) >= 3 then return "." end
+	
+	local card = find_a_card(from_num - to_num)
+	if not card then return "." end
+	
+	local Valuable
+	for _, acard in ipairs(PDcards) do
+		if acard:isKindOf("ExNihilo") or acard:isKindOf("Peach") or acard:isKindOf("Snatch") or acard:isKindOf("Dismantlement") or acard:isKindOf("Duel") then
+			Valuable = true
 			break
+		elseif acard:isKindOf("Slash") and self:isEquip("Crossbow", from) and reason ~= "zhiba_pindian" then
+			Valuable = true
 		end
 	end
-	if flag then --没有点数小于8的手牌
-		self:speak("别看我，手里是真没货……")
-		return "cancel"
+	
+	local onlyone_Jink_Peach
+	if isCard("Peach",card, self.player) and self:getCardsNum("Peach") <= 1 and self.player:isWounded() then
+		onlyone_Jink_Peach = true
+	elseif isCard("Jink",card, self.player) and self:getCardsNum("Jink") <= 1 then
+		onlyone_Jink_Peach = true
 	end
-	--现在choices应该是"nameA+nameB+cancel"形式的，下面开始获取具体选项
-	local nameA = ""
-	local nameB = ""
-	local fromPosA = -1
-	local toPosA = -1
-	local fromPosB = -1
-	local toPosB = -1
-	fromPosA, toPosA = string.find(choices, "+")
-	if fromPosA > 1 and toPosA == fromPosA then
-		nameA = string.sub(choices, 1, fromPosA-1)
-		fromPosB, toPosB = string.find(choices, "+", toPosA+1)
-		if fromPosB > toPosA and toPosB == fromPosB then
-			nameB = string.sub(choices, toPosA+1, toPosB-1)
-		else
-			self:speak("呼叫程序员！我的AI又出错了！")
-			return "cancel"
+	
+	if reason == "zhiba_pindian" then
+		if Valuable or not onlyone_Jink_Peach or self:getOverflow() > 0 and self:willSkipPlayPhase() then
+			if self:isFriend(to) and from_num > to_num then			
+				return "@FuzuoCard="..card:getEffectiveId().."->"..to:objectName()
+			elseif not self:isFriend(to) and to_num > from_num then
+				return "@FuzuoCard="..card:getEffectiveId().."->"..from:objectName()
+			end
+		end		
+	elseif reason == "dahe" or reason == "mizhao" or reason == "shuangren" then
+		if self:isFriend(from) and from_num < to_num then
+			return "@FuzuoCard="..card:getEffectiveId().."->"..from:objectName()
+		elseif not self:isFriend(from) and from_num > to_num then
+			return "@FuzuoCard="..card:getEffectiveId().."->"..to:objectName()
 		end
+		
+	elseif reason == " lieren" or reason == "tanlan"  or reason == "jueji" then
+		if Valuable or not onlyone_Jink_Peach or self:getOverflow() > 0 and self:willSkipPlayPhase() then
+			if self:isFriend(from) and not self:isFriend(to) and from_num < to_num then
+				return "@FuzuoCard="..card:getEffectiveId().."->"..from:objectName() 
+			elseif self:isFriend(to) and not self:isFriend(from) and to_num < from_num then
+				return "@FuzuoCard="..card:getEffectiveId().."->"..to:objectName()
+			end		
+		end
+		
+	elseif reason == "tianyi" or reason == "xianzhen" then		
+		if self:isFriend(from) and from_num < to_num and getCardsNum("Slash", from) >= 1 then			
+			return "@FuzuoCard="..card:getEffectiveId().."->"..from:objectName()
+		elseif not self:isFriend(from) and self:isFriend(to) and from_num > to_num and getCardsNum("Slash", from) >= 1 then
+			return "@FuzuoCard="..card:getEffectiveId().."->"..to:objectName()
+		end
+		
+	elseif reason == "quhu"  then
+		if not self:isFriend(from) and self:isFriend(to) and from_num > to_num then
+			return "@FuzuoCard="..card:getEffectiveId().."->"..to:objectName()
+		elseif self:isFriend(from) and from_num >= 10 and from_num < to_num then
+			return "@FuzuoCard="..card:getEffectiveId().."->"..from:objectName()
+		end
+		
 	else
-		self:speak("呼叫程序员！我的AI又出错了！")
-		return "cancel"
+		if self:isFriend(from) and self:isFriend(to) then return "." end
+		if not onlyone_Jink_Peach or self:getOverflow() > 0 and self:willSkipPlayPhase() then
+			if self:isFriend(from) and from_num < to_num then
+				return "@FuzuoCard="..card:getEffectiveId().."->"..from:objectName()
+			elseif not self:isFriend(to) and to_num < from_num then
+				return "@FuzuoCard="..card:getEffectiveId().."->"..to:objectName()
+			end
+		end			
 	end
-	--现在选项内容已经确定为nameA和nameB，可以判断进行辅佐的目标了
-	for _,p in pairs(self.friends) do
-		if p:getGeneralName() == nameA then
-			return nameA
-		end
-		if p:getGeneralName() == nameB then
-			return nameB
-		end
-	end
-	self:speak("你们爱谁赢谁赢。")
-	return "cancel"
+	
+	return "."
 end
-sgs.ai_skill_cardask["@fuzuo_card"] = function(self, data, pattern, target)
-	local handcards = self.player:getHandcards()
-	local cards = {}
-	for _,card in sgs.qlist(handcards) do
-		local point = card:getNumber()
-		if point > 1 and point < 8 then
-			table.insert(cards, card)
-		end
-	end
-	self:sortByKeepValue(cards)
-	local fzcard = cards[1]
-	return fzcard:getEffectiveId()
-end
+
 --[[
 	技能：尽瘁
 	描述：当你死亡时，可令一名角色摸取或者弃置三张牌 
@@ -569,4 +609,4 @@ sgs.ai_skill_invoke.shien = function(self, data)
 	return false
 end
 
-sgs.ai_chaofeng.wisshuijing = 5
+sgs.ai_chaofeng.wis_shuijing = 5

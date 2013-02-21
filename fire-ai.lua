@@ -1,7 +1,8 @@
-local quhu_skill={}
-quhu_skill.name="quhu"
+local quhu_skill = {}
+quhu_skill.name = "quhu"
 table.insert(sgs.ai_skills,quhu_skill)
-quhu_skill.getTurnUseCard=function(self)
+quhu_skill.getTurnUseCard = function(self)
+	if self:needBear() then return end
 	if not self.player:hasUsed("QuhuCard") and not self.player:isKongcheng() then
 		local max_card = self:getMaxCard()
 		return sgs.Card_Parse("@QuhuCard=" .. max_card:getEffectiveId())
@@ -320,10 +321,11 @@ local tianyi_skill={}
 tianyi_skill.name="tianyi"
 table.insert(sgs.ai_skills,tianyi_skill)
 tianyi_skill.getTurnUseCard=function(self)
+	if self:needBear() then return end
 	if not self.player:hasUsed("TianyiCard") and not self.player:isKongcheng() then return sgs.Card_Parse("@TianyiCard=.") end
 end
 
-sgs.ai_skill_use_func.TianyiCard=function(card,use,self)
+sgs.ai_skill_use_func.TianyiCard = function(card,use,self)
 	self:sort(self.enemies, "handcard")
 	local max_card = self:getMaxCard()
 	local max_point = max_card:getNumber()
@@ -498,7 +500,14 @@ luanji_skill.getTurnUseCard=function(self)
 			local suit="no_suit"
 			if first_card:isBlack() == second_card:isBlack() then suit = first_card:getSuitString() end
 
-			local card_str = ("archery_attack:luanji[%s:%s]=%d+%d"):format(suit, 0, first_id, second_id)
+			local card_str
+
+			if sgs.Sanguosha:getVersion() <= "20121221" then
+				card_str = ("archery_attack:luanji[%s:%s]=%d+%d"):format(suit, 0, first_id, second_id)
+			else
+				card_str = ("archery_attack:luanji[to_be_decided:0]=%d+%d"):format(first_id, second_id)
+			end
+
 			local archeryattack = sgs.Card_Parse(card_str)
 			assert(archeryattack)
 			return archeryattack
@@ -509,6 +518,7 @@ end
 sgs.ai_chaofeng.yuanshao = 1
 
 sgs.ai_skill_invoke.shuangxiong=function(self,data)
+	if self:needBear() then return false end
 	if self.player:isSkipped(sgs.Player_Play) or (self.player:getHp() < 2 and not (self:getCardsNum("Slash") > 1 and self.player:getHandcardNum() >= 3)) or #self.enemies == 0 then
 		return false
 	end
@@ -529,7 +539,7 @@ shuangxiong_skill.name="shuangxiong"
 table.insert(sgs.ai_skills,shuangxiong_skill)
 shuangxiong_skill.getTurnUseCard=function(self)
 	if self.player:getMark("shuangxiong") == 0 then return nil end
-	local mark=self.player:getMark("shuangxiong")
+	local mark = self.player:getMark("shuangxiong")
 
 	local cards = self.player:getCards("h")
 	cards=sgs.QList2Table(cards)

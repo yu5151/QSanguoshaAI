@@ -1724,7 +1724,7 @@ function SmartAI:useCardCollateral(card, use)
 		end
 	end
 
-	needCrossbow = needCrossbow and self:getCardsNum("Slash", friend) > 2
+	needCrossbow = needCrossbow and self:getCardsNum("Slash", friend) > 2 and not self.player:hasSkill("paoxiao")
 
 	if needCrossbow then
 		for i = #fromList, 1, -1 do
@@ -1839,17 +1839,17 @@ sgs.ai_use_priority.Collateral = 2.75
 
 sgs.ai_card_intention.Collateral = function(card, from, tos)
 	assert(#tos == 1)
-	if sgs.compareRoleEvaluation(tos[1], "rebel", "loyalist") ~= sgs.compareRoleEvaluation(from, "rebel", "loyalist") then
-		sgs.updateIntention(from, tos[1], 80)
-	end
+	--借刀的关系值更新可能存在bug，先不更新
 	sgs.ai_collateral = false
 end
 
 sgs.dynamic_value.control_card.Collateral = true
 
 sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target, target2)
-	if self:isFriend(target) and target:hasFlag("needCrossbow") then
-		self.room:setPlayerFlag(target, "-needCrossbow")
+	local current = self.room:getCurrent()
+	if self:isFriend(current) and (current:hasFlag("needCrossbow") or 
+			(self:getCardsNum("Slash", current) >= 2 and self.player:getWeapon():isKindOf("Crossbow"))) then
+		if current:hasFlag("needCrossbow") then self.room:setPlayerFlag(current, "-needCrossbow") end
 		return "."
 	end
 

@@ -84,7 +84,7 @@ sgs.ai_chat_func[sgs.Dying].fuck_renegade=function(self, player, data)
 				"小内，我死了，你也赢不了",
 				"没戏了，小内不帮忙的话，我们全部托管吧",
 				}
-	if (self.role=="rebel" or self.role=="loyalist") and sgs.current_mode_players["renegade"]>0 then
+	if (self.role=="rebel" or self.role=="loyalist") and sgs.current_mode_players["renegade"]>0 and self.player:objectName() == player:objectName() then
 		local index =1+ (os.time() % #chat)
 		player:speak(chat[index])
 	end

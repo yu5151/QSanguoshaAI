@@ -488,9 +488,18 @@ sgs.ai_skill_use.slash = function(self, prompt)
 				if player:hasFlag("SlashAssignee") then target = player break end
 			end
 		end
+		local target2 = nil
+		if #parsedPrompt >= 3 then
+			for _, p in sgs.qlist(self.room:getAlivePlayers()) do
+				if p:objectName() == parsedPrompt[3] then
+					target2 = p
+					break
+				end
+			end
+		end
 		if not target then return "." end
 		local ret
-		if parsedPrompt[1] == "collateral-slash" then ret = callback(self, nil, nil, nil, target) else ret = callback(self, nil, nil, target) end
+		if parsedPrompt[1] == "collateral-slash" then ret = callback(self, nil, nil, nil, target) else ret = callback(self, nil, nil, target, target2) end
 		if ret == nil or ret == "." then return "." end
 		slash = sgs.Card_Parse(ret)
 		-- what about 20121221?
@@ -511,6 +520,20 @@ sgs.ai_skill_use.slash = function(self, prompt)
 	end
 	return "."
 end
+
+sgs.ai_skill_use.oldslash = function(self, prompt)
+	local slash = self:getCard("Slash")
+	if not slash then return "." end
+	for _, enemy in ipairs(self.enemies) do
+		if self.player:canSlash(enemy, slash, true) and not self:slashProhibit(slash, enemy) 
+		and self:slashIsEffective(slash, enemy) and not (self.player:hasFlag("slashTargetFix") and not enemy:hasFlag("SlashAssignee")) then
+			return ("%s->%s"):format(slash:toString(), enemy:objectName())
+		end
+	end
+	return "."
+end
+
+if sgs.Sanguosha:getVersion() <= "20121221" then sgs.ai_skill_use.slash = sgs.ai_skill_use.oldslash end
 
 sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
@@ -684,7 +707,7 @@ function SmartAI:useCardPeach(card, use)
 		return
 	end
 
-	if self.player:getHp() > getBestHp(self.player) then return end
+	if self.player:getHp() >= getBestHp(self.player) then return end
 	
 	local lord= self.room:getLord()
 	if self:isFriend(lord) and lord:getHp() <= 2 and not lord:hasSkill("buqu") then 
@@ -1862,11 +1885,10 @@ sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target,
 			if self:slashIsEffective(slash, target2) then 
 				return slash:toString()
 			end
-		end
-		
+		end		
 	end
 
-	if target and target2 and (self:getDamagedEffects(target2,self.player) or target2:getHp()>getBestHp(target2)) then		
+	if target2 and (self:getDamagedEffects(target2,self.player) or target2:getHp()>getBestHp(target2)) then		
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if self:slashIsEffective(slash, target2) and self:isFriend(target2) then 
 				return slash:toString()
@@ -1882,14 +1904,14 @@ sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target,
 		end
 	end
 
-	if target and target2 and not self:hasSkills(sgs.lose_equip_skill) and self:isEnemy(target2) then
+	if target2 and not self:hasSkills(sgs.lose_equip_skill) and self:isEnemy(target2) then
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if self:slashIsEffective(slash, target2) then 
 				return slash:toString()
 			end 
 		end
 	end
-	if target and target2 and not self:hasSkills(sgs.lose_equip_skill) and self:isFriend(target2) then
+	if target2 and not self:hasSkills(sgs.lose_equip_skill) and self:isFriend(target2) then
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if not self:slashIsEffective(slash, target2) then
 				return slash:toString()

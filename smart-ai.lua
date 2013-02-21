@@ -1949,10 +1949,19 @@ function SmartAI:filterEvent(event, player, data)
 	elseif event == sgs.CardsMoveOneTime then
 		local move = data:toMoveOneTime()
 		local from = nil -- convert move.from from const Player * to ServerPlayer *
+		local to = nil -- convert move.to to const Player * to ServerPlayer *
 		if move.from then
 			for _, p in sgs.qlist(global_room:getAlivePlayers()) do
 				if p:objectName() == move.from:objectName() then
 					from = p
+					break
+				end
+			end
+		end
+		if move.to then
+			for _, p in sgs.qlist(global_room:getAlivePlayers()) do
+				if p:objectName() == move.to:objectName() then
+					to = p
 					break
 				end
 			end
@@ -2036,8 +2045,8 @@ function SmartAI:filterEvent(event, player, data)
 
 			end
 
-			if reason.m_skillName == "yiji" and reason.m_reason == sgs.CardMoveReason_S_REASON_PREVIEW and move.to then			
-				global_room:setCardFlag(card_id, "yijicard", move.to)
+			if reason.m_skillName == "yiji" and reason.m_reason == sgs.CardMoveReason_S_REASON_PREVIEW and move.to then	
+				global_room:setCardFlag(card_id, "yijicard", to)
 			end
 			if move.to_place == sgs.Player_PlaceHand and place == sgs.Player_PlaceHand and move.to and from 
 					and from:hasSkill("yiji") and card:hasFlag("yijicard") and reason.m_reason == sgs.CardMoveReason_S_REASON_GIVE then
@@ -3289,6 +3298,7 @@ function SmartAI:askForSinglePeach(dying)
 		local lord = self.room:getLord()
 		if self.player:objectName() ~= dying:objectName() and not dying:isLord() and (self.role == "loyalist" or self.role == "renegade" and self.room:alivePlayerCount() > 2) and			
 		 (sgs.LordNeedPeach and #self:getCards("Peach") <= sgs.LordNeedPeach or 
+		 --国战模式出错：lua/ai/smart-ai.lua:3301: attempt to index local 'lord' (a nil value)
 		 lord:hasFlag("lord_in_danger_SA") and getCardsNum("Slash", lord) <= 1 and #self:getCards("Peach") < 2 or
 		 lord:hasFlag("lord_in_danger_AA") and getCardsNum("Jink", lord) <= 1 and #self:getCards("Peach") < 2) then
 			self.player:speak("TEST:需要救主公")

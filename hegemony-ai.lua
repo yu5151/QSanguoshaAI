@@ -289,7 +289,7 @@ sgs.ai_card_intention.FenxunCard = 50
 
 sgs.ai_skill_choice.mingshi = function(self, choices, data)
 	local damage = data:toDamage()
-	return (damage.from and not self:isFriend(damage.from)) and "yes" or "no"
+	return damage.to and self:isFriend(damage.to) and "no" or "yes"
 end
 
 sgs.ai_skill_invoke.lirang = function(self, data)

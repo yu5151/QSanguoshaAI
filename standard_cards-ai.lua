@@ -1278,8 +1278,8 @@ function SmartAI:useCardDuel(duel, use)
 		local v1 = getCardsNum("Slash", a)
 		local v2 = getCardsNum("Slash", b)
 
-		if self:getDamagedEffects(a, self.player) then v1 = v1 + 20 then
-		if self:getDamagedEffects(b, self.player) then v2 = v2 + 20 then
+		if self:getDamagedEffects(a, self.player) then v1 = v1 + 20 end
+		if self:getDamagedEffects(b, self.player) then v2 = v2 + 20 end
 
 		if not self:isWeak(a) and a:hasSkill("jianxiong") and not self.player:hasSkill("jueqing") then v1 = v1 + 10 end
 		if not self:isWeak(b) and b:hasSkill("jianxiong") and not self.player:hasSkill("jueqing") then v2 = v2 + 10 end
@@ -1831,6 +1831,17 @@ function SmartAI:useCardCollateral(card, use)
 				for _, friend in ipairs(toList) do
 					if enemy:canSlash(friend) and self:objectiveLevel(friend) < 0 and enemy:objectName() ~= friend:objectName() 
 							and (friend:getHp() > getBestHp(friend) or self:getDamagedEffects(friend, enemy) ) then
+						n = 1
+						final_enemy = friend
+						break
+					end
+				end
+			end
+
+			if not n then
+				for _, friend in ipairs(toList) do
+					if enemy:canSlash(friend) and self:objectiveLevel(friend) < 0 and enemy:objectName() ~= friend:objectName() 
+							and getKnownCard(player, "Jink", true, "he") >= 2 then
 						n = 1
 						final_enemy = friend
 						break

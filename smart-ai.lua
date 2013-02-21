@@ -1884,13 +1884,13 @@ function SmartAI:filterEvent(event, player, data)
 		if damage.trigger_chain and lord:isChained() and self:damageIsEffective(lord, damage.nature, from) then
 			if lord:hasArmorEffect("Vine") and damage.nature == sgs.DamageStruct_Fire and lord:getHp() <= damage.damage + 1 then
 				sgs.LordNeedPeach = damage.damage + 2 - lord:getHp()
-				lord:speak("TEST:我要死了,我要"..sgs.LordNeedPeach.."个桃子,你们别乱用桃")
+				--lord:speak("TEST:我要死了,我要"..sgs.LordNeedPeach.."个桃子,你们别乱用桃")
 			elseif lord:getHp() <= damage.damage then
 				sgs.LordNeedPeach = damage.damage + 1 - lord:getHp()
 				local msg = sgs.LogMessage()
 				msg.type = "lordchain"
 				self.room:sendLog(msg)
-				lord:speak("TEST:我要死了,我要"..sgs.LordNeedPeach.."个桃子,你们别乱用桃")
+				--lord:speak("TEST:我要死了,我要"..sgs.LordNeedPeach.."个桃子,你们别乱用桃")
 			end
 		else
 			sgs.LordNeedPeach = nil
@@ -3283,7 +3283,7 @@ function SmartAI:askForSinglePeach(dying)
 		 (sgs.LordNeedPeach and #self:getCards("Peach") <= sgs.LordNeedPeach or 
 		 lord:hasFlag("lord_in_danger_SA") and getCardsNum("Slash", lord) <= 1 and #self:getCards("Peach") < 2 or
 		 lord:hasFlag("lord_in_danger_AA") and getCardsNum("Jink", lord) <= 1 and #self:getCards("Peach") < 2) then
-			self.player:speak("TEST:需要救主公")
+			--self.player:speak("TEST:需要救主公")
 			return "." 
 		end	
 		
@@ -3299,7 +3299,7 @@ function SmartAI:askForSinglePeach(dying)
 				end
 			end
 			if possible_friend == 0 and #self:getCards("Peach") < 1 - dying:getHp() then
-				self.player:speak("TEST:桃不够,救个毛")
+				--self.player:speak("TEST:桃不够,救个毛")
 				return "." 
 			end
 		end

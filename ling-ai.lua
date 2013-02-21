@@ -2,8 +2,15 @@ neoluoyi_skill = {}
 neoluoyi_skill.name = "neoluoyi"
 table.insert(sgs.ai_skills, neoluoyi_skill)
 neoluoyi_skill.getTurnUseCard = function(self)
-	if self:needBear() then return nil end
 	if self.player:hasUsed("LuoyiCard") then return nil end
+	local luoyicard
+
+	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() and self:isWeak() then
+		luoyicard = self.player:getArmor()
+		return sgs.Card_Parse("@LuoyiCard=" .. luoyicard:getEffectiveId())
+	end
+
+	if self:needBear() then return nil end
 	if self.player:getSlashCount() > 0 and not (self.player:hasSkill("paoxiao") or self:isEquip("Crossbow")) then return nil end
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
@@ -37,19 +44,27 @@ neoluoyi_skill.getTurnUseCard = function(self)
 	end		
 	if (slashtarget + dueltarget) > 0 and equipnum > 0 then
 		self:speak("luoyi")
-		local luoyicard
-		for _, card in sgs.qlist(self.player:getCards("he")) do
-			if card:isKindOf("EquipCard") and not self.player:hasEquip(card) then 
-				luoyicard = card
-				break
+		if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
+			luoyicard = self.player:getArmor()
+		end
+		
+		if not luoyicard then
+			for _, card in sgs.qlist(self.player:getCards("he")) do
+				if card:isKindOf("EquipCard") and not self.player:hasEquip(card) then 
+					luoyicard = card
+					break
+				end
 			end
 		end
-		for _, card in sgs.qlist(self.player:getCards("he")) do
-			if card:isKindOf("EquipCard") and not card:isKindOf("Weapon") then 
-				luoyicard = card
-				break
+		if not luoyicard then
+			for _, card in sgs.qlist(self.player:getCards("he")) do
+				if card:isKindOf("EquipCard") and not card:isKindOf("Weapon") then 
+					luoyicard = card
+					break
+				end
 			end
 		end
+		if not luoyicard then return nil end
 		return sgs.Card_Parse("@LuoyiCard=" .. luoyicard:getEffectiveId())
 	end
 end
@@ -61,11 +76,11 @@ end
 sgs.ai_use_priority.LuoyiCard = 9.2
 
 local neofanjian_skill={}
-neofanjian_skill.name="neofanjian"
-table.insert(sgs.ai_skills,neofanjian_skill)
+neofanjian_skill.name = "neofanjian"
+table.insert(sgs.ai_skills, neofanjian_skill)
 neofanjian_skill.getTurnUseCard=function(self)
 	if self.player:isKongcheng() then return nil end
-	if self.player:usedTimes("NeoFanjianCard")>0 then return nil end
+	if self.player:usedTimes("NeoFanjianCard") > 0 then return nil end
 
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	self:sortByKeepValue(cards)

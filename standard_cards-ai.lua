@@ -1278,8 +1278,8 @@ function SmartAI:useCardDuel(duel, use)
 		local v1 = getCardsNum("Slash", a)
 		local v2 = getCardsNum("Slash", b)
 
-		if self:getDamagedEffects(a, self.player) then v1 = v1 + 20 then
-		if self:getDamagedEffects(b, self.player) then v2 = v2 + 20 then
+		if self:getDamagedEffects(a, self.player) then v1 = v1 + 20 end
+		if self:getDamagedEffects(b, self.player) then v2 = v2 + 20 end
 
 		if not self:isWeak(a) and a:hasSkill("jianxiong") and not self.player:hasSkill("jueqing") then v1 = v1 + 10 end
 		if not self:isWeak(b) and b:hasSkill("jianxiong") and not self.player:hasSkill("jueqing") then v2 = v2 + 10 end
@@ -1918,7 +1918,7 @@ sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target,
 		end		
 	end
 
-	if target2 and (self:getDamagedEffects(target2,self.player) or target2:getHp()>getBestHp(target2)) then		
+	if target2 and (self:getDamagedEffects(target2,self.player) or target2:getHp() > getBestHp(target2)) then		
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if self:slashIsEffective(slash, target2) and self:isFriend(target2) then 
 				return slash:toString()

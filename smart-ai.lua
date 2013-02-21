@@ -92,18 +92,22 @@ function setInitialTables()
 	sgs.discard_pile =			global_room:getDiscardPile()
 	sgs.draw_pile = 			global_room:getDrawPile()
 	sgs.lose_equip_skill = 		"xiaoji|xuanfeng|nosxuanfeng"
-	sgs.need_kongcheng = 		"lianying|kongcheng"
+	sgs.need_kongcheng = 		"lianying|kongcheng|beifa"
 	sgs.masochism_skill = 		"yiji|fankui|jieming|neoganglie|ganglie|enyuan|fangzhu|nosenyuan|langgu|guixin|quanji"
-	sgs.wizard_skill = 			"guicai|guidao|jilve|tiandu"
+	sgs.wizard_skill = 		"guicai|guidao|jilve|tiandu|luoying|zhenlie|huanshi"
 	sgs.wizard_harm_skill = 	"guicai|guidao|jilve"
-	sgs.priority_skill = 		"dimeng|haoshi|qingnang|jizhi|guzheng|qixi|jieyin|guose|duanliang|jujian|fanjian|neofanjian|lijian|manjuan|lihun"
-	sgs.save_skill = 			"jijiu|buyi|nosjiefan|chunlao"
-	sgs.exclusive_skill = 		"huilei|duanchang|enyuan|wuhun|buqu|yiji|ganglie|guixin|jieming|miji"
-	sgs.cardneed_skill =		"paoxiao|tianyi|xianzhen|shuangxiong|jizhi|guose|duanliang|qixi|qingnang|" ..
-								"jieyin|renjie|zhiheng|rende|jujian|guicai|guidao|jilve|longhun|wusheng|longdan"
+	sgs.priority_skill = 		"dimeng|haoshi|qingnang|jizhi|guzheng|qixi|jieyin|guose|duanliang|jujian|fanjian|neofanjian|lijian|" ..
+						"manjuan|lihun|tuxi|qiaobian|yongsi|zhiheng|luoshen|rende|mingce|wansha|gongxin|jilve|anxu|" ..
+						"qice|yinling|qingcheng|houyuan|shouye"
+	sgs.save_skill = 		"jijiu|buyi|nosjiefan|chunlao"
+	sgs.exclusive_skill = 		"huilei|duanchang|wuhun|buqu|jincui"
+	sgs.cardneed_skill =		"paoxiao|tianyi|xianzhen|shuangxiong|jizhi|guose|duanliang|qixi|qingnang|yinling|luoyi|guhuo|kanpo|" ..
+						"jieyin|renjie|zhiheng|rende|nosjujian|guicai|guidao|longhun|luanji|qiaobian|beige|jieyuan|" ..
+						"mingce|fuhun|lirang|longluo"
 	sgs.drawpeach_skill =		"tuxi|qiaobian"
-	sgs.recover_skill =			"rende|kuanggu|zaiqi|jieyin|qingnang|yinghun"
-	sgs.use_lion_skill =		 "longhun|duanliang|qixi|guidao|lijian|jujian|nosjujian|zhiheng|mingce|yongsi|fenxun"								  
+	sgs.recover_skill =		"rende|kuanggu|zaiqi|jieyin|qingnang|yinghun|shushen"
+	sgs.use_lion_skill =		 "longhun|duanliang|qixi|guidao|lijian|jujian|nosjujian|zhiheng|mingce|yongsi|fenxun|gongqi|" ..
+						"yinling|jilve|qingcheng|neoluoyi"								  
 	
 	for _, aplayer in sgs.qlist(global_room:getAllPlayers()) do
 		table.insert(sgs.role_evaluation, aplayer:objectName())
@@ -1309,7 +1313,7 @@ function SmartAI:objectiveLevel(player)
 			if sgs.turncount <= 1 and sgs.isLordHealthy() then return 0 end
 			if player:isLord() then return -1 end
 
-			local renegade_attack_skill = string.format("buqu|%s|%s|%s|%s",sgs.priority_skill,sgs.save_skill,sgs.recover_skill,sgs.drawpeach_skill)
+			local renegade_attack_skill = string.format("buqu|%s|%s|%s|%s", sgs.priority_skill, sgs.save_skill, sgs.recover_skill, sgs.drawpeach_skill)
 			for i=1, #players, 1 do
 				if not players[i]:isLord() and self:hasSkills(renegade_attack_skill,players[i]) then return 5 end
 				if not players[i]:isLord() and math.abs(sgs.ai_chaofeng[players[i]:getGeneralName()] or 0) >3 then return 5 end
@@ -2614,7 +2618,7 @@ function SmartAI:askForCardChosen(who, flags, reason)
 					yanxiao = trick:getId()
 				end
 			end
-			if self:hasWizard(self.enemies,true) and lightning then
+			if self:hasWizard(self.enemies, true) and lightning then
 				return lightning
 			end
 			if yanxiao then
@@ -3130,7 +3134,7 @@ function SmartAI:getCardNeedPlayer(cards)
 		for _, friend in ipairs(self.friends_noself) do
 			if not self:needKongcheng(friend) and not friend:hasSkill("manjuan") and not self:willSkipPlayPhase(friend)
 					and (self:hasSkills(sgs.priority_skill,friend) or (sgs.ai_chaofeng[self.player:getGeneralName()] or 0) > 2) then
-				if (self:getOverflow()>0 or self.player:getHandcardNum()>3) and friend:getHandcardNum() <= 3 then
+				if (self:getOverflow()>0 or self.player:getHandcardNum() > 3) and friend:getHandcardNum() <= 3 then
 					return hcard, friend
 				end
 			end
@@ -3478,7 +3482,7 @@ function sgs.getSkillLists(player)
 	return vsnlist, fsnlist
 end
 
-function SmartAI:hasWizard(players,onlyharm)
+function SmartAI:hasWizard(players, onlyharm)
 	local skill
 	if onlyharm then skill = sgs.wizard_harm_skill else skill = sgs.wizard_skill end
 	for _, player in ipairs(players) do
@@ -4948,17 +4952,10 @@ function player_to_draw(self, prompt)
 	end
 
 	if #friends == 0 then return end
-	self:sort(friends, "defense")
 	
+	self:sort(friends, "defense")	
 	for _, friend in ipairs(friends) do
-		if friend:getHandcardNum() < 2 then
-			return friend
-		end
-	end
-	
-	for _, friend in ipairs(friends) do
-		if self:hasSkills("jijiu|qingnang|xinzhan|leiji|jieyin|beige|kanpo|liuli|qiaobian|zhiheng|guidao|longhun|xuanfeng|tianxiang|"..
-		  "lijian|jieyuan|rende|lirang|longluo", friend) then
+		if friend:getHandcardNum() < 2 and not self:needKongcheng(friend) then
 			return friend
 		end
 	end
@@ -4969,6 +4966,7 @@ function player_to_draw(self, prompt)
 		end
 	end
 
+	self:sort(friends, "handcard")
 	return friends[1]
 end
 

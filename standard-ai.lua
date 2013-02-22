@@ -1801,7 +1801,7 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 		local e_peaches = 0
 		for _, enemy in ipairs(self.enemies) do
 			e_peaches = e_peaches + getCardsNum("Peach", enemy)
-			if enemy:getHp() == 1 and self:hasTrickEffective(duel, enemy) and not enemy:isLord() then
+			if enemy:getHp() == 1 and self:hasTrickEffective(duel, enemy) and not enemy:isLord() and enemy:isMale() then
 				loyalist = enemy
 			end
 		end
@@ -1815,13 +1815,13 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 				nextp = nextp:getNextAlive()
 			end
 		end
-		if lord and loyalist and e_peaches < 1 then nextplayerIsEnemy = false end
+		if lord and lord:isMale() and loyalist and e_peaches < 1 then nextplayerIsEnemy = false end
 		if nextplayerIsEnemy then			
 			for _, friend in ipairs(self.friends_noself) do
-				if friend:getHp() == 1 and friend:isKongcheng() and not self:hasSkills("kongcheng|tianming", friend) and
+				if friend:getHp() == 1 and friend:isKongcheng() and not self:hasSkills("kongcheng|tianming", friend) and friend:isMale() and
 				self:hasTrickEffective(duel, friend) then
 					friend1 = friend
-				elseif not friend1 or friend:objectName() ~= friend1:objectName() and not self:hasSkills("wuyan|noswuyan", friend) then
+				elseif not friend1 or friend:objectName() ~= friend1:objectName() and not self:hasSkills("wuyan|noswuyan", friend) and friend:isMale() then
 					friend2 = friend
 				end
 				if friend1 and friend2 then break end

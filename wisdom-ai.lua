@@ -521,7 +521,10 @@ end
 ]]--
 sgs.ai_skill_invoke.badao = function(self, data)
 	for _, enemy in ipairs(self.enemies) do
-		if self.player:canSlash(enemy, nil, true) and self:getCardsNum("Slash") > 0 then return true end
+		if self.player:canSlash(enemy, nil, true) and self:getCardsNum("Slash") > 0 then 
+			self:speak("看我大霸刀！就是比你刀快！") --此句证明这段函数没有被执行，疑为源代码变更所致。
+			return true 
+		end
 	end
 end
 

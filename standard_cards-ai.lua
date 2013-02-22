@@ -480,13 +480,11 @@ end
 sgs.ai_skill_use.slash = function(self, prompt)
 	local parsedPrompt = prompt:split(":")
 	local callback = sgs.ai_skill_cardask[parsedPrompt[1]] -- for askForUseSlashTo
-	if type(callback) == "function" then
+	if self.player:hasFlag("slashTargetFixToOne") and type(callback) == "function" then
 		local slash
 		local target
-		if self.player:hasFlag("slashTargetFix") then
-			for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-				if player:hasFlag("SlashAssignee") then target = player break end
-			end
+		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+			if player:hasFlag("SlashAssignee") then target = player break end
 		end
 		local target2 = nil
 		if #parsedPrompt >= 3 then
@@ -684,7 +682,7 @@ function SmartAI:useCardPeach(card, use)
 	for _, enemy in ipairs(self.enemies) do
 		if self.player:getHandcardNum() < 3 and 
 				(self:hasSkills(sgs.drawpeach_skill,enemy) or getCardsNum("Dismantlement", enemy) >= 1 or
-				enemy:hasSkill("jixi") and enemy:getMark("@waked") > 0 and enemy:getPile("field"):length() >0 and enemy:distanceTo(self.player) == 1 or
+				enemy:hasSkill("jixi") and enemy:getMark("zaoxian") > 0 and enemy:getPile("field"):length() >0 and enemy:distanceTo(self.player) == 1 or
 				enemy:hasSkill("qixi") and getKnownCard(enemy, "black", nil, "he") >= 1 or
 				getCardsNum("Snatch",enemy) >= 1 and enemy:distanceTo(self.player) == 1) then
 			mustusepeach = true
@@ -1841,7 +1839,7 @@ function SmartAI:useCardCollateral(card, use)
 			if not n then
 				for _, friend in ipairs(toList) do
 					if enemy:canSlash(friend) and self:objectiveLevel(friend) < 0 and enemy:objectName() ~= friend:objectName() 
-							and getKnownCard(friend, "Jink", true, "he") >= 2 then
+							and (getKnownCard(friend, "Jink", true, "he") >= 2 or getCardsNum("Slash", enemy) < 1) then
 						n = 1
 						final_enemy = friend
 						break

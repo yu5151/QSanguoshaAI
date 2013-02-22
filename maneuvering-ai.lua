@@ -280,33 +280,38 @@ function SmartAI:isGoodChainPartner(player)
 end
 
 function SmartAI:isGoodChainTarget(who)	
-	local haslord															
 	local good = #(self:getChainedEnemies(self.player))
 	local bad = #(self:getChainedFriends(self.player))
+	
+	if not sgs.GetConfig("EnableHegemony", false) then	
+		local lord = self.room:getLord()
+		if self:isWeak(lord) and lord:isChained() and not self:isEnemy(lord) then
+			return false
+		end
+	end
+
 	for _, friend in ipairs(self:getChainedFriends(self.player)) do
 		if self:cantbeHurt(friend) then
 			return false
 		end
 		if self:isGoodChainPartner(friend) then 
 			good = good+1 
-		elseif self:isWeak(friend) and not friend:hasSkill("buqu") then 
+		elseif self:isWeak(friend) then 
 			good = good-1
 		end
 	end
+
 	for _, enemy in ipairs(self:getChainedEnemies(self.player)) do
-		if enemy:getHp() < 3 and not enemy:hasSkill("buqu") and enemy:getRole() == "lord" and self.player:getRole() == "renegade" then
-			return false
-		end
 		if self:cantbeHurt(enemy) then
 			return false
 		end
 		if self:isGoodChainPartner(enemy) then 
 			bad = bad+1 
-		elseif self:isWeak(enemy) and not enemy:hasSkill("buqu") then
+		elseif self:isWeak(enemy) then
 			bad = bad-1 
 		end
 	end
-	return good > bad and who:isChained()
+	return good >= bad and who:isChained()
 end
 
 

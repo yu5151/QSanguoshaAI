@@ -20,34 +20,44 @@ lihun_skill.getTurnUseCard = function(self)
 	if self:needBear() then return end
 	if self.player:hasUsed("LihunCard") or self.player:isNude() then return end
 	local card_id
-	if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) or self:evaluateArmor() < -5 then
-		return sgs.Card_Parse("@LihunCard=" .. self.player:getArmor():getId())
-	elseif self.player:getHandcardNum() > self.player:getHp() then
-		local cards = self.player:getHandcards()
-		cards=sgs.QList2Table(cards)
+	local cards = self.player:getHandcards()
+	cards = sgs.QList2Table(cards)
+	self:sortByKeepValue(cards)
+	local lightning = self:getCard("Lightning")
 
-		for _, acard in ipairs(cards) do
-			if (acard:getTypeId() ~= sgs.Card_Trick or acard:isKindOf("AmazingGrace"))
-				and not acard:isKindOf("Peach") then
-				card_id = acard:getEffectiveId()
-				break
+	if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
+	  or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
+		card_id = self.player:getArmor():getId()
+	elseif self.player:getHandcardNum() > self.player:getHp() then			
+		if lightning and not self:willUseLightning(lightning) then
+			card_id = lightning:getEffectiveId()
+		else	
+			for _, acard in ipairs(cards) do
+				if (acard:isKindOf("BasicCard") or acard:isKindOf("EquipCard") or acard:isKindOf("AmazingGrace"))
+					and not acard:isKindOf("Peach") then 
+					card_id = acard:getEffectiveId()
+					break
+				end
 			end
 		end
 	elseif not self.player:getEquips():isEmpty() then
 		local player = self.player
 		if player:getWeapon() then card_id = player:getWeapon():getId()
-		elseif player:getOffensiveHorse() then card_id=player:getOffensiveHorse():getId()
-		elseif player:getDefensiveHorse() then card_id=player:getDefensiveHorse():getId()
+		elseif player:getOffensiveHorse() then card_id = player:getOffensiveHorse():getId()
+		elseif player:getDefensiveHorse() then card_id = player:getDefensiveHorse():getId()
 		elseif player:getArmor() and player:getHandcardNum() <= 1 then card_id = player:getArmor():getId()
 		end
 	end
 	if not card_id then
-		cards=sgs.QList2Table(self.player:getHandcards())
-		for _, acard in ipairs(cards) do
-			if (acard:getTypeId() ~= sgs.Card_Trick or acard:isKindOf("AmazingGrace"))
-				and not acard:isKindOf("Peach") then
-				card_id = acard:getEffectiveId()
-				break
+		if lightning and not self:willUseLightning(lightning) then
+			card_id = lightning:getEffectiveId()
+		else
+			for _, acard in ipairs(cards) do
+				if (acard:isKindOf("BasicCard") or acard:isKindOf("EquipCard") or acard:isKindOf("AmazingGrace"))
+				  and not acard:isKindOf("Peach") then 
+					card_id = acard:getEffectiveId()
+					break
+				end
 			end
 		end
 	end

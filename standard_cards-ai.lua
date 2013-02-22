@@ -1157,7 +1157,6 @@ sgs.ai_use_value.AmazingGrace = 3
 sgs.ai_keep_value.AmazingGrace = -1
 sgs.ai_use_priority.AmazingGrace = 1.2
 
-
 function SmartAI:willUseGodSalvation(card)
 	if not card then self.room:writeToConsole(debug.traceback()) return false end
 	local good, bad = 0, 0
@@ -2082,12 +2081,12 @@ sgs.ai_keep_value.Indulgence = 1.5
 
 sgs.dynamic_value.control_usecard.Indulgence = true
 
-function SmartAI:useCardLightning(card, use)
+function SmartAI:willUseLightning(card)
+	if not card then self.room:writeToConsole(debug.traceback()) return false end
 	if self.player:containsTrick("lightning") then return end
 	if self.player:hasSkill("weimu") and card:isBlack() then return end
-	if self.room:isProhibited(self.player, self.player, card) then end
+	if self.room:isProhibited(self.player, self.player, card) then return end
 
-	--if not self:hasWizard(self.enemies) then--and self.room:isProhibited(self.player, self.player, card) then
 	local function hasDangerousFriend() 
 		local hashy = false
 		for _, aplayer in ipairs(self.enemies) do
@@ -2101,11 +2100,11 @@ function SmartAI:useCardLightning(card, use)
 		end
 		return false
 	end
+	
 	if self:getFinalRetrial(self.player) == 2 then 
 	return
 	elseif self:getFinalRetrial(self.player) == 1 then
-		use.card = card
-		return
+		return true
 	elseif not hasDangerousFriend() then
 		local players = self.room:getAllPlayers()
 		players = sgs.QList2Table(players)
@@ -2114,9 +2113,11 @@ function SmartAI:useCardLightning(card, use)
 		local enemies = 0
 
 		for _,player in ipairs(players) do
-			if self:objectiveLevel(player) >= 4 then
+			if self:objectiveLevel(player) >= 4 and not player:hasSkill("hongyuan")
+			  and not (player:hasSkill("weimu") and card:isBlack()) then
 				enemies = enemies + 1
-			elseif self:isFriend(player) then
+			elseif self:isFriend(player) and not player:hasSkill("hongyuan")
+			  and not (player:hasSkill("weimu") and card:isBlack()) then
 				friends = friends + 1
 			end
 		end
@@ -2128,9 +2129,14 @@ function SmartAI:useCardLightning(card, use)
 		end
 
 		if ratio > 1.5 then
-			use.card = card
-			return
+			return true
 		end
+	end
+end
+
+function SmartAI:useCardLightning(card, use)	
+	if self:willUseLightning(card) then
+		use.card = card
 	end
 end
 

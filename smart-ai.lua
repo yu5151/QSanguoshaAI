@@ -105,7 +105,8 @@ function setInitialTables()
 						"jieyin|renjie|zhiheng|rende|nosjujian|guicai|guidao|longhun|luanji|qiaobian|beige|jieyuan|" ..
 						"mingce|fuhun|lirang|longluo"
 	sgs.drawpeach_skill =		"tuxi|qiaobian"
-	sgs.recover_skill =		"rende|kuanggu|zaiqi|jieyin|qingnang|yinghun|shushen"
+	sgs.recover_skill =		"rende|kuanggu|zaiqi|jieyin|qingnang|yinghun|hunzi|shenzhi|longhun|miji|zishou|ganlu|xueji|shangshi|" ..
+						"nosshangshi|chengxiang|buqu|tongxin"
 	sgs.use_lion_skill =		 "longhun|duanliang|qixi|guidao|lijian|jujian|nosjujian|zhiheng|mingce|yongsi|fenxun|gongqi|" ..
 						"yinling|jilve|qingcheng|neoluoyi"								  
 	
@@ -574,7 +575,7 @@ sgs.ai_compare_funcs = {
 	end,
 
 	chaofeng = function(a, b)
-		local c1 = sgs.ai_chaofeng[a:getGeneralName()]	or 0
+		local c1 = sgs.ai_chaofeng[a:getGeneralName()] or 0
 		local c2 = sgs.ai_chaofeng[b:getGeneralName()] or 0
 
 		if c1 == c2 then
@@ -2179,7 +2180,7 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 		min_num = 0 
 	end
 	local callback = sgs.ai_skill_discard[reason]
-	self:assignKeep(self.player:getHp(),true)
+	self:assignKeep(self.player:getHp(), true)
 	if type(callback) == "function" then
 		local ret = callback(self, discard_num, min_num, optional, include_equip)
 		if ret and type(ret) == "table" then return ret end
@@ -2201,6 +2202,7 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 			elseif card:isKindOf("OffensiveHorse") then return 1
 			elseif card:isKindOf("Weapon") then return 2
 			elseif card:isKindOf("DefensiveHorse") then return 3
+			elseif self:hasSkills("bazhen|yizhong") and card:isKindOf("Armor") then return 0
 			elseif card:isKindOf("Armor") then return 4
 			end
 		elseif self:hasSkills(sgs.lose_equip_skill) then return 5
@@ -3591,7 +3593,7 @@ function SmartAI:getFinalRetrial(player)
 		end
 	end
 	if maxfriendseat == -1 and maxenemyseat == -1 then return 0
-	elseif maxfriendseat>maxenemyseat then return 1
+	elseif maxfriendseat > maxenemyseat then return 1
 	else return 2 end
 end
 
@@ -4916,19 +4918,21 @@ function player_to_discard(self, prompt)
 	return
 end
 
-function player_to_draw(self, prompt)
+function player_to_draw(self, prompt, n)
+	n = n or 1
+	if n < 1 then global_room:writeToConsole(debug.traceback()) return end
 	local friends = {}
 	if prompt == "noself" then
 		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do 	
 			if self:isFriend(player) and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive)
-			  and not (player:hasSkill("kongcheng") and player:isKongcheng()) then
+			  and not (player:hasSkill("kongcheng") and player:isKongcheng() and n < 2) then
 				table.insert(friends, player)
 			end
 		end	
 	elseif prompt == "all" then
 		for _, player in sgs.qlist(self.room:getAlivePlayers()) do 	
 			if self:isFriend(player) and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive)
-			  and not (player:hasSkill("kongcheng") and player:isKongcheng()) then
+			  and not (player:hasSkill("kongcheng") and player:isKongcheng() and n < 2) then
 				table.insert(friends, player)
 			end
 		end
@@ -4957,8 +4961,6 @@ function player_to_draw(self, prompt)
 			return friend
 		end
 	end
-
-	self:sort(friends, "handcard")
 	return friends[1]
 end
 

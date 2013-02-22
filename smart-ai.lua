@@ -4961,6 +4961,7 @@ function player_to_draw(self, prompt, n)
 			return friend
 		end
 	end
+	self:sort(friends, "handcard")
 	return friends[1]
 end
 

@@ -958,3 +958,7 @@ end
 sgs.ai_suit_priority.jiang=function(self,card) 
 	return (card:isKindOf("Slash") or card:isKindOf("Duel")) and "diamond|heart|club|spade" or "club|spade|diamond|heart"
 end
+
+sgs.ai_cardneed.jiang = function(to, card, self)	
+	return isCard("Duel", card, to) or (isCard("Slash", card, to) and card:isRed())	
+end

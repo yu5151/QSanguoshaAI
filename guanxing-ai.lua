@@ -176,7 +176,7 @@ local function GuanXing(self, cards)
 		end
 	--end
 	
-	--ÕÑÁÒSTART--
+	--æ˜­çƒˆSTART--
 	local count = #bottom
 	if count > 0 then
 		local zhaolieFlag = false
@@ -184,7 +184,7 @@ local function GuanXing(self, cards)
 			zhaolieFlag = sgs.ai_skill_invoke.zhaolie(self, nil)
 		end
 		if zhaolieFlag then 
-			local drawCount = 1 --×ÔÉíÃþÅÆÊýÄ¿£¬´ýÍêÉÆ
+			local drawCount = 1 --è‡ªèº«æ‘¸ç‰Œæ•°ç›®ï¼Œå¾…å®Œå–„
 			local basic = {}
 			local peach = {}
 			local not_basic = {}
@@ -230,7 +230,7 @@ local function GuanXing(self, cards)
 			return up, bottom
 		end
 	end
-	--ÕÑÁÒEND--
+	--æ˜­çƒˆEND--
 	local pos = 1
 	local luoshen_flag = false
 	local next_judge = {}

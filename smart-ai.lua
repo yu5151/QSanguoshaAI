@@ -4333,39 +4333,30 @@ function SmartAI:canAvoidAOE(card)
 	return false
 end
 
-function SmartAI:getDistanceLimit(card)
-	if self.player:hasSkill("qicai") then
-		return 100
-	end
-
-	if card:isKindOf("Snatch") then
-		return 1
-	elseif card:isKindOf("SupplyShortage") then
-		if self.player:hasSkill("duanliang") then
-			return 2
-		else
-			return 1
-		end
+function SmartAI:getDistanceLimit(card, from)
+	from = from or self.player
+	if card:isKindOf("Snatch") or card:isKindOf("SupplyShortage") then
+		return 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, from, card)
 	end
 end
 
-function SmartAI:exclude(players, card, source)
+function SmartAI:exclude(players, card, from)
+	from = from or self.player
 	local excluded = {}
-	local limit = self:getDistanceLimit(card)
+	local limit = self:getDistanceLimit(card, from)
 	local range_fix = 0
-	source = source or self.player
 	if card:isVirtualCard() then
 		for _, id in sgs.qlist(card:getSubcards()) do
-			if source:getOffensiveHorse() and source:getOffensiveHorse():getEffectiveId() == id then range_fix = range_fix + 1 end
+			if from:getOffensiveHorse() and from:getOffensiveHorse():getEffectiveId() == id then range_fix = range_fix + 1 end
 		end
 		if card:getSkillName() == "jixi" then range_fix = range_fix + 1 end
 	end
-	
+
 	for _, player in sgs.list(players) do
-		if not self.room:isProhibited(source, player, card) then
+		if not self.room:isProhibited(from, player, card) then
 			local should_insert = true
 			if limit then
-				should_insert = source:distanceTo(player, range_fix) <= limit
+				should_insert = from:distanceTo(player, range_fix) <= limit
 			end
 			if should_insert then
 				table.insert(excluded, player)
@@ -4374,7 +4365,6 @@ function SmartAI:exclude(players, card, source)
 	end
 	return excluded
 end
-
 
 
 function SmartAI:getJiemingChaofeng(player)

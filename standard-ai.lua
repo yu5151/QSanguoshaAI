@@ -1785,6 +1785,50 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 		return nil
 	end
 
+	local friend1, friend2	
+	if (self.role == "rebel" or self.role == "renegade" and sgs.current_mode_players["loyalist"] + 1 > sgs.current_mode_players["rebel"]) and
+	#self.friends_noself >= 2 and self:getAllPeachNum() < 1 then
+		local nextplayerIsEnemy
+		local nextp = self.player:getNextAlive()
+		local duel = sgs.Sanguosha:cloneCard("duel", sgs.Card_NoSuit, 0)
+		local lord, loyalist = self.room:getLord()
+		local e_peaches = 0
+		for _, enemy in ipairs(self.enemies) do
+			e_peaches = e_peaches + getCardsNum("Peach", enemy)
+			if enemy:getHp() == 1 and self:hasTrickEffective(duel, enemy) and not enemy:isLord() then
+				loyalist = enemy
+			end
+		end
+		for i = 1, self.room:alivePlayerCount() do
+			if not self:isFriend(nextp) and not self:willSkipPlayPhase(nextp) then
+				nextplayerIsEnemy = true
+				break
+			elseif self:isFriend(nextp) then
+				break
+			else
+				nextp = nextp:getNextAlive()
+			end
+		end
+		if lord and loyalist and e_peaches < 1 then nextplayerIsEnemy = false end
+		if nextplayerIsEnemy then			
+			for _, friend in ipairs(self.friends_noself) do
+				if friend:getHp() == 1 and friend:isKongcheng() and not self:hasSkills("kongcheng|tianming", friend) and
+				self:hasTrickEffective(duel, friend) then
+					friend1 = friend
+				elseif not friend1 or friend:objectName() ~= friend1:objectName() and not self:hasSkills("wuyan|noswuyan", friend) then
+					friend2 = friend
+				end
+				if friend1 and friend2 then break end
+			end
+			if friend1 and friend2 then
+				use.card = card
+				if use.to then use.to:append(friend1) end
+				if use.to then use.to:append(friend2) end
+				return
+			end
+		end
+	end
+	
 	if not self.player:hasUsed("LijianCard") then
 		self:sort(self.enemies, "hp")
 		local males = {}
@@ -1857,8 +1901,13 @@ table.insert(sgs.ai_choicemade_filter.cardUsed, lijian_filter)
 
 sgs.ai_card_intention.LijianCard = function(card, from, to)
 	if sgs.evaluateRoleTrends(to[1]) == sgs.evaluateRoleTrends(to[2]) then
-		sgs.updateIntentions(from, to, 40)
-	end
+		if sgs.evaluateRoleTrends(from) == "rebel" and sgs.evaluateRoleTrends(to[1]) == sgs.evaluateRoleTrends(from) and to[1]:getHp() == 1 then
+		else
+			sgs.updateIntentions(from, to, 40)
+		end
+	elseif sgs.evaluateRoleTrends(to[1]) ~= sgs.evaluateRoleTrends(to[2]) then
+		sgs.updateIntention(from, to[1], 80)
+	end	
 end
 
 sgs.dynamic_value.damage_card.LijianCard = true

@@ -251,34 +251,41 @@ table.insert(sgs.ai_skills, mixin_skill)
 mixin_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("MixinCard") or self.player:isKongcheng() then return end
 	if self:needBear() then return end
-	local cards = self.player:getHandcards()
-	local allcard = {}
-	cards = sgs.QList2Table(cards)
-	
-	local card
-	
-	self:sortByKeepValue(cards,true)
-	
-	card = cards[1]
-	
-	if not card then
-		return nil
-	end
-	
-	local card_id = card:getEffectiveId()
-	local card_str = "@MixinCard="..card_id
-	local skillcard = sgs.Card_Parse(card_str)
-		
-	assert(skillcard)
-	return skillcard
+	if #self.friends_noself == 0 then return end
+	return sgs.Card_Parse("@MixinCard=.")
 end
 
 sgs.ai_skill_use_func.MixinCard=function(card,use,self)
-	for _, friend in ipairs(self.friends_noself) do
-		if not friend:hasSkill("manjuan") then
-			use.card = card
-			if use.to then use.to:append(friend) end
-			return
+	local cards = self.player:getHandcards()
+	cards = sgs.QList2Table(cards)	
+	local slash	
+	self:sortByKeepValue(cards)
+	for _, acard in ipairs(cards) do
+		if acard:isKindOf("Slash") then
+			slash = acard
+			break
+		end
+	end
+	
+	if slash then
+		for _, friend in ipairs(self.friends_noself) do
+			if not friend:hasSkill("manjuan") then
+				use.card = sgs.Card_Parse("@MixinCard="..slash:getEffectiveId())
+				if use.to then use.to:append(friend) end
+				return
+			end
+		end
+	else
+		local compare_more_slash = function(a, b)
+			return self:getCardsNum("Slash", a) > self:getCardsNum("Slash", b)
+		end
+		table.sort(self.friends_noself, compare_more_slash)
+		for _, friend in ipairs(self.friends_noself) do
+			if not friend:hasSkill("manjuan") and self:getCardsNum("Slash", friend) >= 1 then
+				use.card = sgs.Card_Parse("@MixinCard="..cards[1]:getEffectiveId())
+				if use.to then use.to:append(friend) end
+				return
+			end
 		end
 	end
 end

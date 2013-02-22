@@ -1853,7 +1853,7 @@ function SmartAI:filterEvent(event, player, data)
 		end
 		
 		local lord = self.room:getLord()
-		if struct.card and lord:getHp() == 1 and self:aoeIsEffective(struct.card, lord, from) then
+		if lord and struct.card and lord:getHp() == 1 and self:aoeIsEffective(struct.card, lord, from) then
 			if struct.card:isKindOf("SavageAssault") then
 				self.room:setPlayerFlag(lord, "lord_in_danger_SA")
 			elseif struct.card:isKindOf("ArcheryAttack") then
@@ -1885,7 +1885,7 @@ function SmartAI:filterEvent(event, player, data)
 	elseif event == sgs.PreHpReduced then
 		local damage = data:toDamage()
 		local lord = self.room:getLord()
-		if damage.trigger_chain and lord:isChained() and self:damageIsEffective(lord, damage.nature, from) then
+		if lord and damage.trigger_chain and lord:isChained() and self:damageIsEffective(lord, damage.nature, from) then
 			if lord:hasArmorEffect("Vine") and damage.nature == sgs.DamageStruct_Fire and lord:getHp() <= damage.damage + 1 then
 				sgs.LordNeedPeach = damage.damage + 2 - lord:getHp()
 				--lord:speak("TEST:我要死了,我要"..sgs.LordNeedPeach.."个桃子,你们别乱用桃")
@@ -1934,7 +1934,7 @@ function SmartAI:filterEvent(event, player, data)
 			local who = struct.to:first()
 			if not lord then return end
 			if (card:isKindOf("Snatch") or card:isKindOf("Dismantlement") or card:isKindOf("YinlingCard")) and sgs.evaluateRoleTrends(who) == "neutral" then
-				local aplayer = self:exclude({lord}, card)
+				local aplayer = self:exclude({lord}, card, struct.from)
 				if #aplayer ==1 then sgs.updateIntention(player, lord, -70) end
 			end
 		end
@@ -3287,27 +3287,27 @@ function SmartAI:askForSinglePeach(dying)
 		if self:needDeath(dying) then return "." end
 		
 		local lord = self.room:getLord()
-		if self.player:objectName() ~= dying:objectName() and not dying:isLord() and (self.role == "loyalist" or self.role == "renegade" and self.room:alivePlayerCount() > 2) and			
-		 (sgs.LordNeedPeach and #self:getCards("Peach") <= sgs.LordNeedPeach or 
-		 --国战模式出错：lua/ai/smart-ai.lua:3301: attempt to index local 'lord' (a nil value)
-		 lord:hasFlag("lord_in_danger_SA") and getCardsNum("Slash", lord) <= 1 and #self:getCards("Peach") < 2 or
-		 lord:hasFlag("lord_in_danger_AA") and getCardsNum("Jink", lord) <= 1 and #self:getCards("Peach") < 2) then
+		if lord and self.player:objectName() ~= dying:objectName() and not dying:isLord() and							-- 我不是求桃的玩家，死的不是主公
+		(self.role == "loyalist" or self.role == "renegade" and self.room:alivePlayerCount() > 2) and					--我是忠 or 我是内还没和主公单挑
+			(sgs.LordNeedPeach and #self:getCards("Peach") <= sgs.LordNeedPeach or 										--1.处于连锁状态的主公需要桃，我的桃不多于主公需要的桃
+			lord:hasFlag("lord_in_danger_SA") and getCardsNum("Slash", lord) < 1 and #self:getCards("Peach") < 2 or		--2.正在放南蛮，主公可能没有杀，我的桃少于2个
+			lord:hasFlag("lord_in_danger_AA") and getCardsNum("Jink", lord) < 1 and #self:getCards("Peach") < 2) then	--3.正在放万剑，主公可能没有闪，我的桃少于2个
 			--self.player:speak("TEST:需要救主公")
-			return "." 
+			return "." 																									-- 不救濒死的人
 		end	
 		
-		if sgs.turncount > 1 and not dying:isLord() and dying:objectName() ~= self.player:objectName() then
+		if sgs.turncount > 1 and not dying:isLord() and dying:objectName() ~= self.player:objectName() then			-- 第2回合开始，我不是求桃的玩家，死的不是主公
 			local possible_friend = 0
 			local currentp = self.room:getCurrent()
 			for _, friend in ipairs(self.friends_noself) do
-				if (self:getKnownNum(friend) == friend:getHandcardNum() and getCardsNum("Peach", friend) == 0) or
-					(self:playerGetRound(friend, currentp) < self:playerGetRound(self.player, currentp)) then
-				elseif friend:getHandcardNum() > 0 or getCardsNum("Peach", friend) > 0 then
+				if (self:getKnownNum(friend) == friend:getHandcardNum() and getCardsNum("Peach", friend) == 0) or		--我知道他的全部手牌，他没桃，不计算
+					(self:playerGetRound(friend, currentp) < self:playerGetRound(self.player, currentp)) then			--在我之前的玩家，已经向他们求过桃了，不计算
+				elseif friend:getHandcardNum() > 0 or getCardsNum("Peach", friend) >= 1 then							--有手牌的玩家，或者可能有桃的玩家，计算
 								-- 还需要补充判断：队友虽然有牌，但是上轮友方求桃时，他并没有出桃救人。这种情况应该判断为无桃。
 					possible_friend = possible_friend + 1
 				end
 			end
-			if possible_friend == 0 and #self:getCards("Peach") < 1 - dying:getHp() then
+			if possible_friend == 0 and #self:getCards("Peach") < 1 - dying:getHp() then				-- 当我的桃子不够救人，之后无队友时，不出桃
 				--self.player:speak("TEST:桃不够,救个毛")
 				return "." 
 			end
@@ -4349,22 +4349,23 @@ function SmartAI:getDistanceLimit(card)
 	end
 end
 
-function SmartAI:exclude(players, card)
+function SmartAI:exclude(players, card, source)
 	local excluded = {}
 	local limit = self:getDistanceLimit(card)
 	local range_fix = 0
+	source = source or self.player
 	if card:isVirtualCard() then
 		for _, id in sgs.qlist(card:getSubcards()) do
-			if self.player:getOffensiveHorse() and self.player:getOffensiveHorse():getEffectiveId() == id then range_fix = range_fix + 1 end
+			if source:getOffensiveHorse() and source:getOffensiveHorse():getEffectiveId() == id then range_fix = range_fix + 1 end
 		end
 		if card:getSkillName() == "jixi" then range_fix = range_fix + 1 end
 	end
-
+	
 	for _, player in sgs.list(players) do
-		if not self.room:isProhibited(self.player, player, card) then
+		if not self.room:isProhibited(source, player, card) then
 			local should_insert = true
 			if limit then
-				should_insert = self.player:distanceTo(player, range_fix) <= limit
+				should_insert = source:distanceTo(player, range_fix) <= limit
 			end
 			if should_insert then
 				table.insert(excluded, player)

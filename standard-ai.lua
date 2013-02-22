@@ -1419,7 +1419,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 		self:sortByKeepValue(cards)
 		for _,card in ipairs(cards) do
 			if (self.player:getWeapon() and card:getId() == self.player:getWeapon():getId()) and self.player:distanceTo(who)>1 then				
-			elseif card:isKindOf("OffensiveHorse") and self.player:getAttackRange()==self.player:distanceTo(who) and self.player:distanceTo(who)>1 then
+			elseif card:isKindOf("OffensiveHorse") and self.player:getAttackRange()==self.player:distanceTo(who) and self.player:distanceTo(who,1)>1 then
 			elseif self.player:inMyAttackRange(who) and not (who:hasSkill("kongcheng") and who:isKongcheng()) then
 				return "@LiuliCard="..card:getEffectiveId().."->"..who:objectName()
 			end

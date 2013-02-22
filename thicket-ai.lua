@@ -293,7 +293,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 				return "@YinghunCard=.->" .. enemy:objectName()
 			end
 		end
-		self.self.enemies = sgs.reverse(self.self.enemies)
+		self.enemies = sgs.reverse(self.enemies)
 		for _, enemy in ipairs(self.enemies) do
 			if enemy:isAlive() and not enemy:isNude()
 			  and not (self:hasSkills(sgs.lose_equip_skill, enemy) and enemy:getCards("e"):length() > 0)

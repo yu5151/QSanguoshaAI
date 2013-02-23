@@ -325,7 +325,7 @@ function SmartAI:getUseValue(card)
 		if self:hasSkills("qiangxi|taichen|zhulou") and card:isKindOf("Weapon") then v = 2 end
 		if self.player:hasSkill("kurou") and card:isKindOf("Crossbow") then return 9 end
 		if (self:hasSkill("bazhen") or self:hasSkill("yizhong")) and card:isKindOf("Armor") then v = 2 end
-		if self.role == "loyalist" and self.player:getKingdom()=="wei" and not self.player:hasSkill("bazhen") and getLord(player) and getLord(player):hasLordSkill("hujia") and card:isKindOf("EightDiagram") then
+		if self.role == "loyalist" and self.player:getKingdom()=="wei" and not self.player:hasSkill("bazhen") and getLord(self.player) and getLord(self.player):hasLordSkill("hujia") and card:isKindOf("EightDiagram") then
 			v = 9
 		end
 		if self:hasSkills(sgs.lose_equip_skill) then return 10 end
@@ -4414,13 +4414,25 @@ function SmartAI:getAoeValueTo(card, to , from)
 end
 
 function getLord(player)
+	assert(player)
 	if sgs.GetConfig("EnableHegemony", false) then return nil end
 	local room = global_room
+	--类型转换--
+	local allplayers = room:getAllPlayers()
+	local splayer = nil
+	for _,p in sgs.qlist(allplayers) do
+		if p:objectName() == player:objectName() then
+			splayer = p
+			break
+		end
+	end
+	player = splayer
+	--特殊模式：3v3--
 	local mode = string.lower(room:getMode())
 	if mode == "06_3v3" then
 		if player:getRole() == "lord" or player:getRole() == "renegade" then return player end
 		if player:getRole() == "loyalist" then return room:getLord() end
-		for _, p in sgs.qlist(room:getAllPlayers()) do
+		for _, p in sgs.qlist(allplayers) do
 			if p:getRole() == "renegade" then return p end
 		end
 	end

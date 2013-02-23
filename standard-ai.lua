@@ -1927,7 +1927,7 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 			end
 			return
 			
-		elseif self:isEnemy(shenguanyu) and self.enemies >= 2 then
+		elseif self:isEnemy(shenguanyu) and #self.enemies >= 2 then
 			for _, enemy in ipairs(self.enemies) do
 				if enemy:objectName() ~= shenguangyu:objectName() and enemy:isMale() and self:damageIsEffective(shenguanyu, sgs.DamageStruct_Normal, enemy) then
 				

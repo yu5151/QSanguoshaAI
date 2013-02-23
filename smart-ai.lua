@@ -4482,7 +4482,8 @@ function SmartAI:getAoeValue(card, player)
 
 	
 	if not sgs.GetConfig("EnableHegemony", false) then
-		if self.role ~= "lord" and sgs.isLordInDanger() and self:aoeIsEffective(card, lord, attacker) and not canHelpLord() then
+		--if self.role ~= "lord" and sgs.isLordInDanger() and self:aoeIsEffective(card, lord, attacker) and not canHelpLord() then
+		if self.role ~= "lord" and sgs.isLordInDanger() and self:aoeIsEffective(card, lord, attacker) then
 			if self:isEnemy(lord) then
 				good = good + (lord:getHp() == 1 and 250 or 150)
 			else

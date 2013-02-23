@@ -682,7 +682,7 @@ function SmartAI:useCardPeach(card, use)
 	for _, enemy in ipairs(self.enemies) do
 		if self.player:getHandcardNum() < 3 and 
 				(self:hasSkills(sgs.drawpeach_skill,enemy) or getCardsNum("Dismantlement", enemy) >= 1 or
-				enemy:hasSkill("jixi") and enemy:getMark("zaoxian") > 0 and enemy:getPile("field"):length() >0 and enemy:distanceTo(self.player) == 1 or
+				enemy:hasSkill("jixi") and enemy:getPile("field"):length() >0 and enemy:distanceTo(self.player) == 1 or
 				enemy:hasSkill("qixi") and getKnownCard(enemy, "black", nil, "he") >= 1 or
 				getCardsNum("Snatch",enemy) >= 1 and enemy:distanceTo(self.player) == 1) then
 			mustusepeach = true

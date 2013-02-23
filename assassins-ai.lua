@@ -314,8 +314,8 @@ sgs.ai_skill_choice.cangni = function(self, choices)
 	end
 end
 
-duyi_skill={}
-duyi_skill.name="duyi"
+duyi_skill = {}
+duyi_skill.name = "duyi"
 table.insert(sgs.ai_skills, duyi_skill)
 duyi_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("DuyiCard") then return end
@@ -327,7 +327,12 @@ sgs.ai_skill_use_func.DuyiCard = function(card,use,self)
 end
 
 sgs.ai_skill_playerchosen.duyi = function(self, targets)
-	local to = player_to_draw(self, "all")
+	local to
+	if self:getOverflow() >= 0 then
+		to = player_to_draw(self, "noself")
+	else
+		to = player_to_draw(self, "all")
+	end
 	if to then return to
 	else return self.player
 	end

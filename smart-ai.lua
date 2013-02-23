@@ -1928,17 +1928,23 @@ function SmartAI:filterEvent(event, player, data)
 			if from and intention~=0 then sgs.updateIntention(from, to, intention) end
 		end
 	elseif event == sgs.CardUsed then
-		if sgs.turncount == 1 then
-			local struct = data:toCardUse()
-			local card = struct.card
-			local lord = self.room:getLord()
-			local who = struct.to:first()
-			if not lord then return end
+		
+		local struct = data:toCardUse()
+		local card = struct.card
+		local lord = self.room:getLord()
+		local who = struct.to:first()
+		
+		if sgs.turncount == 1 and lord then
 			if (card:isKindOf("Snatch") or card:isKindOf("Dismantlement") or card:isKindOf("YinlingCard")) and sgs.evaluateRoleTrends(who) == "neutral" then
 				local aplayer = self:exclude({lord}, card, struct.from)
 				if #aplayer ==1 then sgs.updateIntention(player, lord, -70) end
 			end
 		end
+		
+		if card and lord and card:isKindOf("Duel") and lord:hasFlag("will_wake") then
+			self.room:setPlayerFlag(lord, "-will_wake")
+		end
+		
 	elseif event == sgs.CardsMoveOneTime then
 		local move = data:toMoveOneTime()
 		local from = nil -- convert move.from from const Player * to ServerPlayer *
@@ -2362,7 +2368,9 @@ function SmartAI:askForNullification(trick, from, to, positive)
 	if (from and from:isDead()) or (to and to:isDead()) then return nil end --已死
 	if self:needBear() then return nil end --“忍戒”
 	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 then return nil end --“无谋”
-
+	
+	if self:isFriend(to) and to:hasFlag("will_wake") then return end
+	
 	if from and not from:hasSkill("jueqing") then
 		if (to:hasSkill("wuyan") or (self:getDamagedEffects(to, from) and self:isFriend(to)))
 			and (trick:isKindOf("Duel") or trick:isKindOf("FireAttack") or trick:isKindOf("AOE")) then
@@ -2687,7 +2695,7 @@ function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	
 	if target and target:hasSkill("jueqing") then return end
 	if effect and effect.from and effect.from:hasSkill("qianxi") and effect.from:distanceTo(self.player) == 1 then return end
-
+	
 	if not self:damageIsEffective(nil, damage_nature, target) then return "." end
 	if target and target:hasSkill("guagu") and self.player:isLord() then return "." end
 	if effect and self:hasHeavySlashDamage(target, effect.slash, self.player) then return end

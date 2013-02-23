@@ -1344,9 +1344,10 @@ sgs.dynamic_value.damage_card.Duel = true
 
 sgs.ai_skill_cardask["duel-slash"] = function(self, data, pattern, target)
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
+	if self.player:hasFlag("will_wake") then return "." end
 	if (target:hasSkill("wuyan") or self.player:hasSkill("wuyan")) and not target:hasSkill("jueqing") then return "." end
 	if self.player:getMark("@fenyong") >0 and self.player:hasSkill("fenyong") and not target:hasSkill("jueqing") then return "." end
-
+	
 	if self:cantbeHurt(target) then return "." end
 	if self.player:getPhase()==sgs.Player_Play then return self:getCardId("Slash") end
 	
@@ -2013,18 +2014,28 @@ function SmartAI:enemiesContainsTrick()
 	trick_all = trick_all + indul_num + ss_num
 	return trick_all
 end
-function SmartAI:playerGetRound(player, source)
+
+function SmartAI:playerGetRound(player, source, FriendorEnemy)
 	if not player then return self.room:writeToConsole(debug.traceback()) end
-	local source = source or self.player
+	source = source or self.player
 	if player:objectName() == source:objectName() then return 0 end
 	local round = 0
 	for i = 1 , self.room:alivePlayerCount() do
-		round = round + 1
+		if FriendorEnemy then
+			if FriendorEnemy == "friend" and self:isFriend(source) then				
+				round = round + 1
+			elseif FriendorEnemy == "enemy" and not self:isFriend(source) then
+				round = round + 1
+			end
+		else
+			round = round + 1
+		end
 		if source:getNextAlive():objectName() == player:objectName() then break end
 		source = source:getNextAlive()
 	end
 	return round
 end
+
 function SmartAI:useCardIndulgence(card, use)
 	local enemies = {}
 

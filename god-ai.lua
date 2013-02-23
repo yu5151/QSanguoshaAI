@@ -864,4 +864,6 @@ sgs.ai_skill_use["@zhiheng"]=function(self,prompt)
 	return "."
 end
 
+sgs.ai_skill_cardask["@jilve-guicai"]=sgs.ai_skill_cardask["@guicai-card"]
+
 sgs.ai_suit_priority.wushen= "club|spade|diamond|heart"

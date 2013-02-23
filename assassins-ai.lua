@@ -345,7 +345,7 @@ sgs.ai_skill_invoke.duanzhi = function(self, data)
 		return true
 	end
 	]]--
-	return self:isEnemy(use.from) and self.player:getHp() > 2
+	return use.from and self:isEnemy(use.from) and self.player:getHp() > 2
 end
 
 sgs.ai_skill_choice.duanzhi = function(self, choices)

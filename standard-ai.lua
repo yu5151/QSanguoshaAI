@@ -421,7 +421,7 @@ sgs.ai_skill_invoke.luoyi = function(self,data)
 	for _,card in ipairs(cards) do
 		if card:isKindOf("Slash") then
 			for _,enemy in ipairs(self.enemies) do
-				if self.player:canSlash(enemy, card, true) and self:slashIsEffective(card, enemy) and self:objectiveLevel(enemy) > 3 then
+				if self.player:canSlash(enemy, card, true) and self:slashIsEffective(card, enemy) and self:objectiveLevel(enemy) > 3 and sgs.isGoodTarget(enemy, self.enemies, self) then
 					if getCardsNum("Jink", enemy) < 1 or (self:isEquip("Axe") and self.player:getCards("he"):length() > 4) then
 						slashtarget = slashtarget + 1
 					end
@@ -430,7 +430,7 @@ sgs.ai_skill_invoke.luoyi = function(self,data)
 		end
 		if card:isKindOf("Duel") then
 			for _, enemy in ipairs(self.enemies) do
-				if self:getCardsNum("Slash") >= getCardsNum("Slash", enemy) 
+				if self:getCardsNum("Slash") >= getCardsNum("Slash", enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
 				and self:objectiveLevel(enemy) > 3 and not self:cantbeHurt(enemy)
 				and self:damageIsEffective(enemy) and enemy:getMark("@late") < 1 then
 					dueltarget = dueltarget + 1 
@@ -1704,7 +1704,7 @@ sgs.ai_skill_cardask["@wushuang-jink-1"] = function(self, data, pattern, target)
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
 	if self:canUseJieyuanDecrease(target) then return "." end	
 	if self:hasSkill("kongcheng") then
-		if target:hasWeapon("GudingBlade") or not (self.player:getHandcardNum() == 1 and self.player:getCardsNum("Jink") == 1)  then return "." end
+		if target:hasWeapon("GudingBlade") or not (self.player:getHandcardNum() == 1 and self:getCardsNum("Jink") == 1)  then return "." end
 	else
 		if self:getCardsNum("Jink") < 2 and self.player:getHandcardNum() > self:getLeastHandcardNum(self.player) then return "." end
 	end

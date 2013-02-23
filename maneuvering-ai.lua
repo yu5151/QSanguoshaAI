@@ -145,16 +145,6 @@ function SmartAI:searchForAnaleptic(use,enemy,slash)
 	local allcards = self.player:getCards("he")
 	allcards = sgs.QList2Table(allcards)
 
-	if enemy:getArmor() and enemy:getArmor():objectName() == "SilverLion" and not self.player:hasWeapon("QinggangSword") 
-	  and not self.player:hasSkill("jueqing") then
-		return
-	end
-
-	if self:hasSkills(sgs.masochism_skill .. "|longhun|buqu|" .. sgs.recover_skill ,enemy) and 
-			self.player:hasSkill("qianxi") and self.player:distanceTo(enemy) == 1 then
-		return
-	end
-
 	if self.player:getPhase() == sgs.Player_Play then
 		if self.player:hasFlag("lexue") then
 			local lexuesrc = sgs.Sanguosha:getCard(self.player:getMark("lexue"))
@@ -405,18 +395,30 @@ sgs.ai_skill_cardask["@fire-attack"] = function(self, data, pattern, target)
 	local card
 
 	self:sortByUseValue(cards, true)
-
-	for _, acard in ipairs(cards) do
-		if acard:getSuitString() == convert[pattern] 
-				and not ( isCard("Peach", acard, self.player) 
-				and (not (self:isWeak(target) or self:isEquip("Vine", target) or target:getMark("@gale") > 0) or (self:isWeak() and self.player:isLord()))) then 
-			card = acard
-			break
+	local lord = self.room:getLord()
+	if sgs.GetConfig("EnableHegemony", false) then lord = nil end
+	
+	for _, acard in ipairs(cards) do		
+		if acard:getSuitString() == convert[pattern] then
+			if not isCard("Peach", card, self.player) then
+				card = acard
+				break
+			else
+				local needKeepPeach = true
+				if (self:isWeak(target) and not self:isWeak()) or target:getHp() == 1
+						or self:isGoodChainTarget(target) or self:isEquip("Vine", target) or target:getMark("@gale") > 0 then 
+					needKeepPeach = false 
+				end
+				if lord and not self:isEnemy(lord) and sgs.isLordInDanger() and self:getCardsNum("Peach") == 1 and self.player:aliveCount() > 2 then 
+					needKeepPeach = true 
+				end
+				if not needKeepPeach then
+					card = acard
+					break
+				end
+			end
 		end
 	end
-
-	local lord = self.room:getLord()
-	if card and isCard("Peach", card, self.player) and not self:isEnemy(lord) and sgs.isLordInDanger() then card = nil end
 
 	if card then
 		return card:getId()

@@ -405,18 +405,30 @@ sgs.ai_skill_cardask["@fire-attack"] = function(self, data, pattern, target)
 	local card
 
 	self:sortByUseValue(cards, true)
-
-	for _, acard in ipairs(cards) do
-		if acard:getSuitString() == convert[pattern] 
-				and not ( isCard("Peach", acard, self.player) 
-				and (not (self:isWeak(target) or self:isEquip("Vine", target) or target:getMark("@gale") > 0) or (self:isWeak() and self.player:isLord()))) then 
-			card = acard
-			break
+	local lord = self.room:getLord()
+	if sgs.GetConfig("EnableHegemony", false) then lord = nil end
+	
+	for _, acard in ipairs(cards) do		
+		if acard:getSuitString() == convert[pattern] then
+			if not isCard("Peach", card, self.player) then
+				card = acard
+				break
+			else
+				local needKeepPeach = true
+				if (self:isWeak(target) and not self:isWeak()) or target:getHp() == 1 or
+						or self:isGoodChainTarget(target) or self:isEquip("Vine", target) or target:getMark("@gale") > 0 then 
+					needKeepPeach = false 
+				end
+				if lord and not self:isEnemy(lord) and sgs.isLordInDanger() and self:getCardsNum("Peach") == 1 and self.player:aliveCount() > 2 then 
+					needKeepPeach = true 
+				end
+				if not needKeepPeach then
+					card = acard
+					break
+				end
+			end
 		end
 	end
-
-	local lord = self.room:getLord()
-	if card and isCard("Peach", card, self.player) and not self:isEnemy(lord) and sgs.isLordInDanger() then card = nil end
 
 	if card then
 		return card:getId()

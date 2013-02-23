@@ -4414,19 +4414,10 @@ function SmartAI:getAoeValueTo(card, to , from)
 end
 
 function getLord(player)
-	assert(player)
+
 	if sgs.GetConfig("EnableHegemony", false) then return nil end
-	local room = global_room
-	--类型转换--
-	local allplayers = room:getAllPlayers()
-	local splayer = nil
-	for _,p in sgs.qlist(allplayers) do
-		if p:objectName() == player:objectName() then
-			splayer = p
-			break
-		end
-	end
-	player = splayer
+	local room = global_room	
+	player = findPlayerByObjectName(room, player:objectName(), true)
 	--特殊模式：3v3--
 	local mode = string.lower(room:getMode())
 	if mode == "06_3v3" then

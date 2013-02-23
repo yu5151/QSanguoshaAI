@@ -328,10 +328,10 @@ end
 
 sgs.ai_skill_playerchosen.duyi = function(self, targets)
 	local to
-	if self:getOverflow() >= 0 then
-		to = player_to_draw(self, "noself")
-	else
+	if self:getOverflow() <= 0 then
 		to = player_to_draw(self, "all")
+	else
+		to = player_to_draw(self, "noself")
 	end
 	if to then return to
 	else return self.player
@@ -340,9 +340,11 @@ end
 
 sgs.ai_skill_invoke.duanzhi = function(self, data)
 	local use = data:toCardUse()
+	--[[
 	if self:isEnemy(use.from) and use.card:getSubtype() == "attack_card" and self.player:getHp() == 1 and not self:getCard("Peach") and not self:getCard("Analeptic") then
 		return true
 	end
+	]]--
 	return self:isEnemy(use.from) and self.player:getHp() > 2
 end
 

@@ -287,7 +287,7 @@ sgs.ai_skill_invoke.bawang = function(self, data)
 		return self:isEnemy(effect.to)
 	end
 	if self:isEnemy(effect.to) then
-		if self:getOverflow() >= 0 then return true
+		if self:getOverflow() > 0 then return true
 		end
 	end
 end

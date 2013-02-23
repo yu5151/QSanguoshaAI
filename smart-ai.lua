@@ -97,8 +97,8 @@ function setInitialTables()
 	sgs.wizard_skill = 		"guicai|guidao|jilve|tiandu|luoying|zhenlie|huanshi"
 	sgs.wizard_harm_skill = 	"guicai|guidao|jilve"
 	sgs.priority_skill = 		"dimeng|haoshi|qingnang|jizhi|guzheng|qixi|jieyin|guose|duanliang|jujian|fanjian|neofanjian|lijian|" ..
-						"manjuan|lihun|tuxi|qiaobian|yongsi|zhiheng|luoshen|rende|mingce|wansha|gongxin|jilve|anxu|" ..
-						"qice|yinling|qingcheng|houyuan|shouye"
+						"manjuan|tuxi|qiaobian|yongsi|zhiheng|luoshen|rende|mingce|wansha|gongxin|jilve|anxu|" ..
+						"qice|yinling|qingcheng|houyuan"
 	sgs.save_skill = 		"jijiu|buyi|nosjiefan|chunlao"
 	sgs.exclusive_skill = 		"huilei|duanchang|wuhun|buqu|jincui"
 	sgs.cardneed_skill =		"paoxiao|tianyi|xianzhen|shuangxiong|jizhi|guose|duanliang|qixi|qingnang|yinling|luoyi|guhuo|kanpo|" ..
@@ -4956,14 +4956,14 @@ function player_to_draw(self, prompt, n)
 	if prompt == "noself" then
 		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do 	
 			if self:isFriend(player) and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive)
-			  and not (player:hasSkill("kongcheng") and player:isKongcheng() and n < 2) then
+			  and not (player:hasSkill("kongcheng") and player:isKongcheng() and n < 3) then
 				table.insert(friends, player)
 			end
 		end	
 	elseif prompt == "all" then
 		for _, player in sgs.qlist(self.room:getAlivePlayers()) do 	
 			if self:isFriend(player) and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive)
-			  and not (player:hasSkill("kongcheng") and player:isKongcheng() and n < 2) then
+			  and not (player:hasSkill("kongcheng") and player:isKongcheng() and n < 3) then
 				table.insert(friends, player)
 			end
 		end
@@ -4993,6 +4993,11 @@ function player_to_draw(self, prompt, n)
 		end
 	end
 	self:sort(friends, "handcard")
+	for _, friend in ipairs(friends) do
+		if not self:needKongcheng(friend) then
+			return friend
+		end
+	end
 	return friends[1]
 end
 

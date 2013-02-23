@@ -2075,22 +2075,27 @@ function SmartAI:useCardIndulgence(card, use)
 	local zhanghe = self.room:findPlayerBySkillName("qiaobian")
 	local zhanghe_seat = zhanghe and zhanghe:faceUp() and not zhanghe:isKongcheng() and self:isEnemy(zhanghe) and zhanghe:getSeat() or 0
 
-	if #enemies==0 then return end
+	if #enemies == 0 then return end
 	
-	local getvalue=function(enemy)
+	local getvalue = function(enemy)
 		if enemy:containsTrick("indulgence") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) and self:enemiesContainsTrick() <= 1 then return -100 end
-		if zhanghe_seat>0 and self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() <= 1 then return - 100 end
+		if zhanghe_seat > 0 and self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() <= 1 then return - 100 end
 
 		local value = enemy:getHandcardNum() - enemy:getHp()
 
-		if self:hasSkills("lijian|fanjian|neofanjian|dimeng|jijiu|jieyin",enemy) then value = value + 10 end		
+		if self:hasSkills("lijian|fanjian|neofanjian|dimeng|jijiu|jieyin|anxu|yongsi|zhiheng|manjuan",enemy) then value = value + 10 end		
+		if self:hasSkills("rende|houyuan|qixi|qice|guose|duanliang|nosjujian|luoshen|jizhi|jilve|wansha|mingce",enemy) then value = value + 5 end
+		if self:hasSkills("guzheng|luoying|xiliang|yinling|gongxin",enemy) then value = value + 3 end
 		if self:isWeak(enemy) then value = value + 3 end
 		if enemy:isLord() then value = value + 3 end
 
-		if self:objectiveLevel(enemy)<3 then value = value -10 end
-		if not enemy:faceUp() then value = value -10 end
+		if self:objectiveLevel(enemy) < 3 then value = value - 10 end
+		if not enemy:faceUp() then value = value - 10 end
 		if self:hasSkills("keji|shensu", enemy) then value = value - enemy:getHandcardNum() end
 		if self:hasSkills("guanxing|xiuluo", enemy) then value = value - 5 end
+		if self:hasSkills("lirang|longluo", enemy) then value = value - 5 end
+		if self:hasSkills("tuxi|zhenlie",enemy) then value = value - 3 end
+		if enemy:hasSkill("conghui") then value = value - 20 end
 		if not sgs.isGoodTarget(enemy, self.enemies, self) then value = value - 1 end
 		return value
 	end
@@ -2101,7 +2106,7 @@ function SmartAI:useCardIndulgence(card, use)
 
 	table.sort(enemies, cmp)
 
-	local target=enemies[1]
+	local target = enemies[1]
 	if getvalue(target) > -100 then
 		use.card = card
 		if use.to then use.to:append(target) end

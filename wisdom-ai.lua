@@ -287,7 +287,7 @@ sgs.ai_skill_invoke.bawang = function(self, data)
 		return self:isEnemy(effect.to)
 	end
 	if self:isEnemy(effect.to) then
-		if self:getOverflow() >= 0 then return true
+		if self:getOverflow() > 0 then return true
 		end
 	end
 end
@@ -381,7 +381,7 @@ sgs.ai_chaofeng.wis_sunce = 1
 	描述：回合结束阶段开始时，你可以选择一名其他角色摸取与你弃牌阶段弃牌数量相同的牌 
 ]]--
 sgs.ai_skill_playerchosen.longluo = function(self, targets)
-	local n = self.player:getMark("longluo") or 1 --等cpp
+	local n = self.player:getMark("longluo")
 	local to = player_to_draw(self, "noself", n)
 	if to then return to end
 	return self.friends_noself[1]

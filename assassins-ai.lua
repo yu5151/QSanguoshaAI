@@ -328,7 +328,7 @@ end
 
 sgs.ai_skill_playerchosen.duyi = function(self, targets)
 	local to
-	if self:getOverflow() <= 0 then
+	if self:getOverflow() < 0 then
 		to = player_to_draw(self, "all")
 	else
 		to = player_to_draw(self, "noself")

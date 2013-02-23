@@ -1125,7 +1125,7 @@ sgs.ai_skill_use_func.FuluanCard = function(card, use, self)
 end
 
 sgs.ai_use_priority.FuluanCard = 2.3
-sgs.ai_card_intention.FuluanCard = function(self, card, from, tos)
+sgs.ai_card_intention.FuluanCard = function(card, from, tos)
 	sgs.updateIntention(from, tos[1], tos[1]:faceUp() and 80 or -80)
 end
 
@@ -1201,7 +1201,7 @@ sgs.ai_skill_use["@@huangen"] = function(self, prompt)
 	end
 end
 
-sgs.ai_card_intention.HuangenCard = function(self, card, from, tos)
+sgs.ai_card_intention.HuangenCard = function(card, from, tos)
 	local cardx = sgs.Card_Parse(from:getTag("Huangen_user"):toString())
 	if not cardx then return end
 	for _, to in ipairs(tos) do
@@ -1267,7 +1267,7 @@ sgs.ai_card_intention.HantongCard = sgs.ai_card_intention.JijiangCard
 sgs.ai_skill_use["@@diyyicong"] = function(self, prompt)
 	local yicongcards = {}
 	local cards = self.player:getCards("he")
-	if self.player:hasArmorEffect("silver_lion") and self.player:isWounded() then
+	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
 		table.insert(yicongcards, self.player:getArmor():getId())
 	end
 	cards = sgs.QList2Table(cards)

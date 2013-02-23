@@ -464,7 +464,10 @@ function SmartAI:getDynamicUsePriority(card)
 		if use_card:isKindOf("SupplyShortage") and use_card:isVirtualCard() and use_card:subcardsLength() > 0 then 
 			value = sgs.ai_use_priority.SupplyShortage - 0.01
 		end
-		
+
+		if use_card:isKindOf("Analeptic") and use_card:isVirtualCard() then 
+			value = sgs.ai_use_priority.Analeptic - 0.01
+		end
 
 		if sgs.evaluateRoleTrends(self.player) == "neutral" and use_card:isKindOf("YisheAskCard") then 
 			value = sgs.ai_use_priority.Slash - 0.5

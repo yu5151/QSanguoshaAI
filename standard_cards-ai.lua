@@ -314,6 +314,31 @@ function SmartAI:slashIsAvailable(player)
 	return slash:isAvailable(player)
 end
 
+function SmartAI:shouldUseAnaleptic(target, slash)
+	if self:isEquip("SilverLion", target) and not IgnoreArmor(self.player, target) and not self.player:hasSkill("jueqing") then return false end
+
+	if self:hasSkills(sgs.masochism_skill .. "|longhun|buqu|" .. sgs.recover_skill ,target) and 
+			self.player:hasSkill("qianxi") and self.player:distanceTo(enemy) == 1 then
+		return false
+	end
+
+	local hcard = target:getHandcardNum()
+	if self.player:hasSkill("liegong") and (hcard >= self.player:getHp() or hcard <= self.player:getAttackRange()) then return true end
+
+	if self:isEquip("Axe") and self.player:getCards("he"):length() > 4 then return true end
+	if self.player:hasSkill("jie") and slash:isRed() then return true end
+	if self.player:hasSkill("tieji") then return true end
+
+	if ((self.player:hasSkill("roulin") and target:isFemale()) or (self.player:isFemale() and target:hasSkill("roulin"))) or self.player:hasSkill("wushuang") then
+		if getKnownCard(target, "Jink", true, "he") >= 2 then return false end
+		return getCardsNum("Jink", target) < 2
+	end
+	
+	if getKnownCard(target, "Jink", true, "he") >=1 then return false end
+
+	return self:getCardsNum("Analeptic") > 1 or getCardsNum("Jink", target) < 1 or sgs.card_lack[target:objectName()]["Jink"] == 1
+end
+
 function SmartAI:useCardSlash(card, use)
 	if not self:slashIsAvailable() then return end
 	if card:isVirtualCard() and card:subcardsLength() > 0
@@ -451,8 +476,7 @@ function SmartAI:useCardSlash(card, use)
 				end
 
 				local anal = self:searchForAnaleptic(use, target, card)
-				if anal and not (self:isEquip("SilverLion", target) and not IgnoreArmor(self.player, target) and not self.player:hasSkill("jueqing"))
-				  and (self:isWeak(target) or sgs.getDefenseSlash(target) <= 2.5 or self:getCardsNum("Analeptic") > 1 ) then
+				if anal and self:shouldUseAnaleptic(target, card) then
 					if anal:getEffectiveId() ~= card:getEffectiveId() then use.card = anal return end
 				end
 			end

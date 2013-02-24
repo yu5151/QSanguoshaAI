@@ -1806,6 +1806,7 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 		if lord and lord:isMale() then		-- 优先离间1血忠和主
 			self:sort(self.enemies,"handcard")
 			local e_peaches = 0
+			local loyalist
 			
 			for _, enemy in ipairs(self.enemies) do
 				e_peaches = e_peaches + getCardsNum("Peach", enemy)

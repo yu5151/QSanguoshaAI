@@ -126,8 +126,8 @@ sgs.ai_card_intention.JiemingCard =-80
 
 sgs.ai_chaofeng.xunyu = 3
 
-local qiangxi_skill={}
-qiangxi_skill.name="qiangxi"
+local qiangxi_skill = {}
+qiangxi_skill.name= "qiangxi"
 table.insert(sgs.ai_skills,qiangxi_skill)
 qiangxi_skill.getTurnUseCard=function(self)
 	if not self.player:hasUsed("QiangxiCard") then
@@ -169,7 +169,7 @@ sgs.ai_skill_use_func.QiangxiCard = function(card, use, self)
 		self:sort(self.enemies, "hp")
 		for _, enemy in ipairs(self.enemies) do
 			if self:objectiveLevel(enemy) > 3 and not self:cantbeHurt(enemy) and self:damageIsEffective(enemy) then
-				if self.player:distanceTo(enemy) <= self.player:getAttackRange() and self.player:getHp() > enemy:getHp() and self.player:getHp() > 2 then
+				if self.player:distanceTo(enemy) <= self.player:getAttackRange() and self.player:getHp() > enemy:getHp() and self.player:getHp() > 1 then
 					use.card = sgs.Card_Parse("@QiangxiCard=.")
 					if use.to then
 						use.to:append(enemy)

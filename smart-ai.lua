@@ -4444,17 +4444,32 @@ function SmartAI:getAoeValue(card, player)
 	local lord = getLord(self.player)
 
 	local canHelpLord =function()
-		local goodnull, badnull = 0, 0
+	
 		if (not lord) or (not self:isFriend(lord)) then return false end
-		if card:isKindOf("SavageAssault") then
-			return lord:hasLordSkill("jijiang") and self.player:getKingdom() == "shu" and self:getCardsNum("Slash") > 0
-		end
-		if card:isKindOf("ArcheryAttack") then
-			return lord:hasLordSkill("hujia") and self.player:getKingdom() == "wei" and self:getCardsNum("Jink") > 0
+	
+		if self.player:hasSkill("qice") and card:isVirtualCard() then return false end
+		
+		local peach_num, null_num, slash_num, jink_num = 0, 0, 0, 0
+		if card:isVirtualCard() and card:subcardsLength() > 0 then	
+			for _, subcardid in sgs.qlist(card:getSubcards()) do
+				local subcard = sgs.Sanguosha:getCard(subcardid)
+				self.player:speak("subcard"..subcard:getClassName())
+				if subcard:getClassName() == "Peach" then peach_num = peach_num - 1 end
+				if subcard:getClassName() == "Slash" then slash_num = slash_num - 1 end
+				if subcard:getClassName() == "Jink" then jink_num = jink_num - 1 end
+				if subcard:getClassName() == "Nullification" then null_num = null_num - 1 end
+			end
 		end
 		
-		if self:getCardsNum("Peach") > 0 then return true end
-				
+		if card:isKindOf("SavageAssault") and lord:hasLordSkill("jijiang") and self.player:getKingdom() == "shu" and
+			self:getCardsNum("Slash") - slash_num > 0 then return true end		
+		
+		if card:isKindOf("ArcheryAttack") and lord:hasLordSkill("hujia") and self.player:getKingdom() == "wei" and
+			self:getCardsNum("Jink") - jink_num > 0 then return true end
+		
+		if self:getCardsNum("Peach") - peach_num > 0 then return true end
+		
+		local goodnull, badnull = 0, 0
 		for _, p in sgs.qlist(self.room:getAlivePlayers()) do
 			if self:isFriend(lord, p) then 
 				goodnull = goodnull +  getCardsNum("Nullification", p) 
@@ -4462,7 +4477,7 @@ function SmartAI:getAoeValue(card, player)
 				badnull = badnull +  getCardsNum("Nullification", p) 
 			end
 		end
-		return goodnull - badnull >= 2
+		return goodnull - null_num - badnull >= 2
 	end
 
 	if card:isKindOf("SavageAssault") then
@@ -4489,8 +4504,7 @@ function SmartAI:getAoeValue(card, player)
 
 	
 	if not sgs.GetConfig("EnableHegemony", false) then
-		--if self.role ~= "lord" and sgs.isLordInDanger() and self:aoeIsEffective(card, lord, attacker) and not canHelpLord() then
-		if self.role ~= "lord" and sgs.isLordInDanger() and self:aoeIsEffective(card, lord, attacker) then
+		if self.role ~= "lord" and sgs.isLordInDanger() and self:aoeIsEffective(card, lord, attacker) and not canHelpLord() then
 			if self:isEnemy(lord) then
 				good = good + (lord:getHp() == 1 and 250 or 150)
 			else

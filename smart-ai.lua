@@ -4455,7 +4455,6 @@ function SmartAI:getAoeValue(card, player)
 		if card:isVirtualCard() and card:subcardsLength() > 0 then	
 			for _, subcardid in sgs.qlist(card:getSubcards()) do
 				local subcard = sgs.Sanguosha:getCard(subcardid)
-				self.player:speak("subcard"..subcard:getClassName())
 				if subcard:getClassName() == "Peach" then peach_num = peach_num - 1 end
 				if subcard:getClassName() == "Slash" then slash_num = slash_num - 1 end
 				if subcard:getClassName() == "Jink" then jink_num = jink_num - 1 end

@@ -497,7 +497,7 @@ sgs.ai_card_intention.QingchengCard = 30
 
 sgs.ai_skill_invoke.cv_caopi = function(self, data)
 	if math.random(0, 2) == 0 then sgs.ai_skill_choice.cv_caopi = "heg_caopi" return true
-	elseif math.random(0, 6) == 0 then sgs.ai_skill_choice.cv_caopi = "heg_caopi" return true
+	elseif math.random(0, 6) == 0 then sgs.ai_skill_choice.cv_caopi = "ass_caopi" return true
 	end
 	return false
 end

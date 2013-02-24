@@ -465,6 +465,10 @@ function SmartAI:getDynamicUsePriority(card)
 			value = sgs.ai_use_priority.SupplyShortage - 0.01
 		end
 
+		if use_card:isKindOf("IronChain") and self:hasSkills("yeyan") then 
+			value = sgs.ai_use_priority.GreatYeyanCard + 0.1
+		end
+
 		if use_card:isKindOf("Analeptic") and use_card:isVirtualCard() then 
 			value = sgs.ai_use_priority.Analeptic - 0.01
 		end

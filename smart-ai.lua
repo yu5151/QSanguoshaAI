@@ -4494,7 +4494,7 @@ function SmartAI:getAoeValue(card, player)
 			if self:isEnemy(lord) then
 				good = good + (lord:getHp() == 1 and 250 or 150)
 			else
-				good = good - (lord:getHp() == 1 and -2013 or -250)
+				good = good - (lord:getHp() == 1 and 2013 or 250)
 			end
 		end
 	end

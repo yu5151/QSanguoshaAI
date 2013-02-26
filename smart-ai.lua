@@ -1835,19 +1835,12 @@ function SmartAI:filterEvent(event, player, data)
 		if self.room:getCurrent():getPhase() == sgs.Player_NotActive then sgs.modifiedRoleEvaluation() end
 	end
 	
-	if self.player:objectName() == player:objectName() then
-		if event == sgs.AskForPeaches then
-			local dying = data:toDying()
-			if self:isFriend(dying.who) and dying.who:getHp() < 1 then
-				
-				--local msg = sgs.LogMessage()
-				--msg.type = "#TriggerSkill"
-				--msg.arg = player:getSeat()
-				--msg.from = player
-				--self.room:sendLog(msg)
-				
-				self.room:setPlayerMark(player, "No_peach", 1)
-			end
+	if self.player:objectName() == player:objectName() and event == sgs.AskForPeaches then
+		local dying = data:toDying()
+		if self:isFriend(dying.who) and dying.who:getHp() < 1 then
+			-- self.player:speak(player:getGeneralName().."无桃")
+			self.room:setPlayerMark(player, "No_peach", 1)
+
 		end
 	end
 	
@@ -1928,11 +1921,6 @@ function SmartAI:filterEvent(event, player, data)
 		else
 			sgs.LordNeedPeach = nil
 		end
-	elseif event == sgs.AfterDrawNCards then
-		if player:getMark("No_peach") > 0 then
-			--player:speak("clear_no_peach_mark")
-			self.room:setPlayerMark(player, "No_peach", 0)
-		end
 	elseif event == sgs.Damaged then
 		local damage = data:toDamage()
 		local card = damage.card
@@ -1986,7 +1974,7 @@ function SmartAI:filterEvent(event, player, data)
 		if move.to   then to   = findPlayerByObjectName(self.room, move.to:objectName(), true)	end
 		local reason = move.reason
 		local from_places=sgs.QList2Table(move.from_places)
-
+		
 		for i = 0, move.card_ids:length()-1 do
 			local place = move.from_places:at(i)
 			local card_id=move.card_ids:at(i)
@@ -2068,7 +2056,13 @@ function SmartAI:filterEvent(event, player, data)
 					sgs.updateIntention(from, to, -70)
 				end				
 			end
-
+			
+			if move.to_place == sgs.Player_PlaceHand then
+				if (not from or from:getMark("No_peach") == 0) and to and not card:hasFlag("Visable") and to:getMark("No_peach") > 0 then
+					-- player:speak("clear-mark:"..to:getGeneralName())
+					self.room:setPlayerMark(to, "No_peach", 0)
+				end
+			end
 			
 			if player:hasFlag("Playing") and sgs.turncount <= 3 and player:getPhase() == sgs.Player_Discard 
 						and reason.m_reason==sgs.CardMoveReason_S_REASON_RULEDISCARD and not self:needBear(player) then
@@ -2110,14 +2104,6 @@ function SmartAI:filterEvent(event, player, data)
 						end
 					end
 				end
-			
-				--if move.to_place == sgs.Player_PlaceHand and to and player:objectName() ~= to:objectName() then
-					--if not card:hasFlag("Visable") and to:getMark("No_peach") then
-						--player:speak("to set mark:"..to:getGeneralName())
-						--self.room:setPlayerMark(to, "No_peach", 0)
-					--end
-				--end
-		
 			end
 		end
 		

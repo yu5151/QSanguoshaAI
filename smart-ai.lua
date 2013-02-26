@@ -1783,7 +1783,7 @@ function SmartAI:filterEvent(event, player, data)
 			end
 		end
 	end
-
+	
 	--if event ==sgs.AskForPeaches then endlessNiepan(data:toDying().who) end
 
 	sgs.lastevent = event
@@ -1834,7 +1834,23 @@ function SmartAI:filterEvent(event, player, data)
 	if event == sgs.EventPhaseStart then
 		if self.room:getCurrent():getPhase() == sgs.Player_NotActive then sgs.modifiedRoleEvaluation() end
 	end
-
+	
+	if self.player:objectName() == player:objectName() then
+		if event == sgs.AskForPeaches then
+			local dying = data:toDying()
+			if self:isFriend(dying.who) and dying.who:getHp() < 1 then
+				
+				--local msg = sgs.LogMessage()
+				--msg.type = "#TriggerSkill"
+				--msg.arg = player:getSeat()
+				--msg.from = player
+				--self.room:sendLog(msg)
+				
+				self.room:setPlayerMark(player, "No_peach", 1)
+			end
+		end
+	end
+	
 	if self ~= sgs.recorder then return end
 	
 	if event == sgs.TargetConfirmed then
@@ -1911,7 +1927,12 @@ function SmartAI:filterEvent(event, player, data)
 			end
 		else
 			sgs.LordNeedPeach = nil
-		end			
+		end
+	elseif event == sgs.AfterDrawNCards then
+		if player:getMark("No_peach") > 0 then
+			--player:speak("clear_no_peach_mark")
+			self.room:setPlayerMark(player, "No_peach", 0)
+		end
 	elseif event == sgs.Damaged then
 		local damage = data:toDamage()
 		local card = damage.card
@@ -2089,8 +2110,17 @@ function SmartAI:filterEvent(event, player, data)
 						end
 					end
 				end
-			end			
+			
+				--if move.to_place == sgs.Player_PlaceHand and to and player:objectName() ~= to:objectName() then
+					--if not card:hasFlag("Visable") and to:getMark("No_peach") then
+						--player:speak("to set mark:"..to:getGeneralName())
+						--self.room:setPlayerMark(to, "No_peach", 0)
+					--end
+				--end
+		
+			end
 		end
+		
 	elseif event == sgs.StartJudge then
 		local judge = data:toJudge()
 		local reason = judge.reason
@@ -3307,8 +3337,9 @@ function SmartAI:askForSinglePeach(dying)
 			for _, friend in ipairs(self.friends_noself) do
 				if (self:getKnownNum(friend) == friend:getHandcardNum() and getCardsNum("Peach", friend) == 0) or		--我知道他的全部手牌，他没桃，不计算
 					(self:playerGetRound(friend, currentp) < self:playerGetRound(self.player, currentp)) then			--在我之前的玩家，已经向他们求过桃了，不计算
+				elseif friend:getMark("No_peach") > 0 then																--有方求桃时，未出桃的玩家视为无桃
 				elseif friend:getHandcardNum() > 0 or getCardsNum("Peach", friend) >= 1 then							--有手牌的玩家，或者可能有桃的玩家，计算
-								-- 还需要补充判断：队友虽然有牌，但是上轮友方求桃时，他并没有出桃救人。这种情况应该判断为无桃。
+				
 					possible_friend = possible_friend + 1
 				end
 			end

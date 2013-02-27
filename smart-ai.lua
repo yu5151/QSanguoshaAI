@@ -180,6 +180,7 @@ function SmartAI:initialize(player)
 	sgs.card_lack[player:objectName()] = {}
 	sgs.card_lack[player:objectName()]["Slash"] = 0
 	sgs.card_lack[player:objectName()]["Jink"] = 0
+	sgs.card_lack[player:objectName()]["Peach"] = 0
 
 	if self.player:isLord() and not sgs.GetConfig("EnableHegemony", false) then
 		if (sgs.ai_chaofeng[self.player:getGeneralName()] or 0) < 3 then
@@ -1838,9 +1839,7 @@ function SmartAI:filterEvent(event, player, data)
 	if self.player:objectName() == player:objectName() and event == sgs.AskForPeaches then
 		local dying = data:toDying()
 		if self:isFriend(dying.who) and dying.who:getHp() < 1 then
-			-- self.player:speak(player:getGeneralName().."无桃")
-			self.room:setPlayerMark(player, "No_peach", 1)
-
+			sgs.card_lack[player:objectName()]["Peach"]=1
 		end
 	end
 	
@@ -1877,9 +1876,9 @@ function SmartAI:filterEvent(event, player, data)
 		local lord = getLord(player)
 		if lord and struct.card and lord:getHp() == 1 and self:aoeIsEffective(struct.card, lord, from) then
 			if struct.card:isKindOf("SavageAssault") then
-				self.room:setPlayerFlag(lord, "lord_in_danger_SA")
+				sgs.ai_lord_in_danger_SA = true
 			elseif struct.card:isKindOf("ArcheryAttack") then
-				self.room:setPlayerFlag(lord, "lord_in_danger_AA")			
+				sgs.ai_lord_in_danger_AA = true
 			end
 		end
 		
@@ -1888,9 +1887,9 @@ function SmartAI:filterEvent(event, player, data)
 		local card = struct.card
 		local from = struct.from
 		local to = struct.to
-		if card and card:isKindOf("AOE") and to and to:isLord() and (to:hasFlag("lord_in_danger_SA") or to:hasFlag("lord_in_danger_AA")) then
-			self.room:setPlayerFlag(to, "-lord_in_danger_AA")
-			self.room:setPlayerFlag(to, "-lord_in_danger_SA")
+		if card and card:isKindOf("AOE") and to and to:isLord() and (sgs.ai_lord_in_danger_SA or sgs.ai_lord_in_danger_AA) then
+			sgs.ai_lord_in_danger_SA = nil
+			sgs.ai_lord_in_danger_AA = nil
 		end
 		if card:isKindOf("Collateral") then sgs.ai_collateral = true end
 		if card:isKindOf("Dismantlement") or card:isKindOf("Snatch") or card:isKindOf("YinlingCard") then
@@ -1910,13 +1909,8 @@ function SmartAI:filterEvent(event, player, data)
 		if lord and damage.trigger_chain and lord:isChained() and self:damageIsEffective(lord, damage.nature, from) then
 			if lord:hasArmorEffect("Vine") and damage.nature == sgs.DamageStruct_Fire and lord:getHp() <= damage.damage + 1 then
 				sgs.LordNeedPeach = damage.damage + 2 - lord:getHp()
-				--lord:speak("TEST:我要死了,我要"..sgs.LordNeedPeach.."个桃子,你们别乱用桃")
 			elseif lord:getHp() <= damage.damage then
 				sgs.LordNeedPeach = damage.damage + 1 - lord:getHp()
-				local msg = sgs.LogMessage()
-				msg.type = "lordchain"
-				self.room:sendLog(msg)
-				--lord:speak("TEST:我要死了,我要"..sgs.LordNeedPeach.."个桃子,你们别乱用桃")
 			end
 		else
 			sgs.LordNeedPeach = nil
@@ -1974,7 +1968,7 @@ function SmartAI:filterEvent(event, player, data)
 		if move.to   then to   = findPlayerByObjectName(self.room, move.to:objectName(), true)	end
 		local reason = move.reason
 		local from_places=sgs.QList2Table(move.from_places)
-		
+
 		for i = 0, move.card_ids:length()-1 do
 			local place = move.from_places:at(i)
 			local card_id=move.card_ids:at(i)
@@ -2013,9 +2007,11 @@ function SmartAI:filterEvent(event, player, data)
 				if card:hasFlag("visible") then
 					if isCard("Slash",card, player) then sgs.card_lack[player:objectName()]["Slash"]=0 end
 					if isCard("Jink",card, player) then sgs.card_lack[player:objectName()]["Jink"]=0 end
+					if isCard("Peach",card, player) then sgs.card_lack[player:objectName()]["Peach"]=0 end
 				else
 					sgs.card_lack[player:objectName()]["Slash"]=0
 					sgs.card_lack[player:objectName()]["Jink"]=0
+					sgs.card_lack[player:objectName()]["Peach"]=0
 				end
 			end
 
@@ -2054,14 +2050,7 @@ function SmartAI:filterEvent(event, player, data)
 				if (to:hasSkill("manjuan") and to:getPhase() == sgs.Player_NotActive) or to:hasSkill("kongcheng") then
 				else
 					sgs.updateIntention(from, to, -70)
-				end				
-			end
-			
-			if move.to_place == sgs.Player_PlaceHand then
-				if (not from or from:getMark("No_peach") == 0) and to and not card:hasFlag("Visable") and to:getMark("No_peach") > 0 then
-					-- player:speak("clear-mark:"..to:getGeneralName())
-					self.room:setPlayerMark(to, "No_peach", 0)
-				end
+				end	
 			end
 			
 			if player:hasFlag("Playing") and sgs.turncount <= 3 and player:getPhase() == sgs.Player_Discard 
@@ -3309,12 +3298,11 @@ function SmartAI:askForSinglePeach(dying)
 		
 		local lord = getLord(self.player)
 		if not sgs.GetConfig("EnableHegemony", false) and self.player:objectName() ~= dying:objectName() and not dying:isLord() and							-- 我不是求桃的玩家，死的不是主公
-		(self.role == "loyalist" or self.role == "renegade" and self.room:alivePlayerCount() > 2) and					--我是忠 or 我是内还没和主公单挑
-			((sgs.LordNeedPeach and self:getCardsNum("Peach") <= sgs.LordNeedPeach) or 										--1.处于连锁状态的主公需要桃，我的桃不多于主公需要的桃
-			(lord:hasFlag("lord_in_danger_SA") and getCardsNum("Slash", lord) < 1 and self:getCardsNum("Peach") < 2) or		--2.正在放南蛮，主公可能没有杀，我的桃少于2个
-			(lord:hasFlag("lord_in_danger_AA") and getCardsNum("Jink", lord) < 1 and self:getCardsNum("Peach") < 2)) then	--3.正在放万剑，主公可能没有闪，我的桃少于2个
-			--self.player:speak("TEST:需要救主公")
-			return "." 																									-- 不救濒死的人
+		(self.role == "loyalist" or self.role == "renegade" and self.room:alivePlayerCount() > 2) and				--我是忠 or 我是内还没和主公单挑
+			((sgs.LordNeedPeach and self:getCardsNum("Peach") <= sgs.LordNeedPeach) or 								--1.处于连锁状态的主公需要桃，我的桃不多于主公需要的桃
+			(sgs.lord_in_danger_SA and getCardsNum("Slash", lord) < 1 and self:getCardsNum("Peach") < 2) or			--2.正在放南蛮，主公可能没有杀，我的桃少于2个
+			(sgs.lord_in_danger_AA and getCardsNum("Jink", lord) < 1 and self:getCardsNum("Peach") < 2)) then		--3.正在放万剑，主公可能没有闪，我的桃少于2个
+			return "." 																								-- 不救濒死的人
 		end	
 		
 		if sgs.turncount > 1 and not dying:isLord() and dying:objectName() ~= self.player:objectName() then			-- 第2回合开始，我不是求桃的玩家，死的不是主公
@@ -3322,15 +3310,14 @@ function SmartAI:askForSinglePeach(dying)
 			local currentp = self.room:getCurrent()
 			for _, friend in ipairs(self.friends_noself) do
 				if (self:getKnownNum(friend) == friend:getHandcardNum() and getCardsNum("Peach", friend) == 0) or		--我知道他的全部手牌，他没桃，不计算
-					(self:playerGetRound(friend, currentp) < self:playerGetRound(self.player, currentp)) then			--在我之前的玩家，已经向他们求过桃了，不计算
-				elseif friend:getMark("No_peach") > 0 then																--有方求桃时，未出桃的玩家视为无桃
+					(self:playerGetRound(friend, currentp) < self:playerGetRound(self.player, currentp)) or				--在我之前的玩家，已经向他们求过桃了，不计算
+					(sgs.card_lack[friend:objectName()]["Peach"] == 1) then												--有方求桃时，未出桃的玩家视为无桃
 				elseif friend:getHandcardNum() > 0 or getCardsNum("Peach", friend) >= 1 then							--有手牌的玩家，或者可能有桃的玩家，计算
 				
 					possible_friend = possible_friend + 1
 				end
 			end
 			if possible_friend == 0 and #self:getCards("Peach") < 1 - dying:getHp() then				-- 当我的桃子不够救人，之后无队友时，不出桃
-				--self.player:speak("TEST:桃不够,救个毛")
 				return "." 
 			end
 		end

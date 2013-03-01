@@ -1050,7 +1050,6 @@ sgs.ai_card_intention.general = function(from,to,level)
 		end
 	end
 	
-	--[[
 	if global_room:getTag("humanCount") and global_room:getTag("humanCount"):toInt() ==1 then
 		local diffarr = {
 			add_loyalist_value	= sgs.role_evaluation[from:objectName()]["loyalist"] - loyalist_value ,
@@ -1087,7 +1086,7 @@ sgs.ai_card_intention.general = function(from,to,level)
 			global_room:sendLog(log)
 		end
 	end
-	]]
+
 
 	--sgs.outputProcessValues(from:getRoom())
 	sgs.outputRoleValues(from, level)
@@ -2125,7 +2124,7 @@ function SmartAI:filterEvent(event, player, data)
 			self.room:setTag("humanCount",sgs.QVariant(humanCount))
 
 			if humanCount == 1 and not sgs.isRolePredictable() and not sgs.GetConfig("EnableHegemony", false) then 
-				--global_room:writeToConsole(msg)
+				global_room:writeToConsole(msg)
 			end
 		end
 

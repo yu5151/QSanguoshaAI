@@ -1117,7 +1117,7 @@ function sgs.updateIntentions(from, tos, intention, card)
 end
 
 function sgs.isLordHealthy()
-	local lord = global_room:getLord()
+	local lord = getLord(global_room:getCurrent())
 	local lord_hp
 	if not lord then return true end
 	if lord:hasSkill("benghuai") and lord:getHp() > 4 then lord_hp = 4 
@@ -1126,7 +1126,7 @@ function sgs.isLordHealthy()
 end
 
 function sgs.isLordInDanger()
-	local lord = global_room:getLord()
+	local lord = getLord(global_room:getCurrent())
 	local lord_hp
 	if not lord then return false end
 	if lord:hasSkill("benghuai") and lord:getHp() > 4 then lord_hp = 4 

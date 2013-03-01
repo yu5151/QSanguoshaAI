@@ -108,27 +108,11 @@ function sgs.getDefenseSlash(player)
 	  and not IgnoreArmor(attacker, player) then
 		hasEightDiagram=true
 	end
-
-	local m = sgs.masochism_skill:split("|")
-	for _, masochism in ipairs(m) do
-		if player:hasSkill(masochism) and sgs.isGoodHp(player) and not attacker:hasSkill("jueqing") then
-			defense = defense + 1.3
-		end
-	end
 	
 	if hasEightDiagram then 
 		defense = defense + 1.3 
 		if player:hasSkill("tiandu") then defense = defense + 0.6 end
 	end
-
-	if not sgs.isGoodTarget(player) then
-		defense = defense + 10
-	end
-
-	if player:hasSkill("rende") and player:getHp() > 2 then defense = defense + 3 end
-	if player:hasSkill("kuanggu") and player:getHp() > 1 then defense = defense + 0.2 end
-	if player:hasSkill("zaiqi") and player:getHp() > 1 then defense = defense + 0.35 end
-	
 
 	if player:hasSkill("tuntian") and getCardsNum("Jink",player) >= 1 then
 		defense = defense + 1.5	
@@ -146,15 +130,29 @@ function sgs.getDefenseSlash(player)
 			defense = defense + hujiaJink
 	end
 
-	if player:getMark("@tied") > 0 then
-		defense = defense + 1
+	if player:getMark("@tied") > 0 then defense = defense + 1 end
+
+	local hcard = player:getHandcardNum()
+	if attacker:hasSkill("liegong") and attacker:canSlashWithoutCrossbow() and (hcard >= attacker:getHp() or hcard <= attacker:getAttackRange()) then
+		defense = 0
 	end
+
+	local m = sgs.masochism_skill:split("|")
+	for _, masochism in ipairs(m) do
+		if player:hasSkill(masochism) and sgs.isGoodHp(player) and not attacker:hasSkill("jueqing") then
+			defense = defense + 1.3
+		end
+	end
+
+	if not sgs.isGoodTarget(player) then defense = defense + 10 end
+
+	if player:hasSkill("rende") and player:getHp() > 2 then defense = defense + 3 end
+	if player:hasSkill("kuanggu") and player:getHp() > 1 then defense = defense + 0.2 end
+	if player:hasSkill("zaiqi") and player:getHp() > 1 then defense = defense + 0.35 end
 	
 	if player:getHp() > getBestHp(player) then defense = defense + 1.3 end
 
-	if player:getHp() <= 2 then
-		defense = defense - 0.4
-	end
+	if player:getHp() <= 2 then defense = defense - 0.4 end
 	
 	local playernum=global_room:alivePlayerCount()
 	if (player:getSeat()-attacker:getSeat()) % playernum >= playernum-2 and playernum>3 and player:getHandcardNum()<=2 and player:getHp()<=2 then
@@ -186,7 +184,7 @@ function sgs.getDefenseSlash(player)
 		defense = defense - 0.6
 	end	
 
-	if player:isLord() then 
+	if isLord(player) then 
 		defense = defense -0.4
 		if sgs.isLordInDanger() then defense = defense - 0.7 end
 	end

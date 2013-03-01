@@ -2299,17 +2299,6 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		if exnihilo then return exnihilo end
 	end 
 	
-	if analeptic then
-		local slashs = self:getCards("Slash")
-		for _, enemy in ipairs(self.enemies) do
-			for _, slash in ipairs(slashs) do
-				if (self:getCardsNum("Jink", enemy) < 1 or enemy:isKongcheng()) and self:slashIsEffective(slash, enemy) and self.player:canSlash(enemy, slash) and self:slashIsAvailable() then
-					return analeptic
-				end
-			end
-		end
-	end
-	
 	for _, card in ipairs(cards) do
 		if card:isKindOf("Nullification") and ( self:getCardsNum("Nullification") < 2 or not nextplayercanuse ) then 
 			return card:getEffectiveId()
@@ -2327,24 +2316,34 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	end
 	
 	for _, card in ipairs(cards) do
-		if card:isKindOf("EightDiagram") and self.player:hasSkill("tiandu") then return card:getEffectiveId() end
-		if (card:isKindOf("Armor") or card:isKindOf("DefensiveHorse")) and self:isWeak() then return card:getEffectiveId() end
+		if card:isKindOf("EightDiagram") and self:hasSkills("tiandu|guidao|zhenlie") then return card:getEffectiveId() end
+		if (card:isKindOf("Armor") or card:isKindOf("DefensiveHorse")) and self:isWeak() and not self:getSameEquip(card) then return card:getEffectiveId() end
 		if card:isKindOf("Crossbow") and (#(self:getCards("Slash")) > 1 or self:hasSkills("kurou|keji") or self:hasSkills("luoshen|yongsi|luoying") and not current) then return card:getEffectiveId() end
 		if card:isKindOf("Halberd") then
 			if self.player:hasSkill("rende") and self:getCardsNum("Slash") > 0 then return card:getEffectiveId() end
 			if current and self:getCardsNum("Slash") == 1 and self.player:getHandcardNum() == 1 then return card:getEffectiveId() end 
-			return card:getEffectiveId()
+		end
+	end
+	
+	if analeptic then
+		local slashs = self:getCards("Slash")
+		for _, enemy in ipairs(self.enemies) do
+			for _, slash in ipairs(slashs) do
+				if (self:getCardsNum("Jink", enemy) < 1 or enemy:isKongcheng()) and self:slashIsEffective(slash, enemy) and self.player:canSlash(enemy, slash) and self:slashIsAvailable() then
+					return analeptic
+				end
+			end
 		end
 	end
 	
 	local snatch, dismantlement, indulgence, supplyshortage, collatera, duel, aoe, fireattack
 	for _, card in ipairs(cards) do
 		for _, enemy in ipairs(self.enemies) do
-			if card:isKindOf("Snatch") and self:hasTrickEffective(card,enemy) and self.player:distanceTo(enemy) == 1 and not enemy:isKongcheng() then
+			if card:isKindOf("Snatch") and self:hasTrickEffective(card,enemy) and self.player:distanceTo(enemy) == 1 and not enemy:isNude() then
 				snatch = card:getEffectiveId()
-			elseif not enemy:isKongcheng() and card:isKindOf("Dismantlement") and self:hasTrickEffective(card,enemy) then
+			elseif not enemy:isNude() and card:isKindOf("Dismantlement") and self:hasTrickEffective(card,enemy) then
 				dismantlement = card:getEffectiveId()
-			elseif card:isKindOf("Indulgence") and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("Indulgence") then
+			elseif card:isKindOf("Indulgence") and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("indulgence") then
 				indulgence = card:getEffectiveId()
 			elseif card:isKindOf("SupplyShortage")	and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("supply_shortage") then
 				supplyshortage = card:getEffectiveId()
@@ -2376,7 +2375,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 				end
 				if suitnum >=3 or (suitnum >= 2 and enemy:getHandcardNum() == 1 ) then
 					fireattack = card:getEffectiveId()
-				end						
+				end
 			end
 		end
 	end

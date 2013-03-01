@@ -398,7 +398,7 @@ sgs.ai_skill_use["@@tianxiang"] = function(self, data)
 end
 
 
-sgs.ai_card_intention.TianxiangCard = function(card, from, tos)
+sgs.ai_card_intention.TianxiangCard = function(self,card, from, tos)
 	local to = tos[1]
 	local intention = 10
 	local friend = false

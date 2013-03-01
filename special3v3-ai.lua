@@ -101,7 +101,7 @@ sgs.ai_skill_use["@@hongyuan"] = function(self, prompt)
 	return ("@HongyuanCard=.->%s+%s"):format(first, second)
 end
 
-sgs.ai_card_intention.HongyuanCard = function(card, from, tos, source)
+sgs.ai_card_intention.HongyuanCard = function(self, card, from, tos, source)
 	for _, to in ipairs(tos) do
 		sgs.updateIntention(from, to, -80)
 	end

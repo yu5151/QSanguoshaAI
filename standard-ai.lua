@@ -384,7 +384,7 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 	return "."
 end
 
-sgs.ai_card_intention.TuxiCard = function(card, from, tos, source)
+sgs.ai_card_intention.TuxiCard = function(self,card, from, tos, source)
 	local lord = from:getRoom():getLord()
 	local tuxi_lord = false	
 	if from:getState() == "online" then
@@ -646,7 +646,7 @@ end
 sgs.ai_use_value.RendeCard = 8.5
 sgs.ai_use_priority.RendeCard = 8.8
 
-sgs.ai_card_intention.RendeCard = function(card, from, tos)
+sgs.ai_card_intention.RendeCard = function(self,card, from, tos)
 	local to = tos[1]
 	local intention = -70
 	if to:hasSkill("manjuan") and to:getPhase() == sgs.Player_NotActive then
@@ -755,9 +755,9 @@ end
 
 
 
-sgs.ai_card_intention.JijiangCard = function(card, from, tos)
+sgs.ai_card_intention.JijiangCard = function(self,card, from, tos)
 	if not from:isLord() and global_room:getCurrent():objectName() == from:objectName() then
-		return sgs.ai_card_intention.Slash(card, from, tos)
+		return sgs.ai_card_intention.Slash(self, card, from, tos)
 	end
 end
 
@@ -1477,7 +1477,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 	return "."
 end
 
-sgs.ai_card_intention.LiuliCard = function(card,from,to)
+sgs.ai_card_intention.LiuliCard = function(self,card,from,to)
 	sgs.ai_liuli_effect=true
 end
 
@@ -1618,7 +1618,7 @@ end
 
 sgs.ai_use_priority.JieyinCard = 2.8	-- 下调至决斗之后
 
-sgs.ai_card_intention.JieyinCard = function(card, from, tos)
+sgs.ai_card_intention.JieyinCard = function(self,card, from, tos)
 	if not from:hasFlag("jieyin_isenemy_"..tos[1]:objectName()) then 
 		sgs.updateIntention(from, tos[1], -80)
 	end
@@ -2028,7 +2028,7 @@ end
 
 table.insert(sgs.ai_choicemade_filter.cardUsed, lijian_filter)
 
-sgs.ai_card_intention.LijianCard = function(card, from, to)
+sgs.ai_card_intention.LijianCard = function(self,card, from, to)
 	if sgs.evaluateRoleTrends(to[1]) == sgs.evaluateRoleTrends(to[2]) then
 		if sgs.evaluateRoleTrends(from) == "rebel" and sgs.evaluateRoleTrends(to[1]) == sgs.evaluateRoleTrends(from) and to[1]:getHp() == 1 then
 		elseif to[1]:hasSkill("hunzi") and to[1]:getHp() == 2 and to[1]:getMark("hunzi") == 0 then

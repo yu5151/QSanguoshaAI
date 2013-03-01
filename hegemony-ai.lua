@@ -339,7 +339,8 @@ end
 sgs.ai_skill_use["@@shuangren"] = function(self, prompt)
 	local target
 	self:sort(self.enemies, "handcard")
-	local max_card = self:getMaxCard(self.player)
+	local max_card = self:getMaxCard()
+	if not max_card then return "." end
 	local max_point = max_card:getNumber()
 	for _, enemy in ipairs(self.enemies) do
 		if not enemy:isKongcheng() then

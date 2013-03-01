@@ -445,15 +445,19 @@ function SmartAI:useCardSlash(card, use)
 			-- fill the card use struct
 			local usecard = card
 			if not use.to or use.to:isEmpty() then
-				local equips = self:getCards("EquipCard", self.player, "h")
-				for _, equip in ipairs(equips) do
-					local callback = sgs.ai_slash_weaponfilter[equip:objectName()]
-					if callback and type(callback) == "function" and callback(target, self) and
-						self.player:distanceTo(target) <= (sgs.weapon_range[equip:getClassName()] or 0) then
-						self:useEquipCard(equip, use)
-						if use.card then return end
+				
+				if not (self:isEquip("Spear") and card:getSkillName() == "Spear" and #self:getCards("Slash") == 0) then
+					local equips = self:getCards("EquipCard", self.player, "h")
+					for _, equip in ipairs(equips) do
+						local callback = sgs.ai_slash_weaponfilter[equip:objectName()]
+						if callback and type(callback) == "function" and callback(target, self) and
+							self.player:distanceTo(target) <= (sgs.weapon_range[equip:getClassName()] or 0) then
+							self:useEquipCard(equip, use)
+							if use.card then return end
+						end
 					end
 				end
+				
 				if target:isChained() and self:isGoodChainTarget(target) and not use.card then
 					if self:isEquip("Crossbow") and card:isKindOf("NatureSlash") then
 						local slashes = self:getCards("Slash")
@@ -2270,7 +2274,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 			peachnum = peachnum + 1
 		end
 	end
-	if ( not friendneedpeach and peach ) or peachnum > 1 then return peach end
+	if (not friendneedpeach and peach) or peachnum > 1 then return peach end
 	
 	local exnihilo, jink, analeptic
 	for _, card in ipairs(cards) do
@@ -2311,6 +2315,16 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 			return card:getEffectiveId()
 		end
 	end	
+	
+	self:sortByUseValue(cards)
+	for _, card in ipairs(cards) do
+		for _, skill in sgs.qlist(self.player:getVisibleSkillList()) do
+			local callback = sgs.ai_cardneed[skill:objectName()]
+			if type(callback) == "function" and callback(self.player, card, self) then
+				return card:getEffectiveId()
+			end
+		end
+	end
 	
 	for _, card in ipairs(cards) do
 		if card:isKindOf("EightDiagram") and self.player:hasSkill("tiandu") then return card:getEffectiveId() end

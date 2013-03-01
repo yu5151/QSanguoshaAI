@@ -3712,7 +3712,9 @@ local function getSkillViewCard(card, class_name, player, card_place)
 				local skill_card_str = callback(card, player, card_place, class_name)
 				if skill_card_str then
 					local skill_card = sgs.Card_Parse(skill_card_str)
-					if skill_card:isKindOf(class_name) and not player:isJilei(skill_card) then return skill_card_str end
+					if skill_card and skill_card:isKindOf(class_name) and not player:isCardLimited(skill_card, skill_card:getHandlingMethod()) then
+						return skill_card_str 
+					end
 				end
 			end
 		end
@@ -3852,7 +3854,7 @@ function SmartAI:getCardId(class_name, player, acard)
 		local card_place = self.room:getCardPlace(card:getEffectiveId())
 		viewas = getSkillViewCard(card, class_name, player, card_place)
 		if viewas then table.insert(viewArr, viewas) end
-		if card:isKindOf(class_name) and not prohibitUseDirectly(card, player) then table.insert(cardArr,card:getEffectiveId()) end		
+		if card:isKindOf(class_name) and not prohibitUseDirectly(card, player) then table.insert(cardArr,card:getEffectiveId()) end
 	end
 
 	if #viewArr >0 or #cardArr > 0 then

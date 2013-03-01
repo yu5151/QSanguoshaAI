@@ -948,7 +948,7 @@ end
 
 sgs.ai_cardneed.taichen = sgs.ai_cardneed.weapon
 sgs.taichen_keep_value = sgs.qiangxi_keep_value
-sgs.ai_card_intention.TaichenCard = function(card, from, tos)
+sgs.ai_card_intention.TaichenCard = function(self,card, from, tos)
 	if #tos > 0 then
 		for _,to in ipairs(tos) do
 			if to:hasFlag("TaichenOK") then

@@ -93,7 +93,7 @@ sgs.ai_skill_playerchosen.songwei = function(self, targets)
 	return targets[1]
 end
 
-sgs.ai_card_intention.FangzhuCard = function(card, from, tos)
+sgs.ai_card_intention.FangzhuCard = function(self,card, from, tos)
 	if from:getLostHp() < 3 then
 		sgs.updateIntention(from, tos[1], 80/from:getLostHp())
 	end
@@ -322,7 +322,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 	end
 end
 
-function sgs.ai_card_intention.YinghunCard(card, from, tos, source)
+sgs.ai_card_intention.YinghunCard = function(self, card, from, tos, source)
 	local intention = -80
 	if from:hasFlag("yinghun_to_enemy") then intention = -intention end
 	if tos[1]:hasSkill("manjuan") then intention = -intention end
@@ -549,7 +549,7 @@ sgs.ai_skill_discard.DimengCard = function(self, discard_num, min_num, optional,
 	return to_discard
 end
 
-sgs.ai_card_intention.DimengCard = function(card, from, to)
+sgs.ai_card_intention.DimengCard = function(self,card, from, to)
 	local compare_func = function(a, b)
 		return a:getHandcardNum() < b:getHandcardNum()
 	end

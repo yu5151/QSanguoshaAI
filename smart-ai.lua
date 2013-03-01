@@ -1856,7 +1856,7 @@ function SmartAI:filterEvent(event, player, data)
 			local callback = sgs.ai_card_intention[card:getClassName()]
 			if callback then
 				if type(callback) == "function" then
-					callback(card, from, to)
+					callback(self, card, from, to)
 				elseif type(callback) == "number" then
 					sgs.updateIntentions(from, to, callback, card)
 				end
@@ -1865,7 +1865,7 @@ function SmartAI:filterEvent(event, player, data)
 				local luaskillcardcallback = sgs.ai_card_intention[card:objectName()]
 				if luaskillcardcallback then
 					if type(luaskillcardcallback) == "function" then
-						luaskillcardcallback(card, from, to)
+						luaskillcardcallback(self, card, from, to)
 					elseif type(luaskillcardcallback) == "number" then
 						sgs.updateIntentions(from, to, luaskillcardcallback, card)
 					end

@@ -434,7 +434,7 @@ end
 sgs.ai_use_priority.GanluCard = sgs.ai_use_priority.Dismantlement + 0.1
 sgs.dynamic_value.control_card.GanluCard = true
 
-sgs.ai_card_intention.GanluCard = function(card, from, to)
+sgs.ai_card_intention.GanluCard = function(self,card, from, to)
 	local compare_func = function(a, b)
 		return a:getEquips():length() < b:getEquips():length()
 	end

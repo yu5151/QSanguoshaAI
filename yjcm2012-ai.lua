@@ -593,7 +593,11 @@ sgs.chunlao_keep_value = {
 	Slash = 5.5,
 }
 
-sgs.ai_skill_invoke.zhiyu = function(self)
+sgs.ai_skill_invoke.zhiyu = function(self, data)
+	local damage = data:toDamage()
+	local target = damage and damage.from
+	if self:isFriend(target) or target:isKongcheng() then return false end
+
 	local cards = self.player:getCards("h")	
 	cards=sgs.QList2Table(cards)
 	local first

@@ -447,11 +447,30 @@ end
 
 sgs.ai_skill_invoke.buyi = function(self, data)
 	local dying = data:toDying()
-	if self.role == "renegade" and not (dying.who:isLord() or dying.who:objectName() == self.player:objectName()) and 
+	local isFriend = false
+	local allBasicCard = true
+	if dying.who:isKongcheng() then return false end
+
+	isFriend = not self:isEnemy(dying.who)
+	if not sgs.GetConfig("EnableHegemony", false) and self.role == "renegade" and not (dying.who:isLord() or dying.who:objectName() == self.player:objectName()) and 
 			(sgs.current_mode_players["loyalist"] == sgs.current_mode_players["rebel"] or self.room:getCurrent():objectName() == self.player:objectName()) then
-		return false
+		isFriend = false
 	end
-	return self:isFriend(dying.who)
+	
+	local knownNum = 0
+	local cards = dying.who:getHandcards()
+	for _, card in sgs.qlist(cards) do
+		local flag=string.format("%s_%s_%s","visible",self.player:objectName(),dying.who:objectName())
+		if dying.who:objectName() == self.player:objectName() or card:hasFlag("visible") or card:hasFlag(flag) then
+			knownNum = knownNum + 1
+			if card:getTypeId() ~= sgs.Card_Basic then allBasicCard = false	end
+		end
+	end
+	if knownNum < dying.who:getHandcardNum() then allBasicCard = false end
+	
+	local ret = isFriend and (not allBasicCard)
+	if ret and dying.who:objectName() ~= self.player:objectName() then sgs.updateIntention(self.player, dying.who, -80) end
+	return ret
 end
 
 sgs.ai_cardshow.buyi = function(self, requestor)

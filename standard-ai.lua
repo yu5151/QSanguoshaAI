@@ -222,9 +222,9 @@ sgs.ai_skill_invoke.ganglie = function(self, data)
 end
 
 sgs.ai_need_damaged.ganglie = function (self, attacker)
-	if self:getDamagedEffects(attacker,self.player) then return self:isFriend(attacker) end
+	if self:getDamagedEffects(attacker, self.player) then return self:isFriend(attacker) end
 	if self:isEnemy(attacker) and attacker:getHp() + attacker:getHandcardNum() <= 3 and 
-			not self:hasSkills(sgs.need_kongcheng.."|buqu", attacker) and sgs.isGoodTarget(attacker, self.enemies, self) then
+			not (self:hasSkills(sgs.need_kongcheng.."|buqu", attacker) and attacker:getHandcardNum() > 1) and sgs.isGoodTarget(attacker, self.enemies, self) then
 		return true
 	end
 	return false
@@ -803,7 +803,7 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 	
 	local ignoreArmor = IgnoreArmor(sgs.jijiangsource, target) or not target:getArmor()
 	
-	if self:isFriend(target) and not (target:getHp() > getBestHp(target) or self:getDamagedEffects(target, sgs.jijiangsource)) then return "." end
+	if self:isFriend(target) and not (self:needLostHp(target, sgs.jijiangsource, true) or self:getDamagedEffects(target, sgs.jijiangsource, true)) then return "." end
 
 	if ignoreArmor and not target:hasSkill("yizhong") then return self:getCardId("Slash") or "." end
 
@@ -1456,10 +1456,22 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 	end
 
 	for _, friend in ipairs(self.friends_noself) do
-		if friend:getHp() > getBestHp(friend) or self:getDamagedEffects(friend, source) then
+		if self:needLostHp(friend, source, true) or self:getDamagedEffects(friend, source, true) then
 			if not (source and (source:objectName() == friend:objectName())) then
 				local ret = doLiuli(friend)
 				if ret ~= "." then return ret end
+			end
+		end
+	end
+
+	if (self:isWeak() or self:hasHeavySlashDamage(source, slash)) and source:hasWeapon("Axe") and source:getCards("he"):length() > 2
+	  and not self:getCardId("Peach") and not self:getCardId("Analeptic") then
+		for _, friend in ipairs(self.friends_noself) do
+			if not self:isWeak(friend) then
+				if not (source and (source:objectName() == friend:objectName())) then
+					local ret = doLiuli(friend)
+					if ret ~= "." then return ret end
+				end
 			end
 		end
 	end
@@ -2052,6 +2064,7 @@ sgs.ai_suit_priority.wusheng= "club|spade|diamond|heart"
 
 function SmartAI:canUseJieyuanDecrease(damage_from, player)
 	local player = player or self.player
+	if not damage_from then return false end
 	if player:hasSkill("jieyuan") and damage_from:getHp() >= player:getHp() then
 		for _, card in sgs.qlist(player:getHandcards()) do
 			if card:isRed() and not card:isKindOf("Peach") and not card:isKindOf("ExNihilo") then return true end

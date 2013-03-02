@@ -85,7 +85,7 @@ end
 function SmartAI:canAttack(enemy, attacker, nature)
 	attacker = attacker or self.player
 	nature = nature or sgs.DamageStruct_Normal
-	if #self.enemies ==1 or self:hasSkills("jueqing") then return true end
+	if #self.enemies == 1 or self:hasSkills("jueqing") then return true end
 	if self:getDamagedEffects(enemy, attacker) or (enemy:getHp() > getBestHp(enemy) and #self.enemies > 1) or not sgs.isGoodTarget(enemy, self.enemies, self) then return false end
 	if self:objectiveLevel(enemy) <= 3 or self:cantbeHurt(enemy) or not self:damageIsEffective(enemy, nature , attacker) then return false end
 	if nature ~= sgs.DamageStruct_Normal and enemy:isChained() and not self:isGoodChainTarget(enemy) then return false end
@@ -108,27 +108,11 @@ function sgs.getDefenseSlash(player)
 	  and not IgnoreArmor(attacker, player) then
 		hasEightDiagram=true
 	end
-
-	local m = sgs.masochism_skill:split("|")
-	for _, masochism in ipairs(m) do
-		if player:hasSkill(masochism) and sgs.isGoodHp(player) and not attacker:hasSkill("jueqing") then
-			defense = defense + 1.3
-		end
-	end
 	
 	if hasEightDiagram then 
 		defense = defense + 1.3 
 		if player:hasSkill("tiandu") then defense = defense + 0.6 end
 	end
-
-	if not sgs.isGoodTarget(player) then
-		defense = defense + 10
-	end
-
-	if player:hasSkill("rende") and player:getHp() > 2 then defense = defense + 3 end
-	if player:hasSkill("kuanggu") and player:getHp() > 1 then defense = defense + 0.2 end
-	if player:hasSkill("zaiqi") and player:getHp() > 1 then defense = defense + 0.35 end
-	
 
 	if player:hasSkill("tuntian") and getCardsNum("Jink",player) >= 1 then
 		defense = defense + 1.5	
@@ -146,15 +130,29 @@ function sgs.getDefenseSlash(player)
 			defense = defense + hujiaJink
 	end
 
-	if player:getMark("@tied") > 0 then
-		defense = defense + 1
+	if player:getMark("@tied") > 0 then defense = defense + 1 end
+
+	local hcard = player:getHandcardNum()
+	if attacker:hasSkill("liegong") and attacker:canSlashWithoutCrossbow() and (hcard >= attacker:getHp() or hcard <= attacker:getAttackRange()) then
+		defense = 0
 	end
+
+	local m = sgs.masochism_skill:split("|")
+	for _, masochism in ipairs(m) do
+		if player:hasSkill(masochism) and sgs.isGoodHp(player) and not attacker:hasSkill("jueqing") then
+			defense = defense + 1.3
+		end
+	end
+
+	if not sgs.isGoodTarget(player) then defense = defense + 10 end
+
+	if player:hasSkill("rende") and player:getHp() > 2 then defense = defense + 3 end
+	if player:hasSkill("kuanggu") and player:getHp() > 1 then defense = defense + 0.2 end
+	if player:hasSkill("zaiqi") and player:getHp() > 1 then defense = defense + 0.35 end
 	
 	if player:getHp() > getBestHp(player) then defense = defense + 1.3 end
 
-	if player:getHp() <= 2 then
-		defense = defense - 0.4
-	end
+	if player:getHp() <= 2 then defense = defense - 0.4 end
 	
 	local playernum=global_room:alivePlayerCount()
 	if (player:getSeat()-attacker:getSeat()) % playernum >= playernum-2 and playernum>3 and player:getHandcardNum()<=2 and player:getHp()<=2 then
@@ -186,7 +184,7 @@ function sgs.getDefenseSlash(player)
 		defense = defense - 0.6
 	end	
 
-	if player:isLord() then 
+	if isLord(player) then 
 		defense = defense -0.4
 		if sgs.isLordInDanger() then defense = defense - 0.7 end
 	end
@@ -1856,7 +1854,7 @@ function SmartAI:useCardCollateral(card, use)
 			if not n then
 				for _, friend in ipairs(toList) do
 					if enemy:canSlash(friend) and self:objectiveLevel(friend) < 0 and enemy:objectName() ~= friend:objectName() 
-							and (friend:getHp() > getBestHp(friend) or self:getDamagedEffects(friend, enemy) ) then
+							and (self:needLostHp(friend, enemy, true) or self:getDamagedEffects(friend, enemy, true)) then
 						n = 1
 						final_enemy = friend
 						break
@@ -1960,12 +1958,12 @@ sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target,
 			if self:slashIsEffective(slash, target2) and self:isFriend(target2) then 
 				return slash:toString()
 			end 
-			if not self:slashIsEffective(slash, target2) and self:isEnemy(target2) then 
+			if not self:slashIsEffective(slash, target2, true) and self:isEnemy(target2) then 
 				return slash:toString()
 			end
 		end
 		for _, slash in ipairs(self:getCards("Slash")) do
-			if not self:getDamagedEffects(target2, self.player) and self:isEnemy(target2) then 
+			if not self:getDamagedEffects(target2, self.player, true) and self:isEnemy(target2) then 
 				return slash:toString()
 			end
 		end

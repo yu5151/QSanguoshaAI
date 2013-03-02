@@ -345,6 +345,7 @@ sgs.ai_skill_invoke.duanzhi = function(self, data)
 		return true
 	end
 	]]--
+	if use.from and use.from:getCardCount(true) < 2 then return end
 	return use.from and self:isEnemy(use.from) and self.player:getHp() > 2
 end
 

@@ -4401,9 +4401,10 @@ function SmartAI:getAoeValueTo(card, to , from)
 	if card:isKindOf("SavageAssault") then sj_num = getCardsNum("Slash", to) end
 
 	if self:aoeIsEffective(card, to, from) then
-
-		value = value - (sj_num < 1 and 30 or 0) 
-		value = value - (self:isWeak(to) and 40 or 20 )
+		
+		value = value - (sj_num < 1 and 60 or 30) 
+		-- value = value - (self:isWeak(to) and 40 or 20 )
+		value = value - math.min(30, to:getHp()*10)
 		
 		if self:getDamagedEffects(to, from) then value = value + 50 end
 
@@ -4411,22 +4412,37 @@ function SmartAI:getAoeValueTo(card, to , from)
 
 		if card:isKindOf("ArcheryAttack") then
 			sj_num = getCardsNum("Jink", to)
-			if (to:hasSkill("leiji") and sj_num >= 1) or self:isEquip("EightDiagram", to) then
+			if to:hasSkill("leiji") and (sj_num >= 1 or self:isEquip("EightDiagram", to)) then
 				value = value + 50
-				if self:hasSuit("spade", true, to) or to:getHandcardNum() >= 3 then value = value + 70 end
+				if self:hasSuit("spade", true, to) or to:getHandcardNum() >= 3 then value = value + 50 end
+			elseif self:isEquip("EightDiagram", to) then
+				value = value + 30
+				if self:getFinalRetrial(to) == 2 then
+					value = value - 20
+				elseif self:getFinalRetrial(to) == 1 then
+					value = value + 20
+				end
 			end
-			if self:isEquip("EightDiagram", to) then value = value + 30	end
-		end	
+		end
+		
+		if self.room:getMode() ~= "06_3v3" then
+			if to:getHp() == 1 and isLord(from) and sgs.evaluateRoleTrends(to) == "loyalist" then
+				value = value - from:getCardCount(true)*20
+			end
+		end
+	
 	else
-		if to:hasSkill("juxiang") and not card:isVirtualCard() then value = value + 50 end
+		if to:hasSkill("juxiang") and not card:isVirtualCard() then value = value + 20 end
 		if to:hasSkill("danlao") and self.player:aliveCount() > 2 then value = value + 20 end
-		value = value + 50
 	end
+	
 	return value
 end
 
 function getLord(player)
-
+	
+	if not player then global_room:writeToConsole(debug.traceback()) return end
+	
 	if sgs.GetConfig("EnableHegemony", false) then return nil end
 	local room = global_room	
 	player = findPlayerByObjectName(room, player:objectName(), true)
@@ -4503,9 +4519,9 @@ function SmartAI:getAoeValue(card, player)
 	local liuxie = self.room:findPlayerBySkillName("huangen")
 	if liuxie and self.player:aliveCount() > 2 and liuxie:getHp() > 0 then
 		if self:isFriend(liuxie) then
-			good = good + 30 * liuxie:getHp()
+			good = good + 50 * liuxie:getHp()
 		else
-			bad = bad + 30 * liuxie:getHp()
+			bad = bad + 50 * liuxie:getHp()
 		end
 	end
 
@@ -4513,13 +4529,13 @@ function SmartAI:getAoeValue(card, player)
 	if not sgs.GetConfig("EnableHegemony", false) then
 		if self.role ~= "lord" and sgs.isLordInDanger() and self:aoeIsEffective(card, lord, attacker) and not canHelpLord() then
 			if self:isEnemy(lord) then
-				good = good + (lord:getHp() == 1 and 250 or 150)
+				good = good + (lord:getHp() == 1 and 200 or 150)
 			else
 				good = good - (lord:getHp() == 1 and 2013 or 250)
 			end
 		end
 	end
-
+	
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if self:cantbeHurt(player) and self:aoeIsEffective(card, player, attacker) then
 			bad = bad + 250
@@ -4551,7 +4567,8 @@ function SmartAI:getAoeValue(card, player)
 			bad = bad + 300
 		end
 	end
-
+	
+	self.player:speak("good is "..good..",bad is "..bad)
 	return good - bad
 end
 
@@ -4616,6 +4633,7 @@ function SmartAI:useTrickCard(card, use)
 		end
 		if aval < 1 then return end
 		local good = self:getAoeValue(card,self.player)
+		self.player:speak(card:getLogName().." is "..good)
 		if good > 0 then
 			use.card = card
 		end

@@ -2693,22 +2693,21 @@ end
 function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	local effect = data:toSlashEffect()
 	local damage_nature
-	if effect and effect.slash then damage_nature = effect.nature end
-	
+	if effect and effect.slash then
+		damage_nature = effect.nature
+	end	
 	if self.player:isDead() then return "." end
 	
 	if target and target:hasSkill("jueqing") then return end
-	if effect and effect.from and effect.from:hasSkill("qianxi") and effect.from:distanceTo(self.player) == 1 then return end
-	
+	if effect and effect.from and effect.from:hasSkill("qianxi") and effect.from:distanceTo(self.player) == 1 then return end	
 	if not self:damageIsEffective(nil, damage_nature, target) then return "." end
+
 	if target and target:hasSkill("guagu") and self.player:isLord() then return "." end
 	if effect and self:hasHeavySlashDamage(target, effect.slash, self.player) then return end
+	if effect and target and target:hasWeapon("IceSword") and self.player:getCards("he"):length() > 1 then return end	
+	if self:getDamagedEffects(self.player) or self.player:getHp() > getBestHp(self.player) then return "." end
 
-	if target and target:getWeapon() and target:getWeapon():isKindOf("IceSword") and self.player:getCards("he"):length() > 2 then return end
-	
-	if self:getDamagedEffects(self.player) or self.player:getHp()>getBestHp(self.player) then return "." end
-
-	if self:needBear() and self.player:getLostHp() < 2 then return "." end
+	if self:needBear() and self.player:getHp() > 2 then return "." end
 	if self.player:hasSkill("zili") and not self.player:hasSkill("paiyi") and self.player:getLostHp() < 2 then return "." end
 	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 and self.player:getHp() > 2 then return "." end
 	if self.player:hasSkill("tianxiang") then
@@ -3663,15 +3662,25 @@ function SmartAI:damageIsEffective(player, nature, source)
 end
 
 
-function SmartAI:getDamagedEffects(player, damage_from)
+function SmartAI:getDamagedEffects(player, damage_from, slash)
 	local attacker = damage_from or self.room:getCurrent()
-
-	if not attacker:hasSkill("jueqing") and not (attacker:hasSkill("qianxi") and attacker:distanceTo(player) == 1) and player:hasLordSkill("shichou") then
+	if attacker:hasSkill("jueqing") then return false end
+	
+	if slash then
+		if attacker:hasSkill("qianxi") and attacker:distanceTo(player) == 1 then
+			return false
+		end
+		if attacker:hasWeapon("IceSword") and player:getCards("he"):length() > 1 then 
+			return false
+		end
+	end	
+	if player:hasLordSkill("shichou") then
 		return sgs.ai_need_damaged.shichou(self,attacker) == 1
 	end
+
+	if self:hasHeavySlashDamage(attacker) then return false end
 	
-	if sgs.isGoodHp(player) and not attacker:hasSkill("jueqing")
-		and not self:hasHeavySlashDamage(attacker) then
+	if sgs.isGoodHp(player) then
 		for _, askill in sgs.qlist(player:getVisibleSkillList()) do		
 			local callback = sgs.ai_need_damaged[askill]
 			if type(callback) == "function" and callback(self, attacker) then return true end
@@ -4852,7 +4861,7 @@ end
 function getBestHp(player)
 	local arr = {baiyin = 1, quhu = 1, ganlu = 1, yinghun = 2, miji = 1, xueji = 1, baobian = 2}
 
-	if player:hasSkill("longhun") and player:getCards("he"):length()>2 then return 1 end
+	if player:hasSkill("longhun") and player:getCards("he"):length() > 2 then return 1 end
 	if player:getMark("@waked") > 0 and not player:hasSkill("xueji") then return player:getMaxHp() end
 
 	for skill,dec in pairs(arr) do
@@ -4861,6 +4870,22 @@ function getBestHp(player)
 		end
 	end
 	return player:getMaxHp()
+end
+
+function SmartAI:needLostHp(to, from, slash)
+	from = from or self.room:getCurrent()
+	to = to or self.player
+	if slash and not from:hasSkill("jueqing") then
+		if from:hasSkill("qianxi") and from:distanceTo(to) == 1 then
+			return false
+		end
+		if from:hasWeapon("IceSword") and to:getCards("he"):length() > 1 then 
+			return false
+		end
+	end
+	if self:hasHeavySlashDamage(from) then return false end
+	if to:getHp() > getBestHp(to) then return true end
+	return false
 end
 
 function IgnoreArmor(from, to)

@@ -1854,7 +1854,7 @@ function SmartAI:useCardCollateral(card, use)
 			if not n then
 				for _, friend in ipairs(toList) do
 					if enemy:canSlash(friend) and self:objectiveLevel(friend) < 0 and enemy:objectName() ~= friend:objectName() 
-							and (friend:getHp() > getBestHp(friend) or self:getDamagedEffects(friend, enemy) ) then
+							and (self:needLostHp(friend, enemy, true) or self:getDamagedEffects(friend, enemy, true)) then
 						n = 1
 						final_enemy = friend
 						break
@@ -1958,12 +1958,12 @@ sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target,
 			if self:slashIsEffective(slash, target2) and self:isFriend(target2) then 
 				return slash:toString()
 			end 
-			if not self:slashIsEffective(slash, target2) and self:isEnemy(target2) then 
+			if not self:slashIsEffective(slash, target2, true) and self:isEnemy(target2) then 
 				return slash:toString()
 			end
 		end
 		for _, slash in ipairs(self:getCards("Slash")) do
-			if not self:getDamagedEffects(target2, self.player) and self:isEnemy(target2) then 
+			if not self:getDamagedEffects(target2, self.player, true) and self:isEnemy(target2) then 
 				return slash:toString()
 			end
 		end

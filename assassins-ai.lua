@@ -292,6 +292,31 @@ end
 
 sgs.ai_skill_playerchosen.mixin = sgs.ai_skill_playerchosen.zero_card_as_slash
 
+sgs.ai_skill_cardask["#mixin"] = function(self, data, pattern, target)
+	if target then
+		for _, slash in ipairs(self:getCards("Slash")) do
+			if self:slashIsEffective(slash, target) and self:isFriend(target) and target:hasSkill("leiji") then
+				return slash:toString()
+			end
+			
+			if self:slashIsEffective(slash, target) and not self:getDamagedEffects(target, self.player) and self:isEnemy(target) then
+				return slash:toString()
+			end
+			if (not self:slashIsEffective(slash, target) or self:getDamagedEffects(target, self.player) or target:getHp() > getBestHp(target))
+				and self:isFriend(target) then
+				return slash:toString()
+			end
+		end
+		for _, slash in ipairs(self:getCards("Slash")) do
+			if (not (self:getDamagedEffects(target, self.player) or target:getHp() > getBestHp(target)) or not self:slashIsEffective(slash, target))
+				and not self:isFriend(target) then
+				return slash:toString()
+			end
+		end
+	end
+	return "."
+end
+
 sgs.ai_use_priority.MixinCard = 0
 sgs.ai_card_intention.MixinCard = -20
 

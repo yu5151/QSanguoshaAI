@@ -944,9 +944,7 @@ function sgs.ai_skill_choice.huashen(self, choices)
 		end
 	end
 	for index = #choices, 1, -1 do
-		if ("renjie|benghuai|shenjun|xunzhi|dongcha|yishe|" ..
-		"juao|shiyong|wumou")
-		:match(choices[index]) then
+		if ("renjie|benghuai|shenjun|dongcha|yishe|juao|shiyong|wumou"):match(choices[index]) then
 			table.remove(choices,index)
 		end
 	end

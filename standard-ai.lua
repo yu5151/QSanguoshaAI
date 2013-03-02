@@ -2052,6 +2052,7 @@ sgs.ai_suit_priority.wusheng= "club|spade|diamond|heart"
 
 function SmartAI:canUseJieyuanDecrease(damage_from, player)
 	local player = player or self.player
+	if not damage_from then return false end
 	if player:hasSkill("jieyuan") and damage_from:getHp() >= player:getHp() then
 		for _, card in sgs.qlist(player:getHandcards()) do
 			if card:isRed() and not card:isKindOf("Peach") and not card:isKindOf("ExNihilo") then return true end

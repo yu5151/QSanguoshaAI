@@ -137,6 +137,21 @@ function sgs.getDefenseSlash(player)
 		defense = 0
 	end
 
+	if player:hasFlag("qianxi_target") then
+		local pattern = player:getTag("QianxiPattern"):toString()
+		if string.find(pattern, "red") then
+			if player:hasSkill("qingguo") or (player:hasSkill("longhun") and player:isWounded()) then
+				defense = defense - 1
+			else
+				defense = 0
+			end
+		elseif string.find(pattern, "black") then
+			if player:hasSkill("qingguo") then
+				defense = defense - 1
+			end
+		end
+	end
+	
 	local m = sgs.masochism_skill:split("|")
 	for _, masochism in ipairs(m) do
 		if player:hasSkill(masochism) and sgs.isGoodHp(player) and not attacker:hasSkill("jueqing") then
@@ -390,7 +405,7 @@ function SmartAI:useCardSlash(card, use)
 			and friend:getHandcardNum() < 3)
 		or self:getDamagedEffects(friend,self.player) 
 		or (friend:hasSkill("leiji") and not self.player:hasFlag("luoyi") and self:hasSuit("spade", true, friend) 
-		and ( getKnownCard(friend,"Jink",true) >= 1 or (not self:isWeak(friend) and self:isEquip("EightDiagram",friend)))
+		and (getKnownCard(friend,"Jink",true) >= 1 or (not self:isWeak(friend) and self:isEquip("EightDiagram",friend)))
 		and (hasExplicitRebel(self.room) or not friend:isLord()))
 		or (friend:isLord() and self.player:hasSkill("guagu") and friend:getLostHp() >= 1 and getCardsNum("Jink", friend) == 0)
 		or (friend:hasSkill("jieming") and self.player:hasSkill("rende") and (huatuo and self:isFriend(huatuo)))

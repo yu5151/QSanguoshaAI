@@ -597,7 +597,7 @@ end
 function SmartAI:dangerousshenguanyu(player)
 	if not player then self.room:writeToConsole("Player is empty in dangerousshenguanyu!") return end
 	local good = 0
-	if player:hasSkill("wuhun") and player:getHp() == 1 and (not self:isEnemy(player) or #self.enemies > 1 and sgs.turncount > 1) then
+	if not isLord(player) and player:hasSkill("wuhun") and player:getHp() == 1 and (not self:isEnemy(player) or #self.enemies > 1 and sgs.turncount > 1) then
 		local maxnightmare = 0
 		local nightmareplayer = {}
 		for _, ap in sgs.qlist(self.room:getAlivePlayers()) do
@@ -638,12 +638,13 @@ shenfen_skill.name = "shenfen"
 table.insert(sgs.ai_skills, shenfen_skill)
 shenfen_skill.getTurnUseCard=function(self)
 	if self.player:hasUsed("ShenfenCard") then return end
+	if self.player:getMark("@wrath") < 6 then return end
 	return sgs.Card_Parse("@ShenfenCard=.")
 end
 
 sgs.ai_skill_use_func.ShenfenCard=function(card,use,self)
-	local friendscards,enemiescards = 0,0
-	local good = #self.enemies - #self.friends_noself
+	local friends_ZDL, enemies_ZDL = 0, 0
+	local good = (#self.enemies - #self.friends_noself)*1.5
 	
 	
 	if self:isEnemy(self.player:getNextAlive()) and self.player:getHp() >2 then good = good - 0.5 end
@@ -655,12 +656,13 @@ sgs.ai_skill_use_func.ShenfenCard=function(card,use,self)
 	
 	for _,p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		good = good + self:dangerousshenguanyu(p)
+		if p:hasSkill("dushi") then good = good - 1 end
 	end
 	
 	for _,friend in ipairs(self.friends_noself) do
 		if (friend:hasSkill("fangzhu") and friend:getHp() > 1) or 
 		(friend:hasSkill("jilve") and friend:getMark("@waked") > 0 and friend:getMark("@bear") > 0 and friend:getHp() > 1) then
-			good = good + friend:getLostHp()*0.5 + 0.5
+			good = good + friend:getLostHp()*0.25 + 0.5
 			break
 		end
 	end
@@ -673,46 +675,63 @@ sgs.ai_skill_use_func.ShenfenCard=function(card,use,self)
 	end	
 	
 	for _,friend in ipairs(self.friends_noself) do
-		friendscards = friendscards + friend:getCardCount(true)
+		friends_ZDL = friends_ZDL + friend:getCardCount(true) + friend:getHp()
+		if friend:getHandcardNum() > 4 then good = good + friend:getHandcardNum()*0.25 end
 		good = good + self:cansaveplayer(friend)
-		if friend:getRole() == "lord" then 
-			good = good - 1
-		end
 		if friend:hasArmorEffect("SilverLion") and friend:getHp() > 1 then good = good + 0.5 end
-		if friend:getHp() == 1 and friend:getMark("@fog") < 1 and friend:getMark("@fenyong") < 1 and self:getAllPeachNum() < 1 then
-			if friend:getRole() == "lord" then
-				good = good - 100 
-			else 
-				good = good - 1 end
-		elseif friend:getMark("@fog") > 0 or friend:getMark("@fenyong") > 0 then
+		if self:damageIsEffective(friend) then
+			if friend:getHp() == 1 and self:getAllPeachNum() < 1 then
+				if isLord(friend) then
+					good = good - 100 
+				elseif self.room:getMode() ~= "06_3v3" then
+					if isLord(self.player) and sgs.evaluateRoleTrends(friend) == "loyalist" then
+						good = good - 0.6 + (self.player:getCardCount(true)*0.3)
+					end
+				end
+			else
+				good = good - 1
+			end
+			if isLord(friend) then
+				good = good - 0.5
+			end
+		elseif not self:damageIsEffective(friend) then
 			good = good + 1
 		end
 		if friend:hasSkill("guixin") and friend:getHp()>1 then good = good + 1 end
 	end	
+	
 	for _,enemy in ipairs(self.enemies) do
-		enemiescards = enemiescards + enemy:getCardCount(true)
+		enemies_ZDL = enemies_ZDL + enemy:getCardCount(true) + enemy:getHp()
+		if enemy:getHandcardNum() > 4 then good = good - enemy:getHandcardNum()*0.25 end
 		good = good - self:cansaveplayer(enemy)
-		if enemy:getRole() == "lord" and self.player:getRole() == "rebel" then
-			good = good + 1
-		end
-		if enemy:getHp() == 1 and enemy:getMark("@fog") <1 and enemy:getMark("@fenyong")<1 then
-			if enemy:getRole() == "lord" and self.player:getRole() == "rebel" then
-				good = good + 5
-			elseif enemy:getRole() ~= "lord" then
-				good = good + 1 
+		
+		if self:damageIsEffective(enemy) then
+			if isLord(enemy) and self.player:getRole() == "rebel" then
+				good = good + 1
 			end
-		elseif enemy:getMark("@fog") >0 or enemy:getMark("@fenyong")>0 then
+			if enemy:getHp() == 1 then
+				if isLord(enemy) and self.player:getRole() == "rebel" then
+					good = good + 3
+				elseif enemy:getRole() ~= "lord" then
+					good = good + 1 
+				end
+			end
+			
+			if enemy:hasSkill("guixin") and enemy:getHp() > 1 then good = good - self.player:aliveCount()*0.2 end
+			if enemy:hasSkill("ganglie") and enemy:getHp() > 1 then good = good - 1 end
+			if enemy:hasSkill("xuehen") and enemy:getHp() > 1 then good = good - 1 end
+			if enemy:hasArmorEffect("SilverLion") and enemy:getHp() > 1 then good = good - 0.5 end
+		else    
 			good = good - 1
 		end
-		if enemy:hasSkill("guixin") and enemy:getHp() > 1 then good = good - 1 end
-		if enemy:hasSkill("ganglie") and enemy:getHp() > 1 then good = good - 1 end
-		if enemy:hasSkill("xuehen") and enemy:getHp() > 1 then good = good - 1 end
-		if enemy:hasArmorEffect("SilverLion") and enemy:getHp() > 1 then good = good - 0.5 end
 	end
 	
-	good = good - (friendscards - enemiescards)/4
+	local Combat_Effectiveness = ((#self.friends_noself > 0 and friends_ZDL/#self.friends_noself or 0) - (#self.enemies > 0 and enemies_ZDL/#self.enemies or 0))/2
+	-- self.room:writeToConsole("friendsZDL:"..friends_ZDL..", enemiesZDL:"..enemies_ZDL..", CE:"..Combat_Effectiveness)
+	good = good - Combat_Effectiveness
 	
-	if good >0 and self.player:getMark("@wrath") >5 then 
+	-- self.room:writeToConsole("UseShenfen:"..good)
+	if good > 0 and self.player:getMark("@wrath") >5 then 
 		use.card = card		
 	end	
 end

@@ -4453,7 +4453,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 				value = value + self.player:aliveCount()*5
 			end
 		
-			if to:hasSkill("xueheng") and to:hasSkill("xuehen") and to:getMark("@fenyong") == 0 then
+			if to:hasSkill("fenyong") and to:hasSkill("xuehen") and to:getMark("@fenyong") == 0 then
 				value = value + 30
 			end
 			

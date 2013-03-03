@@ -720,7 +720,7 @@ end
 sgs.ai_use_priority.QiceCard = 1.5
 sgs.ai_chaofeng.xunyou = 2
 
-----ĞÂÂíá·
+----æ–°é©¬å²±
 
 sgs.ai_skill_invoke.newqianxi = function(self, data)
  	for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
@@ -763,7 +763,7 @@ sgs.ai_skill_playerchosen.newqianxi = function(self, targets)
 	return targets:first()
 end
 
-------------------¾ÉÂíá·
+------------------æ—§é©¬å²±
 
 function sgs.ai_cardneed.qianxi(to, card)
 	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0

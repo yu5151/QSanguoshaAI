@@ -504,13 +504,12 @@ function SmartAI:useCardSlash(card, use)
 						if self.player:distanceTo(target) == 1 then
 							use.to:append(target)
 						end
-					else
-						use.to:append(target)
 					end
+				elseif self.slash_targets <= use.to:length() then
+					return
 				else
-						use.to:append(target)
+					use.to:append(target)
 				end
-				if self.slash_targets <= use.to:length() then return end
 			end
 		end 
 	end

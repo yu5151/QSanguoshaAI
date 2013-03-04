@@ -729,6 +729,13 @@ function SmartAI:useCardPeach(card, use)
 			mustusepeach = true
 		end
 	end
+
+	local jinxuandi = self.room:findPlayerBySkillName("wuling")
+	if jinxuandi and jinxuandi:getMark("@water") > 0 and self.player:getLostHp() >= 2 then
+		mustusepeach = true
+	end
+
+
 	if self.player:hasSkill("rende") and #self.friends_noself>0 then
 		return
 	end

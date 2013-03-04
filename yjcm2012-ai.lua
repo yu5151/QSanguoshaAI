@@ -592,7 +592,6 @@ sgs.ai_skill_invoke.zhiyu = function(self, data)
 			break
 		end
 	end
-	if difcolor > 0 and not (self.player:hasSkill("manjuan") and self.player:getPhase() == sgs.Player_NotActive) then return true end
 
 	if difcolor == 0 and target then
 		if self:isFriend(target) and not target:isKongcheng() then
@@ -610,6 +609,7 @@ sgs.ai_skill_invoke.zhiyu = function(self, data)
 			end
 		end
 	end
+	if self.player:hasSkill("manjuan") and self.player:getPhase() == sgs.Player_NotActive then return false end
 	return true
 end
 

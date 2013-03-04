@@ -548,7 +548,7 @@ sgs.ai_skill_cardask["@askforslash"] = function(self, data)
 	for _, slash in ipairs(slashes) do
 		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, slash) > 50 or self.player:hasFlag("slashNoDistanceLimit")
 		for _, enemy in ipairs(self.enemies) do
-			if self.player:canSlash(enemy, slash, not no_distance) and not self:slashProhibit(slash, enemy) and slash:isBlack()
+			if self.player:canSlash(enemy, slash, not no_distance) and not self:slashProhibit(slash, enemy) and slash:isBlack() and self:hasSkills("wenjiu")
 				and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
 				and not (self.player:hasFlag("slashTargetFix") and not enemy:hasFlag("SlashAssignee")) then
 				return ("%s->%s"):format(slash:toString(), enemy:objectName())

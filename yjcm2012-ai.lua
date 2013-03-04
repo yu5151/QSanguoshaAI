@@ -582,14 +582,35 @@ sgs.ai_skill_invoke.zhiyu = function(self, data)
 	if self:isFriend(target) or target:isKongcheng() then return false end
 
 	local cards = self.player:getCards("h")	
-	cards=sgs.QList2Table(cards)
+	cards = sgs.QList2Table(cards)
 	local first
 	local difcolor = 0
 	for _,card in ipairs(cards)  do
 		if not first then first = card end
-		if (first:isRed() and card:isBlack()) or (card:isRed() and first:isBlack()) then difcolor = 1 end
+		if (first:isRed() and card:isBlack()) or (card:isRed() and first:isBlack()) then
+			difcolor = 1
+			break
+		end
 	end
-	return difcolor == 0
+	if difcolor > 0 and not (self.player:hasSkill("manjuan") and self.player:getPhase() == sgs.Player_NotActive) then return true end
+
+	if difcolor == 0 and target then
+		if self:isFriend(target) and not target:isKongcheng() then
+			return false
+		elseif self:isEnemy(target) then
+			if #self.friends > 1 and target:getHandcardNum() == 1 and target:hasSkill("sijian") then return false end
+			if target:hasSkill("beifa") and target:getHandcardNum() == 1 then
+				local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+				for _, friend in ipairs(self.friends) do
+					if target:canSlash(friend, slash) and not self:slashProhibit(slash, friend)
+					  and self:slashIsEffective(slash, friend) then
+						return false
+					end
+				end
+			end
+		end
+	end
+	return true
 end
 
 local function get_handcard_suit(cards)

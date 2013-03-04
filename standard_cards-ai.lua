@@ -546,7 +546,8 @@ sgs.ai_skill_use.slash = function(self, prompt)
 		if self.player:canSlash(target, slash, not no_distance) then return ret .. "->" .. target:objectName() end
 		return "."
 	end
-	local slashes = self:getCards("Slash")
+	local slashes = self:getCards("Slash")	
+	self:sort(self.enemies, "defenseSlash")
 	for _, slash in ipairs(slashes) do
 		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, slash) > 50 or self.player:hasFlag("slashNoDistanceLimit")
 		for _, enemy in ipairs(self.enemies) do

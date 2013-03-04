@@ -232,29 +232,32 @@ fenxun_skill.getTurnUseCard = function(self)
 					end
 				end
 			end
-		elseif jinkcount > 1 then
-			for _, acard in ipairs(cards) do
-				if acard:isKindOf("Jink") then
-					card_id = acard:getEffectiveId()
-					break
+			if not card_id and jinkcount > 1 then
+				for _, acard in ipairs(cards) do
+					if acard:isKindOf("Jink") then
+						card_id = acard:getEffectiveId()
+						break
+					end
 				end
 			end
-		elseif slashcount > 1 then
-			for _, acard in ipairs(cards) do
-				if acard:isKindOf("Slash") then
-					slashcount = slashcount - 1
-					card_id = acard:getEffectiveId()
-					break
+			if not card_id and slashcount > 1 then
+				for _, acard in ipairs(cards) do
+					if acard:isKindOf("Slash") then
+						slashcount = slashcount - 1
+						card_id = acard:getEffectiveId()
+						break
+					end
 				end
-			end		
-		elseif not self.player:getEquips():isEmpty() then
-			local player = self.player
-			if player:getWeapon() then card_id = player:getWeapon():getId() end
+			end
+		end
+		
+		if not card_id and self.player:getWeapon() then
+			card_id = self.player:getWeapon():getId()
 		end
 
 		if not card_id then
 			for _, acard in ipairs(cards) do
-				if (acard:isKindOf("Disaster") or acard:isKindOf("AmazingGrace") or acard:isKindOf("EquipCard") or acard:isKindOf("BasicCard"))
+				if (acard:isKindOf("AmazingGrace") or acard:isKindOf("EquipCard") or acard:isKindOf("BasicCard"))
 					and not isCard("Peach", acard, self.player) and not isCard("Slash", acard, self.player) then
 					card_id = acard:getEffectiveId()
 					break
@@ -274,9 +277,11 @@ sgs.ai_skill_use_func.FenxunCard = function(card, use, self)
 		self:sort(self.enemies, "defense")
 		local target
 		for _, enemy in ipairs(self.enemies) do
-			if self.player:distanceTo(enemy) > 1 and self.player:canSlash(enemy, nil, false) then
-				target = enemy
-				break
+			for _, slash in ipairs(self:getCards("Slash")) do
+				if self.player:distanceTo(enemy) > 1 and not self:slashProhibit(slash, enemy) and self.player:canSlash(enemy, slash, false) then
+					target = enemy
+					break
+				end
 			end
 		end
 		if target and self:getCardsNum("Slash") > 0 then
@@ -314,7 +319,8 @@ sgs.ai_card_intention.SijianCard = function(self, card, from, tos)
 	if to:hasSkill("kongcheng") and to:getHandcardNum() == 1 and to:getHp() <= 2 then
 		intention = -30
 	end
-	if to:hasArmorEffect("SilverLion") and to:isWounded() then
+	if to:hasArmorEffect("SilverLion") and to:isWounded() and not self:hasSkills(sgs.use_lion_skill, to)
+	  and self:isWeak(to) then
 		  intention = -30
 	end
 	sgs.updateIntention(from, tos[1], intention)

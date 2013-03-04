@@ -137,7 +137,12 @@ sgs.ai_card_intention.NosJujianCard = -100
 
 sgs.dynamic_value.benefit.NosJujianCard = true
 
-sgs.ai_skill_cardask["@enyuanheart"] = function(self)
+sgs.ai_skill_cardask["@enyuanheart"] = function(self, data)
+	if self:needLostHp(self.player) then return "." end
+	--[[
+	local damage = data:toDamage()
+	if self:isFriend(damage.to) then return end	
+	]]--
 	local cards = self.player:getHandcards()
 	for _, card in sgs.qlist(cards) do
 		if card:getSuit() == sgs.Card_Heart and not (card:isKindOf("Peach") or card:isKindOf("ExNihilo")) then
@@ -151,6 +156,17 @@ function sgs.ai_slash_prohibit.nosenyuan(self)
 	if self.player:hasSkill("jueqing") then return false end
 	if self.player:hasSkill("qianxi") and self.player:distanceTo(self.player) == 1 then return false end
 	if self.player:hasFlag("nosjiefanUsed") then return false end
+	if self:needLostHp(self.player) then return false end
+	
+	local n
+	local cards = self.player:getHandcards()
+	for _, card in sgs.qlist(cards) do
+		if card:getSuit() == sgs.Card_Heart and not (card:isKindOf("Peach") or card:isKindOf("ExNihilo")) then
+			if not card:isKindOf("Slash") then return false end
+			n = n + 1
+		end
+	end
+	if n > 1 then return false end
 	if self:isWeak() then return true end
 end
 

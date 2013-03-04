@@ -14,23 +14,6 @@ sgs.ai_skill_invoke.zishou = function(self, data)
 			or ((self.player:getLostHp() + 2) - can_save_card_num + peach_num  <= chance_value)
 end
 
-function sgs.ai_cardneed.qianxi(to, card)
-	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0
-end
-
-sgs.ai_skill_invoke.qianxi = function(self, data)
-	local damage = data:toDamage()
-	local target = damage.to
-	if self:isFriend(target) then return false end
-	if target:getLostHp() >= 2 and target:getHp() <= 1 then return false end
-	if self:hasHeavySlashDamage(self.player, damage.card, target) and target:getHp() <= 1 then return false end
-	if self:hasSkills(sgs.masochism_skill,target) or self:hasSkills(sgs.recover_skill,target) or self:hasSkills("longhun|buqu",target) then return true end
-	if self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
-	return (target:getMaxHp() - target:getHp()) < 2 
-end
-
-sgs.ai_chaofeng.madai = 3
-
 sgs.ai_skill_invoke.fuli = true
 
 sgs.ai_skill_invoke.fuhun = function(self, data)
@@ -593,7 +576,11 @@ sgs.chunlao_keep_value = {
 	Slash = 5.5,
 }
 
-sgs.ai_skill_invoke.zhiyu = function(self)
+sgs.ai_skill_invoke.zhiyu = function(self, data)
+	local damage = data:toDamage()
+	local target = damage and damage.from
+	if self:isFriend(target) or target:isKongcheng() then return false end
+
 	local cards = self.player:getCards("h")	
 	cards=sgs.QList2Table(cards)
 	local first
@@ -732,3 +719,66 @@ end
 
 sgs.ai_use_priority.QiceCard = 1.5
 sgs.ai_chaofeng.xunyou = 2
+
+----新马岱
+
+sgs.ai_skill_invoke.newqianxi = function(self, data)
+ 	for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+		if self.player:distanceTo(p) == 1 and self:isEnemy(p) and not p:isKongcheng() then
+			return true
+		end
+	end
+	return false
+end
+
+sgs.ai_skill_playerchosen.newqianxi = function(self, targets)
+	local enemies = {}
+	for _, target in sgs.qlist(targets) do
+		if self:isEnemy(target) then
+			table.insert(enemies, target)
+		end
+	end
+	if #enemies > 0 then
+		self:sort(enemies, "defense")
+		if self:getCardsNum("Jink", enemies[1]) >= 1 or #enemies == 1 or
+		(self:hasHeavySlashDamage(self.player, nil, enemies[1]) and enemies[1]:getHp() <= 2 or enemies[1]:getHp() > 1) then
+			return enemies[1]
+		end
+		for _, enemy in ipairs(enemies) do	
+			if enemies[1]:objectName() ~= enemy:objectName() then
+				if self.player:hasFlag("newqianxin_red") then
+					if (self:hasSkills("longhun|qingnang|beige", enemy) and getKnownCard(enemy,"red", nil, "he") >= 1) or getCardsNum("Peach") >=1 then
+						return enemy
+					end
+				elseif self.player:hasFlag("newqianxin_black") then
+					if (enemy:hasSkill("qingguo") and not enemy:isKongcheng()) or 
+						(self:hasSkills("longhun|beige", enmey) and getKnownCard(enemy,"black", nil, "he") >= 1) then
+						return enmey
+					end
+				end				
+			end
+		end
+		return enemies[1]
+	end
+	return targets:first()
+end
+
+------------------旧马岱
+
+function sgs.ai_cardneed.qianxi(to, card)
+	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0
+end
+
+sgs.ai_skill_invoke.qianxi = function(self, data)
+	local damage = data:toDamage()
+	local target = damage.to
+	if self:isFriend(target) then return false end
+	if target:getLostHp() >= 2 and target:getHp() <= 1 then return false end
+	if self:hasHeavySlashDamage(self.player, damage.card, target) and target:getHp() <= 1 then return false end
+	if self:hasSkills(sgs.masochism_skill,target) or self:hasSkills(sgs.recover_skill,target) or self:hasSkills("longhun|buqu",target) then return true end
+	if self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
+	return (target:getMaxHp() - target:getHp()) < 2 
+end
+
+sgs.ai_chaofeng.madai = 3
+

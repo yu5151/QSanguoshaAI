@@ -658,20 +658,43 @@ sgs.ai_skill_invoke.anxian = function(self, data)
 end
 
 sgs.ai_skill_cardask["@anxian-discard"] = function(self, data)
-	if self.player:isKongcheng() or self:getCardsNum("Jink") > 0 or self:getDamagedEffects(self.player) then
-		return "."
-	end
+	local use = data:toCardUse()
+	local from = use.from
+	if self.player:isKongcheng() then return "." end
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
-	
-	if #cards == self:getCardsNum("Peach") then return "." end
-
 	self:sortByKeepValue(cards)
+
+	if self:hasHeavySlashDamage(from, use.card, self.player) and from:hasWeapon("Axe") and from:getCards("he"):length() > 2 then
+		return "$" .. cards[1]:getEffectiveId()
+	end	
+	if self:getDamagedEffects(self.player, use.from, true) then
+		return "."
+	end
+	if self:needLostHp(self.player, use.from, true) then
+		return "."
+	end
+	if from:hasWeapon("Axe") and self:hasSkills(sgs.lose_equip_skill, from) and from:getEquips():length() > 1 then
+		for _, card in ipairs(cards) do
+			if not isCard("Peach", card, self.player) then
+				return "$" .. card:getEffectiveId()
+			end
+		end
+	end
+	if self:getCardsNum("Jink") > 0 then
+		return "."
+	end
+	if self:hasHeavySlashDamage(from, use.card, self.player) then
+		return "$" .. cards[1]:getEffectiveId()
+	end
+
+	if #cards == self:getCardsNum("Peach") then return "." end
 	for _, card in ipairs(cards) do
 		if not isCard("Peach", card, self.player) then
 			return "$" .. card:getEffectiveId()
 		end
 	end
+	return "."
 end
 
 local yinling_skill={}

@@ -504,13 +504,12 @@ function SmartAI:useCardSlash(card, use)
 						if self.player:distanceTo(target) == 1 then
 							use.to:append(target)
 						end
-					else
-						use.to:append(target)
 					end
+				elseif self.slash_targets <= use.to:length() then
+					return
 				else
-						use.to:append(target)
+					use.to:append(target)
 				end
-				if self.slash_targets <= use.to:length() then return end
 			end
 		end 
 	end
@@ -546,7 +545,8 @@ sgs.ai_skill_use.slash = function(self, prompt)
 		if self.player:canSlash(target, slash, not no_distance) then return ret .. "->" .. target:objectName() end
 		return "."
 	end
-	local slashes = self:getCards("Slash")
+	local slashes = self:getCards("Slash")	
+	self:sort(self.enemies, "defenseSlash")
 	for _, slash in ipairs(slashes) do
 		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, slash) > 50 or self.player:hasFlag("slashNoDistanceLimit")
 		for _, enemy in ipairs(self.enemies) do
@@ -729,6 +729,13 @@ function SmartAI:useCardPeach(card, use)
 			mustusepeach = true
 		end
 	end
+
+	local jinxuandi = self.room:findPlayerBySkillName("wuling")
+	if jinxuandi and jinxuandi:getMark("@water") > 0 and self.player:getLostHp() >= 2 then
+		mustusepeach = true
+	end
+
+
 	if self.player:hasSkill("rende") and #self.friends_noself>0 then
 		return
 	end
@@ -1053,11 +1060,10 @@ end
 
 sgs.ai_skill_invoke.KylinBow = function(self, data)
 	local damage = data:toDamage()
-
+	if damage.from:hasSkill("kuangfu") and damage.to:getCards("e"):length() == 1 then return false end
 	if self:hasSkills(sgs.lose_equip_skill, damage.to) then
 		return self:isFriend(damage.to)
 	end
-
 	return self:isEnemy(damage.to)
 end
 

@@ -2693,10 +2693,16 @@ end
 function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	local effect = data:toSlashEffect()
 	local damage_nature
+	if self.player:isDead() then return "." end
+
 	if effect and effect.slash then
 		damage_nature = effect.nature
+		if effect.slash:hasFlag("nosjiefan-slash") then
+			local dying = self.room:getTag("NosJiefanTarget"):toDying()
+			local handang = self.room:findPlayerBySkillName("nosjiefan")
+			if self:isFriend(dying.who) and not self:isEnemy(handang) then return "." end
+		end
 	end	
-	if self.player:isDead() then return "." end
 	
 	if target and target:hasSkill("jueqing") then return end
 	if effect and effect.from and effect.from:hasSkill("qianxi") and effect.from:distanceTo(self.player) == 1 then return end	

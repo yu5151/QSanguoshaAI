@@ -4630,9 +4630,10 @@ function SmartAI:hasTrickEffective(card, player)
 			return false end
 		end
 		if self.player:hasSkill("noswuyan") then
-			if card:isKindOf("TrickCard") and not
-				(card:isKindOf("DelayedTrick") or card:isKindOf("GodSalvation") or card:isKindOf("AmazingGrace")) then
-			return false end
+			if card:isKindOf("TrickCard") and not (card:isKindOf("DelayedTrick") or card:isKindOf("GodSalvation") 
+			  or card:isKindOf("AmazingGrace") or card:isKindOf("ExNihilo")) then
+				return false
+			end
 		end
 	end
 	return true

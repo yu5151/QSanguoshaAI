@@ -235,15 +235,35 @@ end
 sgs.ai_skill_invoke.lukang_weiyan = function(self, data)
 	local handcard = self.player:getHandcardNum()
 	local max_card = self.player:getMaxCards()
+	local target = 0
+	local slashnum = 0
+	
+	for _, slash in ipairs(self:getCards("Slash")) do
+		for _,enemy in ipairs(self.enemies) do
+			if self.player:canSlash(enemy, slash) and self:slashIsEffective(slash, enemy) and self:slashIsEffective(slash, enemy) and not self:slashProhibit(slash, enemy) then 
+				slashnum = slashnum + 1
+				target = target + 1
+				break
+			end 
+		end
+	end
 
 	local prompt = data:toString()
 	if prompt == "draw2play" then
 		if self:needBear() then return false end
-		return handcard >= max_card and #(self:getTurnUse()) > 0
+		if slashnum > 1 and target > 0 then return true end
+		if self.player:isSkipped(sgs.Player_Play) and #(self:getTurnUse()) > 0 then return true end
+		return false
 	elseif prompt == "play2draw" then
 		if self:needBear() then return true end
-		return handcard < max_card or #(self:getTurnUse()) == 0
+		if slashnum > 0 and target > 0 then return false end
+		if #(self:getTurnUse()) == 0 then return true end
+		return false
 	end
+end
+
+function sgs.ai_cardneed.lukang_weiyan(to, card)
+	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) < 2
 end
 --[[
 	技能：五灵

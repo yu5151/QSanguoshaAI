@@ -360,7 +360,7 @@ end
 
 sgs.ai_skill_playerchosen.duyi = function(self, targets)
 	local to
-	if self.player:getHp() > self.player:getHandcardNum() then
+	if self.player:getMaxCards() > self.player:getHandcardNum() then
 		to = player_to_draw(self, "all")
 	else
 		to = player_to_draw(self, "noself")

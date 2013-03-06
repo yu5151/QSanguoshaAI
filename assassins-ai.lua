@@ -18,8 +18,8 @@ end
 sgs.ai_skill_invoke.tianming = function(self, data)
 	if self:hasSkill("manjuan") and self.room:getCurrent() ~= self.player then return false end
 	if self:getCardsNum("Jink") == 0 then return true end
-	local unpreferedCards={}
-	local cards=sgs.QList2Table(self.player:getHandcards())
+	local unpreferedCards = {}
+	local cards = sgs.QList2Table(self.player:getHandcards())
 	
 	local zcards = self.player:getCards("he")
 	for _, zcard in sgs.qlist(zcards) do
@@ -29,7 +29,7 @@ sgs.ai_skill_invoke.tianming = function(self, data)
 	end
 	
 	if #unpreferedCards == 0 then 
-		if self:getCardsNum("Slash")>1 then 
+		if self:getCardsNum("Slash") > 1 then 
 			self:sortByKeepValue(cards)
 			for _,card in ipairs(cards) do
 				if card:isKindOf("Slash") then table.insert(unpreferedCards,card:getId()) end
@@ -39,9 +39,9 @@ sgs.ai_skill_invoke.tianming = function(self, data)
 		
 		local num=self:getCardsNum("Jink") - 1	
 		if self.player:getArmor() then num=num+1 end
-		if num>0 then
+		if num > 0 then
 			for _,card in ipairs(cards) do
-				if card:isKindOf("Jink") and num>0 then 
+				if card:isKindOf("Jink") and num > 0 then 
 					table.insert(unpreferedCards,card:getId())
 					num=num-1
 				end
@@ -88,7 +88,7 @@ sgs.ai_skill_discard.tianming = function(self, discard_num, min_num, optional, i
 	end
 	
 	if #unpreferedCards == 0 then 
-		if self:getCardsNum("Slash")>1 then 
+		if self:getCardsNum("Slash") > 1 then 
 			self:sortByKeepValue(cards)
 			for _,card in ipairs(cards) do
 				if card:isKindOf("Slash") then table.insert(unpreferedCards,card:getId()) end
@@ -359,6 +359,7 @@ sgs.ai_skill_use_func.DuyiCard = function(card,use,self)
 end
 
 sgs.ai_skill_playerchosen.duyi = function(self, targets)
+	if self:needBear() then return self.player end
 	local to
 	if self.player:getMaxCards() > self.player:getHandcardNum() then
 		to = player_to_draw(self, "all")

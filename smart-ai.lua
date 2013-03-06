@@ -1190,7 +1190,7 @@ function sgs.outputProcessValues(room)
 	else global_room:writeToConsole("neutral") end
 end
 
-function sgs.gameProcess(room,...)
+function sgs.gameProcess(room,arg1)
 	local rebel_num = sgs.current_mode_players["rebel"]
 	local loyal_num = sgs.current_mode_players["loyalist"]
 	if rebel_num == 0 and loyal_num> 0 then return "loyalist"
@@ -1224,7 +1224,7 @@ function sgs.gameProcess(room,...)
 		end		
 	end
 	local diff = loyal_value - rebel_value + (loyal_num - rebel_num) * 2
-	if #arg>0 and arg[1]==1 then return diff end
+	if arg1==1 then return diff end
 
 	if diff >= 2 then
 		if health then return "loyalist"
@@ -2576,7 +2576,7 @@ function SmartAI:askForCardChosen(who, flags, reason)
 		if flags:match("e") then
 			if who:isWounded() and who:hasArmorEffect("SilverLion")
 				and not self:hasSkills(sgs.use_lion_skill, who) then return who:getArmor():getId() end
-			if self:evaluateArmor(who:getArmor(), who)<-5 then return who:getArmor():getId() end
+			if self:evaluateArmor(who:getArmor(), who) < -5 then return who:getArmor():getId() end
 			if self:hasSkills(sgs.lose_equip_skill, who) and self:isWeak(who) then
 				if who:getWeapon() then return who:getWeapon():getId() end
 				if who:getArmor() and who:getArmor():isKindOf("Vine") then return who:getArmor():getId() end
@@ -2584,8 +2584,9 @@ function SmartAI:askForCardChosen(who, flags, reason)
 			end
 		end
 	else
-		if flags:match("e") and self:hasSkills("jijiu|dimeng|guzheng|qiaobian|jieyin|lijian|beige|miji|yingzi|tuxi|" ..
-		  "mingce|buyi|bifa|noswuyan|weimu|anxu|tongxin|xiliang|chouliang|shouye|huoshui|qixi",who) then
+		if flags:match("e") and self:getDangerousCard(who) then return self:getDangerousCard(who) end
+		if flags:match("e") and self:hasSkills("jijiu|qingnang|qiaobian|jieyin|beige|miji|fanjian|neofanjian|tuxi|" ..
+		  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|noswuyan|manjuan", who) then
 			if who:getDefensiveHorse() then return who:getDefensiveHorse():getId() end
 			if who:getArmor() and not who:hasArmorEffect("SilverLion") then return who:getArmor():getId() end
 			if who:getOffensiveHorse() and ( (who:getOffensiveHorse():isRed() and who:hasSkill("jijiu")) or who:hasSkill("beige") ) then
@@ -2610,14 +2611,16 @@ function SmartAI:askForCardChosen(who, flags, reason)
 
 			self:sort(self.friends, "hp")
 			local friend = self.friends[1]
-			if self:isWeak(friend) and who:distanceTo(friend) <= who:getAttackRange() then
+			if self:isWeak(friend) and who:distanceTo(friend) <= who:getAttackRange()
+			  and not (who:hasSkill("tuntian") and who:getPhase() == sgs.Player_NotActive) then
 				if who:getWeapon() and who:distanceTo(friend) > 1 then return who:getWeapon():getId() end
 				if who:getOffensiveHorse() and who:distanceTo(friend) > 1 then return who:getOffensiveHorse():getId() end
 			end
 
 			if who:getDefensiveHorse() then
 				for _,friend in ipairs(self.friends) do
-					if friend:distanceTo(who) == friend:getAttackRange()+1 then
+					if friend:distanceTo(who) == friend:getAttackRange() + 1
+					  and not (who:hasSkill("tuntian") and who:getPhase() == sgs.Player_NotActive) then
 						return who:getDefensiveHorse():getId()
 					end
 				end
@@ -2644,13 +2647,14 @@ function SmartAI:askForCardChosen(who, flags, reason)
 		end
 
 		if flags:match("e") then
-			if who:getArmor() and self:evaluateArmor(who:getArmor(), who)>0
+			if who:getArmor() and self:evaluateArmor(who:getArmor(), who) > 0
 				and not (who:getArmor():isKindOf("SilverLion") and who:isWounded()) then
 				return who:getArmor():getId()
 			end
 
 			if who:getWeapon() then
-				if not (who:hasSkill("xiaoji") and (who:getHandcardNum() >= who:getHp())) then
+				if not self:hasSkills(sgs.lose_equip_skill, who)
+				  and not (who:hasSkill("tuntian") and who:getPhase() == sgs.Player_NotActive) then
 					for _,friend in ipairs(self.friends) do
 						if (who:distanceTo(friend) <= who:getAttackRange()) and (who:distanceTo(friend) > 1) then
 							return who:getWeapon():getId()
@@ -2660,7 +2664,7 @@ function SmartAI:askForCardChosen(who, flags, reason)
 			end
 
 			if who:getOffensiveHorse() then
-				if who:hasSkill("xiaoji") and who:getHandcardNum() >= who:getHp() then
+				if self:hasSkills(sgs.lose_equip_skill, who) or (who:hasSkill("tuntian") and who:getPhase() == sgs.Player_NotActive) then
 				else
 					for _,friend in ipairs(self.friends) do
 						if who:distanceTo(friend) == who:getAttackRange() and
@@ -4999,11 +5003,11 @@ function player_to_discard(self, prompt)
 
 	for _, enemy in ipairs(enemies) do
 		if not enemy:isNude() then
-			if self:hasSkills("jijiu|dimeng|guzheng|qiaobian|jieyin|lijian|beige|miji|neofanjian|fanjian|tuxi|" ..
-			  "mingce|buyi|bifa|noswuyan|weimu|anxu|tongxin|xiliang|chouliang|shouye|huoshui|qixi",enemy) then
+			if self:hasSkills("jijiu|qingnang|qiaobian|jieyin|beige|miji|fanjian|neofanjian|tuxi|" ..
+			  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|noswuyan|manjuan", enemy) then
 				local equips = { enemy:getDefensiveHorse(), enemy:getArmor(), enemy:getOffensiveHorse(), enemy:getWeapon() }
 				if enemy:getDefensiveHorse() then return enemy end
-				if enemy:getArmor() and not enemy:hasArmorEffect("SilverLion") then
+				if enemy:getArmor() and not (enemy:hasArmorEffect("SilverLion") and enemy:isWounded()) then
 					return enemy	
 				end
 				for _ , equip in ipairs(equips) do

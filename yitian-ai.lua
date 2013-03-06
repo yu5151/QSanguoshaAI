@@ -240,7 +240,8 @@ sgs.ai_skill_invoke.lukang_weiyan = function(self, data)
 	
 	for _, slash in ipairs(self:getCards("Slash")) do
 		for _,enemy in ipairs(self.enemies) do
-			if self.player:canSlash(enemy, slash) and self:slashIsEffective(slash, enemy) and self:slashIsEffective(slash, enemy) and not self:slashProhibit(slash, enemy) then 
+			if self.player:canSlash(enemy, slash) and self:slashIsEffective(slash, enemy) and self:slashIsEffective(slash, enemy)
+			  and not self:slashProhibit(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self) then 
 				slashnum = slashnum + 1
 				target = target + 1
 				break

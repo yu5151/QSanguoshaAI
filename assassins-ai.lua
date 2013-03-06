@@ -223,10 +223,17 @@ end
 
 sgs.ai_skill_cardask["@JieyuanDecrease"] = function(self, data)
 	local damage = data:toDamage()
-	if (self:getDamagedEffects(self.player) or self.player:getHp() > getBestHp(self.player))
-	  and damage.damage <= 1 and self.player:getHp() > 1 then return "." end
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	self:sortByKeepValue(cards)
+	if damage.card and damage.card:isKindOf("Slash") then		 
+		if self:hasHeavySlashDamage(damage.from, damage.card, self.player) then
+			for _,card in ipairs(cards) do
+				if card:isRed() then return "$" .. card:getEffectiveId() end
+			end
+		end
+	end
+	if self:getDamagedEffects(self.player, damage.from) and damage.damage <= 1 then return "." end	
+	if self:needLostHp(self.player, damage.from) and damage.damage <= 1 then return "." end	
 	for _,card in ipairs(cards) do
 		if card:isRed() then return "$" .. card:getEffectiveId() end
 	end
@@ -292,6 +299,31 @@ end
 
 sgs.ai_skill_playerchosen.mixin = sgs.ai_skill_playerchosen.zero_card_as_slash
 
+sgs.ai_skill_cardask["#mixin"] = function(self, data, pattern, target)
+	if target then
+		for _, slash in ipairs(self:getCards("Slash")) do
+			if self:slashIsEffective(slash, target) and self:isFriend(target) and target:hasSkill("leiji") then
+				return slash:toString()
+			end
+			
+			if self:slashIsEffective(slash, target) and not self:getDamagedEffects(target, self.player, true) and self:isEnemy(target) then
+				return slash:toString()
+			end
+			if (not self:slashIsEffective(slash, target) or self:getDamagedEffects(target, self.player) or target:getHp() > getBestHp(target))
+				and self:isFriend(target) then
+				return slash:toString()
+			end
+		end
+		for _, slash in ipairs(self:getCards("Slash")) do
+			if (not (self:getDamagedEffects(target, self.player) or target:getHp() > getBestHp(target)) or not self:slashIsEffective(slash, target))
+				and not self:isFriend(target) then
+				return slash:toString()
+			end
+		end
+	end
+	return "."
+end
+
 sgs.ai_use_priority.MixinCard = 0
 sgs.ai_card_intention.MixinCard = -20
 
@@ -328,7 +360,7 @@ end
 
 sgs.ai_skill_playerchosen.duyi = function(self, targets)
 	local to
-	if self:getOverflow() < 0 then
+	if self.player:getMaxCards() > self.player:getHandcardNum() then
 		to = player_to_draw(self, "all")
 	else
 		to = player_to_draw(self, "noself")
@@ -345,6 +377,7 @@ sgs.ai_skill_invoke.duanzhi = function(self, data)
 		return true
 	end
 	]]--
+	if use.from and use.from:getCardCount(true) < 2 then return end
 	return use.from and self:isEnemy(use.from) and self.player:getHp() > 2
 end
 

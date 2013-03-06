@@ -137,7 +137,12 @@ sgs.ai_card_intention.NosJujianCard = -100
 
 sgs.dynamic_value.benefit.NosJujianCard = true
 
-sgs.ai_skill_cardask["@enyuanheart"] = function(self)
+sgs.ai_skill_cardask["@enyuanheart"] = function(self, data)
+	if self:needLostHp(self.player) then return "." end
+	--[[
+	local damage = data:toDamage()
+	if self:isFriend(damage.to) then return end	
+	]]--
 	local cards = self.player:getHandcards()
 	for _, card in sgs.qlist(cards) do
 		if card:getSuit() == sgs.Card_Heart and not (card:isKindOf("Peach") or card:isKindOf("ExNihilo")) then
@@ -147,11 +152,25 @@ sgs.ai_skill_cardask["@enyuanheart"] = function(self)
 	return "."
 end
 
-function sgs.ai_slash_prohibit.nosenyuan(self)
+function sgs.ai_slash_prohibit.nosenyuan(self, to, card)
 	if self.player:hasSkill("jueqing") then return false end
 	if self.player:hasSkill("qianxi") and self.player:distanceTo(self.player) == 1 then return false end
 	if self.player:hasFlag("nosjiefanUsed") then return false end
-	if self:isWeak() then return true end
+	if self:needLostHp(self.player) then return false end
+	if self.player:getHp() > 3 then return false end
+	
+	local n = 0
+	local cards = self.player:getHandcards()
+	for _, hcard in sgs.qlist(cards) do
+		if hcard:getSuit() == sgs.Card_Heart and not (hcard:isKindOf("Peach") or hcard:isKindOf("ExNihilo")) then
+			if not hcard:isKindOf("Slash") then return false end
+			n = n + 1
+		end
+	end
+	if n < 1 then return true end
+	if n > 1 then return false end
+	if n == 1 then return card:getSuit() == sgs.Card_Heart end
+	return self:isWeak()
 end
 
 sgs.ai_need_damaged.nosenyuan = function (self, attacker)	
@@ -238,7 +257,7 @@ sgs.ai_skill_choice.nosxuanfeng = function(self, choices)
 end
 
 sgs.ai_skill_playerchosen.xuanfeng_damage = sgs.ai_skill_playerchosen.damage
-sgs.ai_skill_playerchosen.xuanfeng_slash = sgs.ai_skill_playerchosen.zero_card_as_slash
+sgs.ai_skill_playerchosen.nosxuanfeng_slash = sgs.ai_skill_playerchosen.zero_card_as_slash
 
 sgs.ai_playerchosen_intention.xuanfeng_damage = 80
 sgs.ai_playerchosen_intention.xuanfeng_slash = 80

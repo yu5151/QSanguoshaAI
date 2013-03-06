@@ -519,18 +519,70 @@ sgs.ai_skill_choice.jincui = function(self, choices)
 	if sgs.jincui_discard then return "throw" else return "draw" end
 end
 
+--你使用黑色的【杀】造成的伤害+1，你无法闪避红色的【杀】
+
+sgs.ai_slash_prohibit.wenjiu = function(self, to, card)
+	local has_black_slash, has_red_slash
+	local slashes = self:getCards("Slash")
+	for _, slash in ipairs(slashes) do
+		if slash:isBlack() then has_black_slash = true end
+		if slash:isRed() then has_red_slash = true end
+	end
+
+	if self:isFriend(to) then
+		return card:isRed() and (has_black_slash or self:isWeak(to))
+	else		
+		if has_red_slash then return not card:isRed() end
+	end
+end
+
 --[[
 	技能：霸刀
 	描述：当你成为黑色的【杀】目标时，你可以对你攻击范围内的一名其他角色使用一张【杀】 
 ]]--
-sgs.ai_skill_invoke.badao = function(self, data)
-	for _, enemy in ipairs(self.enemies) do
-		if self.player:canSlash(enemy, nil, true) and self:getCardsNum("Slash") > 0 then 
-			self:speak("看我大霸刀！就是比你刀快！") --此句证明这段函数没有被执行，疑为源代码变更所致。
-			return true 
+
+sgs.ai_skill_cardask["@askforslash"] = function(self, data)
+	local slashes = self:getCards("Slash")	
+	self:sort(self.enemies, "defenseSlash")
+	
+	for _, slash in ipairs(slashes) do
+		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, slash) > 50 or self.player:hasFlag("slashNoDistanceLimit")
+		for _, enemy in ipairs(self.enemies) do
+			if self.player:canSlash(enemy, slash, not no_distance) and not self:slashProhibit(slash, enemy) and slash:isBlack() and self:hasSkills("wenjiu")
+				and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
+				and not (self.player:hasFlag("slashTargetFix") and not enemy:hasFlag("SlashAssignee")) then
+				return ("%s->%s"):format(slash:toString(), enemy:objectName())
+			end
 		end
 	end
+	for _, slash in ipairs(slashes) do
+		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, slash) > 50 or self.player:hasFlag("slashNoDistanceLimit")
+		for _, enemy in ipairs(self.enemies) do
+			if self.player:canSlash(enemy, slash, not no_distance) and not self:slashProhibit(slash, enemy) and not slash:isBlack()
+				and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
+				and not (self.player:hasFlag("slashTargetFix") and not enemy:hasFlag("SlashAssignee")) then
+				return ("%s->%s"):format(slash:toString(), enemy:objectName())
+			end
+		end
+	end
+	return "."
 end
+
+
+sgs.ai_slash_prohibit.badao = function(self, to, card)
+	local has_black_slash, has_red_slash
+	local slashes = self:getCards("Slash")
+	for _, slash in ipairs(slashes) do
+		if slash:isBlack() then has_black_slash = true end
+		if slash:isRed() then has_red_slash = true end
+	end
+	if self:isFriend(to) then 
+		return card:isRed() and has_black_slash 
+	else
+		return card:isBlack() and (has_red_slash or getCardsNum("Slash", to) >= 1)
+	end
+end
+
 
 sgs.ai_cardneed.wenjiu = function(to, card)
 	return card:isBlack() and isCard("Slash", card, to)

@@ -658,20 +658,43 @@ sgs.ai_skill_invoke.anxian = function(self, data)
 end
 
 sgs.ai_skill_cardask["@anxian-discard"] = function(self, data)
-	if self.player:isKongcheng() or self:getCardsNum("Jink") > 0 or self:getDamagedEffects(self.player) then
-		return "."
-	end
+	local use = data:toCardUse()
+	local from = use.from
+	if self.player:isKongcheng() then return "." end
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
-	
-	if #cards == self:getCardsNum("Peach") then return "." end
-
 	self:sortByKeepValue(cards)
+
+	if self:hasHeavySlashDamage(from, use.card, self.player) and from:hasWeapon("Axe") and from:getCards("he"):length() > 2 then
+		return "$" .. cards[1]:getEffectiveId()
+	end	
+	if self:getDamagedEffects(self.player, use.from, true) then
+		return "."
+	end
+	if self:needLostHp(self.player, use.from, true) then
+		return "."
+	end
+	if from:hasWeapon("Axe") and self:hasSkills(sgs.lose_equip_skill, from) and from:getEquips():length() > 1 then
+		for _, card in ipairs(cards) do
+			if not isCard("Peach", card, self.player) then
+				return "$" .. card:getEffectiveId()
+			end
+		end
+	end
+	if self:getCardsNum("Jink") > 0 then
+		return "."
+	end
+	if self:hasHeavySlashDamage(from, use.card, self.player) then
+		return "$" .. cards[1]:getEffectiveId()
+	end
+
+	if #cards == self:getCardsNum("Peach") then return "." end
 	for _, card in ipairs(cards) do
 		if not isCard("Peach", card, self.player) then
 			return "$" .. card:getEffectiveId()
 		end
 	end
+	return "."
 end
 
 local yinling_skill={}
@@ -1125,7 +1148,7 @@ sgs.ai_skill_use_func.FuluanCard = function(card, use, self)
 end
 
 sgs.ai_use_priority.FuluanCard = 2.3
-sgs.ai_card_intention.FuluanCard = function(card, from, tos)
+sgs.ai_card_intention.FuluanCard = function(self, card, from, tos)
 	sgs.updateIntention(from, tos[1], tos[1]:faceUp() and 80 or -80)
 end
 
@@ -1201,7 +1224,7 @@ sgs.ai_skill_use["@@huangen"] = function(self, prompt)
 	end
 end
 
-sgs.ai_card_intention.HuangenCard = function(card, from, tos)
+sgs.ai_card_intention.HuangenCard = function(self, card, from, tos)
 	local cardx = sgs.Card_Parse(from:getTag("Huangen_user"):toString())
 	if not cardx then return end
 	for _, to in ipairs(tos) do

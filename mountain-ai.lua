@@ -308,7 +308,7 @@ sgs.ai_skill_use["@qiaobian"] = function(self, prompt)
 	return "."
 end
 
-sgs.ai_card_intention.QiaobianCard = function(card, from, tos, source)	
+sgs.ai_card_intention.QiaobianCard = function(self, card, from, tos, source)	
 	return 0
 end
 
@@ -561,7 +561,7 @@ sgs.ai_skill_cardask["@tiaoxin-slash"] = function(self, data, pattern, target)
 				return slash:toString()
 			end
 			
-			if self:slashIsEffective(slash, target) and not self:getDamagedEffects(target, self.player) and self:isEnemy(target) then
+			if self:slashIsEffective(slash, target) and not self:getDamagedEffects(target, self.player, true) and self:isEnemy(target) then
 				return slash:toString()
 			end
 			if (not self:slashIsEffective(slash, target) or self:getDamagedEffects(target, self.player) or target:getHp() > getBestHp(target))
@@ -571,7 +571,7 @@ sgs.ai_skill_cardask["@tiaoxin-slash"] = function(self, data, pattern, target)
 		end
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if (not (self:getDamagedEffects(target, self.player) or target:getHp() > getBestHp(target)) or not self:slashIsEffective(slash, target))
-				and self:isEnemy(target) then
+				and not self:isFriend(target) then
 				return slash:toString()
 			end
 		end
@@ -690,7 +690,7 @@ function sgs.ai_skill_pindian.zhiba_pindian(minusecard, self, requestor)
 	return maxcard:getNumber() <= point and minusecard or maxcard
 end
 
-function sgs.ai_card_intention.ZhibaCard(card, from, tos, source)
+sgs.ai_card_intention.ZhibaCard = function(self, card, from, tos, source)
 	assert(#tos == 1)
 	local number = sgs.Sanguosha:getCard(card:getSubcards():first()):getNumber()
 	if number < 6 then sgs.updateIntention(from, tos[1], -60)
@@ -944,9 +944,7 @@ function sgs.ai_skill_choice.huashen(self, choices)
 		end
 	end
 	for index = #choices, 1, -1 do
-		if ("renjie|benghuai|shenjun|xunzhi|dongcha|yishe|" ..
-		"juao|shiyong|wumou")
-		:match(choices[index]) then
+		if ("renjie|benghuai|shenjun|dongcha|yishe|juao|shiyong|wumou"):match(choices[index]) then
 			table.remove(choices,index)
 		end
 	end

@@ -261,7 +261,7 @@ sgs.ai_skill_playerchosen.yuanhu = function(self, targets)
 	end
 end
 
-sgs.ai_card_intention.YuanhuCard = function(card, from, to)
+sgs.ai_card_intention.YuanhuCard = function(self, card, from, to)
 	if to[1]:hasSkill("bazhen") or to[1]:hasSkill("yizhong") or (to[1]:hasSkill("kongcheng") and to[1]:isKongcheng()) then
 		if sgs.Sanguosha:getCard(card:getEffectiveId()):isKindOf("SilverLion") then
 			sgs.updateIntention(from, to[1], 10)
@@ -286,11 +286,12 @@ sgs.ai_cardneed.xueji = function(to, card)
 end
 
 local xueji_skill = {}
-xueji_skill.name="xueji"
-table.insert(sgs.ai_skills,xueji_skill)
-xueji_skill.getTurnUseCard=function(self)
+xueji_skill.name = "xueji"
+table.insert(sgs.ai_skills, xueji_skill)
+xueji_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("XuejiCard") then return end
-
+	if not self.player:isWounded() then return end
+	
 	local card
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
@@ -310,7 +311,7 @@ xueji_skill.getTurnUseCard=function(self)
 	return nil
 end
 
-function can_be_selected_as_target(self, card, who)
+local function can_be_selected_as_target_xueji(self, card, who)
 	-- validation of rule
 	if self.player:getWeapon() and self.player:getWeapon():getEffectiveId() == card:getEffectiveId() then
 		if self.player:distanceTo(who) > 1 then return false end
@@ -320,8 +321,7 @@ function can_be_selected_as_target(self, card, who)
 		return false 
 	end
 	-- validation of strategy
-	if self:cantbeHurt(who) or self:damageIsEffective(who) then return false end
-	if self:isEnemy(who) then
+	if self:isEnemy(who) and self:damageIsEffective(who) and not self:cantbeHurt(who) and not self:getDamagedEffects(who) and not self:needLostHp(who) then
 		if not self.player:hasSkill("jueqing") then
 			if who:hasSkill("guixin") and (self.room:getAliveCount() >= 4 or not who:faceUp()) and not who:hasSkill("manjuan") then return false end
 			if (who:hasSkill("ganglie") or who:hasSkill("neoganglie")) and (self.player:getHp() == 1 and self.player:getHandcardNum() <= 2) then return false end
@@ -352,25 +352,31 @@ function can_be_selected_as_target(self, card, who)
 			end 
 		end
 		if who:hasSkill("hunzi") and who:getMark("hunzi") == 0
-			and who:objectName() == self.player:getNextAlive():objectName() and who:getHp() == 2 then return true end
+		  and who:objectName() == self.player:getNextAlive():objectName() and who:getHp() == 2 then
+			return true 
+		end
+		if self:cantbeHurt(who) and not self:damageIsEffective(who) and not (who:hasSkill("manjuan") and who:getPhase() == sgs.Player_NotActive)
+		  and not (who:hasSkill("kongcheng") and who:isKongcheng()) then
+			return true
+		end
 		return false
 	end
 	return false
 end
 
-sgs.ai_skill_use_func.XuejiCard=function(card,use,self)
+sgs.ai_skill_use_func.XuejiCard = function(card, use, self)
 	if self.player:getLostHp() == 0 or self.player:hasUsed("XuejiCard") then return end
 	self:sort(self.enemies)
 	local to_use = false
 	for _, enemy in ipairs(self.enemies) do
-		if can_be_selected_as_target(self, card, enemy) then
+		if can_be_selected_as_target_xueji(self, card, enemy) then
 			to_use = true
 			break
 		end
 	end
 	if not to_use then
 		for _, friend in ipairs(self.friends_noself) do
-			if can_be_selected_as_target(self, card, friend) then
+			if can_be_selected_as_target_xueji(self, card, friend) then
 				to_use = true
 				break
 			end
@@ -380,13 +386,13 @@ sgs.ai_skill_use_func.XuejiCard=function(card,use,self)
 		use.card = card
 		if use.to then
 			for _, enemy in ipairs(self.enemies) do
-				if can_be_selected_as_target(self, card, enemy) then
+				if can_be_selected_as_target_xueji(self, card, enemy) then
 					use.to:append(enemy)
 					if use.to:length() == self.player:getLostHp() then return end
 				end
 			end
 			for _, friend in ipairs(self.friends_noself) do
-				if can_be_selected_as_target(self, card, friend) then
+				if can_be_selected_as_target_xueji(self, card, friend) then
 					use.to:append(friend)
 					if use.to:length() == self.player:getLostHp() then return end
 				end
@@ -395,27 +401,8 @@ sgs.ai_skill_use_func.XuejiCard=function(card,use,self)
 		end
 	end
 end
---[[
+
 sgs.ai_card_intention.XuejiCard = function(self, card, from, tos)
-	--服务器报错：lua/ai/sp-ai.lua:400: attempt to index field 'room' (a nil value)
-	local huatuo = self.room:findPlayerBySkillName("jijiu")
-	for _, to in ipairs(tos) do
-		local intention = 60
-		if to:hasSkill("yiji") and not from:hasSkill("jueqing") then
-			if (huatuo and self:isFriend(huatuo) and huatuo:getHandcardNum() >= 3 and huatuo:objectName() ~= from:objectName()) then
-				intention = -30
-			end
-			if to:getLostHp() == 0 and to:getMaxHp() >= 3 then
-				intention = -10
-			end
-		end
-		if to:hasSkill("hunzi") and to:getMark("hunzi") == 0
-			and to:objectName() == to:getNextAlive():objectName() and to:getHp() == 2 then intention = -20 end
-		sgs.updateIntention(from, to, intention)
-	end
-end
-]]--
-sgs.ai_card_intention.XuejiCard = function(card, from, tos)
 	local room = from:getRoom()
 	local huatuo = room:findPlayerBySkillName("jijiu")
 	for _,to in ipairs(tos) do
@@ -439,6 +426,7 @@ sgs.ai_card_intention.XuejiCard = function(card, from, tos)
 				intention = -20 
 			end
 		end
+		if self:cantbeHurt(to) and not self:damageIsEffective(to) then intention = -20 end
 		sgs.updateIntention(from, to, intention)
 	end
 end
@@ -529,7 +517,7 @@ sgs.ai_use_value.SongciCard = 3
 sgs.ai_use_priority.SongciCard = 2.5
 sgs.ai_chaofeng.chenlin = 3
 
-sgs.ai_card_intention.SongciCard = function(card, from, tos, source)	
+sgs.ai_card_intention.SongciCard = function(self, card, from, tos, source)	
 	for _, to in ipairs(tos) do
 		if to:getHandcardNum() > to:getHp() then
 			sgs.updateIntention(from, to, 100)

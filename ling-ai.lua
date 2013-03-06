@@ -136,20 +136,26 @@ end
 sgs.ai_skill_invoke.yishi = function(self, data)
 	local damage = data:toDamage()
 	local target = damage.to
-	local judge_card = target:getCards("j")
 	if self:isFriend(target) then
-		if judge_card and judge_card:length() > 0 then return true end
-		if not (target:getHp()>2 and target:hasSkill("yiji")) 
-			and not (target:hasSkill("longhun") and target:getHp()>1 and target:getCards("he"):length()>2)
-			and not (target:getHp()>2 and target:hasSkill("guixin") and self.room:alivePlayerCount() > 2)
-				then return true
+		if damage.damage == 1 and self:getDamagedEffects(target, self.player)
+			and (target:getJudgingArea():isEmpty() or target:containsTrick("YanxiaoCard")) then
+			return false
 		end
+		return true
 	else
 		if self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
 		if self:isWeak(target) then return false end
-		if target:getArmor() and self:evaluateArmor(target:getArmor(), target) > 3 then return true end
-		if target:hasSkill("tuntian") then return false end
-		if self:hasSkills(sgs.need_kongcheng, target) then return false end
+		if target:getEquips():length() == 0 
+			and (target:getHandcardNum() == 1 and (self:hasSkills(sgs.need_kongcheng, target) or not self:hasLoseHandcardEffective(target))) then
+			return false
+		end
+		if (target:hasSkill("tuntian") and target:getPile("field"):length() >= 2 and target:getPhase() == sgs.Player_NotActive)
+			or (target:isKongcheng() and self:hasSkills(sgs.lose_equip_skill, target)) then
+			return false
+		end
+		if self:getDamagedEffects(target, self.player, true) or (target:getArmor() and not target:getArmor():isKindOf("SilverLion")) then return true end
+		if self:getDangerousCard(target) then return true end
+		if target:getDefensiveHorse() then return true end
 		return false
 	end 
 end

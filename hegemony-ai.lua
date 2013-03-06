@@ -197,7 +197,7 @@ end
 
 sgs.ai_use_value.DuoshiCard = 3
 sgs.ai_use_priority.DuoshiCard = 2.2
-sgs.ai_card_intention.DuoshiCard = function(card, from, tos, source)
+sgs.ai_card_intention.DuoshiCard = function(self, card, from, tos, source)
 	for _, to in ipairs(tos) do
 		sgs.updateIntention(from, to, to:hasSkill("manjuan") and 50 or -50)
 	end
@@ -232,29 +232,32 @@ fenxun_skill.getTurnUseCard = function(self)
 					end
 				end
 			end
-		elseif jinkcount > 1 then
-			for _, acard in ipairs(cards) do
-				if acard:isKindOf("Jink") then
-					card_id = acard:getEffectiveId()
-					break
+			if not card_id and jinkcount > 1 then
+				for _, acard in ipairs(cards) do
+					if acard:isKindOf("Jink") then
+						card_id = acard:getEffectiveId()
+						break
+					end
 				end
 			end
-		elseif slashcount > 1 then
-			for _, acard in ipairs(cards) do
-				if acard:isKindOf("Slash") then
-					slashcount = slashcount - 1
-					card_id = acard:getEffectiveId()
-					break
+			if not card_id and slashcount > 1 then
+				for _, acard in ipairs(cards) do
+					if acard:isKindOf("Slash") then
+						slashcount = slashcount - 1
+						card_id = acard:getEffectiveId()
+						break
+					end
 				end
-			end		
-		elseif not self.player:getEquips():isEmpty() then
-			local player = self.player
-			if player:getWeapon() then card_id = player:getWeapon():getId() end
+			end
+		end
+		
+		if not card_id and self.player:getWeapon() then
+			card_id = self.player:getWeapon():getId()
 		end
 
 		if not card_id then
 			for _, acard in ipairs(cards) do
-				if (acard:isKindOf("Disaster") or acard:isKindOf("AmazingGrace") or acard:isKindOf("EquipCard") or acard:isKindOf("BasicCard"))
+				if (acard:isKindOf("AmazingGrace") or acard:isKindOf("EquipCard") or acard:isKindOf("BasicCard"))
 					and not isCard("Peach", acard, self.player) and not isCard("Slash", acard, self.player) then
 					card_id = acard:getEffectiveId()
 					break
@@ -274,9 +277,11 @@ sgs.ai_skill_use_func.FenxunCard = function(card, use, self)
 		self:sort(self.enemies, "defense")
 		local target
 		for _, enemy in ipairs(self.enemies) do
-			if self.player:distanceTo(enemy) > 1 and self.player:canSlash(enemy, nil, false) then
-				target = enemy
-				break
+			for _, slash in ipairs(self:getCards("Slash")) do
+				if self.player:distanceTo(enemy) > 1 and not self:slashProhibit(slash, enemy) and self.player:canSlash(enemy, slash, false) then
+					target = enemy
+					break
+				end
 			end
 		end
 		if target and self:getCardsNum("Slash") > 0 then
@@ -308,13 +313,14 @@ sgs.ai_skill_use["@@sijian"] = function(self, prompt)
 	return "."
 end
 
-sgs.ai_card_intention.SijianCard = function(card, from, tos)
+sgs.ai_card_intention.SijianCard = function(self, card, from, tos)
 	local intention = 80
 	local to = tos[1]
 	if to:hasSkill("kongcheng") and to:getHandcardNum() == 1 and to:getHp() <= 2 then
 		intention = -30
 	end
-	if to:hasArmorEffect("SilverLion") and to:isWounded() then
+	if to:hasArmorEffect("SilverLion") and to:isWounded() and not self:hasSkills(sgs.use_lion_skill, to)
+	  and self:isWeak(to) then
 		  intention = -30
 	end
 	sgs.updateIntention(from, tos[1], intention)
@@ -339,7 +345,8 @@ end
 sgs.ai_skill_use["@@shuangren"] = function(self, prompt)
 	local target
 	self:sort(self.enemies, "handcard")
-	local max_card = self:getMaxCard(self.player)
+	local max_card = self:getMaxCard()
+	if not max_card then return "." end
 	local max_point = max_card:getNumber()
 	for _, enemy in ipairs(self.enemies) do
 		if not enemy:isKongcheng() then
@@ -395,18 +402,23 @@ sgs.ai_card_intention.XiongyiCard = -80
 
 sgs.ai_skill_invoke.kuangfu = function(self, data)
 	local damage = data:toDamage()
+	if self:hasSkills(sgs.lose_equip_skill, damage.to) then
+		return not self:isEnemy(damage.to)
+	end
 	if self:isEnemy(damage.to) then
-		if damage.to:getCards("e"):length() == 1 and damage.to:hasArmorEffect("SilverLion") and not IgnoreArmor(damage.from, damage.to)
+		if damage.to:getCards("e"):length() == 1 and damage.to:hasArmorEffect("SilverLion")
 		  and damage.to:isWounded() and self:isWeak(damage.to) then
 			return false
 		end
 		return true
 	end
-	if damage.to:getCards("e"):length() == 1 and damage.to:hasArmorEffect("SilverLion") and not IgnoreArmor(damage.from, damage.to) 
-	  and damage.to:isWounded() then
-		return true
+	if self:isFriend(damage.to) then
+		if damage.to:hasArmorEffect("SilverLion") and damage.to:isWounded() then
+			return true
+		end
+		return false
 	end
-	return false
+	return true
 end
 
 sgs.ai_skill_choice.kuangfu = function(self, choices)

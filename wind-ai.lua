@@ -178,7 +178,7 @@ end
 
 function sgs.ai_cardneed.leiji(to, card, self)
 	return  ((isCard("Jink", card, to) and getKnownCard(to, "Jink", true) == 0)
-			or (card:getSuit() == sgs.Card_Spade and self:hasSuit("spade", true, to))
+			or (card:getSuit() == sgs.Card_Spade and not self:hasSuit("spade", true, to))
 			or (card:isKindOf("EightDiagram") and not (self:isEquip("EightDiagram") or getKnownCard(to, "EightDiagram", false) >0)))
 end
 
@@ -216,6 +216,7 @@ sgs.ai_card_intention.LeijiCard = 80
 
 function sgs.ai_slash_prohibit.leiji(self, to, card)
 	if self:isFriend(to) then return false end
+	if to:hasFlag("qianxi_target") then return false end
 	local hcard = to:getHandcardNum()
 	if self.player:hasSkill("liegong") and (hcard >= self.player:getHp() or hcard <= self.player:getAttackRange()) then return false end
 	if self.role == "rebel" and to:isLord() then
@@ -398,7 +399,7 @@ sgs.ai_skill_use["@@tianxiang"] = function(self, data)
 end
 
 
-sgs.ai_card_intention.TianxiangCard = function(card, from, tos)
+sgs.ai_card_intention.TianxiangCard = function(self,card, from, tos)
 	local to = tos[1]
 	local intention = 10
 	local friend = false

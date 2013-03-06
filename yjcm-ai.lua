@@ -163,73 +163,81 @@ function sgs.ai_slash_prohibit.enyuan(self)
 	if self.player:hasSkill("jueqing") then return false end
 	if self.player:hasSkill("qianxi") and self.player:distanceTo(self.player) == 1 then return false end
 	if self.player:hasFlag("nosjiefanUsed") then return false end
-	local num=self.player:getHandcardNum()
-	if num >= 3 or self:hasSkill("lianying") or (self:hasSkill("kongcheng") and num == 2) then return false end
+	local num = self.player:getHandcardNum()
+	if num >= 3 or self:hasSkills("lianying|shangshi|nosshangshi", self.player) or (self.player:hasSkill("kongcheng") and num == 2) then return false end
 	return true
 end
 
-sgs.ai_need_damaged.enyuan = function (self, attacker)	
-	if self:isEnemy(attacker) and self:isWeak(attacker) and attacker:getHandcardNum()<3 and not self:hasSkills("lianying|kongcheng",attacker) then
+sgs.ai_need_damaged.enyuan = function (self, attacker)
+	if self:isEnemy(attacker) and self:isWeak(attacker) and attacker:getHandcardNum() < 3 
+	  and not self:hasSkills("lianying|shangshi|nosshangshi", attacker)
+	  and not (attacker:hasSkill("kongcheng") and attacker:getHandcardNum() > 0) then
 		return true
 	end
 	return false
 end
 
 function sgs.ai_cardneed.enyuan(to, card)
-	return getKnownCard(to,"Card",false) < 2
+	return getKnownCard(to, "Card", false) < 2
 end
 
 sgs.ai_skill_use["@@xuanhuo"] = function(self, prompt)
 	local lord = self.room:getLord()
-	local killloyal = 0
-	local robequip = 0
-	if lord and self:isEnemy(lord) then
+	self:sort(self.enemies, "defense")
+	if lord and self:isEnemy(lord) then  --killloyal
 		for _, enemy in ipairs(self.enemies) do
-			if lord:canSlash(enemy) and (enemy:getHp() < 2 and not enemy:hasSkill("buqu"))
-			and sgs.getDefense(enemy) < 2 then
-				killloyal = killloyal + 1
+			if (self:getDangerousCard(lord) or self:getValuableCard(lord)) 
+			  and lord:canSlash(enemy) and (enemy:getHp() < 2 and not enemy:hasSkill("buqu"))
+			  and sgs.getDefense(enemy) < 2 then
+				lord:setFlags("xuanhuo_target")
+				return "@XuanhuoCard=.->"..lord:objectName()
 			end
 		end
 	end
-	for _, enemy in ipairs(self.enemies) do
-		if enemy:getCards("e"):length() > 1 and getCardsNum("Slash", enemy) == 0 
-		and not self:hasSkills(sgs.lose_equip_skill,enemy) then
-			robequip = robequip + 1
+	
+	for _, enemy in ipairs(self.enemies) do --robequip
+		for _, enemy2 in ipairs(self.enemies) do	
+			if enemy:canSlash(enemy2) and (self:getDangerousCard(enemy) or self:getValuableCard(enemy)) 
+			  and not self:hasSkills(sgs.lose_equip_skill, enemy) and not enemy:hasSkill("tuntian")
+			  or (enemy:hasSkill("manjuan") and enemy:getCards("he"):length() > 1 and getCardsNum("Slash", enemy) == 0) then
+				enemy:setFlags("xuanhuo_target")
+				return "@XuanhuoCard=.->"..enemy:objectName()
+			end
 		end
 	end
-	if #self.enemies < 2 and killloyal < 1 and robequip < 1 then return "." end
-	if lord and self:isEnemy(lord) and killloyal > 0 then
-		self.room:setPlayerFlag(lord, "xuanhuo_target")
-		return "@XuanhuoCard=.->"..lord:objectName()
+		
+	if #self.friends_noself == 0 then return "." end
+	self:sort(self.friends_noself, "defense")
+
+	for _, friend in ipairs(self.friends_noself) do
+		if self:hasSkills(sgs.lose_equip_skill, friend) and not friend:getEquips():isEmpty() then
+			friend:setFlags("xuanhuo_target")
+			return "@XuanhuoCard=.->"..friend:objectName()
+		end
+		
 	end
-	for _, enemy in ipairs(self.enemies) do
-		if enemy:getCards("e"):length() > 1 and getCardsNum("Slash", enemy) == 0 
-		and not self:hasSkills(sgs.lose_equip_skill,enemy) then
-			self.room:setPlayerFlag(enemy, "xuanhuo_target")
-			return "@XuanhuoCard=.->"..enemy:objectName()
+	for _, friend in ipairs(self.friends_noself) do
+		if friend:hasSkill("tuntian") and not friend:hasSkill("manjuan") then
+			friend:setFlags("xuanhuo_target")
+			return "@XuanhuoCard=.->"..friend:objectName()
 		end
 	end
-	self:sort(self.enemies,"defense")
 	for _, friend in ipairs(self.friends_noself) do
 		for _, enemy in ipairs(self.enemies) do
 			if friend:canSlash(enemy) and (enemy:getHp() < 2 and not enemy:hasSkill("buqu"))
-			and sgs.getDefense(enemy) < 2 then
-				self.room:setPlayerFlag(friend, "xuanhuo_target")
+			  and sgs.getDefense(enemy) < 2 and not friend:hasSkill("manjuan") then
+				friend:setFlags("xuanhuo_target")
 				return "@XuanhuoCard=.->"..friend:objectName()
 			end
 		end
 	end
 	for _, friend in ipairs(self.friends_noself) do
-		if self:hasSkills(sgs.lose_equip_skill, friend) and not friend:getEquips():isEmpty() then
-			self.room:setPlayerFlag(friend, "xuanhuo_target")
+		if not friend:hasSkill("manjuan") then
+			friend:setFlags("xuanhuo_target")
 			return "@XuanhuoCard=.->"..friend:objectName()
 		end
 	end
-	
-	if #self.friends_noself == 0 then return end
-	self:sort(self.friends_noself,"defense")
-		self.room:setPlayerFlag(self.friends_noself[1], "xuanhuo_target")
-		return "@XuanhuoCard=.->"..self.friends_noself[1]:objectName()
+	return "."
 end
 
 sgs.ai_skill_choice.xuanhuo = function(self, choices)
@@ -262,7 +270,7 @@ sgs.ai_skill_playerchosen.xuanhuo = function(self, targets)
 end
 
 sgs.ai_skill_cardask["xuanhuo-slash"] = function(self, data, pattern, target, target2)
-	if target and target2  and self:isEnemy(target2) then
+	if target and target2 and self:isEnemy(target2) then
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if self:slashIsEffective(slash, target2) then 
 				return slash:toString()

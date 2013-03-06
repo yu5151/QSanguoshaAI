@@ -60,7 +60,7 @@
 			if huanggai:getMark("GoldenWaveFlow") > 0 then
 				local released = sgs.GoldenWaveDetail.EruptSignal["Released"]
 				if released then
-					if self.getHp() > 0 then
+					if self.getHp() > 1 then
 						return sgs.Card_Parse("@KurouCard=.")
 					end
 				else
@@ -86,7 +86,7 @@
 				else
 					for _,id in ipairs(card_ids) do
 						local card = sgs.Sanguosha:getCard(id)
-						if card:isKindOf("Crossbow") then
+						if card:isKindOf("Crossbow") or card:isKindOf("AOE") or card:isKindOf("Duel") then
 							return huanggai, id
 						elseif card:isRed() and huatuo:isAlive() then
 							return huatuo, id
@@ -141,6 +141,22 @@
 			return true
 		end
 		return false
+	end
+	--一波苦肉
+	function KOFKurouTurnUse(self)
+		local huanggai = self.player
+		if huanggai:getMark("KKR_Forbidden") == 0 then
+			if huanggai:getMark("KOFKurouRush") > 0 then
+				if huanggai:getHp() > 1 then
+					return sgs.Card_Parse("@KurouCard=.")
+				end
+				if self:getCardsNum("Analeptic") + self:getCardsNum("Peach") > 0 then
+					return sgs.Card_Parse("@KurouCard=.")
+				end
+			elseif KOFKurouStart(self) then
+				return sgs.Card_Parse("@KurouCard=.")
+			end
+		end
 	end
 --控底爆发--
 	--相关信息

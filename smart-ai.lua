@@ -4992,7 +4992,7 @@ function player_to_discard(self, prompt)
 	for _, enemy in ipairs(enemies) do
 		local cards = sgs.QList2Table(enemy:getHandcards())
 		local flag = string.format("%s_%s_%s", "visible", self.player:objectName(), enemy:objectName())
-		if #cards <= 2 and not enemy:isKongcheng() then
+		if #cards <= 2 and not enemy:isKongcheng() and not (enemy:hasSkill("tuntian") and enemy:getPhase() == sgs.Player_NotActive) then
 			for _, cc in ipairs(cards) do
 				if (cc:hasFlag("visible") or cc:hasFlag(flag)) and (cc:isKindOf("Peach") or cc:isKindOf("Analeptic")) then
 					return enemy

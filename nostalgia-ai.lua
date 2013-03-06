@@ -274,7 +274,7 @@ sgs.ai_skill_use_func.NosXuanhuoCard = function(card, use, self)
 			end
 		else
 			for _, card in ipairs(cards) do
-				if card:getSuit() == sgs.Card_Heart and not card:isKindOf("Peach") and not card:isKindOf("Nullification") then
+				if card:getSuit() == sgs.Card_Heart and not isCard("Peach", card, target) and not isCard("Nullification", card, target) then
 					use.card = sgs.Card_Parse("@NosXuanhuoCard=" .. card:getEffectiveId())
 					break
 				end

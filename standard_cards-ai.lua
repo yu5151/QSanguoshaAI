@@ -70,11 +70,10 @@ function sgs.isGoodTarget(player,targets, self)
 		end
 	end
 
-	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 and player:isLord() and player:getHp() < 3 and sgs.current_mode_players["loyalist"] > 0 then
+	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 and player:isLord() and player:getHp() == 2 and sgs.current_mode_players["loyalist"] > 0 then
 		return false
 	end
 	
-
 	if m_skill and sgs.isGoodHp(player) then
 		return false
 	else
@@ -1474,13 +1473,13 @@ function SmartAI:getValuableCard(who)
 		end 
 	end
 	if defhorse and not who:hasSkill("nosxuanfeng") 
-	  and not (who:hasSkill("tuantian") and who:getPhase() == sgs.Player_NotActive and (#self.enemies > 1) and not self:isWeak(who)) then
+	  and not (who:hasSkill("tuntian") and who:getPhase() == sgs.Player_NotActive and (#self.enemies > 1) and not self:isWeak(who)) then
 		return defhorse:getEffectiveId()
 	end
 
 	if armor and self:evaluateArmor(armor,who) > 3 and not who:hasSkill("nosxuanfeng")
 	  and not (armor:isKindOf("SilverLion") and who:isWounded())
-	  and not (who:hasSkill("tuantian") and who:getPhase() == sgs.Player_NotActive and (#self.enemies > 1) and not self:isWeak(who)) then
+	  and not (who:hasSkill("tuntian") and who:getPhase() == sgs.Player_NotActive and (#self.enemies > 1) and not self:isWeak(who)) then
 		return armor:getEffectiveId()
 	end
 
@@ -1492,7 +1491,6 @@ function SmartAI:getValuableCard(who)
 
 	local equips = sgs.QList2Table(who:getEquips())
 	for _,equip in ipairs(equips) do
-		if who:hasSkill("shensu") then return  equip:getEffectiveId() end
 		if who:hasSkill("longhun") and not equip:getSuit() == sgs.Card_Diamond then  return equip:getEffectiveId() end
 		if who:hasSkill("qixi") and equip:isBlack() then  return equip:getEffectiveId() end
 		if who:hasSkill("guidao") and equip:isBlack() then  return equip:getEffectiveId() end
@@ -1500,15 +1498,9 @@ function SmartAI:getValuableCard(who)
 		if who:hasSkill("jijiu") and equip:isRed() then  return equip:getEffectiveId() end
 		if who:hasSkill("wusheng") and equip:isRed() then  return equip:getEffectiveId() end
 		if who:hasSkill("duanliang") and equip:isBlack() then  return equip:getEffectiveId() end
-		if who:hasSkill("mingce") then return  equip:getEffectiveId() end
-		if who:hasSkill("beige") then return  equip:getEffectiveId() end
-		if who:hasSkill("mingce") then return  equip:getEffectiveId() end
-		if who:hasSkill("yuanhu") then return  equip:getEffectiveId() end
-		if who:hasSkill("gongqi") then return  equip:getEffectiveId() end
-		if who:hasSkill("nosgongqi") then return  equip:getEffectiveId() end
-		if who:hasSkill("yanzheng") then return  equip:getEffectiveId() end
-		if who:hasSkill("qingcheng") then return  equip:getEffectiveId() end
-		if who:hasSkill("shuijian") then return  equip:getEffectiveId() end
+		if self:hasSkills("shensu|mingce|beige|yuanhu|gongqi|nosgongqi|yanzheng|qingcheng|shuijian", who) then
+			return equip:getEffectiveId()
+		end
 	end
 
 	if armor and self:evaluateArmor(armor, who) > 0

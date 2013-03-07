@@ -2002,7 +2002,7 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 			first = males[1]
 			second = males[2]
 			local lord = self.room:getLord()
-			if (first:getHp() <= 1) then
+			if lord and (first:getHp() <= 1) then
 				if self.player:isLord() or sgs.isRolePredictable() then 
 					local friend_maxSlash = findFriend_maxSlash(self,first)
 					if friend_maxSlash then second=friend_maxSlash end

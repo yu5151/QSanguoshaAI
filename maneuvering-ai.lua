@@ -283,7 +283,7 @@ function SmartAI:isGoodChainTarget(who)
 	
 	if not sgs.GetConfig("EnableHegemony", false) then	
 		local lord = self.room:getLord()
-		if self:isWeak(lord) and lord:isChained() and not self:isEnemy(lord) then
+		if lord and self:isWeak(lord) and lord:isChained() and not self:isEnemy(lord) then
 			return false
 		end
 	end

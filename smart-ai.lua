@@ -2708,7 +2708,7 @@ function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 		end
 	end	
 	
-	if target and target:hasSkill("jueqing") then return end
+	if target and target:hasSkill("jueqing") and not self:needLostHp() then return end
 	if effect and effect.from and effect.from:hasSkill("qianxi") and effect.from:distanceTo(self.player) == 1 then return end	
 	if not self:damageIsEffective(nil, damage_nature, target) then return "." end
 

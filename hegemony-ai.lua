@@ -35,6 +35,9 @@ sgs.ai_skill_cardask["@xiaoguo"] = function(self, data)
 		end
 	elseif self:isEnemy(currentplayer) then
 		if not self:damageIsEffective(currentplayer) then return "." end
+		if self:getDamagedEffects(currentplayer) or self:needLostHp(currentplayer) then
+			return "."
+		end
 		if currentplayer:hasArmorEffect("SilverLion") and currentplayer:isWounded() and self:isWeak(currentplayer) then return "." end
 		if self:hasSkills(sgs.lose_equip_skill, currentplayer) and currentplayer:getCards("e"):length() > 0 then return "." end
 		return "$" .. card:getEffectiveId()
@@ -278,7 +281,8 @@ sgs.ai_skill_use_func.FenxunCard = function(card, use, self)
 		local target
 		for _, enemy in ipairs(self.enemies) do
 			for _, slash in ipairs(self:getCards("Slash")) do
-				if self.player:distanceTo(enemy) > 1 and not self:slashProhibit(slash, enemy) and self.player:canSlash(enemy, slash, false) then
+				if self.player:distanceTo(enemy) > 1 and not self:slashProhibit(slash, enemy) 
+				  and self.player:canSlash(enemy, slash, false) and sgs.isGoodTarget(enemy, self.enemies, self) then
 					target = enemy
 					break
 				end

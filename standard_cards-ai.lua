@@ -672,15 +672,19 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 			if target:hasSkill("mengjin") and not (target:hasSkill("qianxi") and target:distanceTo(self.player) == 1) then
 				if self:hasSkills("jijiu|qingnang") and self.player:getCards("he"):length()>1 then return "." end
 				if self:canUseJieyuanDecrease(target) then return "." end
-				if self:getCardsNum("Peach") > 0 and not self.player:hasSkill("tuntian") and not self:willSkipPlayPhase() then
+				if (self:getCardsNum("Peach") > 0 or self:getCardsNum("Analeptic") > 0) and not self.player:hasSkill("tuntian")
+				  and not self:willSkipPlayPhase() then
 					return "."
 				end
 			end
 		end
-		if not (self.player:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng)) and 
-					not (target:hasSkill("qianxi") and target:distanceTo(self.player) == 1)  then
+		if not ((self.player:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng)) or not self:hasLoseHandcardEffective())
+		  and not (target:hasSkill("qianxi") and target:distanceTo(self.player) == 1) then
 			if self:isEquip("Axe", target) then
-				if self:hasSkills(sgs.lose_equip_skill, target) and target:getEquips():length() > 1 then return "." end
+				if self:hasSkills(sgs.lose_equip_skill, target) and target:getEquips():length() > 1
+				  and target:getCards("he"):length() > 2 then
+					return "."
+				end
 				if target:getHandcardNum() - target:getHp() > 2 then return "." end
 			elseif self:isEquip("Blade", target) then
 				if self:hasHeavySlashDamage(target, effect.slash,self.player) then
@@ -875,41 +879,73 @@ sgs.ai_skill_cardask["@Axe"] = function(self, data, pattern, target)
 	local effect = data:toSlashEffect()
 	local allcards = self.player:getCards("he")
 	allcards = sgs.QList2Table(allcards)
-	if effect.slash:hasFlag("drank") or #allcards-2 >= self.player:getHp() or (self.player:hasSkill("kuanggu") and self.player:isWounded()) then
-		local cards = self.player:getCards("h")
-		cards = sgs.QList2Table(cards)
-		local index
-		if self:hasSkills(sgs.need_kongcheng) then index = #cards end
-		if self.player:getOffensiveHorse() then
-			if index then
-				if index < 2 then
-					index = index + 1
-					table.insert(cards, self.player:getOffensiveHorse())
-				end
-			end
-			table.insert(cards, self.player:getOffensiveHorse())
+	if self:hasHeavySlashDamage(self.player, effect.slash, target) or #allcards-2 >= self.player:getHp() 
+	  or (self.player:hasSkill("kuanggu") and self.player:isWounded() and self.player:distanceTo(effect.to) == 1)
+	  or (effect.to:getHp() == 1 and not effect.to:hasSkill("buqu")) 
+	  or ((self:hasSkills(sgs.need_kongcheng) or not self:hasLoseHandcardEffective()) and self.player:getHandcardNum() > 0)
+	  or (self:hasSkills(sgs.lose_equip_skill, self.player) and self.player:getEquips():length() > 1 and self.player:getHandcardNum() < 2) then
+		local hcards = self.player:getCards("h")
+		hcards = sgs.QList2Table(hcards)
+		self:sortByKeepValue(hcards)
+		local cards = {}
+		local hand, armor, def, off = 0, 0, 0, 0
+		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
+		  or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
+			table.insert(cards, self.player:getArmor():getEffectiveId())
+			armor = 1
 		end
-		if self.player:getArmor() then
-			if index then
-				if index < 2 then
-					index = index + 1
-					table.insert(cards, self.player:getArmor())
-				end
+		if (self:hasSkills(sgs.need_kongcheng) or not self:hasLoseHandcardEffective()) and self.player:getHandcardNum() > 0 then
+			hand = 1
+			for _, card in ipairs(hcards) do
+				table.insert(cards, card:getEffectiveId())
+				if #cards == 2 then break end
 			end
-			table.insert(cards, self.player:getArmor())
 		end
-		if self.player:getDefensiveHorse() then
-			if index then
-				if index < 2 then
-					index = index + 1
-					table.insert(cards, self.player:getDefensiveHorse())
-				end
+		if #cards < 2 and self:hasSkills(sgs.lose_equip_skill, self.player) then
+			if #cards < 2 and self.player:getOffensiveHorse() then
+				off = 1
+				table.insert(cards, self.player:getOffensiveHorse():getEffectiveId())
 			end
-			table.insert(cards, self.player:getDefensiveHorse())
+			if #cards < 2 and self.player:getArmor() then
+				armor = 1
+				table.insert(cards, self.player:getArmor():getEffectiveId())
+			end
+			if #cards < 2 and self.player:getDefensiveHorse() then
+				def = 1
+				table.insert(cards, self.player:getDefensiveHorse():getEffectiveId())
+			end
 		end
-		if #cards >= 2 then
-			self:sortByUseValue(cards, true)
-			return "$"..cards[1]:getEffectiveId().."+"..cards[2]:getEffectiveId()
+
+		if #cards < 2 and hand < 1 and self.player:getHandcardNum() > 2 then
+			hand = 1
+			for _, card in ipairs(hcards) do
+				table.insert(cards, card:getEffectiveId())
+				if #cards == 2 then break end
+			end
+		end
+
+		if #cards < 2 and off < 1 and self.player:getOffensiveHorse() then
+			off = 1
+			table.insert(cards, self.player:getOffensiveHorse():getEffectiveId())
+		end
+		if #cards < 2 and hand < 1 and self.player:getHandcardNum() > 0 then
+			hand = 1
+			for _, card in ipairs(hcards) do
+				table.insert(cards, card:getEffectiveId())
+				if #cards == 2 then break end
+			end
+		end
+		if #cards < 2 and armor < 1 and self.player:getArmor() then
+			armor = 1
+			table.insert(cards, self.player:getArmor():getEffectiveId())
+		end
+		if #cards < 2 and def < 1 and self.player:getDefensiveHorse() then
+			def = 1
+			table.insert(cards, self.player:getDefensiveHorse():getEffectiveId())
+		end
+
+		if #cards == 2 then
+			return "$"..table.concat(cards, "+")
 		end
 	end
 end
@@ -1442,7 +1478,7 @@ function SmartAI:getDangerousCard(who)
 		return weapon:getEffectiveId()
 	end
 	if armor and armor:isKindOf("EightDiagram") and who:hasSkill("leiji") then return armor:getEffectiveId() end
-	if (weapon and weapon:isKindOf("SPMoonSpear") and self:hasSkills("guidao|longdan|guicai|jilve|huanshi|qingguo", who)) then
+	if (weapon and weapon:isKindOf("SPMoonSpear") and self:hasSkills("guidao|longdan|guicai|jilve|huanshi|qingguo|kanpo", who)) then
 		return weapon:getEffectiveId()
 	end
 	if (weapon and who:hasSkill("liegong")) then return weapon:getEffectiveId() end

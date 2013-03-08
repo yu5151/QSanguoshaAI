@@ -399,15 +399,14 @@ function SmartAI:useCardSlash(card, use)
 	local huatuo = self.room:findPlayerBySkillName("jijiu")
 	for _, friend in ipairs(self.friends_noself) do
 		local slash_prohibit = false
-		slash_prohibit = self:slashProhibit(card,friend)
-		if (self.player:hasSkill("pojun") and friend:getHp() > 4 and getCardsNum("Jink", friend) == 0
-			and friend:getHandcardNum() < 3)
-		or self:getDamagedEffects(friend,self.player) 
-		or (friend:hasSkill("leiji") and not self.player:hasFlag("luoyi") and self:hasSuit("spade", true, friend) 
-		and (getKnownCard(friend,"Jink",true) >= 1 or (not self:isWeak(friend) and self:isEquip("EightDiagram",friend)))
-		and (hasExplicitRebel(self.room) or not friend:isLord()))
-		or (friend:isLord() and self.player:hasSkill("guagu") and friend:getLostHp() >= 1 and getCardsNum("Jink", friend) == 0)
-		or (friend:hasSkill("jieming") and self.player:hasSkill("rende") and (huatuo and self:isFriend(huatuo)))
+		slash_prohibit = self:slashProhibit(card, friend)
+		if (self.player:hasSkill("pojun") and friend:getHp() > 4 and getCardsNum("Jink", friend) == 0 and friend:getHandcardNum() < 3)
+		  or self:getDamagedEffects(friend,self.player) 
+		  or (friend:hasSkill("leiji") and not self.player:hasFlag("luoyi") and self:hasSuit("spade", true, friend) and (getKnownCard(friend,"Jink",true) >= 1 
+		    or (not IgnoreArmor(self.player, friend) and not self:isWeak(friend) and self:isEquip("EightDiagram",friend)))
+		  and (hasExplicitRebel(self.room) or not friend:isLord()))
+		  or (friend:isLord() and self.player:hasSkill("guagu") and friend:getLostHp() >= 1 and getCardsNum("Jink", friend) == 0)
+		  or (friend:hasSkill("jieming") and self.player:hasSkill("rende") and (huatuo and self:isFriend(huatuo)))
 		then
 			if not slash_prohibit then
 				if ((self.player:canSlash(friend, card, not no_distance, rangefix)) or
@@ -1139,7 +1138,7 @@ function sgs.ai_armor_value.EightDiagram(player, self)
 	if haszj then 
 		return 2
 	end
-	if player:hasSkill("tiandu") then 
+	if self:hasSkills("tiandu|guidao|zhenlie|gushou", player) then 
 		return 5
 	end
 	
@@ -2096,15 +2095,15 @@ function SmartAI:enemiesContainsTrick()
 	end
 	
 	for _, enemy in ipairs(self.enemies) do
-		if not enemy:containsTrick("YanxiaoCard") and not (self:hasSkills("qiaobian",enemy) and
-		enemy:getHandcardNum() > 0) and not self:hasSkills("keji",enemy) then
+		if not enemy:containsTrick("YanxiaoCard") and not (self:hasSkills("qiaobian", enemy) and enemy:getHandcardNum() > 0) 
+		  and not self:hasSkills("keji|conghui", enemy) then
 			if enemy:containsTrick("indulgence") and (not zhanghe or self:playerGetRound(enemy) >= self:playerGetRound(zhanghe)) then
 				trick_all = trick_all + 1 
 			else
 				possible_indul_enemy = possible_indul_enemy + 1
 			end
 		end
-		if not self:hasSkills("shensu",enemy) and (self.player:distanceTo(enemy) == 1 or self.player:hasSkill("duanliang") and self.player:distanceTo(enemy) <= 2) then
+		if not self:hasSkills("shensu|jisu", enemy) and (self.player:distanceTo(enemy) == 1 or self.player:hasSkill("duanliang") and self.player:distanceTo(enemy) <= 2) then
 			if enemy:containsTrick("supply_shortage") and (not zhanghe or self:playerGetRound(enemy) >= self:playerGetRound(zhanghe)) then
 				trick_all = trick_all + 1
 			else
@@ -2393,7 +2392,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	end
 	
 	for _, card in ipairs(cards) do
-		if card:isKindOf("EightDiagram") and self:hasSkills("tiandu|guidao|zhenlie") then return card:getEffectiveId() end
+		if card:isKindOf("EightDiagram") and self:hasSkills("tiandu|guidao|zhenlie|gushou") then return card:getEffectiveId() end
 		if (card:isKindOf("Armor") or card:isKindOf("DefensiveHorse")) and self:isWeak() and not self:getSameEquip(card) then return card:getEffectiveId() end
 		if card:isKindOf("Crossbow") and (#(self:getCards("Slash")) > 1 or self:hasSkills("kurou|keji") or self:hasSkills("luoshen|yongsi|luoying") and not current) then return card:getEffectiveId() end
 		if card:isKindOf("Halberd") then

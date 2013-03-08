@@ -214,7 +214,7 @@ function sgs.getDefense(player)
 			defense = defense + 1
 		end
 	end
-	if player:getArmor() and player:getArmor():isKindOf("EightDiagram") and player:hasSkill("tiandu") then
+	if player:getArmor() and player:getArmor():isKindOf("EightDiagram") and self:hasSkills("tiandu|guidao|zhenlie|gushou", player) then
 		defense = defense + 0.5
 	end
 	if player:hasSkill("jieming") or player:hasSkill("yiji") or player:hasSkill("guixin") then
@@ -223,13 +223,13 @@ function sgs.getDefense(player)
 	if player:getMark("@tied") > 0 then
 		defense = defense + 1
 	end
-	if player:hasSkill("qingguo") and player:getHandcardNum()>1 then
+	if player:hasSkill("qingguo") and player:getHandcardNum() > 1 then
 		defense = defense + 0.5
 	end
-	if player:hasSkill("longhun") and player:getHp() == 1 and player:getHandcardNum()>1 then
+	if player:hasSkill("longhun") and player:getHp() == 1 and player:getHandcardNum() > 1 then
 		defense = defense + 0.4
 	end
-	if player:hasSkill("longdan") and player:getHandcardNum()>2 then
+	if player:hasSkill("longdan") and player:getHandcardNum() > 2 then
 		defense = defense + 0.3
 	end
 	return defense

@@ -7,11 +7,9 @@ end
 sgs.ai_skill_choice.moukui = function(self, choices, data)
 	local target = sgs.moukui_target
 	local equip_num = target:getEquips():length()
-	if target:isKongcheng() and equip_num > 0 then
-		if self:hasSkills(sgs.lose_equip_skill, target) or (target:hasArmorEffect("SilverLion") and target:isWounded() and equip_num == 1) then
-			return "draw"
-		end
-	end
+	if self:doNotDiscard(target) then
+		return "draw"
+	end	
 	return "discard"
 end
 
@@ -58,7 +56,8 @@ sgs.ai_skill_invoke.tianming = function(self, data)
 			table.insert(unpreferedCards, self.player:getWeapon():getId())
 		end
 				
-		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) then
+		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
+		  or (self.player:getArmor() and self:hasSkills("bazhen|yizhong")) then
 			table.insert(unpreferedCards, self.player:getArmor():getId())
 		end	
 
@@ -97,12 +96,12 @@ sgs.ai_skill_discard.tianming = function(self, discard_num, min_num, optional, i
 		end
 		
 		local num=self:getCardsNum("Jink") - 1	
-		if self.player:getArmor() then num=num+1 end
-		if num>0 then
+		if self.player:getArmor() then num = num+1 end
+		if num > 0 then
 			for _,card in ipairs(cards) do
-				if card:isKindOf("Jink") and num>0 then 
+				if card:isKindOf("Jink") and num > 0 then 
 					table.insert(unpreferedCards,card:getId())
-					num=num-1
+					num = num-1
 				end
 			end
 		end
@@ -113,11 +112,12 @@ sgs.ai_skill_discard.tianming = function(self, discard_num, min_num, optional, i
 			end
 		end
 	
-		if self.player:getWeapon() and self.player:getHandcardNum()<3 then
+		if self.player:getWeapon() and self.player:getHandcardNum() < 3 then
 			table.insert(unpreferedCards, self.player:getWeapon():getId())
 		end
 				
-		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) then
+		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
+		  or (self.player:getArmor() and self:hasSkills("bazhen|yizhong")) then
 			table.insert(unpreferedCards, self.player:getArmor():getId())
 		end	
 

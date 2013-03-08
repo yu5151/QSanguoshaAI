@@ -59,7 +59,8 @@ sgs.ai_skill_cardask["@xiaoguo-discard"] = function(self, data)
 	local yuejin = self.room:findPlayerBySkillName("xiaoguo")
 	local player = self.player
 
-	if player:hasArmorEffect("SilverLion") and player:isWounded() and self:isWeak() then
+	if player:hasArmorEffect("SilverLion") and player:isWounded() and self:isWeak()
+	  or (self:hasSkills("bazhen|yizhong") and player:getArmor()) then
 		return "$" .. player:getArmor():getEffectiveId()
 	end
 
@@ -417,7 +418,8 @@ sgs.ai_skill_invoke.kuangfu = function(self, data)
 		return true
 	end
 	if self:isFriend(damage.to) then
-		if damage.to:hasArmorEffect("SilverLion") and damage.to:isWounded() then
+		if damage.to:hasArmorEffect("SilverLion") and damage.to:isWounded()
+		  or (self:hasSkills("bazhen|yizhong", damage.to) and damage.to:getArmor()) then
 			return true
 		end
 		return false
@@ -435,7 +437,8 @@ table.insert(sgs.ai_skills, qingcheng_skill)
 qingcheng_skill.getTurnUseCard = function(self, inclusive)
 	local equipcard
 	if self:needBear() then return end
-	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
+	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded()
+	  or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
 		equipcard = self.player:getArmor()
 	else
 		for _, card in sgs.qlist(self.player:getCards("he")) do

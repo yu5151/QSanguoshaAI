@@ -156,19 +156,19 @@ end
 ]]--
 sgs.ai_skill_invoke.jueji = true
 
-local jueji_skill={}
-jueji_skill.name="jueji"
-table.insert(sgs.ai_skills,jueji_skill)
-jueji_skill.getTurnUseCard=function(self)
+local jueji_skill = {}
+jueji_skill.name = "jueji"
+table.insert(sgs.ai_skills, jueji_skill)
+jueji_skill.getTurnUseCard = function(self)
 	if not self.player:hasUsed("JuejiCard") and not self.player:isKongcheng() then return sgs.Card_Parse("@JuejiCard=.") end
 end
 
-sgs.ai_skill_use_func.JuejiCard=function(card,use,self)
+sgs.ai_skill_use_func.JuejiCard = function(card, use, self)
 	local zhugeliang = self.room:findPlayerBySkillName("kongcheng")
 	if zhugeliang and self:isFriend(zhugeliang) and zhugeliang:getHandcardNum() == 1 and zhugeliang:objectName() ~= self.player:objectName()
-	  and self:getEnemyNumBySeat(self.player,zhugeliang) > 0 then
+	  and self:getEnemyNumBySeat(self.player, zhugeliang) > 0 and zhugeliang:getHp() <= 2 then
 		local cards = sgs.QList2Table(self.player:getHandcards())
-		self:sortByUseValue(cards,true)
+		self:sortByUseValue(cards, true)
 		use.card = sgs.Card_Parse("@JuejiCard=" .. cards[1]:getId())
 		if use.to then use.to:append(zhugeliang) end
 		return
@@ -180,17 +180,16 @@ sgs.ai_skill_use_func.JuejiCard=function(card,use,self)
 	
 	if self:hasSkills(sgs.need_kongcheng, self.player) and self.player:getHandcardNum() == 1 then
 		for _, enemy in ipairs(self.enemies) do
-			if not enemy:isKongcheng() then
+			if not enemy:isKongcheng() and not self:doNotDiscard(enemy, true) then
 				use.card = sgs.Card_Parse("@JuejiCard=" .. max_card:getId())
 				if use.to then use.to:append(enemy) end
 				return
 			end
 		end
 	end
-	if  #self.enemies > 1 then
-		
+	if  #self.enemies > 1 then	
 		for _, enemy in ipairs(self.enemies) do
-			if not (self:hasSkills(sgs.need_kongcheng, enemy) and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and not enemy:hasSkill("tuntian") then
+			if not self:doNotDiscard(enemy, true) and not enemy:isKongcheng() and not enemy:hasSkill("tuntian") then
 				local enemy_max_card = self:getMaxCard(enemy)
 				local allknown = 0
 				if self:getKnownNum(enemy) == enemy:getHandcardNum() then
@@ -207,16 +206,17 @@ sgs.ai_skill_use_func.JuejiCard=function(card,use,self)
 		end
 	end
 	local cards = sgs.QList2Table(self.player:getHandcards())
-	self:sortByUseValue(cards, true)
-	if (self:getUseValue(cards[1]) >= 6 or self:getKeepValue(cards[1]) >= 6) and not (self.player:getHandcardNum() > self.player:getHp()) then return end
-
+	self:sortByKeepValue(cards)
+	if self:getOverflow() > 0 then
 		for _, enemy in ipairs(self.enemies) do
-			if not (self:hasSkills(sgs.need_kongcheng, enemy) and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and not enemy:hasSkill("tuntian") then
+			if not self:doNotDiscard(enemy, true) and not enemy:isKongcheng() and not enemy:hasSkill("tuntian") then
 				use.card = sgs.Card_Parse("@JuejiCard=" .. cards[1]:getId())
 				if use.to then use.to:append(enemy) end
 				return
 			end
-		end	
+		end
+	end
+	return
 end
 
 sgs.ai_card_intention.JuejiCard = 30

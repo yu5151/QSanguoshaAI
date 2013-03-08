@@ -76,6 +76,7 @@ sgs.ai_skill_invoke.fankui = function(self, data)
 	if self:isFriend(target) then
 		if self:getOverflow(target) > 2 then return true end
 		return (target:hasSkill("xiaoji") and not target:getEquips():isEmpty()) or (target:hasArmorEffect("SilverLion") and target:isWounded())
+			or (self:hasSkills("bazhen|yizhong", target) and target:getArmor())
 	end
 	if self:isEnemy(target) then				---fankui without zhugeliang and luxun
 		if target:hasSkill("tuntian") and target:getPhase() == sgs.Player_NotActive then return false end
@@ -1050,7 +1051,8 @@ sgs.ai_skill_use_func.ZhihengCard = function(card, use, self)
 			table.insert(unpreferedCards, self.player:getWeapon():getId())
 		end
 				
-		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) then
+		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
+		  or (self:hasSkills("bazhen|yizhong", self.player) and self.player:getArmor()) then
 			table.insert(unpreferedCards, self.player:getArmor():getId())
 		end	
 

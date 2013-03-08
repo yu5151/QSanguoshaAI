@@ -1517,6 +1517,7 @@ function SmartAI:getValuableCard(who)
 
 	if armor and self:evaluateArmor(armor,who) > 3 and not who:hasSkill("nosxuanfeng")
 	  and not (armor:isKindOf("SilverLion") and who:isWounded())
+	  and not self:hasSkills("bazhen|yizhong", who)
 	  and not (who:hasSkill("tuntian") and who:getPhase() == sgs.Player_NotActive and (#self.enemies > 1) and not self:isWeak(who)) then
 		return armor:getEffectiveId()
 	end
@@ -1530,15 +1531,12 @@ function SmartAI:getValuableCard(who)
 	local equips = sgs.QList2Table(who:getEquips())
 	for _,equip in ipairs(equips) do
 		if who:hasSkill("longhun") and not equip:getSuit() == sgs.Card_Diamond then  return equip:getEffectiveId() end
-		if who:hasSkill("qixi") and equip:isBlack() then  return equip:getEffectiveId() end
-		if who:hasSkill("guidao") and equip:isBlack() then  return equip:getEffectiveId() end
-		if who:hasSkill("guose") and equip:getSuit() == sgs.Card_Diamond then  return equip:getEffectiveId() end
-		if who:hasSkill("jijiu") and equip:isRed() then  return equip:getEffectiveId() end
-		if who:hasSkill("wusheng") and equip:isRed() then  return equip:getEffectiveId() end
-		if who:hasSkill("duanliang") and equip:isBlack() then  return equip:getEffectiveId() end
-		if self:hasSkills("shensu|mingce|beige|yuanhu|gongqi|nosgongqi|yanzheng|qingcheng|shuijian", who) then
+		if self:hasSkills("guose|yanxiao", who) and equip:getSuit() == sgs.Card_Diamond then  return equip:getEffectiveId() end
+		if self:hasSkills("shensu|mingce|beige|yuanhu|gongqi|nosgongqi|yanzheng|qingcheng|shuijian|baobian|neoluoyi", who) then
 			return equip:getEffectiveId()
 		end
+		if self:hasSkills("qixi|duanliang|yinling|guidao", who) and equip:isBlack() then  return equip:getEffectiveId() end
+		if self:hasSkills("wusheng|jijiu|xueji|fuhun", who) and equip:isRed() then  return equip:getEffectiveId() end
 	end
 
 	if armor and self:evaluateArmor(armor, who) > 0
@@ -1547,7 +1545,7 @@ function SmartAI:getValuableCard(who)
 	end
 
 	if weapon then
-		if not self:hasSkills(sgs.lose_equip_skill,who) and not (who:hasSkill("tuntian") and who:getPhase() == sgs.Player_NotActive) then
+		if not self:hasSkills(sgs.lose_equip_skill, who) and not (who:hasSkill("tuntian") and who:getPhase() == sgs.Player_NotActive) then
 			for _,friend in ipairs(self.friends) do
 				if (who:distanceTo(friend) <= who:getAttackRange()) and (who:distanceTo(friend) > 1) then
 					return weapon:getEffectiveId()
@@ -1717,7 +1715,8 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 				end
 
 				if not cardchosen and enemy:getDefensiveHorse() then cardchosen = enemy:getDefensiveHorse():getEffectiveId() end
-				if not cardchosen and enemy:getArmor() and not (enemy:hasArmorEffect("SilverLion") and enemy:isWounded()) then 
+				if not cardchosen and enemy:getArmor() and not (enemy:hasArmorEffect("SilverLion") and enemy:isWounded())
+				  and not self:hasSkills("bazhen|yizhong", enemy) then 
 					cardchosen = enemy:getArmor():getEffectiveId() 
 				end
 				
@@ -1746,7 +1745,8 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 					local cardchosen
 					if self.player:distanceTo(enemy) == self.player:getAttackRange()+1 and enemy:getDefensiveHorse() then
 						cardchosen = enemy:getDefensiveHorse():getEffectiveId()
-					elseif enemy:getArmor() and not (enemy:hasArmorEffect("SilverLion") and enemy:isWounded()) then
+					elseif enemy:getArmor() and not (enemy:hasArmorEffect("SilverLion") and enemy:isWounded())
+					  and not self:hasSkills("bazhen|yizhong", enemy) then
 						cardchosen = enemy:getArmor():getEffectiveId()
 					else
 						cardchosen = self:getCardRandomly(enemy, "h")
@@ -1799,13 +1799,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	if name == "snatch" or self:getOverflow() > 0 then
 		for _, enemy in ipairs(enemies) do
 			local equips = enemy:getEquips()
-			if not enemy:isNude() and self:hasTrickEffective(card, enemy) and not enemy:hasSkill("tuntian")
-			  and not (self:hasSkills(sgs.lose_equip_skill, enemy) and enemy:isKongcheng())
-			  and not (enemy:getCardCount(true) == 1 and enemy:hasArmorEffect("SilverLion") and enemy:isWounded() and self:isWeak(enemy))
-			  then
-				if enemy:getHandcardNum() == 1 and enemy:getCards("e"):length() == 0 then
-					if self:needKongcheng(enemy) or not self:hasLoseHandcardEffective(enemy) then return end
-				end
+			if not enemy:isNude() and self:hasTrickEffective(card, enemy) and not self:doNotDiscard(enemy) then
 				if self:hasSkills(sgs.cardneed_skill, enemy) then
 					use.card = card
 					if use.to then 

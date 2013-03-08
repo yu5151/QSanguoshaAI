@@ -317,7 +317,7 @@ function SmartAI:getUseValue(card)
 
 	if card:getTypeId() == sgs.Card_Equip then
 		if self:hasEquip(card) then
-			if card:isKindOf("OffensiveHorse") and self.player:getAttackRange()>2 then return 5.5 end
+			if card:isKindOf("OffensiveHorse") and self.player:getAttackRange() > 2 then return 5.5 end
 			if card:isKindOf("DefensiveHorse") and self:isEquip("EightDiagram") then return 5.5 end
 			return 9
 		end
@@ -2588,7 +2588,9 @@ function SmartAI:askForCardChosen(who, flags, reason)
 		if flags:match("e") and self:hasSkills("jijiu|qingnang|qiaobian|jieyin|beige|miji|fanjian|neofanjian|tuxi|" ..
 		  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|noswuyan|manjuan", who) then
 			if who:getDefensiveHorse() then return who:getDefensiveHorse():getId() end
-			if who:getArmor() and not who:hasArmorEffect("SilverLion") then return who:getArmor():getId() end
+			if who:getArmor() and not who:hasArmorEffect("SilverLion") and not self:hasSkills("bazhen|yizhong", enemy) then
+				return who:getArmor():getId()
+			end
 			if who:getOffensiveHorse() and ( (who:getOffensiveHorse():isRed() and who:hasSkill("jijiu")) or who:hasSkill("beige") ) then
 				return who:getOffensiveHorse():getId()
 			end
@@ -4781,28 +4783,33 @@ end
 function SmartAI:useEquipCard(card, use)
 	if not card then global_room:writeToConsole(debug.traceback()) return end
 	if self.player:hasSkill("chengxiang") and self.player:getHandcardNum() < 8 and card:getNumber() < 7 and self:getSameEquip(card) then return end
-	if self:hasSkills(sgs.lose_equip_skill) and self:evaluateArmor(card) > -5 then
+	if self.player:hasSkill("xiaoji") and self:evaluateArmor(card) > -5 then
 		use.card = card
 		return
 	end
-	if self.player:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng) and self:evaluateArmor(card) > -5 then
+	if self:hasSkills(sgs.lose_equip_skill) and self:evaluateArmor(card) > -5 and #self.enemies > 0 then
+		use.card = card
+		return
+	end
+	if self.player:getHandcardNum() <= 2 and self:hasSkills(sgs.need_kongcheng) and self:evaluateArmor(card) > -5 then
 		use.card = card
 		return
 	end
 	local same = self:getSameEquip(card)
 	if same then
-		if (self:hasSkills("rende|qingnang|nosgongqi"))
+		if (self:hasSkills("rende|qingnang|gongqi|nosgongqi"))
 		or (self.player:hasSkill("yongsi") and self:getOverflow() < 3)
 		or (self.player:hasSkill("renjie") and self:getOverflow() < 2)
-		or (self:hasSkills("qixi|duanliang") and (card:isBlack() or same:isBlack()))
-		or (self:hasSkills("guose|longhun") and (card:getSuit() == sgs.Card_Diamond or same:getSuit() == sgs.Card_Diamond))
-		or (self:hasSkill("jijiu") and (card:isRed() or same:isRed())) then return end
+		or (self:hasSkills("qixi|duanliang|yinling") and (card:isBlack() or same:isBlack()))
+		or (self:hasSkills("guose|yanxiao") and (card:getSuit() == sgs.Card_Diamond or same:getSuit() == sgs.Card_Diamond))
+		or (self:hasSkill("longhun") and (card:getSuit() ~= sgs.Card_Diamond or same:getSuit() ~= sgs.Card_Diamond))
+		or (self:hasSkill("jijiu") and (card:isRed() or same:isRed()))
+		then return end
 	end
-	local canUseSlash=self:getCardId("Slash") and self:slashIsAvailable(self.player)
+	local canUseSlash = self:getCardId("Slash") and self:slashIsAvailable(self.player)
 	self:useCardByClassName(card, use)
 	if use.card or use.broken then return end
 	if card:isKindOf("Weapon") then
-
 		if self:needBear() then return end
 		if self:hasSkill("zhulou") and same then return end
 		if self:hasSkill("qiangxi") and not self.player:hasUsed("QiangxiCard") and same then
@@ -4825,7 +4832,7 @@ function SmartAI:useEquipCard(card, use)
 			return
 		end
 	elseif card:isKindOf("Armor") then
-			if self:needBear() and self.player:getLostHp() == 0 then return end
+		if self:needBear() and self.player:getLostHp() == 0 then return end
 		local lion = self:getCard("SilverLion")
 		if lion and self.player:isWounded() and not self:isEquip("SilverLion") and not card:isKindOf("SilverLion") and
 			not (self:hasSkills("bazhen|yizhong") and not self.player:getArmor()) then
@@ -4848,7 +4855,7 @@ function SmartAI:useEquipCard(card, use)
 			use.card = card 
 			return
 		else
-			if not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow()<=0 and not (canUseSlash or self:getCardId("Snatch")) then 
+			if not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow() <= 0 and not (canUseSlash or self:getCardId("Snatch")) then 
 				return
 			else
 				if self.lua_ai:useCard(card) then 
@@ -5014,7 +5021,8 @@ function player_to_discard(self, prompt)
 			  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|noswuyan|manjuan", enemy) then
 				local equips = { enemy:getDefensiveHorse(), enemy:getArmor(), enemy:getOffensiveHorse(), enemy:getWeapon() }
 				if enemy:getDefensiveHorse() then return enemy end
-				if enemy:getArmor() and not (enemy:hasArmorEffect("SilverLion") and enemy:isWounded()) then
+				if enemy:getArmor() and not (enemy:hasArmorEffect("SilverLion") and enemy:isWounded()) 
+				  and not self:hasSkills("bazhen|yizhong", enemy) then
 					return enemy	
 				end
 				for _ , equip in ipairs(equips) do
@@ -5027,18 +5035,14 @@ function player_to_discard(self, prompt)
 	end
 
 	for _, enemy in ipairs(enemies) do
-		if enemy:getCards("e"):length() > 0 and not (enemy:hasSkill("tuntian") and enemy:getPhase() == sgs.Player_NotActive) 
-		 and not (self:hasSkills(sgs.lose_equip_skill, enemy) and enemy:isKongcheng())
-		 and not (enemy:getCardCount(true) == 1 and enemy:hasArmorEffect("SilverLion") and enemy:isWounded() and self:isWeak(enemy)) then
+		if enemy:getCards("e"):length() > 0 and not self:doNotDiscard(enemy) then
 			return enemy
 		end
 	end
 	
 	self:sort(enemies, "handcard")
 	for _, enemy in ipairs(enemies) do
-		if not enemy:isNude() and self:hasLoseHandcardEffective(enemy)
-		  and not (enemy:getHandcardNum() == 1 and (self:needKongcheng(enemy) or self:hasSkills(sgs.need_kongcheng, enemy)))
-		  and not (enemy:hasSkill("tuntian") and enemy:getPhase() == sgs.Player_NotActive and #enemies > 1) then
+		if not enemy:isNude() and not self:doNotDiscard(enemy) then
 			return enemy
 		end
 	end
@@ -5096,6 +5100,22 @@ function player_to_draw(self, prompt, n)
 		end
 	end
 	return friends[1]
+end
+
+function SmartAI:doNotDiscard(to, hand_only)
+	if not to then global_room:writeToConsole(debug.traceback()) return end
+	if to:isNude() then return true end
+	if hand_only or to:getCards("e"):length() == 0 then
+		if not self:hasLoseHandcardEffective(to) then return true end
+		if to:getHandcardNum() == 1 and (self:needKongcheng(to) or self:hasSkills(sgs.need_kongcheng, to)) then return true end
+		if to:hasSkill("tuntian") and to:getPhase() == sgs.Player_NotActive and #self.enemies > 1 then return true end
+	else
+		if self:hasSkills(sgs.lose_equip_skill, to) and to:isKongcheng() then return true end
+		if to:hasSkill("tuntian") and to:getPhase() == sgs.Player_NotActive and #self.enemies > 1 then return true end
+		if to:getCardCount(true) == 1 and to:hasArmorEffect("SilverLion") and to:isWounded() and self:isWeak(to) then return true end
+		if to:getCardCount(true) == 1 and self:hasSkills("bazhen|yizhong", to) and to:getArmor() then return true end
+	end
+	return false
 end
 
 dofile "lua/ai/debug-ai.lua"

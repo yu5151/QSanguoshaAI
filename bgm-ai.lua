@@ -112,7 +112,8 @@ sgs.ai_skill_discard.lihun = function(self, discard_num, min_num, optional, incl
 	local temp = table.copyFrom(card_ids)
 	for i = 1, #temp, 1 do
 		local card = sgs.Sanguosha:getCard(temp[i])
-		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) and card:isKindOf("SilverLion") then
+		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) and card:isKindOf("SilverLion")
+		  or (self.player:getArmor() and self:hasSkills("bazhen|yizhong")) then
 			table.insert(to_discard, temp[i])
 			table.removeOne(card_ids, temp[i])
 			if #to_discard == discard_num then
@@ -294,7 +295,7 @@ sgs.ai_use_priority.DaheCard = 8
 local tanhu_skill = {}
 tanhu_skill.name = "tanhu"
 table.insert(sgs.ai_skills,tanhu_skill)
-tanhu_skill.getTurnUseCard=function(self)
+tanhu_skill.getTurnUseCard = function(self)
 	if self:needBear() then return end
 	if not self.player:hasUsed("TanhuCard") and not self.player:isKongcheng() then
 		local max_card = self:getMaxCard()
@@ -788,7 +789,7 @@ sgs.ai_skill_use_func.YinlingCard = function(card, use, self)
 		enemies = sgs.reverse(enemies)
 	end
 	for _, enemy in ipairs(enemies) do
-		if not enemy:isKongcheng() and self:hasLoseHandcardEffective(enemy)
+		if not enemy:isKongcheng() and not self:doNotDiscard(enemy)
 		  and (enemy:getHandcardNum() > enemy:getHp() - 2 or (enemy:getHandcardNum() == 1 and not self:needKongcheng(enemy)))
 		  and not enemy:hasSkill("tuntian") then
 			use.card = card
@@ -815,7 +816,8 @@ sgs.ai_playerchosen_intention.junwei = 80
 sgs.ai_skill_playerchosen.junwei = function(self, targets)
 	local tos = {}
 	for _, target in sgs.qlist(targets) do
-		if self:isEnemy(target) and not (target:hasArmorEffect("SilverLion") and target:getCards("e"):length() == 1)then
+		if self:isEnemy(target) and not (target:hasArmorEffect("SilverLion") and target:getCards("e"):length() == 1)
+		  and not (target:getArmor() and self:hasSkills("bazhen|yizhong", target) and target:getCards("e"):length() == 1) then
 			table.insert(tos, target)
 		end
 	end 
@@ -899,8 +901,9 @@ end
 
 sgs.ai_skill_playerchosen.xuehen = sgs.ai_skill_playerchosen.zero_card_as_slash
 
-sgs.ai_suit_priority.jie= "club|spade|diamond|heart"
-sgs.ai_suit_priority.yanxiao= "club|spade|heart|diamond"
+sgs.ai_suit_priority.jie = "club|spade|diamond|heart"
+sgs.ai_suit_priority.yanxiao = "club|spade|heart|diamond"
+sgs.ai_suit_priority.yinling = "diamond|heart|club|spade"
 
 --AI for DIY generals
 sgs.ai_skill_use["@@zhaoxin"] = function(self, prompt)
@@ -1173,7 +1176,8 @@ sgs.ai_card_intention.HantongCard = sgs.ai_card_intention.JijiangCard
 sgs.ai_skill_use["@@diyyicong"] = function(self, prompt)
 	local yicongcards = {}
 	local cards = self.player:getCards("he")
-	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
+	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded()
+	  or (self.player:getArmor() and self:hasSkills("bazhen|yizhong")) then
 		table.insert(yicongcards, self.player:getArmor():getId())
 	end
 	cards = sgs.QList2Table(cards)

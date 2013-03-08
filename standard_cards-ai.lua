@@ -458,7 +458,9 @@ function SmartAI:useCardSlash(card, use)
 			local usecard = card
 			if not use.to or use.to:isEmpty() then
 				
-				if not (self:isEquip("Spear") and card:getSkillName() == "Spear" and #self:getCards("Slash") == 0) then
+				if self:isEquip("Spear") and card:getSkillName() == "Spear" and #self:getCards("Slash") == 0 then 
+				elseif self:isEquip("Crossbow", self.player, true) and self:getCardsNum("Slash") > 1 then
+				else
 					local equips = self:getCards("EquipCard", self.player, "h")
 					for _, equip in ipairs(equips) do
 						local callback = sgs.ai_slash_weaponfilter[equip:objectName()]
@@ -1593,7 +1595,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 
 	if #self.enemies ==0 and self:getOverflow() > 0 then
 		for _, player in ipairs(players) do
-			if not player:isLord() then table.insert(enemies, player) end
+			if self:evaluateRoleTrends(player) ~= "loyalist" and not player:isLord() then table.insert(enemies, player) end
 		end
 		enemies = self:exclude(enemies, card)
 		self:sort(enemies,"defenseSlash")
@@ -2084,6 +2086,9 @@ function SmartAI:enemiesContainsTrick()
 	local indul_num = self:getCardsNum("Indulgence")
 	local ss_num = self:getCardsNum("SupplyShortage")
 	
+	local zhanghe = self.room:findPlayerBySkillName("qiaobian")
+	if zhanghe and (not self:isEnemy(zhanghe) or zhanghe:isKongcheng() or not zhanghe:faceUp()) then zhanghe = nil end
+	
 	if self.player:hasSkill("guose") then
 		for _, acard in sgs.qlist(self.player:getCards("he")) do
 			if acard:getSuit() == sgs.Card_Diamond then indul_num = indul_num + 1 end
@@ -2097,20 +2102,19 @@ function SmartAI:enemiesContainsTrick()
 	end
 	
 	for _, enemy in ipairs(self.enemies) do
-		if not enemy:containsTrick("YanxiaoCard") and not (self:hasSkills("qiaobian",enemy) and enemy:getHandcardNum() > 0) then
-			if not self:hasSkills("keji",enemy) then
-				if enemy:containsTrick("indulgence") then
-					trick_all = trick_all + 1 
-				else
-					possible_indul_enemy = possible_indul_enemy + 1
-				end
+		if not enemy:containsTrick("YanxiaoCard") and not (self:hasSkills("qiaobian",enemy) and
+		enemy:getHandcardNum() > 0) and not self:hasSkills("keji",enemy) then
+			if enemy:containsTrick("indulgence") and (not zhanghe or self:playerGetRound(enemy) >= self:playerGetRound(zhanghe)) then
+				trick_all = trick_all + 1 
+			else
+				possible_indul_enemy = possible_indul_enemy + 1
 			end
-			if not self:hasSkills("shensu",enemy) and (self.player:distanceTo(enemy) == 1 or self.player:hasSkill("duanliang") and self.player:distanceTo(enemy) <= 2) then
-				if enemy:containsTrick("supply_shortage") then
-					trick_all = trick_all + 1
-				else
-					possible_ss_enemy  = possible_ss_enemy + 1
-				end
+		end
+		if not self:hasSkills("shensu",enemy) and (self.player:distanceTo(enemy) == 1 or self.player:hasSkill("duanliang") and self.player:distanceTo(enemy) <= 2) then
+			if enemy:containsTrick("supply_shortage") and (not zhanghe or self:playerGetRound(enemy) >= self:playerGetRound(zhanghe)) then
+				trick_all = trick_all + 1
+			else
+				possible_ss_enemy  = possible_ss_enemy + 1
 			end
 		end
 	end
@@ -2161,7 +2165,8 @@ function SmartAI:useCardIndulgence(card, use)
 	
 	local getvalue = function(enemy)
 		if enemy:containsTrick("indulgence") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) and self:enemiesContainsTrick() <= 1 then return -100 end
-		if zhanghe_seat > 0 and self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() <= 1 then return - 100 end
+		if zhanghe_seat > 0 and (self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() <= 1 or not enemy:faceUp()) then
+			return - 100 end
 
 		local value = enemy:getHandcardNum() - enemy:getHp()
 

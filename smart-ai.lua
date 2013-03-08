@@ -302,7 +302,7 @@ end
 function SmartAI:getUseValue(card)
 	local class_name = card:getClassName()
 	local v = sgs.ai_use_value[class_name] or 0
-	if class_name == "LuaSkillCard" and card:isKindOf("LuaSkillCard") then
+	if class_name == "LuaSkillCard" then
 		v = sgs.ai_use_value[card:objectName()] or 0
 	end
 
@@ -380,7 +380,7 @@ function SmartAI:getUsePriority(card)
 	end
 
 	v = sgs.ai_use_priority[class_name] or 0
-	if class_name == "LuaSkillCard" and card:isKindOf("LuaSkillCard") then
+	if class_name == "LuaSkillCard" then
 		v = sgs.ai_use_priority[card:objectName()] or 0
 	end
 	if not self:hasTrickEffective(card) then v = 0 end
@@ -4152,21 +4152,27 @@ function SmartAI:getCardsFromGame(class_name)
 	return cards
 end
 
-function SmartAI:getRestCardsNum(class_name)
+function SmartAI:getRestCardsNum(class_name, yuji)
+	yuji = yuji or self.player
 	local ban = sgs.GetConfig("BanPackages", "")
 	sgs.discard_pile = self.room:getDiscardPile()
 	local totalnum = 0
 	local discardnum = 0
+	local knownnum = 0
 	local card
 	for i=1, sgs.Sanguosha:getCardCount() do
 		card = sgs.Sanguosha:getCard(i-1)
-		if card:isKindOf(class_name) and not ban:match(card:getPackage()) then totalnum = totalnum+1 end
+		-- if card:isKindOf(class_name) and not ban:match(card:getPackage()) then totalnum = totalnum+1 end
+		if card:isKindOf(class_name) then totalnum = totalnum+1 end
 	end
 	for _, card_id in sgs.qlist(sgs.discard_pile) do
 		card = sgs.Sanguosha:getCard(card_id)
 		if card:isKindOf(class_name) then discardnum = discardnum +1 end
 	end
-	return totalnum - discardnum
+	for _, player in sgs.qlist(self.room:getOtherPlayers(yuji)) do
+		knownnum = knownnum + getKnownCard(player, class_name)
+	end
+	return totalnum - discardnum - knownnum
 end
 
 function SmartAI:evaluatePlayerCardsNum(class_name, player)
@@ -4601,7 +4607,7 @@ function SmartAI:getAoeValue(card, player)
 			if self.role ~= "rebel" then good = good + 50 else bad = bad + 50 end
 		end
 
-		if sgs.current_mode_players["rebel"] ==0 and self.role ~= "renegade" and sgs.current_mode_players["loyalist"] > 0 then
+		if sgs.current_mode_players["rebel"] ==0 and self.role ~= "renegade" and sgs.current_mode_players["loyalist"] > 0 and lord:getHp() <=2 then
 			bad = bad + 300
 		end
 	end
@@ -4697,14 +4703,16 @@ function SmartAI:hasEquip(card)
 	return self.player:hasEquip(card)
 end
 
-function SmartAI:isEquip(equip_name, player)
+function SmartAI:isEquip(equip_name, player, isEquipped)
 	player = player or self.player
 	local cards = player:getCards("e")
 	for _, card in sgs.qlist(cards) do
 		if card:isKindOf(equip_name) then return true end
 	end
-	if equip_name == "EightDiagram" and player:hasSkill("bazhen") and not player:getArmor() then return true end
-	if equip_name == "Crossbow" and player:hasSkill("paoxiao") then return true end
+	if not isEquipped then
+		if equip_name == "EightDiagram" and player:hasSkill("bazhen") and not player:getArmor() then return true end
+		if equip_name == "Crossbow" and player:hasSkill("paoxiao") then return true end
+	end
 	return false
 end
 

@@ -1595,7 +1595,8 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 
 	if #self.enemies == 0 and self:getOverflow() > 0 then
 		for _, player in ipairs(players) do
-			if self:evaluateRoleTrends(player) ~= "loyalist" and not player:isLord() then table.insert(enemies, player) end
+			--lua/ai/standard_cards-ai.lua:1598: attempt to call method 'evaluateRoleTrends' (a nil value)
+			if sgs.evaluateRoleTrends(player) ~= "loyalist" and not player:isLord() then table.insert(enemies, player) end
 		end
 		enemies = self:exclude(enemies, card)
 		self:sort(enemies, "defenseSlash")

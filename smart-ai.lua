@@ -919,7 +919,7 @@ end
 function sgs.isRolePredictable()
 	if sgs.GetConfig("RolePredictable", true) then return true end
 	local mode = string.lower(global_room:getMode())
-	if (mode:find("p") and mode < "04p") or (not mode:find("p")) then return true end
+	if (mode:find("[0-9][0-9]p[dz]?$") and mode < "04p") or (not mode:find("[0-9][0-9]p[dz]?$")) then return true end
 	return false
 end
 
@@ -2619,8 +2619,7 @@ function SmartAI:askForCardChosen(who, flags, reason)
 
 			if who:getDefensiveHorse() then
 				for _,friend in ipairs(self.friends) do
-					if friend:distanceTo(who) == friend:getAttackRange() + 1
-					  and not (who:hasSkill("tuntian") and who:getPhase() == sgs.Player_NotActive) then
+					if friend:distanceTo(who) == friend:getAttackRange() + 1 then
 						return who:getDefensiveHorse():getId()
 					end
 				end
@@ -5033,11 +5032,13 @@ function player_to_discard(self, prompt)
 		 and not (enemy:getCardCount(true) == 1 and enemy:hasArmorEffect("SilverLion") and enemy:isWounded() and self:isWeak(enemy)) then
 			return enemy
 		end
-	end	
-
+	end
+	
+	self:sort(enemies, "handcard")
 	for _, enemy in ipairs(enemies) do
-		if not enemy:isNude() and self:hasLoseHandcardEffective(enemy) 
-		  and not (enemy:hasSkill("tuntian") and enemy:getPhase() == sgs.Player_NotActive) then
+		if not enemy:isNude() and self:hasLoseHandcardEffective(enemy)
+		  and not (enemy:getHandcardNum() == 1 and (self:needKongcheng(enemy) or self:hasSkills(sgs.need_kongcheng, enemy)))
+		  and not (enemy:hasSkill("tuntian") and enemy:getPhase() == sgs.Player_NotActive and #enemies > 1) then
 			return enemy
 		end
 	end

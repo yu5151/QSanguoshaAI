@@ -333,7 +333,7 @@ sgs.ai_skill_use["@@lianli"] = function(self, prompt)
 	self:sort(self.friends)
 	
 	for _, friend in ipairs(self.friends_noself) do --优先考虑与队友连理
-		if friend:getGeneral():isMale() then
+		if friend:isMale() then
 			return "@LianliCard=.->" .. friend:objectName()
 		end
 	end

@@ -678,7 +678,7 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 				end
 			end
 		end
-		if not ((self.player:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng)) or not self:hasLoseHandcardEffective())
+		if not (self.player:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng)) and self:hasLoseHandcardEffective()
 		  and not (target:hasSkill("qianxi") and target:distanceTo(self.player) == 1) then
 			if self:isEquip("Axe", target) then
 				if self:hasSkills(sgs.lose_equip_skill, target) and target:getEquips():length() > 1
@@ -1591,19 +1591,19 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	
 	local enemies = {}
 
-	if #self.enemies ==0 and self:getOverflow() > 0 then
+	if #self.enemies == 0 and self:getOverflow() > 0 then
 		for _, player in ipairs(players) do
 			if not player:isLord() then table.insert(enemies, player) end
 		end
 		enemies = self:exclude(enemies, card)
-		self:sort(enemies,"defenseSlash")
+		self:sort(enemies, "defenseSlash")
 		enemies = sgs.reverse(enemies)
 	else
 		enemies = self:exclude(self.enemies, card)
-		self:sort(enemies,"defenseSlash")
+		self:sort(enemies, "defenseSlash")
 	end
 
-	self:sort(self.friends_noself,"defense")
+	self:sort(self.friends_noself, "defense")
 	local friends = self:exclude(self.friends_noself, card)
 	local hasLion, target
 	for _, enemy in ipairs(enemies) do
@@ -1684,7 +1684,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	for _, enemy in ipairs(enemies) do
 		local cards = sgs.QList2Table(enemy:getHandcards())
 		local flag = string.format("%s_%s_%s","visible",self.player:objectName(),enemy:objectName())
-		if #cards <=2 and self:hasTrickEffective(card, enemy) and not enemy:isKongcheng() then
+		if #cards <=2 and self:hasTrickEffective(card, enemy) and not enemy:isKongcheng() and not enemy:hasSkill("tuntian") then
 			for _, cc in ipairs(cards) do
 				if (cc:hasFlag("visible") or cc:hasFlag(flag)) and (cc:isKindOf("Peach") or cc:isKindOf("Analeptic")) then
 					use.card = card
@@ -1738,7 +1738,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	for i= 1,2,1 do
 		for _, enemy in ipairs(enemies) do
 			if not enemy:isNude() and self:hasTrickEffective(card, enemy) and not self:needKongcheng(enemy) 
-			  and not self:hasSkills("kongcheng|lianying|shangshi|nosshangshi",enemy) then
+			  and not self:hasSkills("kongcheng|lianying|shangshi|nosshangshi|tuntian",enemy) then
 				if enemy:getHandcardNum() == i and sgs.getDefenseSlash(enemy) < 3 and enemy:getHp() <= 3 then
 					local cardchosen
 					if self.player:distanceTo(enemy) == self.player:getAttackRange()+1 and enemy:getDefensiveHorse() then

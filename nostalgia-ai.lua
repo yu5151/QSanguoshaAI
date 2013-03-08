@@ -238,12 +238,6 @@ sgs.ai_skill_use_func.NosXuanhuoCard = function(card, use, self)
 				end
 			end
 			if target then break end
-
-			if self:getValuableCard(enemy) then
-				target = enemy
-				break
-			end
-			if target then break end
 		end
 	end
 	if not target then

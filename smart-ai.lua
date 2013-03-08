@@ -919,7 +919,7 @@ end
 function sgs.isRolePredictable()
 	if sgs.GetConfig("RolePredictable", true) then return true end
 	local mode = string.lower(global_room:getMode())
-	if (mode:find("p") and mode < "04p") or (not mode:find("p")) then return true end
+	if (mode:find("[0-9][0-9]p[dz]?$") and mode < "04p") or (not mode:find("[0-9][0-9]p[dz]?$")) then return true end
 	return false
 end
 

@@ -402,7 +402,7 @@ end
 
 dimeng_skill = {}
 dimeng_skill.name = "dimeng"
-table.insert(sgs.ai_skills,dimeng_skill)
+table.insert(sgs.ai_skills, dimeng_skill)
 dimeng_skill.getTurnUseCard = function(self)
 	if self:needBear() then return end
 	if self.player:hasUsed("DimengCard") then return end
@@ -417,7 +417,7 @@ function DimengIsWorth(self, friend, enemy, mycards, myequips)
 	local hand2 = friend:getHandcardNum()
 	if hand1 < hand2 then
 		return false
-	elseif hand1 == hand2 then
+	elseif hand1 == hand2 and hand1 > 0 then
 		return friend:hasSkill("tuntian")
 	end
 	local cardNum = #mycards

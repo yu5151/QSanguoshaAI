@@ -1572,8 +1572,8 @@ function SmartAI:getWoundedFriend(maleOnly)
 
 	for _, friend in ipairs(self.friends) do
 		if friend:isLord() then
-			if friend:getMark("hunzi")==0 and friend:getMark("@waked")==0 and friend:hasSkill("hunzi") 
-					and self:getEnemyNumBySeat(self.player,friend) <= (friend:getHp()>=2 and 1 or 0) then
+			if friend:getMark("hunzi") == 0 and friend:hasSkill("hunzi") 
+					and self:getEnemyNumBySeat(self.player,friend) <= (friend:getHp()>= 2 and 1 or 0) then
 				addToList(friend,2)
 			elseif friend:getHp()>=getBestHp(friend) then
 				addToList(friend,2)
@@ -2002,7 +2002,7 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 			first = males[1]
 			second = males[2]
 			local lord = self.room:getLord()
-			if (first:getHp() <= 1) then
+			if lord and (first:getHp() <= 1) then
 				if self.player:isLord() or sgs.isRolePredictable() then 
 					local friend_maxSlash = findFriend_maxSlash(self,first)
 					if friend_maxSlash then second=friend_maxSlash end

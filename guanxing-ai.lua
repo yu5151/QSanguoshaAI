@@ -375,6 +375,10 @@ local function XinZhan(self, cards)
 end
 
 function SmartAI:askForGuanxing(cards, up_only)
+	--KOF模式--
+	local func = KOFGuanxingTactic(self.player, up_only)
+	if func then return func(self, cards) end
+	--身份局--
 	if not up_only then return GuanXing(self,cards)
 	else return XinZhan(self, cards)
 	end

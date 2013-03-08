@@ -781,7 +781,7 @@ sgs.ai_skill_use_func.YinlingCard = function(card, use, self)
 	local enemies = {}
 	if #self.enemies == 0 and self:getOverflow() > 0 then
 		for _, player in ipairs(players) do
-			if self:evaluateRoleTrends(player) ~= "loyalist" and not player:isLord() then table.insert(enemies, player) end
+			if sgs.evaluateRoleTrends(player) ~= "loyalist" and not player:isLord() then table.insert(enemies, player) end
 		end
 		enemies = self:exclude(enemies, card)
 		if sgs.turncount < 3 and #enemies > 0 then enemies = {enemies[1 + (os.time() % #enemies)]} end

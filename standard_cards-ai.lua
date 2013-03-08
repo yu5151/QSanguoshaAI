@@ -1138,7 +1138,7 @@ function sgs.ai_armor_value.EightDiagram(player, self)
 	if haszj then 
 		return 2
 	end
-	if self:hasSkills("tiandu|guidao|zhenlie|gushou", player) then 
+	if self:hasSkills("tiandu|leiji|zhenlie|gushou", player) then 
 		return 5
 	end
 	
@@ -1592,7 +1592,6 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 
 	if #self.enemies == 0 and self:getOverflow() > 0 then
 		for _, player in ipairs(players) do
-			--lua/ai/standard_cards-ai.lua:1598: attempt to call method 'evaluateRoleTrends' (a nil value)
 			if sgs.evaluateRoleTrends(player) ~= "loyalist" and not player:isLord() then table.insert(enemies, player) end
 		end
 		enemies = self:exclude(enemies, card)
@@ -2393,7 +2392,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	end
 	
 	for _, card in ipairs(cards) do
-		if card:isKindOf("EightDiagram") and self:hasSkills("tiandu|guidao|zhenlie|gushou") then return card:getEffectiveId() end
+		if card:isKindOf("EightDiagram") and self:hasSkills("tiandu|leiji|zhenlie|gushou") and not self:getSameEquip(card) then return card:getEffectiveId() end
 		if (card:isKindOf("Armor") or card:isKindOf("DefensiveHorse")) and self:isWeak() and not self:getSameEquip(card) then return card:getEffectiveId() end
 		if card:isKindOf("Crossbow") and (#(self:getCards("Slash")) > 1 or self:hasSkills("kurou|keji") or self:hasSkills("luoshen|yongsi|luoying") and not current) then return card:getEffectiveId() end
 		if card:isKindOf("Halberd") then

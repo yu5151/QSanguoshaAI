@@ -214,7 +214,8 @@ function sgs.getDefense(player)
 			defense = defense + 1
 		end
 	end
-	if player:getArmor() and player:getArmor():isKindOf("EightDiagram") and self:hasSkills("tiandu|guidao|zhenlie|gushou", player) then
+	if player:getArmor() and player:getArmor():isKindOf("EightDiagram") 
+	  and (player:hasSkill("yiji") or player:hasSkill("leiji") or player:hasSkill("zhenlie") or player:hasSkill("gushou")) then
 		defense = defense + 0.5
 	end
 	if player:hasSkill("jieming") or player:hasSkill("yiji") or player:hasSkill("guixin") then

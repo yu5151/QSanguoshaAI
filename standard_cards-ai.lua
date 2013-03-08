@@ -458,7 +458,9 @@ function SmartAI:useCardSlash(card, use)
 			local usecard = card
 			if not use.to or use.to:isEmpty() then
 				
-				if not (self:isEquip("Spear") and card:getSkillName() == "Spear" and #self:getCards("Slash") == 0) then
+				if self:isEquip("Spear") and card:getSkillName() == "Spear" and #self:getCards("Slash") == 0 then 
+				elseif self:isEquip("Crossbow", self.player, true) and self:getCardsNum("Slash") > 1 then
+				else
 					local equips = self:getCards("EquipCard", self.player, "h")
 					for _, equip in ipairs(equips) do
 						local callback = sgs.ai_slash_weaponfilter[equip:objectName()]
@@ -1591,7 +1593,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 
 	if #self.enemies == 0 and self:getOverflow() > 0 then
 		for _, player in ipairs(players) do
-			if not player:isLord() then table.insert(enemies, player) end
+			if self:evaluateRoleTrends(player) ~= "loyalist" and not player:isLord() then table.insert(enemies, player) end
 		end
 		enemies = self:exclude(enemies, card)
 		self:sort(enemies, "defenseSlash")
@@ -2078,6 +2080,9 @@ function SmartAI:enemiesContainsTrick()
 	local indul_num = self:getCardsNum("Indulgence")
 	local ss_num = self:getCardsNum("SupplyShortage")
 	
+	local zhanghe = self.room:findPlayerBySkillName("qiaobian")
+	if zhanghe and (not self:isEnemy(zhanghe) or zhanghe:isKongcheng() or not zhanghe:faceUp()) then zhanghe = nil end
+	
 	if self.player:hasSkill("guose") then
 		for _, acard in sgs.qlist(self.player:getCards("he")) do
 			if acard:getSuit() == sgs.Card_Diamond then indul_num = indul_num + 1 end
@@ -2091,20 +2096,19 @@ function SmartAI:enemiesContainsTrick()
 	end
 	
 	for _, enemy in ipairs(self.enemies) do
-		if not enemy:containsTrick("YanxiaoCard") and not (self:hasSkills("qiaobian",enemy) and enemy:getHandcardNum() > 0) then
-			if not self:hasSkills("keji",enemy) then
-				if enemy:containsTrick("indulgence") then
-					trick_all = trick_all + 1 
-				else
-					possible_indul_enemy = possible_indul_enemy + 1
-				end
+		if not enemy:containsTrick("YanxiaoCard") and not (self:hasSkills("qiaobian",enemy) and
+		enemy:getHandcardNum() > 0) and not self:hasSkills("keji",enemy) then
+			if enemy:containsTrick("indulgence") and (not zhanghe or self:playerGetRound(enemy) >= self:playerGetRound(zhanghe)) then
+				trick_all = trick_all + 1 
+			else
+				possible_indul_enemy = possible_indul_enemy + 1
 			end
-			if not self:hasSkills("shensu",enemy) and (self.player:distanceTo(enemy) == 1 or self.player:hasSkill("duanliang") and self.player:distanceTo(enemy) <= 2) then
-				if enemy:containsTrick("supply_shortage") then
-					trick_all = trick_all + 1
-				else
-					possible_ss_enemy  = possible_ss_enemy + 1
-				end
+		end
+		if not self:hasSkills("shensu",enemy) and (self.player:distanceTo(enemy) == 1 or self.player:hasSkill("duanliang") and self.player:distanceTo(enemy) <= 2) then
+			if enemy:containsTrick("supply_shortage") and (not zhanghe or self:playerGetRound(enemy) >= self:playerGetRound(zhanghe)) then
+				trick_all = trick_all + 1
+			else
+				possible_ss_enemy  = possible_ss_enemy + 1
 			end
 		end
 	end
@@ -2155,7 +2159,8 @@ function SmartAI:useCardIndulgence(card, use)
 	
 	local getvalue = function(enemy)
 		if enemy:containsTrick("indulgence") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) and self:enemiesContainsTrick() <= 1 then return -100 end
-		if zhanghe_seat > 0 and self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() <= 1 then return - 100 end
+		if zhanghe_seat > 0 and (self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() <= 1 or not enemy:faceUp()) then
+			return - 100 end
 
 		local value = enemy:getHandcardNum() - enemy:getHp()
 
@@ -2371,17 +2376,6 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		if exnihilo then return exnihilo end
 	end 
 	
-	if analeptic then
-		local slashs = self:getCards("Slash")
-		for _, enemy in ipairs(self.enemies) do
-			for _, slash in ipairs(slashs) do
-				if (self:getCardsNum("Jink", enemy) < 1 or enemy:isKongcheng()) and self:slashIsEffective(slash, enemy) and self.player:canSlash(enemy, slash) and self:slashIsAvailable() then
-					return analeptic
-				end
-			end
-		end
-	end
-	
 	for _, card in ipairs(cards) do
 		if card:isKindOf("Nullification") and ( self:getCardsNum("Nullification") < 2 or not nextplayercanuse ) then 
 			return card:getEffectiveId()
@@ -2399,24 +2393,34 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	end
 	
 	for _, card in ipairs(cards) do
-		if card:isKindOf("EightDiagram") and self.player:hasSkill("tiandu") then return card:getEffectiveId() end
-		if (card:isKindOf("Armor") or card:isKindOf("DefensiveHorse")) and self:isWeak() then return card:getEffectiveId() end
+		if card:isKindOf("EightDiagram") and self:hasSkills("tiandu|guidao|zhenlie") then return card:getEffectiveId() end
+		if (card:isKindOf("Armor") or card:isKindOf("DefensiveHorse")) and self:isWeak() and not self:getSameEquip(card) then return card:getEffectiveId() end
 		if card:isKindOf("Crossbow") and (#(self:getCards("Slash")) > 1 or self:hasSkills("kurou|keji") or self:hasSkills("luoshen|yongsi|luoying") and not current) then return card:getEffectiveId() end
 		if card:isKindOf("Halberd") then
 			if self.player:hasSkill("rende") and self:getCardsNum("Slash") > 0 then return card:getEffectiveId() end
 			if current and self:getCardsNum("Slash") == 1 and self.player:getHandcardNum() == 1 then return card:getEffectiveId() end 
-			return card:getEffectiveId()
+		end
+	end
+	
+	if analeptic then
+		local slashs = self:getCards("Slash")
+		for _, enemy in ipairs(self.enemies) do
+			for _, slash in ipairs(slashs) do
+				if (self:getCardsNum("Jink", enemy) < 1 or enemy:isKongcheng()) and self:slashIsEffective(slash, enemy) and self.player:canSlash(enemy, slash) and self:slashIsAvailable() then
+					return analeptic
+				end
+			end
 		end
 	end
 	
 	local snatch, dismantlement, indulgence, supplyshortage, collatera, duel, aoe, fireattack
 	for _, card in ipairs(cards) do
 		for _, enemy in ipairs(self.enemies) do
-			if card:isKindOf("Snatch") and self:hasTrickEffective(card,enemy) and self.player:distanceTo(enemy) == 1 and not enemy:isKongcheng() then
+			if card:isKindOf("Snatch") and self:hasTrickEffective(card,enemy) and self.player:distanceTo(enemy) == 1 and not enemy:isNude() then
 				snatch = card:getEffectiveId()
-			elseif not enemy:isKongcheng() and card:isKindOf("Dismantlement") and self:hasTrickEffective(card,enemy) then
+			elseif not enemy:isNude() and card:isKindOf("Dismantlement") and self:hasTrickEffective(card,enemy) then
 				dismantlement = card:getEffectiveId()
-			elseif card:isKindOf("Indulgence") and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("Indulgence") then
+			elseif card:isKindOf("Indulgence") and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("indulgence") then
 				indulgence = card:getEffectiveId()
 			elseif card:isKindOf("SupplyShortage")	and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("supply_shortage") then
 				supplyshortage = card:getEffectiveId()
@@ -2448,7 +2452,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 				end
 				if suitnum >=3 or (suitnum >= 2 and enemy:getHandcardNum() == 1 ) then
 					fireattack = card:getEffectiveId()
-				end						
+				end
 			end
 		end
 	end

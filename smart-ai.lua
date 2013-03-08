@@ -169,8 +169,8 @@ function SmartAI:initialize(player)
 				
 		setInitialTables()
 		if sgs.isRolePredictable() then
-			for _, aplayer in sgs.qlist(global_room:getOtherPlayers(global_room:getLord())) do
-				sgs.role_evaluation[aplayer:objectName()][aplayer:getRole()] = 65535
+			for _, aplayer in sgs.qlist(global_room:getAllPlayers()) do
+				if aplayer:getRole() ~= "lord" then sgs.role_evaluation[aplayer:objectName()][aplayer:getRole()] = 65535 end
 			end
 		end
 	end
@@ -813,6 +813,7 @@ function sgs.backwardEvaluation(player)
 end
 
 function sgs.modifiedRoleEvaluation()
+	if not global_room:getLord() then return end
 	local players = global_room:getOtherPlayers(global_room:getLord())
 	for _, player in sgs.qlist(players) do
 		local name = player:objectName()
@@ -830,6 +831,7 @@ function sgs.modifiedRoleEvaluation()
 end
 
 function sgs.modifiedRoleTrends(role)
+	if not global_room:getLord() then return end
 	local players = global_room:getOtherPlayers(global_room:getLord())
 	local evaluated = {}
 	for _, player in sgs.qlist(players) do
@@ -1362,7 +1364,7 @@ function SmartAI:objectiveLevel(player)
 				return 0
 			end
 
-			if self.room:getLord():hasSkill("benghuai") then				
+			if self.room:getLord() and self.room:getLord():hasSkill("benghuai") then				
 				if self.player:isLord() then
 					if (sgs.evaluatePlayerRole(player) == "renegade" or sgs.evaluateRoleTrends(player) == "renegade") and player:getHp() > 1 then
 						return 5						
@@ -1492,7 +1494,7 @@ function SmartAI:updateAlivePlayerRoles()
 	for _, arole in ipairs({"lord", "loyalist", "rebel", "renegade"}) do
 		sgs.current_mode_players[arole] = 0
 	end
-	for _, aplayer in sgs.qlist(self.room:getOtherPlayers(self.room:getLord())) do
+	for _, aplayer in sgs.qlist(self.room:getAllPlayers()) do
 		sgs.current_mode_players[aplayer:getRole()] = sgs.current_mode_players[aplayer:getRole()] + 1
 	end
 	
@@ -2449,7 +2451,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 				local lord = getLord(self.player)
 				local currentplayer = self.room:getCurrent()
 				--主公
-				if self:isFriend(lord) and self:isWeak(lord) and self:aoeIsEffective(trick, lord) and 
+				if lord and self:isFriend(lord) and self:isWeak(lord) and self:aoeIsEffective(trick, lord) and 
 					((lord:getSeat() - currentplayer:getSeat()) % (self.room:alivePlayerCount())) >
 					((to:getSeat() - currentplayer:getSeat()) % (self.room:alivePlayerCount()))	and not
 					(self.player:objectName() == to:objectName() and self.player:getHp() == 1 and not self:canAvoidAOE(trick)) then
@@ -3312,8 +3314,8 @@ function SmartAI:askForSinglePeach(dying)
 		if not sgs.GetConfig("EnableHegemony", false) and self.player:objectName() ~= dying:objectName() and not dying:isLord() and							-- 我不是求桃的玩家，死的不是主公
 		(self.role == "loyalist" or self.role == "renegade" and self.room:alivePlayerCount() > 2) and				--我是忠 or 我是内还没和主公单挑
 			((sgs.LordNeedPeach and self:getCardsNum("Peach") <= sgs.LordNeedPeach) or 								--1.处于连锁状态的主公需要桃，我的桃不多于主公需要的桃
-			(sgs.lord_in_danger_SA and getCardsNum("Slash", lord) < 1 and self:getCardsNum("Peach") < 2) or			--2.正在放南蛮，主公可能没有杀，我的桃少于2个
-			(sgs.lord_in_danger_AA and getCardsNum("Jink", lord) < 1 and self:getCardsNum("Peach") < 2)) then		--3.正在放万剑，主公可能没有闪，我的桃少于2个
+			(sgs.lord_in_danger_SA and lord and getCardsNum("Slash", lord) < 1 and self:getCardsNum("Peach") < 2) or			--2.正在放南蛮，主公可能没有杀，我的桃少于2个
+			(sgs.lord_in_danger_AA and lord and getCardsNum("Jink", lord) < 1 and self:getCardsNum("Peach") < 2)) then		--3.正在放万剑，主公可能没有闪，我的桃少于2个
 			return "." 																								-- 不救濒死的人
 		end	
 		
@@ -4511,7 +4513,7 @@ function getLord(player)
 			if p:getRole() == "renegade" then return p end
 		end
 	end
-	return room:getLord()
+	return room:getLord() or player
 end
 
 function isLord(player)

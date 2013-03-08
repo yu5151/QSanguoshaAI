@@ -760,7 +760,7 @@ function SmartAI:useCardPeach(card, use)
 	if self.player:getHp() >= getBestHp(self.player) then return end
 	
 	local lord= getLord(self.player)
-	if self:isFriend(lord) and lord:getHp() <= 2 and not lord:hasSkill("buqu") then 
+	if lord and self:isFriend(lord) and lord:getHp() <= 2 and not lord:hasSkill("buqu") then 
 		if self.player:isLord() then use.card = card end
 		if self:getCardsNum("Peach") > 1 and self:getCardsNum("Peach") + self:getCardsNum("Jink") > self.player:getMaxCards() then use.card = card end
 		return 

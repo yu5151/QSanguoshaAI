@@ -8,16 +8,16 @@ sgs.ai_skill_invoke.weiwudi_guixin = true
 
 local function findPlayerForModifyKingdom(self, players) --从目标列表中选择一名用于修改势力
 	local lord = self.room:getLord()
-	local isGood = self:isFriend(lord) --自己是否为忠方
+	local isGood = lord and self:isFriend(lord) --自己是否为忠方
 
 	for _, player in sgs.qlist(players) do
 		if not player:isLord() then
 			if sgs.evaluateRoleTrends(player) == "loyalist" and not self:hasSkills("huashen|liqian",player) then
-				local sameKingdom = player:getKingdom() == lord:getKingdom() 
+				local sameKingdom =lord and player:getKingdom() == lord:getKingdom() 
 				if isGood ~= sameKingdom then
 					return player
 				end
-			elseif lord:hasLordSkill("xueyi") and not player:isLord() and not self:hasSkills("huashen|liqian",player) then
+			elseif lord and lord:hasLordSkill("xueyi") and not player:isLord() and not self:hasSkills("huashen|liqian",player) then
 				local isQun = player:getKingdom() == "qun"
 				if isGood ~= isQun then
 					return player
@@ -32,17 +32,17 @@ local function chooseKingdomForPlayer(self, to_modify) --选择合适的势力�
 	local isGood = self:isFriend(lord)
 	if  sgs.evaluateRoleTrends(to_modify) == "loyalist" or sgs.evaluateRoleTrends(to_modify) == "renegade" then
 		if isGood then
-			return lord:getKingdom()
+			return lord and lord:getKingdom()
 		else
 			-- find a kingdom that is different from the lord
 			local kingdoms = {"qun","wei", "shu", "wu"}
 			for _, kingdom in ipairs(kingdoms) do
-				if lord:getKingdom() ~= kingdom then
+				if lord and lord:getKingdom() ~= kingdom then
 					return kingdom
 				end
 			end
 		end
-	elseif lord:hasLordSkill("xueyi") and not to_modify:isLord() then
+	elseif lord and lord:hasLordSkill("xueyi") and not to_modify:isLord() then
 		return isGood and "qun" or "wei"
 	elseif self.player:hasLordSkill("xueyi") then
 		return "qun"
@@ -71,6 +71,8 @@ sgs.ai_skill_choice.weiwudi_guixin = function(self, choices)
 	end
 	
 	local lord = self.room:getLord()
+	if not lord then return "obtain" end
+
 	local skills = lord:getVisibleSkillList()
 	local hasLordSkill = false
 	for _, skill in sgs.qlist(skills) do

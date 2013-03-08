@@ -472,7 +472,10 @@ sgs.ai_skill_invoke.shichou = function(self, data)
 	local shu = 0
 	local first = self.room:getTag("FirstRound"):toBool()
 	local players = self.room:getOtherPlayers(self.player)
-	local shenguanyu = self.room:findPlayerBySkillName("wuhun");
+	local shenguanyu = self.room:findPlayerBySkillName("wuhun")
+
+	if not self.room:getLord() then return false end
+
 	if shenguanyu ~= nil then
 		if shenguanyu:getKingdom() == "shu" then return true end
 	end
@@ -496,6 +499,8 @@ sgs.ai_skill_invoke.shichou = function(self, data)
 end
 
 sgs.ai_skill_playerchosen.shichou = function(self, targets)
+	if not self.room:getLord() then return false end
+
 	targets = sgs.QList2Table(targets)
 	self:sort(targets, "hp")
 	targets = sgs.reverse(targets)
@@ -589,7 +594,7 @@ function SmartAI:useCardYanxiaoCard(card, use)
 			return
 		end
 		local lord = self.room:getLord()
-		if self:isFriend(lord) and not lord:containsTrick("YanxiaoCard") then
+		if lord and self:isFriend(lord) and not lord:containsTrick("YanxiaoCard") then
 			use.card = card
 			if use.to then
 				use.to:append(lord)

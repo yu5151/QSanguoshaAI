@@ -52,6 +52,7 @@ sgs.ai_choicemade_filter.cardResponsed["@hujia-jink"] = function(player, promptl
 end
 
 sgs.ai_skill_cardask["@hujia-jink"] = function(self)
+	if not self.room:getLord() then return "." end
 	local yuanshu = self.room:findPlayerBySkillName("weidi")
 	if not sgs.hujiasource and not yuanshu then sgs.hujiasource = self.room:getLord() end
 	if not sgs.hujiasource then return "." end
@@ -398,11 +399,11 @@ sgs.ai_card_intention.TuxiCard = function(self,card, from, tos, source)
 		end
 	else
 		for _, to in ipairs(tos) do
-			if to:objectName() == lord:objectName() then tuxi_lord = true end
+			if lord and to:objectName() == lord:objectName() then tuxi_lord = true end
 			local intention = from:hasFlag("tuxi_isfriend_"..to:objectName()) and -5 or 80
 			sgs.updateIntention(from, to, intention)
 		end
-		if sgs.turncount ==1 and not tuxi_lord and not lord:isKongcheng() and not from:getRoom():alivePlayerCount() == 2 then 
+		if sgs.turncount ==1 and not tuxi_lord and lord and not lord:isKongcheng() and not from:getRoom():alivePlayerCount() == 2 then 
 			sgs.updateIntention(from, lord, -80) 
 		end
 		
@@ -1208,11 +1209,11 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 		end
 		if self.player:getRole()=="loyalist" then
 			local lord = self.room:getLord()
-			if lord:getCards("he"):isEmpty() then return end
+			if lord and lord:getCards("he"):isEmpty() then return end
 			if self:isEnemy(nextplayer) and (not nextplayer:containsTrick("indulgence") or nextplayer:containsTrick("YanxiaoCard")) then
-				if nextplayer:hasSkill("lijian") and self.player:isMale() and lord:isMale() then
+				if nextplayer:hasSkill("lijian") and self.player:isMale() and lord and lord:isMale() then
 					to_death = true
-				elseif nextplayer:hasSkill("quhu") and lord:getHp() > nextplayer:getHp() and not lord:isKongcheng() 
+				elseif nextplayer:hasSkill("quhu") and lord and lord:getHp() > nextplayer:getHp() and not lord:isKongcheng() 
 					and lord:inMyAttackRange(self.player) then
 					to_death = true
 				end

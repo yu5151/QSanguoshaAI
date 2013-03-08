@@ -150,6 +150,7 @@ function SmartAI:log(outString)
 end
 
 function outputPlayersEvaluation()
+	if not global_room:getLord() then return end
 	global_room:writeToConsole("=========== MISJUDGE START ===========" )
 	for _, player in sgs.qlist(global_room:getOtherPlayers(global_room:getLord())) do
 		local evaluate_role = sgs.evaluatePlayerRole(player)
@@ -163,6 +164,8 @@ function outputPlayersEvaluation()
 end
 
 function sgs.checkMisjudge(player)
+	if not global_room:getLord() then return end
+
 	local room = global_room
 	local mode = room:getMode()
 	if player then

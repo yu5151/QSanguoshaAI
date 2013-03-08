@@ -571,7 +571,7 @@ sgs.ai_chaofeng.yanliangwenchou = 1
 sgs.ai_skill_invoke.mengjin = function(self, data)
 	local effect = data:toSlashEffect()
 	if self:isEnemy(effect.to) then
-		if self:doNotDiscard(enemy) then
+		if self:doNotDiscard(effect.to) then
 			return false
 		end
 	end

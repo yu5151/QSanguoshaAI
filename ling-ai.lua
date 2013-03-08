@@ -5,7 +5,8 @@ neoluoyi_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("LuoyiCard") then return nil end
 	local luoyicard
 
-	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() and self:isWeak() then
+	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() and self:isWeak()
+	  or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
 		luoyicard = self.player:getArmor()
 		return sgs.Card_Parse("@LuoyiCard=" .. luoyicard:getEffectiveId())
 	end

@@ -19,7 +19,8 @@ sgs.ai_skill_use["@@jujian"] = function(self, prompt)
 	local nobasiccard = -1
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
-	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
+	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded()
+	  or (self:hasSkills("bazhen|yizhong", self.player) and self.player:getArmor()) then
 			nobasiccard = self.player:getArmor():getId()
 	else
 		self:sortByKeepValue(cards)
@@ -501,7 +502,8 @@ mingce_skill.getTurnUseCard=function(self)
 	if self.player:hasUsed("MingceCard") then return end
 
 	local card
-	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
+	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() 
+	or (self:hasSkills("bazhen|yizhong", self.player) and self.player:getArmor()) then
 		card = self.player:getArmor()
 	end
 	if not card then

@@ -1959,38 +1959,58 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 	end
 	
 	if not self.player:hasUsed("LijianCard") then
-		self:sort(self.enemies, "hp")
+		self:sort(self.enemies, "defense")
 		local males, others = {}, {}
 		local first, second
-		local zhugeliang_kongcheng
+		local zhugeliang_kongcheng, xunyu
 		local duel = sgs.Sanguosha:cloneCard("duel", sgs.Card_NoSuit, 0)
-		
+
 		for _, enemy in ipairs(self.enemies) do
 			--if zhugeliang_kongcheng and #males==1 and self:damageIsEffective(zhugeliang_kongcheng, sgs.DamageStruct_Normal, males[1]) 
 				--then table.insert(males, zhugeliang_kongcheng) end
 			if enemy:isMale() and not self:hasSkills("wuyan|noswuyan", enemy) then
-				if enemy:hasSkill("kongcheng") and enemy:isKongcheng() then	zhugeliang_kongcheng=enemy
+				if enemy:hasSkill("kongcheng") and enemy:isKongcheng() then zhugeliang_kongcheng = enemy				
+				elseif enemy:hasSkill("jieming") then xunyu = enemy
 				else
-					if #males == 0 and self:hasTrickEffective(duel, enemy) and not enemy:hasSkill("mingshi") and
-					not (enemy:hasSkill("hunzi") and enemy:getMark("hunzi") < 1 and enemy:getHp() == 2) then						--将觉醒的孙策不做为目标1
-						table.insert(males, enemy)
+					if #males == 0 and self:hasTrickEffective(duel, enemy) then
+						if not enemy:hasSkill("mingshi") and not (enemy:hasSkill("hunzi") and enemy:getMark("hunzi") < 1 and enemy:getHp() == 2) then
+							table.insert(males, enemy)
+						else
+							table.insert(others, enemy)
+						end
 					elseif #males == 1 and self:damageIsEffective(enemy, sgs.DamageStruct_Normal, males[1]) then
-						if not self:hasSkills("jizhi|jiang", enemy) then													--先不考虑“集智”“激昂”的敌人
+						if not self:hasSkills("jizhi|jiang", enemy) then
 							table.insert(males, enemy)
 						else
 							table.insert(others, enemy)
 						end
 					end
 				end
-				if #males >= 2 then	break end
+				if #males >= 2 then break end
 			end
 		end
 		
-		if #males == 1 and #others >= 1 then
-			table.insert(males, others[1])
+		if #males == 1 then
+			if #others >= 1 then
+				table.insert(males, others[1])
+				
+			elseif xunyu then
+				if getCardsNum("Slash", males) < 1 then
+					table.insert(males, xunyu)
+				else
+					local drawcards = 0
+					for _, enemy in ipairs(self.enemies) do
+						local x = enemy:getMaxHp() > enemy:getHandcardNum() and math.min(5, enemy:getMaxHp() - enemy:getHandcardNum()) or 0
+						if x > drawcards then drawcards = x end
+					end
+					if drawcards <= 2 then
+						table.insert(males, xunyu)
+					end
+				end
+			end
 		end
 		
-		if (#males==1) and #self.friends_noself>0 then
+		if #males == 1 and #self.friends_noself>0 then
 			self:log("Only 1")
 			first = males[1]
 			if zhugeliang_kongcheng and self:damageIsEffective(zhugeliang_kongcheng, sgs.DamageStruct_Normal, males[1]) then
@@ -2001,16 +2021,16 @@ sgs.ai_skill_use_func.LijianCard=function(card,use,self)
 			end
 		end
 		
-		if (#males >= 2) then
+		if #males >= 2 then
 			first = males[1]
 			second = males[2]
 			local lord = self.room:getLord()
-			if lord and (first:getHp() <= 1) then
+			if lord and first:getHp() <= 1 then
 				if self.player:isLord() or sgs.isRolePredictable() then 
 					local friend_maxSlash = findFriend_maxSlash(self,first)
 					if friend_maxSlash then second=friend_maxSlash end
-				elseif (lord:isMale()) and (not self:hasSkills("wuyan|noswuyan", lord)) then
-					if (self.role=="rebel") and (not first:isLord()) and self:damageIsEffective(lord, sgs.DamageStruct_Normal, first) then
+				elseif lord:isMale() and not self:hasSkills("wuyan|noswuyan", lord) then
+					if self.role=="rebel" and not first:isLord() and self:damageIsEffective(lord, sgs.DamageStruct_Normal, first) then
 						second = lord
 					else
 						if ( (self.role == "loyalist" or self.role == "renegade") and not self:hasSkills("ganglie|enyuan|neoganglie|nosenyuan", first) )

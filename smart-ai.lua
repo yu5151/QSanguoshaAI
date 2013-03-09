@@ -2072,7 +2072,7 @@ function SmartAI:filterEvent(event, player, data)
 							end
 						end
 
-						if player:canSlash(target, card, true) and self:slashIsEffective(card, target)
+						if player:canSlash(target, card, true) and self:slashIsEffective(card, target) and not target:hasSkill("fangzhu") 
 								and not has_slash_prohibit_skill and sgs.isGoodTarget(target,self.enemies, self) then
 							if is_neutral then sgs.updateIntention(player, target, -35) end
 						end
@@ -3478,7 +3478,7 @@ function SmartAI:getOverflow(player)
 			end
 		end
 	end
-	return math.max(player:getHandcardNum() - kingdom_num - player:getMaxCards(), 0)
+	return math.max(player:getHandcardNum() + kingdom_num - player:getMaxCards(), 0)
 end
 
 function SmartAI:isWeak(player)
@@ -4165,12 +4165,12 @@ function SmartAI:getRestCardsNum(class_name, yuji)
 	local knownnum = 0
 	local card
 	for i=1, sgs.Sanguosha:getCardCount() do
-		card = sgs.Sanguosha:getCard(i-1)
+		card = sgs.Sanguosha:getEngineCard(i-1)
 		-- if card:isKindOf(class_name) and not ban:match(card:getPackage()) then totalnum = totalnum+1 end
 		if card:isKindOf(class_name) then totalnum = totalnum+1 end
 	end
 	for _, card_id in sgs.qlist(sgs.discard_pile) do
-		card = sgs.Sanguosha:getCard(card_id)
+		card = sgs.Sanguosha:getEngineCard(card_id)
 		if card:isKindOf(class_name) then discardnum = discardnum +1 end
 	end
 	for _, player in sgs.qlist(self.room:getOtherPlayers(yuji)) do
@@ -4481,11 +4481,15 @@ function SmartAI:getAoeValueTo(card, to , from)
 				value = value + math.min(25, to:getMark("@wrath")*5)
 			end
 			
+			if to:hasSkill("beifa") and to:getHandcardNum() == 1 then
+				value = value + 10
+			end
+			
 		end
 		
 		if to:getHp() == 1 then
 			if to:hasSkill("dushi") then value = value - 40 end
-			if to:hasSkill("huilei") and not sgs.evaluateRoleTrends(to) == "rebel" then value = value - 15 end
+			if to:hasSkill("huilei") and sgs.evaluateRoleTrends(to) ~= "rebel" then value = value - 15 end
 		end
 		
 	else
@@ -4611,7 +4615,7 @@ function SmartAI:getAoeValue(card, player)
 			if self.role ~= "rebel" then good = good + 50 else bad = bad + 50 end
 		end
 
-		if sgs.current_mode_players["rebel"] ==0 and self.role ~= "renegade" and sgs.current_mode_players["loyalist"] > 0 and lord:getHp() <=2 then
+		if sgs.current_mode_players["rebel"] ==0 and self.role ~= "renegade" and sgs.current_mode_players["loyalist"] > 0 and not self:isWeak(lord) then
 			bad = bad + 300
 		end
 	end
@@ -4807,6 +4811,7 @@ function SmartAI:useEquipCard(card, use)
 		or (self:hasSkills("guose|yanxiao") and (card:getSuit() == sgs.Card_Diamond or same:getSuit() == sgs.Card_Diamond))
 		or (self:hasSkill("longhun") and (card:getSuit() ~= sgs.Card_Diamond or same:getSuit() ~= sgs.Card_Diamond))
 		or (self:hasSkill("jijiu") and (card:isRed() or same:isRed()))
+		or (self:hasSkill("luanji") and self:getOverflow() == 0)
 		then return end
 	end
 	local canUseSlash = self:getCardId("Slash") and self:slashIsAvailable(self.player)
@@ -4815,6 +4820,7 @@ function SmartAI:useEquipCard(card, use)
 	if card:isKindOf("Weapon") then
 		if self:needBear() then return end
 		if self:hasSkill("zhulou") and same then return end
+		if self:hasSkill("taichen") and same then return end
 		if self:hasSkill("qiangxi") and not self.player:hasUsed("QiangxiCard") and same then
 			local dummy_use = { isDummy = true }
 			self:useSkillCard(sgs.Card_Parse("@QiangxiCard=" .. same:getEffectiveId()), dummy_use)

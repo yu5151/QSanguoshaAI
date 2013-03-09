@@ -443,14 +443,17 @@ sgs.ai_skill_choice.guhuo = function(self, choices)
 	local yuji = self.room:findPlayerBySkillName("guhuo")
 	local guhuoname = self.room:getTag("GuhuoType"):toString()
 	if guhuoname == "peach+analeptic" then guhuoname = "peach" end
+	if guhuoname == "normal_slash" then guhuoname = "slash" end
 	local guhuocard = sgs.Sanguosha:cloneCard(guhuoname, sgs.Card_NoSuit, 0)
 	local guhuotype = guhuocard:getClassName()
 	if guhuotype and self:getRestCardsNum(guhuotype, yuji) == 0 and self.player:getHp() > 0 then return "question" end
 	if guhuotype and (guhuotype == "AmazingGrace" or (guhuotype:match("Slash") and not self:isEquip("Crossbow",yuji))) then	return "noquestion" end
+	if yuji:hasFlag("guhuo_failed") and math.random(1, 6) == 1 and self:isEnemy(yuji) and self.player:getHp() >= 3 and
+		self.player:getHp() > self.player:getLostHp() then return "question" end
 	local players = self.room:getOtherPlayers(self.player)
 	players = sgs.QList2Table(players)
 	local yuji
-	local x = math.random(1,5)
+	local x = math.random(1, 5)
 
 	self:sort(self.friends,"hp")
 
@@ -586,23 +589,23 @@ guhuo_skill.getTurnUseCard=function(self)
 
 	if #GuhuoCard_str > 0 then
 	
-		local guhuo_str = GuhuoCard_str[math.random(1,#GuhuoCard_str)]
+		local guhuo_str = GuhuoCard_str[math.random(1, #GuhuoCard_str)]
 		
 		local str = guhuo_str:split("=")
 		str = str[2]:split(":")
 		local cardid, cardname = str[1], str[2]
-		if sgs.Sanguosha:getCard(cardid):objectName() == cardname and cardname == "ex_nihilo" and math.random(1,3) == 1 then
+		if sgs.Sanguosha:getCard(cardid):objectName() == cardname and cardname == "ex_nihilo" and math.random(1, 3) == 1 then
 			local fake_exnihilo = fake_guhuo(cardname)
 			if fake_exnihilo then return fake_exnihilo end
 			
-		elseif math.random(1,5) == 1 then
+		elseif math.random(1, 5) == 1 then
 			local fake_GuhuoCard = fake_guhuo()
 			if fake_GuhuoCard then return fake_GuhuoCard end
 		else
 			return sgs.Card_Parse(guhuo_str)
 		end
 	
-	elseif can_fake_guhuo and math.random(1,4) ~= 1 then
+	elseif can_fake_guhuo and math.random(1, 4) ~= 1 then
 		local fake_GuhuoCard = fake_guhuo(nil, can_fake_guhuo)
 		if fake_GuhuoCard then return fake_GuhuoCard end
 		
@@ -613,7 +616,7 @@ guhuo_skill.getTurnUseCard=function(self)
 
 		local lord = getLord(self.player)
 		local drawcard = false
-		if (lord and self:isFriend(lord) and lord:getHp() == 1 and not isLord(self.player)) then
+		if (lord and self:isFriend(lord) and lord:getHp() == 1 and self:isWeak(lord) and not isLord(self.player)) then
 			drawcard = true
 		elseif not enemy_is_weak then
 			if sgs.current_mode_players["loyalist"] > sgs.current_mode_players["renegade"] + sgs.current_mode_players["rebel"] and

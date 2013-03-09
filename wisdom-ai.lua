@@ -256,7 +256,7 @@ end
 sgs.ai_skill_use_func.HouyuanCard = function(card, use, self)
 	if #self.friends == 1 then return end
 	local target
-	target = player_to_draw(self, "noself", 2)
+	target = self:findPlayerToDraw("noself", 2)
 	local cards = self.player:getCards("h")
 	cards = sgs.QList2Table(cards)
 	self:sortByUseValue(cards, true)
@@ -381,7 +381,7 @@ sgs.ai_chaofeng.wis_sunce = 1
 ]]--
 sgs.ai_skill_playerchosen.longluo = function(self, targets)
 	local n = self.player:getMark("longluo")
-	local to = player_to_draw(self, "noself", n)
+	local to = self:findPlayerToDraw("noself", n)
 	if to then return to end
 	return self.friends_noself[1]
 end

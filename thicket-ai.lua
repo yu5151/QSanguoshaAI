@@ -32,7 +32,7 @@ sgs.ai_skill_use["@@fangzhu"] = function(self, prompt)
 
 	if not target then		
 		if n >= 3 then
-			target = player_to_draw(self, "noself", n)
+			target = self:findPlayerToDraw("noself", n)
 			if not target then
 				for _, enemy in ipairs(self.enemies) do									
 					if toTurnOver(self, enemy, n) and enemy:hasSkill("manjuan") and enemy:getPhase() == sgs.Player_NotActive then
@@ -267,7 +267,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 			end
 		end
 		if not self.yinghun then
-			self.yinghun = player_to_draw(self, "noself", x)
+			self.yinghun = self:findPlayerToDraw("noself", x)
 		end
 		if not self.yinghun then
 			for _, friend in ipairs(self.friends_noself) do

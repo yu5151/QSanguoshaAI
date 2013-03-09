@@ -155,7 +155,7 @@ local function yuanhu_validate(self, equip_type, is_handcard)
 		for _, friend in ipairs(targets) do
 			if not self:isEquip(equip_type, friend) then
 				if equip_type == "Armor" then
-					if not self:needKongcheng(friend) and not self:hasSkills("bazhen|yizhong", friend) then return friend end
+					if not self:needToKeepKongcheng(friend) and not self:hasSkills("bazhen|yizhong", friend) then return friend end
 				else
 					if friend:isWounded() and not friend:hasSkill("longhun") then return friend end
 				end
@@ -322,7 +322,7 @@ local function can_be_selected_as_target_xueji(self, card, who)
 		return false 
 	end
 	-- validation of strategy
-	if self:isEnemy(who) and self:damageIsEffective(who) and not self:cantbeHurt(who) and not self:getDamagedEffects(who) and not self:needLostHp(who) then
+	if self:isEnemy(who) and self:damageIsEffective(who) and not self:cantbeHurt(who) and not self:getDamagedEffects(who) and not self:needToLostHp(who) then
 		if not self.player:hasSkill("jueqing") then
 			if who:hasSkill("guixin") and (self.room:getAliveCount() >= 4 or not who:faceUp()) and not who:hasSkill("manjuan") then return false end
 			if (who:hasSkill("ganglie") or who:hasSkill("neoganglie")) and (self.player:getHp() == 1 and self.player:getHandcardNum() <= 2) then return false end
@@ -503,7 +503,8 @@ sgs.ai_skill_use_func.SongciCard = function(card,use,self)
 	self:sort(self.enemies, "handcard")
 	self.enemies = sgs.reverse(self.enemies)
 	for _, enemy in ipairs(self.enemies) do
-		if enemy:getMark("@songci") == 0 and enemy:getHandcardNum() > enemy:getHp() and not enemy:isNude() then
+		if enemy:getMark("@songci") == 0 and enemy:getHandcardNum() > enemy:getHp() and not enemy:isNude()
+		  and not self:doNotDiscard(enemy) then
 			if not ((self:hasSkills(sgs.lose_equip_skill, enemy) and enemy:getEquips():length() > 0) 
 					or (enemy:hasArmorEffect("SilverLion") and enemy:isWounded() and self:isWeak(enemy))) then
 				use.card = sgs.Card_Parse("@SongciCard=.")

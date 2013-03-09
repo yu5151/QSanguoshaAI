@@ -91,7 +91,7 @@ sgs.dynamic_value.control_card.QuhuCard = true
 sgs.ai_skill_use["@@jieming"] = function(self, prompt)
 	local friends = {}
 	for _,player in ipairs(self.friends) do
-		if player:isAlive() and not (player:hasSkill("manjuan") and self.room:getCurrent():objectName() ~= player:objectName()) then
+		if player:isAlive() and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive) then
 			table.insert(friends, player)
 		end
 	end
@@ -99,7 +99,23 @@ sgs.ai_skill_use["@@jieming"] = function(self, prompt)
 	
 	local max_x = 0
 	local target
-	
+	local Shenfen_user
+	for _, player in sgs.qlist(self.room:getAlivePlayers()) do
+		if player:hasFlag("ShenfenUsing") then
+			Shenfen_user = player
+			break
+		end
+	end
+	for _, friend in ipairs(friends) do
+		local x = math.min(friend:getMaxHp(), 5) - friend:getHandcardNum()
+		if Shenfen_user and friend:objectName() ~= Shenfen_user:objectName() and (friend:getMaxHp() < 5 or friend:getHandcardNum() > 4) then x = -1 end
+		if friend:hasSkill("manjuan") and x > 0 then x = x + 1 end
+
+		if x > max_x and friend:isAlive() then
+			max_x = x
+			target = friend
+		end
+	end
 	
 	for _, friend in ipairs(friends) do
 		local x = math.min(friend:getMaxHp(), 5) - friend:getHandcardNum()
@@ -333,7 +349,7 @@ sgs.ai_skill_use_func.TianyiCard = function(card,use,self)
 	if isCard("Slash", max_card, self.player) then slashcount = slashcount - 1 end
 	if self.player:hasSkill("kongcheng") and self.player:getHandcardNum() == 1 then
 		for _, enemy in ipairs(self.enemies) do
-			if not enemy:isKongcheng() and not (enemy:hasSkill("tuntian") and enemy:getHandcardNum() > 2) then
+			if not enemy:isKongcheng() and not self:doNotDiscard(enemy, "h") then
 				use.card = sgs.Card_Parse("@TianyiCard=" .. max_card:getId())
 				if use.to then use.to:append(enemy) end
 				return
@@ -419,7 +435,7 @@ sgs.ai_skill_use_func.TianyiCard = function(card,use,self)
 	        local cards = sgs.QList2Table(self.player:getHandcards())
 		self:sortByKeepValue(cards)
 		for _, enemy in ipairs(self.enemies) do
-			if not self:doNotDiscard(enemy, true) and not enemy:isKongcheng() and not enemy:hasSkill("tuntian") then
+			if not self:doNotDiscard(enemy, "h", true) and not enemy:isKongcheng() then
 				use.card = sgs.Card_Parse("@TianyiCard=" .. cards[1]:getId())
 				if use.to then use.to:append(enemy) end
 				return
@@ -574,6 +590,9 @@ sgs.ai_skill_invoke.mengjin = function(self, data)
 		if self:doNotDiscard(effect.to) then
 			return false
 		end
+	end
+	if self:isFriend(effect.to) then 
+		return self:needToThrowArmor(target) or self:doNotDiscard(target)
 	end
 	return not self:isFriend(effect.to)
 end

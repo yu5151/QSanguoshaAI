@@ -74,8 +74,7 @@ sgs.ai_skill_use["@@shensu2"]=function(self,prompt)
 		end
 	end
 	
-	if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
-	  or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
+	if self:needToThrowArmor() then
 		eCard = self.player:getArmor()
 	end
 
@@ -488,16 +487,13 @@ sgs.ai_choicemade_filter.skillChoice.guhuo = function(player, promptlist)
 	end
 end
 
-local guhuo_skill={}
-guhuo_skill.name="guhuo"
-table.insert(sgs.ai_skills,guhuo_skill)
-guhuo_skill.getTurnUseCard=function(self)
-
+local guhuo_skill = {}
+guhuo_skill.name = "guhuo"
+table.insert(sgs.ai_skills, guhuo_skill)
+guhuo_skill.getTurnUseCard = function(self)
 	if self.player:isKongcheng() then return end
-
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	local otherSuit_str, GuhuoCard_str = {}, {}
-	
 	for _,card in ipairs(cards) do
 		if card:isNDTrick() then
 			local dummyuse = { isDummy = true } 
@@ -643,9 +639,14 @@ guhuo_skill.getTurnUseCard=function(self)
 			end
 		end
 		
-		-- local slash_str = self:getGuhuoCard("Slash", self.player, true) or self:getGuhuoCard("Analeptic", self.player, true)
-		-- if slash_str and self:slashIsAvailable() then return sgs.Card_Parse(slash_str) end
-		
+		local slash_str = self:getGuhuoCard("Slash", self.player, true)
+		if slash_str and self:slashIsAvailable() then
+			local card = sgs.Card_Parse(slash_str)
+			local slash = sgs.Sanguosha:cloneCard("slash", card:getSuit(), card:getNumber())
+			local dummy_use = { isDummy = true }
+			self:useBasicCard(slash, dummy_use)
+			if dummy_use.card then return card end
+		end
 	end
 end
 

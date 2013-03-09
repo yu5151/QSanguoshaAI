@@ -36,7 +36,7 @@ end
 
 sgs.ai_skill_playerchosen.miji = function(self, targets)
 	if self:needBear() then return self.player end
-	local to = player_to_draw(self, "all", self.player:getLostHp())
+	local to = self:findPlayerToDraw("all", self.player:getLostHp())
 	if to then return to end
 	return self.player
 end
@@ -108,8 +108,7 @@ gongqi_skill.getTurnUseCard = function(self,inclusive)
 	if #self.enemies == 0 then return end
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
-	if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
-		or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
+	if self:needToThrowArmor() then
 		return sgs.Card_Parse("@GongqiCard=" .. self.player:getArmor():getEffectiveId())
 	end
 	
@@ -168,14 +167,14 @@ sgs.ai_skill_use_func.GongqiCard = function(card, use, self)
 end
 
 sgs.ai_skill_invoke.gongqi = function(self, data)
-	local player = player_to_discard(self, "noself")
+	local player = self:findPlayerToDiscard()
 	if player then 
 		return true
 	end
 end
 
 sgs.ai_skill_playerchosen.gongqi = function(self, targets)
-	local player = player_to_discard(self, "noself")
+	local player = self:findPlayerToDiscard()
 	if player then 
 		return player
 	end
@@ -597,16 +596,8 @@ sgs.ai_skill_invoke.zhiyu = function(self, data)
 		if self:isFriend(target) and not target:isKongcheng() then
 			return false
 		elseif self:isEnemy(target) then
-			if #self.friends > 1 and target:getHandcardNum() == 1 and target:hasSkill("sijian") then return false end
-			if target:hasSkill("beifa") and target:getHandcardNum() == 1 then
-				local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-				for _, friend in ipairs(self.friends) do
-					if target:canSlash(friend, slash) and not self:slashProhibit(slash, friend)
-					  and self:slashIsEffective(slash, friend) then
-						return false
-					end
-				end
-			end
+			if self:doNotDiscard(target, "h") then return false end
+			return true
 		end
 	end
 	if self.player:hasSkill("manjuan") and self.player:getPhase() == sgs.Player_NotActive then return false end
@@ -624,10 +615,10 @@ local function get_handcard_suit(cards)
 	if black then return sgs.Card_NoSuitBlack else return sgs.Card_NoSuitRed end
 end
 
-local qice_skill={}
-qice_skill.name="qice"
-table.insert(sgs.ai_skills,qice_skill)
-qice_skill.getTurnUseCard=function(self)
+local qice_skill = {}
+qice_skill.name = "qice"
+table.insert(sgs.ai_skills, qice_skill)
+qice_skill.getTurnUseCard = function(self)
 	local cards = self.player:getHandcards()
 	local allcard = {}
 	cards = sgs.QList2Table(cards)
@@ -722,10 +713,10 @@ qice_skill.getTurnUseCard=function(self)
 	end
 end
 
-sgs.ai_skill_use_func.QiceCard=function(card,use,self)
-	local userstring=card:toString()
-	userstring=(userstring:split(":"))[3]
-	local qicecard=sgs.Sanguosha:cloneCard(userstring, card:getSuit(), card:getNumber())
+sgs.ai_skill_use_func.QiceCard = function(card,use,self)
+	local userstring = card:toString()
+	userstring = (userstring:split(":"))[3]
+	local qicecard = sgs.Sanguosha:cloneCard(userstring, card:getSuit(), card:getNumber())
 	self:useTrickCard(qicecard,use) 
 	if use.card then
 		for _, acard in sgs.qlist(self.player:getHandcards()) do

@@ -25,8 +25,7 @@ lihun_skill.getTurnUseCard = function(self)
 	self:sortByKeepValue(cards)
 	local lightning = self:getCard("Lightning")
 
-	if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
-	  or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
+	if self:needToThrowArmor(who) then
 		card_id = self.player:getArmor():getId()
 	elseif self.player:getHandcardNum() > self.player:getHp() then			
 		if lightning and not self:willUseLightning(lightning) then
@@ -112,8 +111,7 @@ sgs.ai_skill_discard.lihun = function(self, discard_num, min_num, optional, incl
 	local temp = table.copyFrom(card_ids)
 	for i = 1, #temp, 1 do
 		local card = sgs.Sanguosha:getCard(temp[i])
-		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) and card:isKindOf("SilverLion")
-		  or (self.player:getArmor() and self:hasSkills("bazhen|yizhong")) then
+		if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded()) and card:isKindOf("SilverLion") then
 			table.insert(to_discard, temp[i])
 			table.removeOne(card_ids, temp[i])
 			if #to_discard == discard_num then
@@ -677,7 +675,7 @@ sgs.ai_skill_cardask["@anxian-discard"] = function(self, data)
 	if self:getDamagedEffects(self.player, use.from, true) then
 		return "."
 	end
-	if self:needLostHp(self.player, use.from, true) then
+	if self:needToLostHp(self.player, use.from, true) then
 		return "."
 	end
 	if from:hasWeapon("Axe") and self:hasSkills(sgs.lose_equip_skill, from) and from:getEquips():length() > 1 then
@@ -770,7 +768,7 @@ end
 sgs.ai_skill_use_func.YinlingCard = function(card, use, self)
 	if self.player:getPile("brocade"):length() >= 4 then return end
 	local target
-	target = player_to_discard(self, "noself")
+	target = self:findPlayerToDiscard()
 	if target then
 		use.card = card
 		if use.to then
@@ -821,8 +819,7 @@ sgs.ai_playerchosen_intention.junwei = 80
 sgs.ai_skill_playerchosen.junwei = function(self, targets)
 	local tos = {}
 	for _, target in sgs.qlist(targets) do
-		if self:isEnemy(target) and not (target:hasArmorEffect("SilverLion") and target:getCards("e"):length() == 1)
-		  and not (target:getArmor() and self:hasSkills("bazhen|yizhong", target) and target:getCards("e"):length() == 1) then
+		if self:isEnemy(target) and not self:doNotDiscard(target, "e") then
 			table.insert(tos, target)
 		end
 	end 
@@ -893,8 +890,10 @@ sgs.ai_skill_choice.xuehen = function(self, choices)
 	local current = self.room:getCurrent()
 	if self:isFriend(current) then return "slash" end
 	if self:isEnemy(current) then
-		if self.player:getLostHp() >= 3 and current:getCardCount(true) >= 3 and not self:needKongcheng(current) 
-				and not (self:hasSkills(sgs.lose_equip_skill, current) and current:getHandcardNum() < self.player:getLostHp()) then
+		if self.player:getLostHp() >= 3 and current:getCardCount(true) >= 3
+		  and not (self:needKongcheng(current) and current:getCardCount(true) == 3)
+		  and not (not self:hasLoseHandcardEffective(current) and current:getCards("e"):length() < 2) 
+		  and not (self:hasSkills(sgs.lose_equip_skill, current) and current:getHandcardNum() < self.player:getLostHp()) then
 			return "discard"
 		end
 
@@ -1181,8 +1180,7 @@ sgs.ai_card_intention.HantongCard = sgs.ai_card_intention.JijiangCard
 sgs.ai_skill_use["@@diyyicong"] = function(self, prompt)
 	local yicongcards = {}
 	local cards = self.player:getCards("he")
-	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded()
-	  or (self.player:getArmor() and self:hasSkills("bazhen|yizhong")) then
+	if self:needToThrowArmor() then
 		table.insert(yicongcards, self.player:getArmor():getId())
 	end
 	cards = sgs.QList2Table(cards)

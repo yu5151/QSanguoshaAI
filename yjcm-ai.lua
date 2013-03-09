@@ -678,8 +678,7 @@ sgs.ai_skill_use_func.XianzhenSlashCard = function(card,use,self)
 	end
 end
 
-sgs.ai_skill_use_func.XianzhenCard=function(card,use,self)
-
+sgs.ai_skill_use_func.XianzhenCard = function(card, use, self)
 	self:sort(self.enemies, "defense")
 	local max_card = self:getMaxCard()
 	local max_point = max_card:getNumber()
@@ -719,7 +718,7 @@ sgs.ai_skill_use_func.XianzhenCard=function(card,use,self)
 	local shouldUse = self:getOverflow() > 0
 	if shouldUse then
 		for _, enemy in ipairs(self.enemies) do
-			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and not enemy:hasSkill("tuntian") then
+			if not self:doNotDiscard(enemy, "h", true) and not enemy:isKongcheng() then
 				use.card = sgs.Card_Parse("@XianzhenCard=" .. cards[1]:getId())
 				if use.to then use.to:append(enemy) end
 				return
@@ -728,14 +727,14 @@ sgs.ai_skill_use_func.XianzhenCard=function(card,use,self)
 	end
 end
 
-sgs.ai_cardneed.xianzhen=function(to, card, self)
+sgs.ai_cardneed.xianzhen = function(to, card, self)
 	local cards = to:getHandcards()
 	local has_big = false
 	for _, c in sgs.qlist(cards) do
-		local flag=string.format("%s_%s_%s","visible",self.room:getCurrent():objectName(),to:objectName())
+		local flag = string.format("%s_%s_%s","visible",self.room:getCurrent():objectName(),to:objectName())
 		if c:hasFlag("visible") or c:hasFlag(flag) then
 			if c:getNumber()>10 then
-				has_big=true
+				has_big = true
 				break
 			end
 		end
@@ -748,7 +747,7 @@ sgs.ai_cardneed.xianzhen=function(to, card, self)
 end
 
 function sgs.ai_skill_pindian.xianzhen(minusecard, self, requestor)
-	local maxcard=self:getMaxCard()	
+	local maxcard = self:getMaxCard()	
 	return self:isFriend(requestor) and minusecard or ( maxcard:getNumber() < 6 and  minusecard or maxcard )
 end
 

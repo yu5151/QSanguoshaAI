@@ -19,9 +19,8 @@ sgs.ai_skill_use["@@jujian"] = function(self, prompt)
 	local nobasiccard = -1
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
-	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded()
-	  or (self:hasSkills("bazhen|yizhong", self.player) and self.player:getArmor()) then
-			nobasiccard = self.player:getArmor():getId()
+	if self:needToThrowArmor() then
+		nobasiccard = self.player:getArmor():getId()
 	else
 		self:sortByKeepValue(cards)
 		for _,card in ipairs(cards) do
@@ -305,7 +304,7 @@ end
 sgs.ai_skill_use["@@xuanfeng"] = function(self, prompt)
 	local enemynum = 0
 	for _, enemy in ipairs(self.enemies) do
-		if (not self:needKongcheng(enemy) and self:hasLoseHandcardEffective(enemy)) or self:getDangerousCard(enemy) or self:getValuableCard(enemy) then
+		if not self:doNotDiscard(enemy) or self:getDangerousCard(enemy) or self:getValuableCard(enemy) then
 			enemynum = enemynum + 1
 		end
 	end
@@ -317,7 +316,7 @@ sgs.ai_skill_use["@@xuanfeng"] = function(self, prompt)
 	
 	local first_index, second_index
 	for i=1, #self.enemies do
-		if ((not self:needKongcheng(self.enemies[i]) and self:hasLoseHandcardEffective(self.enemies[i])) 
+		if (not self:doNotDiscard(self.enemies[i]) 
 			or self:getDangerousCard(self.enemies[i]) or self:getValuableCard(self.enemies[i])) and not self.enemies[i]:isNude() and
 			not (self.enemies[i]:hasSkill("guzheng") and self.room:getCurrent():getPhase() == sgs.Player_Discard) then
 
@@ -347,7 +346,7 @@ sgs.ai_skill_playerchosen.xuanfeng = function(self, targets)
 	targets = sgs.QList2Table(targets)
 	self:sort(targets,"defense")
 	for _, enemy in ipairs(self.enemies) do
-		if not self:needKongcheng(enemy) and not enemy:isNude() and
+		if (not self:doNotDiscard(enemy) or self:getDangerousCard(enemy) or self:getValuableCard(enemy)) and not enemy:isNude() and
 		not (enemy:hasSkill("guzheng") and self.room:getCurrent():getPhase() == sgs.Player_Discard) then
 			return enemy
 		end
@@ -502,8 +501,7 @@ mingce_skill.getTurnUseCard=function(self)
 	if self.player:hasUsed("MingceCard") then return end
 
 	local card
-	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() 
-	or (self:hasSkills("bazhen|yizhong", self.player) and self.player:getArmor()) then
+	if self:needToThrowArmor() then
 		card = self.player:getArmor()
 	end
 	if not card then

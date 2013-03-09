@@ -176,42 +176,42 @@ sgs.ai_skill_use_func.JuejiCard = function(card, use, self)
 		return
 	end
 	
-	self:sort(self.enemies, "handcard")
+	self:sort(self.enemies, "defense")
 	local max_card = self:getMaxCard()
 	local max_point = max_card:getNumber()
 	
 	if self:hasSkills(sgs.need_kongcheng, self.player) and self.player:getHandcardNum() == 1 then
 		for _, enemy in ipairs(self.enemies) do
-			if not enemy:isKongcheng() and not self:doNotDiscard(enemy, true) then
+			if not enemy:isKongcheng() and not self:doNotDiscard(enemy, "h") then
 				use.card = sgs.Card_Parse("@JuejiCard=" .. max_card:getId())
 				if use.to then use.to:append(enemy) end
 				return
 			end
 		end
 	end
-	if  #self.enemies > 1 then	
-		for _, enemy in ipairs(self.enemies) do
-			if not self:doNotDiscard(enemy, true) and not enemy:isKongcheng() and not enemy:hasSkill("tuntian") then
-				local enemy_max_card = self:getMaxCard(enemy)
-				local allknown = 0
-				if self:getKnownNum(enemy) == enemy:getHandcardNum() then
-					allknown = allknown + 1
-				end
-				if (enemy_max_card and max_point > enemy_max_card:getNumber() and allknown > 0)
-					or (enemy_max_card and max_point > enemy_max_card:getNumber() and allknown < 1 and max_point > 10) 
-					or (not enemy_max_card and max_point > 10) then
-					use.card = sgs.Card_Parse("@JuejiCard=" .. max_card:getId())
-					if use.to then use.to:append(enemy) end
-					return
-				end
+		
+	for _, enemy in ipairs(self.enemies) do
+		if not self:doNotDiscard(enemy, "h") and not enemy:isKongcheng() then
+			local enemy_max_card = self:getMaxCard(enemy)
+			local allknown = 0
+			if self:getKnownNum(enemy) == enemy:getHandcardNum() then
+				allknown = allknown + 1
+			end
+			if (enemy_max_card and max_point > enemy_max_card:getNumber() and allknown > 0)
+				or (enemy_max_card and max_point > enemy_max_card:getNumber() and allknown < 1 and max_point > 10) 
+				or (not enemy_max_card and max_point > 10) then
+				use.card = sgs.Card_Parse("@JuejiCard=" .. max_card:getId())
+				if use.to then use.to:append(enemy) end
+				return
 			end
 		end
 	end
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	self:sortByKeepValue(cards)
+	self:sort(self.enemies, "handcard")
 	if self:getOverflow() > 0 then
 		for _, enemy in ipairs(self.enemies) do
-			if not self:doNotDiscard(enemy, true) and not enemy:isKongcheng() and not enemy:hasSkill("tuntian") then
+			if not self:doNotDiscard(enemy, "h", true) and not enemy:isKongcheng() then
 				use.card = sgs.Card_Parse("@JuejiCard=" .. cards[1]:getId())
 				if use.to then use.to:append(enemy) end
 				return

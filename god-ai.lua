@@ -801,7 +801,7 @@ function SmartAI:needBear(player)
 	return player:hasSkill("renjie") and not player:hasSkill("jilve") and player:getMark("@bear") < 4
 end
 
-sgs.ai_skill_invoke.jilve=function(self,data)
+sgs.ai_skill_invoke.jilve = function(self,data)
 	local n = self.player:getMark("@bear")
 	local use = (n > 2 or self:getOverflow() > 0)
 	local event = self.player:getMark("JilveEvent")
@@ -822,45 +822,45 @@ sgs.ai_skill_invoke.jilve=function(self,data)
 	end
 end
 
-local jilve_skill={}
+local jilve_skill = {}
 jilve_skill.name = "jilve"
-table.insert(sgs.ai_skills,jilve_skill)
+table.insert(sgs.ai_skills, jilve_skill)
 jilve_skill.getTurnUseCard = function(self)
 	if self.player:getMark("@bear") < 1 or self.player:usedTimes("JilveCard") >= 2 then return end
 	local wanshadone = self.player:getTag("JilveWansha"):toPlayer()
 	if not wanshadone then
-		local cards=self.player:getHandcards()
-		cards=sgs.QList2Table(cards)
+		local cards = self.player:getHandcards()
+		cards = sgs.QList2Table(cards)
 		local slashes = self:getCards("Slash")
 		self:sort(self.enemies, "hp")
 		local target
 		for _, enemy in ipairs(self.enemies) do
 			if not (enemy:hasSkill("kongcheng") and enemy:isKongcheng()) and self:isWeak(enemy) and self:damageMinusHp(self, enemy, 1) > 0 then
-				 sgs.ai_skill_choice.jilve="wansha" 
+				 sgs.ai_skill_choice.jilve = "wansha" 
 				 local wanshacard = sgs.Card_Parse("@JilveCard=.")
 				 dummy_use={isDummy=true}
-				 self:useSkillCard(wanshacard,dummy_use)
+				 self:useSkillCard(wanshacard, dummy_use)
 				 return sgs.Card_Parse("@JilveCard=.") 
 			end
 		end
 	end
 	if not self.player:hasUsed("ZhihengCard") and not wanshadone then
-		sgs.ai_skill_choice.jilve="zhiheng" 
-		local card=sgs.Card_Parse("@ZhihengCard=.")
+		sgs.ai_skill_choice.jilve = "zhiheng" 
+		local card = sgs.Card_Parse("@ZhihengCard=.")
 		local dummy_use={isDummy=true}
-		self:useSkillCard(card,dummy_use)
+		self:useSkillCard(card, dummy_use)
 		if dummy_use.card then return sgs.Card_Parse("@JilveCard=.") end
 	elseif not wanshadone then
-		local cards=self.player:getHandcards()
-		cards=sgs.QList2Table(cards)
+		local cards = self.player:getHandcards()
+		cards = sgs.QList2Table(cards)
 		local slashes = self:getCards("Slash")
 		self:sort(self.enemies, "hp")
 		local target
 		for _, enemy in ipairs(self.enemies) do
 			if not (enemy:hasSkill("kongcheng") and enemy:isKongcheng()) and self:isWeak(enemy) and self:damageMinusHp(self, enemy, 1) > 0 then
-				 sgs.ai_skill_choice.jilve="wansha" 
+				 sgs.ai_skill_choice.jilve = "wansha" 
 				 local wanshacard = sgs.Card_Parse("@JilveCard=.")
-				 dummy_use={isDummy=true}
+				 dummy_use = {isDummy=true}
 				 self:useSkillCard(wanshacard,dummy_use)
 				 return sgs.Card_Parse("@JilveCard=.") 
 			end
@@ -873,7 +873,7 @@ sgs.ai_skill_use_func.JilveCard=function(card,use,self)
 end
 
 if sgs.ai_skill_choice.jilve == "zhiheng" or not sgs.ai_skill_choice.jilve == "wansha" then sgs.ai_use_priority.JilveCard = 3
-else sgs.ai_use_priority.JilveCard = 6 end
+else sgs.ai_use_priority.JilveCard = 3.6 end
 
 sgs.ai_skill_use["@zhiheng"]=function(self,prompt)
 	local card=sgs.Card_Parse("@ZhihengCard=.")

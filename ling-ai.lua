@@ -3,16 +3,14 @@ neoluoyi_skill.name = "neoluoyi"
 table.insert(sgs.ai_skills, neoluoyi_skill)
 neoluoyi_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("LuoyiCard") then return nil end
+	if self:needBear() then return nil end
 	local luoyicard
-
-	if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() and self:isWeak()
-	  or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
+	if self:needToThrowArmor() then
 		luoyicard = self.player:getArmor()
 		return sgs.Card_Parse("@LuoyiCard=" .. luoyicard:getEffectiveId())
 	end
-
-	if self:needBear() then return nil end
-	if self.player:getSlashCount() > 0 and not (self.player:hasSkill("paoxiao") or self:isEquip("Crossbow")) then return nil end
+	
+	if not self:slashIsAvailable(self.player) then return nil end
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
 	local slashtarget = 0
@@ -50,7 +48,7 @@ neoluoyi_skill.getTurnUseCard = function(self)
 	end		
 	if (slashtarget + dueltarget) > 0 and equipnum > 0 then
 		self:speak("luoyi")
-		if self.player:hasArmorEffect("SilverLion") and self.player:isWounded() then
+		if self:needToThrowArmor() then
 			luoyicard = self.player:getArmor()
 		end
 		
@@ -174,19 +172,18 @@ sgs.ai_skill_invoke.zhulou = function(self, data)
 		return true
 	end
 
-		if self.player:getHp() < 3 and self.player:getWeapon() then
-			return true
+	if self.player:getHp() < 3 and self.player:getWeapon() then
+		return true
 	end
 
 	return false
 end
 
 sgs.ai_skill_cardask["@zhulou-discard"] =  function(self, data)
-	  for _, card in sgs.qlist(self.player:getCards("he")) do
-		if card:isKindOf("Weapon") and not self.player:hasEquip(card) then
-			return "$" .. card:getEffectiveId()
-		end
+	if self.player:getWeapon() then
+		return "$" .. self.player:getWeapon():getEffectiveId()
 	end
+
 	for _, card in sgs.qlist(self.player:getCards("he")) do
 		if card:isKindOf("Weapon") then
 			return "$" .. card:getEffectiveId()

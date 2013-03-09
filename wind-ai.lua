@@ -74,8 +74,7 @@ sgs.ai_skill_use["@@shensu2"]=function(self,prompt)
 		end
 	end
 	
-	if (self.player:hasArmorEffect("SilverLion") and self.player:isWounded())
-	  or (self:hasSkills("bazhen|yizhong") and self.player:getArmor()) then
+	if self:needToThrowArmor() then
 		eCard = self.player:getArmor()
 	end
 

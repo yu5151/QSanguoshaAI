@@ -2076,7 +2076,7 @@ function SmartAI:filterEvent(event, player, data)
 							has_slash_prohibit_skill = true
 						end
 
-						if player:canSlash(target, card, true) and self:slashIsEffective(card, target) and
+						if player:canSlash(target, card, true) and self:slashIsEffective(card, target)
 								and not has_slash_prohibit_skill and sgs.isGoodTarget(target,self.enemies, self) then
 							if is_neutral then sgs.updateIntention(player, target, -35) end
 						end

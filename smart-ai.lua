@@ -2072,7 +2072,7 @@ function SmartAI:filterEvent(event, player, data)
 							end
 						end
 						
-						if target:hasSkill("fangzhu") andd target:getLostHp() <= 2 then
+						if target:hasSkill("fangzhu") and target:getLostHp() <= 2 then
 							has_slash_prohibit_skill = true
 						end
 

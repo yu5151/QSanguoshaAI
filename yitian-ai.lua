@@ -222,7 +222,7 @@ sgs.ai_skill_use_func.JuejiCard = function(card, use, self)
 end
 
 sgs.ai_card_intention.JuejiCard = 30
-sgs.ai_use_priority.JuejiCard = 2.35
+sgs.ai_use_priority.JuejiCard = 3.4
 sgs.ai_cardneed.jueji = sgs.ai_cardneed.bignumber
 sgs.dynamic_value.control_card.JuejiCard = true
 

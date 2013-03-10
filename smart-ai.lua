@@ -2630,8 +2630,7 @@ function SmartAI:askForCardChosen(who, flags, reason)
 			end
 			local cards = sgs.QList2Table(who:getHandcards())
 			local flag = string.format("%s_%s_%s", "visible", self.player:objectName(), who:objectName())
-			if #cards <= 2 and not who:isKongcheng() and not (who:hasSkill("tuntian") and who:getPhase() == sgs.Player_NotActive)
-			  and not self:doNotDiscard(who, "h") then
+			if #cards <= 2 and not self:doNotDiscard(who, "h") then
 				for _, cc in ipairs(cards) do
 					if (cc:hasFlag("visible") or cc:hasFlag(flag)) and (cc:isKindOf("Peach") or cc:isKindOf("Analeptic")) then
 						return self:getCardRandomly(who, "h")
@@ -4980,6 +4979,7 @@ function SmartAI:doNotDiscard(to, flags, conservative)
 		if to:hasSkill("jieyin") and to:getDefensiveHorse() then return false end
 		if to:hasSkill("jieyin") and to:getArmor() and not to:getArmor():isKindOf("SilverLion") then return false end
 	end
+	conservative = conservative or (sgs.turncount <= 2 and self.room:alivePlayerCount() > 2)
 	if to:hasSkill("tuntian") and to:getPhase() == sgs.Player_NotActive and (conservative or #self.enemies > 1) then return true end
 	if flags == "h" or (flags == "he" and not to:hasEquip()) then
 		if to:isKongcheng() then return true end

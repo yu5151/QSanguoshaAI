@@ -1703,7 +1703,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 				  and ((enemy:hasSkill("jijiu") and enemy:getOffensiveHorse():isRed()) or enemy:hasSkill("beige")) then
 					cardchosen = enemy:getOffensiveHorse():getEffectiveId()
 				end
-				if not cardchosen and who:getWeapon() 
+				if not cardchosen and enemy:getWeapon() 
 				  and ((enemy:hasSkill("jijiu") and enemy:getWeapon():isRed()) or enemy:hasSkill("beige")) then
 					cardchosen = enemy:getWeapon():getEffectiveId()
 				end

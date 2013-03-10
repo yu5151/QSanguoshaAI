@@ -207,11 +207,11 @@ function SmartAI:useCardSupplyShortage(card, use)
 
 		local value = 0 - enemy:getHandcardNum()
 
-		if self:hasSkills("yongsi|haoshi|tuxi|lijian|fanjian|neofanjian|dimeng|jijiu|jieyin|manjuan",enemy)
+		if self:hasSkills("yongsi|haoshi|tuxi|lijian|fanjian|neofanjian|dimeng|jijiu|jieyin|manjuan|beige",enemy)
 		  or (enemy:hasSkill("zaiqi") and enemy:getLostHp() > 1)
 			then value = value + 10 
 		end
-		if self:hasSkills(sgs.cardneed_skill,enemy) or self:hasSkills("zhaolie|tianxiang|qinyin|yanxiao|zhaoxin|toudu",enemy)
+		if self:hasSkills(sgs.cardneed_skill,enemy) or self:hasSkills("zhaolie|tianxiang|qinyin|yanxiao|zhaoxin|toudu|renjie",enemy)
 			then value = value + 5 
 		end
 		if self:hasSkills("yingzi|shelie|xuanhuo|buyi|jujian|jiangchi|mizhao|hongyuan|chongzhen|duoshi",enemy) then value = value + 1 end

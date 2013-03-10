@@ -835,7 +835,8 @@ jilve_skill.getTurnUseCard = function(self)
 		self:sort(self.enemies, "hp")
 		local target
 		for _, enemy in ipairs(self.enemies) do
-			if not (enemy:hasSkill("kongcheng") and enemy:isKongcheng()) and self:isWeak(enemy) and self:damageMinusHp(self, enemy, 1) > 0 then
+			if not (enemy:hasSkill("kongcheng") and enemy:isKongcheng()) and self:isWeak(enemy) and self:damageMinusHp(self, enemy, 1) > 0
+			  and #self.enemies > 1 then
 				sgs.ai_skill_choice.jilve = "wansha"
 				sgs.ai_use_priority.JilveCard = 8
 				local wanshacard = sgs.Card_Parse("@JilveCard=.")
@@ -859,7 +860,8 @@ jilve_skill.getTurnUseCard = function(self)
 		self:sort(self.enemies, "hp")
 		local target
 		for _, enemy in ipairs(self.enemies) do
-			if not (enemy:hasSkill("kongcheng") and enemy:isKongcheng()) and self:isWeak(enemy) and self:damageMinusHp(self, enemy, 1) > 0 then
+			if not (enemy:hasSkill("kongcheng") and enemy:isKongcheng()) and self:isWeak(enemy) and self:damageMinusHp(self, enemy, 1) > 0
+			  and #self.enemies > 1 then
 				sgs.ai_skill_choice.jilve = "wansha"
 				sgs.ai_use_priority.JilveCard = 8
 				local wanshacard = sgs.Card_Parse("@JilveCard=.")

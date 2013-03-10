@@ -671,7 +671,8 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 	else
 		if not self:hasHeavySlashDamage(target, effect.slash) then
 			if target:hasSkill("mengjin") and not (target:hasSkill("qianxi") and target:distanceTo(self.player) == 1) then
-				if self.player:hasSkill("tuntian") and self.player:getPhase() == sgs.Player_NotActive then return end
+				if self:doNotDiscard(self.player, "he", true) then return end
+				if self.player:getCards("he"):length() == 1 and not self.player:getArmor() then return end
 				if self:hasSkills("jijiu|qingnang") and self.player:getCards("he"):length() > 1 then return "." end
 				if self:canUseJieyuanDecrease(target) then return "." end
 				if self:willSkipPlayPhase() then return end
@@ -682,8 +683,8 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 				if player:getHp() > 2 and player:getDefensiveHorse() then return "." end
 			end
 		end
-		if not (self.player:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng)) and self:hasLoseHandcardEffective()
-		  and not (target:hasSkill("qianxi") and target:distanceTo(self.player) == 1) then
+		if (self.player:getHandcardNum() == 1 and self:needKongcheng()) or not self:hasLoseHandcardEffective() then return end
+		if not (target:hasSkill("qianxi") and target:distanceTo(self.player) == 1) then
 			if self:isEquip("Axe", target) then
 				if self:hasSkills(sgs.lose_equip_skill, target) and target:getEquips():length() > 1
 				  and target:getCards("he"):length() > 2 then
@@ -691,7 +692,7 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 				end
 				if target:getHandcardNum() - target:getHp() > 2 then return "." end
 			elseif self:isEquip("Blade", target) then
-				if self:hasHeavySlashDamage(target, effect.slash,self.player) then
+				if self:hasHeavySlashDamage(target, effect.slash, self.player) then
 				elseif self:getCardsNum("Jink") <= getCardsNum("Slash", target) or self:hasSkills("jijiu|qingnang") or self:canUseJieyuanDecrease(target) then
 					return "."
 				end
@@ -1475,7 +1476,13 @@ sgs.dynamic_value.benefit.ExNihilo = true
 function SmartAI:getDangerousCard(who)
 	local weapon = who:getWeapon()
 	local armor = who:getArmor()
-	if (weapon and weapon:isKindOf("Crossbow")) then return weapon:getEffectiveId() end
+	if weapon and weapon:isKindOf("Crossbow") then 
+		for _, friend in ipairs(self.friends) do
+			if who:distanceTo(friend) <= 1 then
+				return weapon:getEffectiveId()
+			end
+		end
+	end
 	if (weapon and weapon:isKindOf("Spear") and who:hasSkill("paoxiao") and who:getHandcardNum() >=1 ) then return weapon:getEffectiveId() end
 	if weapon and weapon:isKindOf("Axe") and self:hasSkills("luoyi|pojun|jiushi|jiuchi|jie|wenjiu|shenli|jieyuan", who) then
 		return weapon:getEffectiveId()
@@ -1691,7 +1698,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	end
 
 	for _, enemy in ipairs(enemies) do
-		if enemy:hasEquip() and self:hasTrickEffective(card, enemy) then			
+		if enemy:hasEquip() and self:hasTrickEffective(card, enemy) and not self:doNotDiscard(enemy) then			
 			if self:hasSkills("jijiu|qingnang|qiaobian|jieyin|beige|miji|fanjian|neofanjian|tuxi|" ..
 			  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|manjuan", enemy) then
 				local cardchosen

@@ -2611,7 +2611,7 @@ function SmartAI:askForCardChosen(who, flags, reason)
 		end
 		if flags:match("e") and self:getDangerousCard(who) then return self:getDangerousCard(who) end
 		if flags:match("e") and self:hasSkills("jijiu|qingnang|qiaobian|jieyin|miji|beige|fanjian|neofanjian|tuxi|" ..
-		  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|yinling|noswuyan|manjuan", who) then
+		  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|yinling|noswuyan|manjuan", who) and not self:doNotDiscard(who, "e")then
 			if who:getDefensiveHorse() then return who:getDefensiveHorse():getId() end
 			if who:getArmor() and not self:needToThrowArmor(who) then
 				return who:getArmor():getId()
@@ -4826,7 +4826,11 @@ function SmartAI:useEquipCard(card, use)
 	if card:isKindOf("Weapon") then
 		if self:needBear() then return end
 		if self:hasSkill("zhulou") and same then return end
-		if self:hasSkill("taichen") and same then return end
+		if self:hasSkill("taichen") and same then
+			local dummy_use = { isDummy = true }
+			self:useSkillCard(sgs.Card_Parse("@TaichenCard=" .. same:getEffectiveId()), dummy_use)
+			if dummy_use.card then return end
+		end
 		if self:hasSkill("qiangxi") and not self.player:hasUsed("QiangxiCard") and same then
 			local dummy_use = { isDummy = true }
 			self:useSkillCard(sgs.Card_Parse("@QiangxiCard=" .. same:getEffectiveId()), dummy_use)
@@ -4934,7 +4938,7 @@ function SmartAI:needRende()
 end
 
 function getBestHp(player)
-	local arr = {baiyin = 1, quhu = 1, ganlu = 1, yinghun = 2, miji = 1, xueji = 1, baobian = 2}
+	local arr = {baiyin = 1, ganlu = 1, yinghun = 2, miji = 1, xueji = 1, baobian = 2}
 
 	if player:hasSkill("longhun") and player:getCards("he"):length() > 2 then return 1 end
 	if player:getMark("@waked") > 0 and not player:hasSkill("xueji") then return player:getMaxHp() end
@@ -5068,7 +5072,8 @@ function SmartAI:findPlayerToDiscard(flags, include_self)
 	if flags:match("e") then
 		for _, enemy in ipairs(enemies) do
 			if self:hasSkills("jijiu|qingnang|qiaobian|jieyin|miji|beige|fanjian|neofanjian|tuxi|" ..
-			  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|yinling|noswuyan|manjuan", enemy) then
+			  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|yinling|noswuyan|manjuan", enemy) 
+			  and not self:doNotDiscard(who, "e") then
 				if enemy:getDefensiveHorse() then return enemy end
 				if enemy:getArmor() and not self:needToThrowArmor(enemy) then return enemy end
 				if enemy:getOffensiveHorse() and enemy:hasSkill("jijiu") and enemy:getOffensiveHorse():isRed() then

@@ -5016,6 +5016,7 @@ end
 function SmartAI:findPlayerToDiscard(flags, include_self)
 	local targets, friends, enemies = {}, {}, {}
 	targets = include_self and self.room:getAlivePlayers() or self.room:getOtherPlayers(self.player)
+	targets = sgs.QList2Table(targets)
 	friends = include_self and self.friends or self.friends_noself
 	enemies = self.enemies
 	flags = flags or "he"

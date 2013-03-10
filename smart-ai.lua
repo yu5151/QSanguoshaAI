@@ -3243,29 +3243,48 @@ function SmartAI:getCardNeedPlayer(cards)
 end
 
 function SmartAI:askForYiji(card_ids)
-	local isLirang = self.player:hasFlag("lirang_InTempMoving")
-	if not isLirang and self.player:getHandcardNum() <= 2 then
-		return nil, -1
-	end
-
 	local cards = {}
 	for _, card_id in ipairs(card_ids) do
 		table.insert(cards, sgs.Sanguosha:getCard(card_id))
 	end
+	
+	local isLirang = self.player:hasFlag("lirang_InTempMoving")
+	
+	local Shenfen_user
+	for _, player in sgs.qlist(self.room:getAlivePlayers()) do
+		if player:hasFlag("ShenfenUsing") then
+			Shenfen_user = player
+			break
+		end
+	end
+
+	if not isLirang and not Shenfen_user and self.player:getHandcardNum() <= 2 then
+		return nil, -1
+	end
 
 	local card, friend = self:getCardNeedPlayer(cards)
-	if card and friend and not (isLirang and friend:objectName() == self.player:objectName()) then return friend, card:getId() end
+	if card and friend and not (isLirang and friend:objectName() == self.player:objectName()) and (not Shenfen_user or friend:getHandcardNum() >=4 ) then
+		return friend, card:getId()
+	end
+	
 	if #self.friends > 1 then
 		self:sort(self.friends, "handcard")
 		for _, afriend in ipairs(self.friends) do
-			if not (self:needToKeepKongcheng(afriend) or afriend:hasSkill("manjuan")) and not (isLirang and afriend:objectName() == self.player:objectName()) then
+			if not (self:needToKeepKongcheng(afriend) or afriend:hasSkill("manjuan")) and not (isLirang and afriend:objectName() == self.player:objectName())
+				and (not Shenfen_user or afriend:getHandcardNum() >=4) then
 				for _, acard_id in ipairs(card_ids) do
 					return afriend, acard_id
 				end
 			end
 		end
 	end
-
+	
+	if Shenfen_user and self:isFriend(Shenfen_user) and (not isLirang or Shenfen_user:objectName() ~= self.player:objectName()) then
+		for _, id in ipairs(card_ids) do
+			return Shenfen_user, id
+		end
+	end
+	
 	--All cards should be given out for LiRang
 	if isLirang then
 		local tos = {}

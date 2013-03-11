@@ -1049,6 +1049,9 @@ local function need_huangen(self, who)
 		if card:isKindOf("GodSalvation") and who:isWounded() and who:hasSkill("manjuan") and who:getPhase() == sgs.Player_NotActive then
 			return true
 		end
+		if card:isKindOf("GodSalvation") and who:isWounded() and self:isWeak(who) then
+			return true
+		end
 		return false
 	elseif self:isFriend(who) then
 		if self:hasSkills("noswuyan", who) and self.room:getCurrent():objectName() ~= who:objectName() then return true end
@@ -1064,6 +1067,7 @@ sgs.ai_skill_use["@@huangen"] = function(self, prompt)
 	local first_index, second_index, third_index, forth_index, fifth_index
 	local i = 1
 	local players = sgs.QList2Table(self.room:getAllPlayers())
+	self:sort(players, "defense")
 	for _, player in ipairs(players) do
 		if player:hasFlag("HuangenTarget") then
 			if not first_index and need_huangen(self, player) then

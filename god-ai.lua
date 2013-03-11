@@ -848,7 +848,7 @@ jilve_skill.getTurnUseCard = function(self)
 	end
 	if not self.player:hasUsed("ZhihengCard") then
 		sgs.ai_skill_choice.jilve = "zhiheng"
-		sgs.ai_use_priority.JilveCard = 0.4
+		sgs.ai_use_priority.JilveCard = sgs.ai_use_priority.ZhihengCard
 		local card = sgs.Card_Parse("@ZhihengCard=.")
 		local dummy_use={isDummy=true}
 		self:useSkillCard(card, dummy_use)

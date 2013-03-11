@@ -1006,70 +1006,124 @@ zhiheng_skill.getTurnUseCard = function(self)
 	end
 end
 
+local zhiheng_skill = {}
+zhiheng_skill.name = "zhiheng"
+table.insert(sgs.ai_skills, zhiheng_skill)
+zhiheng_skill.getTurnUseCard = function(self)
+	if not self.player:hasUsed("ZhihengCard") then
+		return sgs.Card_Parse("@ZhihengCard=.")
+	end
+end
+
 sgs.ai_skill_use_func.ZhihengCard = function(card, use, self)
-	local unpreferedCards = {}
+	local unpreferedCards = {} 
 	local cards = sgs.QList2Table(self.player:getHandcards())
-	
+
 	if self.player:getHp() < 3 then
 		local zcards = self.player:getCards("he")
+		local use_slash, keep_jink, keep_anal = false, false, false
 		for _, zcard in sgs.qlist(zcards) do
-			if not zcard:isKindOf("Peach") and not zcard:isKindOf("ExNihilo") then
-				table.insert(unpreferedCards,zcard:getId())
-			end	
+			if not isCard("Peach", zcard, self.player) and not isCard("ExNihilo", zcard, self.player) then
+				local shouldUse = true
+				if not self:isWeak() and isCard("Slash", zcard, self.player) and not use_slash then
+					local dummy_use = { isDummy = true }
+					self:useBasicCard(zcard, dummy_use)
+					if dummy_use.card then
+						use_slash = true
+						shouldUse = false
+					end
+				end
+				if zcard:getTypeId() == sgs.Card_TypeTrick then
+					local dummy_use = { isDummy = true }
+					self:useTrickCard(zcard, dummy_use)
+					if dummy_use.card then shouldUse = false end
+				end
+				if zcard:getTypeId() == sgs.Card_TypeEquip and not self.player:hasEquip(card) then
+					local dummy_use = { isDummy = true }
+					self:useEquipCard(zcard, dummy_use)
+					if dummy_use.card then shouldUse = false end
+				end
+				if self.player:hasEquip(zcard) and zcard:isKindOf("Armor") and not self:needToThrowArmor() then shouldUse = false end
+				if self.player:hasEquip(zcard) and zcard:isKindOf("DefensiveHorse") and not self:needToThrowArmor() then shouldUse = false end
+				if isCard("Jink", zcard, self.player) and not keep_jink then
+					keep_jink = true
+					shouldUse = false
+				end
+				if self.player:getHp() == 1 and isCard("Analeptic", zcard, self.player) and not keep_anal then
+					keep_anal = true
+					shouldUse = false
+				end
+				if shouldUse then table.insert(unpreferedCards, zcard:getId()) end
+			end
 		end
 	end
-	
-	if #unpreferedCards == 0 then 
-		if self:getCardsNum("Slash") > 1 then 
-			self:sortByKeepValue(cards)
-			for _,card in ipairs(cards) do
-				if card:isKindOf("Slash") then table.insert(unpreferedCards,card:getId()) end
+
+	if #unpreferedCards == 0 then
+		local use_slash_num = 0
+		self:sortByKeepValue(cards)
+		for _, card in ipairs(cards) do
+			if card:isKindOf("Slash") then
+				local will_use = false
+				if use_slash_num <= sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, card) then
+					local dummy_use = { isDummy = true }
+					self:useBasicCard(card, dummy_use)
+					if dummy_use.card then
+						will_use = true
+						use_slash_num = use_slash_num + 1
+					end
+				end
+				if not will_use then table.insert(unpreferedCards, card:getId()) end
 			end
-			table.remove(unpreferedCards,1)
 		end
-		
-		local num = self:getCardsNum("Jink") - 1							
+
+		local num = self:getCardsNum("Jink") - 1
 		if self.player:getArmor() then num = num + 1 end
-		if num>0 then
-			for _,card in ipairs(cards) do
-				if card:isKindOf("Jink") and num>0 then 
-					table.insert(unpreferedCards,card:getId())
-					num=num-1
+		if num > 0 then
+			for _, card in ipairs(cards) do
+				if card:isKindOf("Jink") and num > 0 then
+					table.insert(unpreferedCards, card:getId())
+					num = num - 1
 				end
 			end
 		end
-		for _,card in ipairs(cards) do
-			if (card:isKindOf("Weapon") and self.player:getHandcardNum() < 3) or card:isKindOf("OffensiveHorse") or
-				self:getSameEquip(card, self.player) or (card:isKindOf("TrickCard") and not card:isKindOf("Nullification")) then
-				table.insert(unpreferedCards,card:getId())
+		for _, card in ipairs(cards) do
+			if (card:isKindOf("Weapon") and self.player:getHandcardNum() < 3) or card:isKindOf("OffensiveHorse")
+				or self:getSameEquip(card, self.player) or card:isKindOf("AmazingGrace") then
+				table.insert(unpreferedCards, card:getId())
+			elseif card:getTypeId() == sgs.Card_TypeTrick then
+				local dummy_use = { isDummy = true }
+				self:useTrickCard(card, dummy_use)
+				if not dummy_use.card then table.insert(unpreferedCards, card:getId()) end
 			end
 		end
-	
+
 		if self.player:getWeapon() and self.player:getHandcardNum() < 3 then
 			table.insert(unpreferedCards, self.player:getWeapon():getId())
 		end
-				
+
 		if self:needToThrowArmor() then
 			table.insert(unpreferedCards, self.player:getArmor():getId())
-		end	
+		end
 
 		if self.player:getOffensiveHorse() and self.player:getWeapon() then
 			table.insert(unpreferedCards, self.player:getOffensiveHorse():getId())
 		end
-	end	
-	
+	end
+
 	for index = #unpreferedCards, 1, -1 do
 		if self.player:isJilei(sgs.Sanguosha:getCard(unpreferedCards[index])) then table.remove(unpreferedCards, index) end
 	end
-	
-	if #unpreferedCards > 0 then 
-		use.card = sgs.Card_Parse("@ZhihengCard="..table.concat(unpreferedCards,"+")) 
-		return 
+
+	if #unpreferedCards > 0 then
+		use.card = sgs.Card_Parse("@ZhihengCard=" .. table.concat(unpreferedCards, "+"))
+		return
 	end
 end
 
 sgs.ai_use_value.ZhihengCard = 9
+sgs.ai_use_priority.ZhihengCard = 3
 sgs.dynamic_value.benefit.ZhihengCard = true
+sgs.ai_chaofeng.sunquan = 2
 
 function sgs.ai_cardneed.zhiheng(to, card)
 	return not card:isKindOf("Jink")
@@ -1316,7 +1370,7 @@ sgs.dynamic_value.damage_card.FanjianCard = true
 sgs.ai_chaofeng.zhouyu = 3
 
 sgs.ai_skill_invoke.lianying = function(self, data)
-	if (self.player:hasSkill("kongcheng") or (self.player:hasSkill("zhiji") and self.player:getMark("zhiji") == 0)) then
+	if self:needToKeepKongcheng() then
 		return player:getPhase() == sgs.Player_Play
 	end
 	return true
@@ -2071,6 +2125,12 @@ end
 
 sgs.dynamic_value.damage_card.LijianCard = true
 
+sgs.ai_skill_invoke.biyue = function(self, data)
+	if self:needToKeepKongcheng() then
+		return false
+	end
+	return true
+end
 sgs.ai_chaofeng.diaochan = 4
 
 sgs.ai_suit_priority.jijiu= "club|spade|diamond|heart"

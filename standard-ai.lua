@@ -1006,15 +1006,6 @@ zhiheng_skill.getTurnUseCard = function(self)
 	end
 end
 
-local zhiheng_skill = {}
-zhiheng_skill.name = "zhiheng"
-table.insert(sgs.ai_skills, zhiheng_skill)
-zhiheng_skill.getTurnUseCard = function(self)
-	if not self.player:hasUsed("ZhihengCard") then
-		return sgs.Card_Parse("@ZhihengCard=.")
-	end
-end
-
 sgs.ai_skill_use_func.ZhihengCard = function(card, use, self)
 	local unpreferedCards = {} 
 	local cards = sgs.QList2Table(self.player:getHandcards())
@@ -1121,7 +1112,7 @@ sgs.ai_skill_use_func.ZhihengCard = function(card, use, self)
 end
 
 sgs.ai_use_value.ZhihengCard = 9
-sgs.ai_use_priority.ZhihengCard = 3
+sgs.ai_use_priority.ZhihengCard = 0
 sgs.dynamic_value.benefit.ZhihengCard = true
 sgs.ai_chaofeng.sunquan = 2
 

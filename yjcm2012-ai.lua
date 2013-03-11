@@ -16,35 +16,6 @@ end
 
 sgs.ai_skill_invoke.fuli = true
 
-sgs.ai_skill_invoke.fuhun = function(self, data)
-	if self:needBear() then return false end
-	local target = 0
-	for _,enemy in ipairs(self.enemies) do
-		if (self.player:distanceTo(enemy) <= self.player:getAttackRange())  then target = target + 1 end
-	end
-	return target > 0 and not self.player:isSkipped(sgs.Player_Play)
-end
-
-sgs.ai_chaofeng.guanxingzhangbao = 2
-
-sgs.ai_skill_invoke.zhenlie = function(self, data)
-	local judge = data:toJudge()
-	if not judge:isGood() then 
-	return true end
-	return false
-end
-
-sgs.ai_skill_playerchosen.miji = function(self, targets)
-	if self:needBear() then return self.player end
-	local to = self:findPlayerToDraw("all", self.player:getLostHp())
-	if to then return to end
-	return self.player
-end
-
-sgs.ai_playerchosen_intention.miji = -80
-
-sgs.ai_chaofeng.wangyi = -2
-
 function sgs.ai_cardneed.jiangchi(to, card)
 	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) < 2
 end
@@ -756,7 +727,7 @@ sgs.ai_skill_playerchosen.newqianxi = function(self, targets)
 		(self:hasHeavySlashDamage(self.player, nil, enemies[1]) and enemies[1]:getHp() <= 2 or enemies[1]:getHp() > 1) then
 			return enemies[1]
 		end
-		for _, enemy in ipairs(enemies) do	
+		for _, enemy in ipairs(enemies) do
 			if enemies[1]:objectName() ~= enemy:objectName() then
 				if self.player:hasFlag("newqianxin_red") then
 					if (self:hasSkills("longhun|qingnang|beige", enemy) and getKnownCard(enemy,"red", nil, "he") >= 1) or getCardsNum("Peach") >=1 then
@@ -767,7 +738,7 @@ sgs.ai_skill_playerchosen.newqianxi = function(self, targets)
 						(self:hasSkills("longhun|beige", enmey) and getKnownCard(enemy,"black", nil, "he") >= 1) then
 						return enmey
 					end
-				end				
+				end
 			end
 		end
 		return enemies[1]
@@ -775,7 +746,236 @@ sgs.ai_skill_playerchosen.newqianxi = function(self, targets)
 	return targets:first()
 end
 
-------------------旧马岱
+------- 新关心张包
+
+local newfuhun_skill = {}
+newfuhun_skill.name = "newfuhun"
+table.insert(sgs.ai_skills, newfuhun_skill)
+newfuhun_skill.getTurnUseCard = function(self)
+	if self.player:getCardCount(true) < 2 then return end
+	if self.player:hasFlag("newfuhun") then return end
+	if not self:slashIsAvailable() then return end
+	
+	local Hcards = sgs.QList2Table(self.player:getCards("h"))
+	local cards = {}
+	
+	local peach_num = self:getCardsNum("Peach")
+	local jink_num = self:getCardsNum("Jink")
+	
+	local maxnumber = self.player:getMaxCards()
+	if self.player:hasSkill("yongsi") then
+		local kingdoms, kingdom_num = {}, 0
+		for _, ap in sgs.qlist(self.room:getAlivePlayers()) do
+			if not kingdoms[ap:getKingdom()] then
+				kingdoms[ap:getKingdom()] = true
+				kingdom_num = kingdom_num + 1
+			end
+		end
+		maxnumber = maxnumber - kingdom_num
+	end
+	
+	self:sortByUseValue(Hcards, true)
+	for _, card in ipairs(Hcards) do
+		if not (isCard("Peach", card, self.player) and self.player:isWounded() and peach_num < self.player:getLostHp()) then
+			table.insert(cards, card)
+			peach_num = peach_num - 1
+		elseif not (isCard("Jink", card, self.player) and self:isWeak() and jink_num + peach_num < maxnumber) then
+			table.insert(cards, card)
+			jink_num = jink_num - 1
+		else
+			table.insert(cards, card)
+		end
+	end
+	if self.player:getArmor() and (not self:isWeak() or self.player:hasArmorEffect("SilverLion")) then
+		table.insert(cards, self.player:getArmor())
+	end
+	if self.player:getDefensiveHorse() and not self:isWeak() then 
+		table.insert(cards, self.player:getDefensiveHorse())
+	end
+	if self.player:getOffensiveHorse() and self.player:getWeapon() then
+		table.insert(cards, self.player:getOffensiveHorse())
+	end
+	
+	if #cards == 0 then return end
+	
+	local black_slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_Spade, 0)
+	local nosuit_slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+	
+	local card_id1, card_id2
+	self:sort(self.enemies, "defenseSlash")
+	for _, enemy in ipairs(self.enemies) do
+		if self:canAttack(enemy) and self.player:canSlash(enemy, nil, true) then
+			if (#cards == 1 or #cards == 2) and getCardsNum("Jink", enemy) < 1 and (self:hasHeavySlashDamage(self.player, black_slash, enemy) or enemy:getHp() <= 2) and
+				(not enemy:hasArmorEffect("EightDiagram") or IgnoreArmor(self.player, enemy)) then
+				
+				if not self:slashProhibit(black_slash, enemy) and self:slashIsEffective(black_slash, enemy) then
+					card_id1 = cards[1]:getEffectiveId()
+					if #cards == 2 then card_id2 = cards[2]:getEffectiveId()
+					elseif #cards == 1 then
+						for _, acard in ipairs(Hcards) do
+							if acard:getEffectiveId() ~= card_id1 then
+								card_id2 = acard:getEffectiveId()
+								break
+							end
+						end
+					end
+					if card_id1 and card_id2 then break end
+					
+				elseif not self:slashProhibit(nosuit_slash, enemy) and self:slashIsEffective(nosuit_slash, enemy) then
+					card_id1 = cards[1]:getEffectiveId()
+					if #cards == 2 then card_id2 = cards[2]:getEffectiveId()
+					elseif #cards == 1 then
+						for _, acard in ipairs(Hcards) do
+							if acard:getEffectiveId() ~= card_id1 and not acard:sameColorWith(cards[1]) then
+								card_id2 = acard:getEffectiveId()
+								break
+							end
+						end
+					end
+					if card_id1 and card_id2 then break end
+				end
+				
+			elseif #cards >= 2 then
+				if not self:slashProhibit(black_slash, enemy) and self:slashIsEffective(black_slash, enemy) then
+					local slash_number = 0
+					for _, acard in ipairs(cards) do
+						if acard:getEffectiveId() ~= cards[1]:getEffectiveId() and acard:getEffectiveId() ~= cards[2]:getEffectiveId() and
+							(acard:isRed() and not acard:isKindOf("Peach") or isCard("Slash", acard, self.player)) then
+							slash_number = slash_number + 1
+						end
+					end
+					if slash_number > 0 then
+						card_id1 = cards[1]:getEffectiveId()
+						card_id2 = cards[2]:getEffectiveId()
+						break
+					end
+				elseif not self:slashProhibit(nosuit_slash, enemy) and self:slashIsEffective(nosuit_slash, enemy) then
+					local slash_number = 0
+					local card2
+					for _, acard in ipairs(cards) do
+						if acard:getEffectiveId() ~= cards[1]:getEffectiveId() and not cards[1]:sameColorWith(acard) then
+							if not card2 then
+								card2 = acard
+							else
+								if acard:getEffectiveId() ~= card2:getEffectiveId() and
+									(acard:isRed() and not acard:isKindOf("Peach") or isCard("Slash", acard, self.player)) then
+									slash_number = slash_number + 1
+								end
+							end
+						end
+					end
+					if slash_number > 0 then
+						card_id1 = cards[1]:getEffectiveId()
+						card_id2 = card2:getEffectiveId()
+						break
+					end
+				end
+			end
+		end
+	end
+	
+	if card_id1 and card_id2 then
+		local fuhun_str
+		if sgs.Sanguosha:getVersion() <= "20121221" then
+			fuhun_str = ("slash:newfuhun[%s:%s]=%d+%d"):format(suit, 0, card_id1, card_id2)
+		else
+			fuhun_str = ("slash:newfuhun[to_be_decided:0]=%d+%d"):format(card_id1, card_id2)
+		end
+		return sgs.Card_Parse(fuhun_str)
+	end
+end
+
+------ 新王异
+
+function sgs.ai_skill_invoke.newzhenlie(self, data)
+	local use = data:toCardUse()
+	if not use.from then return false end
+	if self.role == "rebel" and sgs.evaluateRoleTrends(use.from) == "rebel" and self.player:getHp() == 1 and self:getAllPeachNum() < 1 then return false end
+	
+	if self:isEnemy(use.from) or (self:isFriend(use.from) and self.role == 'loyalist' and isLord(use.from) and self.player:getHp() == 1) then
+		if use.card:isKindOf("Slash") and self:getCardsNum("Jink") == 0 then --and self:hasHeavySlashDamage(use.from, use.card, self.player) then
+			return true
+		elseif use.card:isKindOf("SavageAssault") and self:getCardsNum("Slash") + self:getCardsNum("Nullification") == 0 then
+			return true
+		elseif use.card:isKindOf("ArcheryAttack") and self:getCardsNum("Jink") + self:getCardsNum("Nullification") == 0 then
+			return true
+		end
+	elseif self:isEnemy(use.from) then
+		if use.card:isKindOf("FireAttack") and self.player:hasArmorEffect("Vine") and use.from:getHandcardNum() > 3 and
+			not (use.from:hasSkill("hongyan") and getKnownCard(self.player, "spade") > 0) then
+			return true
+		elseif (use.card:isKindOf("Snatch") or use.card:isKindOf("Dismantlement")) and
+			self:getCardsNum("Peach") == self.player:getHandcardNum() and not self.player:isKongcheng() then
+			return true
+		end
+	end	
+	return false
+end
+
+function sgs.ai_skill_invoke.newmiji(self, data)
+	local invoke
+	for _, target in ipairs(self.friends_noself) do
+		if not (target:hasSkill("manjuan") and target:getPhase() == sgs.Player_NotActive) and
+			(not self:needToKeepKongcheng(target) or self.player:getLostHp() > 1) then
+			invoke = true
+			break
+		end
+	end
+	return invoke
+end
+
+sgs.ai_skill_choice.newmiji = function(self, choices)
+	local number = choices:split("+")
+	return number[1]
+end
+
+sgs.ai_skill_askforag.newmiji = function(self, card_ids)
+	local cards = {}
+	local jink_num = 0
+	for _, id in ipairs(card_ids) do
+		local card = sgs.Sanguosha:getCard(id)
+		if isCard("Jink", card, self.player) and jink_num == 0 then
+			jink_num = jink_num + 1
+		else
+			table.insert(cards, card)
+		end
+	end
+	
+	local card, friend = self:getCardNeedPlayer(cards)
+	if card and friend then
+		sgs.newmiji_target = friend
+		-- self.player:speak("1."..card:getLogName().."to:"..friend:getGeneralName())
+		return card:getEffectiveId()
+	end
+	
+	local new_friends = {}
+	for _, target in ipairs(self.friends_noself) do
+		if not (target:hasSkill("manjuan") and target:getPhase() == sgs.Player_NotActive) and
+			(not self:needToKeepKongcheng(target) or self.player:getLostHp() > 1) then
+			table.insert(new_friends, target)
+		end
+	end
+	
+	if #new_friends >=1 then
+		self:sort(new_friends, "defense")
+		local afriend = new_friends[1]
+		sgs.newmiji = new_friends[1]
+		-- self.player:speak("2."..sgs.Sanguosha:getCard(card_ids[1]):getLogName().."to:"..new_friends[1]:getGeneralName())
+		return card_ids[1]
+	end	
+	
+end
+
+sgs.ai_skill_playerchosen.newmiji = function(self, targets)
+	if sgs.newmiji_target then return sgs.newmiji_target end
+	return targets:first()
+end
+
+sgs.ai_playerchosen_intention.newmiji = -50
+
+--------------=====================分割线===================---------------
+
+-------旧马岱
 
 function sgs.ai_cardneed.qianxi(to, card)
 	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0
@@ -794,3 +994,35 @@ end
 
 sgs.ai_chaofeng.madai = 3
 
+----旧关心张苞
+
+sgs.ai_skill_invoke.fuhun = function(self, data)
+	if self:needBear() then return false end
+	local target = 0
+	for _,enemy in ipairs(self.enemies) do
+		if (self.player:distanceTo(enemy) <= self.player:getAttackRange())  then target = target + 1 end
+	end
+	return target > 0 and not self.player:isSkipped(sgs.Player_Play)
+end
+
+sgs.ai_chaofeng.guanxingzhangbao = 2
+
+----旧王异
+
+sgs.ai_skill_invoke.zhenlie = function(self, data)
+	local judge = data:toJudge()
+	if not judge:isGood() then 
+	return true end
+	return false
+end
+
+sgs.ai_skill_playerchosen.miji = function(self, targets)
+	if self:needBear() then return self.player end
+	local to = self:findPlayerToDraw("all", self.player:getLostHp())
+	if to then return to end
+	return self.player
+end
+
+sgs.ai_playerchosen_intention.miji = -80
+
+sgs.ai_chaofeng.wangyi = -2

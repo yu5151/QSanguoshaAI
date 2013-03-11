@@ -406,8 +406,9 @@ function SmartAI:adjustUsePriority(card,v)
 	
 	table.insert(suits,"no_suit")
 	if card:isKindOf("Slash") then 
-		if card:getSkillName() == "Spear"   then v = v - 0.01 end
+		if card:getSkillName() == "Spear" then v = v - 0.01 end
 		if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 0.01 end
+		if card:getSkillName() == "newfuhun" then v = v + 0.88 end
 	end
 
 	local suits_value={}
@@ -5074,13 +5075,13 @@ function SmartAI:findPlayerToDiscard(flags, include_self)
 		for _, enemy in ipairs(enemies) do
 			if self:hasSkills("jijiu|qingnang|qiaobian|jieyin|miji|beige|fanjian|neofanjian|tuxi|" ..
 			  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|yinling|noswuyan|manjuan", enemy) 
-			  and not self:doNotDiscard(who, "e") then
+			  and not self:doNotDiscard(enemy, "e") then
 				if enemy:getDefensiveHorse() then return enemy end
 				if enemy:getArmor() and not self:needToThrowArmor(enemy) then return enemy end
 				if enemy:getOffensiveHorse() and enemy:hasSkill("jijiu") and enemy:getOffensiveHorse():isRed() then
 					return enemy
 				end
-				if who:getWeapon() and enemy:hasSkill("jijiu") and enemy:getWeapon():isRed() then
+				if enemy:getWeapon() and enemy:hasSkill("jijiu") and enemy:getWeapon():isRed() then
 					return enemy
 				end
 			end
@@ -5091,7 +5092,7 @@ function SmartAI:findPlayerToDiscard(flags, include_self)
 			local cards = sgs.QList2Table(enemy:getHandcards())
 			local flag = string.format("%s_%s_%s", "visible", self.player:objectName(), enemy:objectName())
 			if #cards <= 2 and not enemy:isKongcheng() and not (enemy:hasSkill("tuntian") and enemy:getPhase() == sgs.Player_NotActive)
-			  and not self:doNotDiscard(who, "h") then
+			  and not self:doNotDiscard(enemy, "h") then
 				for _, cc in ipairs(cards) do
 					if (cc:hasFlag("visible") or cc:hasFlag(flag)) and (cc:isKindOf("Peach") or cc:isKindOf("Analeptic")) then
 						return enemy

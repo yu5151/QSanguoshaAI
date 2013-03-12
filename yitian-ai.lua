@@ -156,7 +156,16 @@ end
 	技能：绝汲
 	描述：出牌阶段，你可以和一名角色拼点：若你赢，你获得对方的拼点牌，并可立即再次与其拼点，如此反复，直到你没赢或不愿意继续拼点为止。每阶段限一次。 
 ]]--
-sgs.ai_skill_invoke.jueji = true
+sgs.ai_skill_invoke.jueji = function(self, data)
+	local target
+	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+		if player:hasFlag("jueji_target") then
+			target = player
+			target:setFlags("-jueji_target")
+		end
+	end
+	return not self:doNotDiscard(target, "h")
+end
 
 local jueji_skill = {}
 jueji_skill.name = "jueji"
@@ -180,10 +189,11 @@ sgs.ai_skill_use_func.JuejiCard = function(card, use, self)
 	local max_card = self:getMaxCard()
 	local max_point = max_card:getNumber()
 	
-	if self:hasSkills(sgs.need_kongcheng, self.player) and self.player:getHandcardNum() == 1 then
+	if (self:needKongcheng() and self.player:getHandcardNum() == 1) or not self:hasLoseHandcardEffective() then
 		for _, enemy in ipairs(self.enemies) do
-			if not enemy:isKongcheng() and not self:doNotDiscard(enemy, "h") then
+			if not self:doNotDiscard(enemy, "h") then
 				use.card = sgs.Card_Parse("@JuejiCard=" .. max_card:getId())
+				enemy:setFlags("jueji_target")
 				if use.to then use.to:append(enemy) end
 				return
 			end
@@ -191,7 +201,7 @@ sgs.ai_skill_use_func.JuejiCard = function(card, use, self)
 	end
 		
 	for _, enemy in ipairs(self.enemies) do
-		if not self:doNotDiscard(enemy, "h") and not enemy:isKongcheng() then
+		if not self:doNotDiscard(enemy, "h") then
 			local enemy_max_card = self:getMaxCard(enemy)
 			local allknown = 0
 			if self:getKnownNum(enemy) == enemy:getHandcardNum() then
@@ -201,6 +211,7 @@ sgs.ai_skill_use_func.JuejiCard = function(card, use, self)
 				or (enemy_max_card and max_point > enemy_max_card:getNumber() and allknown < 1 and max_point > 10) 
 				or (not enemy_max_card and max_point > 10) then
 				use.card = sgs.Card_Parse("@JuejiCard=" .. max_card:getId())
+				enemy:setFlags("jueji_target")
 				if use.to then use.to:append(enemy) end
 				return
 			end
@@ -208,11 +219,11 @@ sgs.ai_skill_use_func.JuejiCard = function(card, use, self)
 	end
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	self:sortByKeepValue(cards)
-	self:sort(self.enemies, "handcard")
 	if self:getOverflow() > 0 then
 		for _, enemy in ipairs(self.enemies) do
-			if not self:doNotDiscard(enemy, "h", true) and not enemy:isKongcheng() then
+			if not self:doNotDiscard(enemy, "h", true) then
 				use.card = sgs.Card_Parse("@JuejiCard=" .. cards[1]:getId())
+				enemy:setFlags("jueji_target")
 				if use.to then use.to:append(enemy) end
 				return
 			end

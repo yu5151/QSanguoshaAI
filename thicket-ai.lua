@@ -560,16 +560,16 @@ sgs.ai_card_intention.DimengCard = function(self,card, from, to)
 end
 
 sgs.ai_use_value.DimengCard = 3.5
-sgs.ai_use_priority.DimengCard = 5.3
+sgs.ai_use_priority.DimengCard = 2.8
 
 sgs.dynamic_value.control_card.DimengCard = true
 
 sgs.ai_chaofeng.lusu = 4
 
-luanwu_skill={}
-luanwu_skill.name="luanwu"
+luanwu_skill = {}
+luanwu_skill.name = "luanwu"
 table.insert(sgs.ai_skills, luanwu_skill)
-luanwu_skill.getTurnUseCard=function(self)
+luanwu_skill.getTurnUseCard = function(self)
 	if self.player:getMark("@chaos") <= 0 then return end
 	local good, bad = 0, 0
 	local lord = self.room:getLord()

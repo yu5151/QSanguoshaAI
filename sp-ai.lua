@@ -480,8 +480,8 @@ sgs.bifa_keep_value = {
 	TrickCard = 4.8
 }
 
-local songci_skill={}
-songci_skill.name="songci"
+local songci_skill = {}
+songci_skill.name = "songci"
 table.insert(sgs.ai_skills, songci_skill)
 songci_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("SongciCard") then return end
@@ -516,7 +516,7 @@ sgs.ai_skill_use_func.SongciCard = function(card,use,self)
 end
 
 sgs.ai_use_value.SongciCard = 3
-sgs.ai_use_priority.SongciCard = 2.5
+sgs.ai_use_priority.SongciCard = 3
 sgs.ai_chaofeng.chenlin = 3
 
 sgs.ai_card_intention.SongciCard = function(self, card, from, tos, source)	

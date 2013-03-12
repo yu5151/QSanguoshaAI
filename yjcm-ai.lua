@@ -657,9 +657,9 @@ sgs.ai_filterskill_filter.jinjiu = function(card, card_place)
 	if card:isKindOf("Analeptic") then return ("slash:jinjiu[%s:%s]=%d"):format(suit, number, card_id) end
 end
 
-local xianzhen_skill={}
+local xianzhen_skill = {}
 xianzhen_skill.name = "xianzhen"
-table.insert(sgs.ai_skills,xianzhen_skill)
+table.insert(sgs.ai_skills, xianzhen_skill)
 xianzhen_skill.getTurnUseCard = function(self)
 	if self:needBear() then return end
 	if not self.player:hasUsed("XianzhenCard") and not self.player:isKongcheng() then return sgs.Card_Parse("@XianzhenCard=.") 
@@ -768,7 +768,7 @@ sgs.ai_skill_cardask["@xianzhen-slash"] = function(self)
 end
 
 sgs.ai_use_value.XianzhenSlashCard = 9.2
-sgs.ai_use_priority.XianzhenSlashCard = 2.6
+sgs.ai_use_priority.XianzhenSlashCard = 2.45
 
 sgs.ai_skill_invoke.shangshi = function(self, data)	
 	if self.player:getLostHp() == 1 then return sgs.ai_skill_invoke.lianying(self, data) end	

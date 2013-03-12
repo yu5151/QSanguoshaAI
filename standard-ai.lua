@@ -702,10 +702,10 @@ sgs.ai_choicemade_filter.skillInvoke.jijiang = function(player, promptlist)
 	end
 end
 
-local jijiang_skill={}
-jijiang_skill.name="jijiang"
-table.insert(sgs.ai_skills,jijiang_skill)
-jijiang_skill.getTurnUseCard=function(self)
+local jijiang_skill = {}
+jijiang_skill.name = "jijiang"
+table.insert(sgs.ai_skills, jijiang_skill)
+jijiang_skill.getTurnUseCard = function(self)
 	local lieges = self.room:getLieges("shu", self.player)
 	if lieges:isEmpty() then return end
 	if self.player:hasUsed("JijiangCard") or not self:slashIsAvailable() then return end
@@ -716,24 +716,24 @@ jijiang_skill.getTurnUseCard=function(self)
 	return slash
 end
 
-sgs.ai_skill_use_func.JijiangCard=function(card,use,self)
+sgs.ai_skill_use_func.JijiangCard = function(card,use,self)
 	if self.player:hasFlag("jijiang_failed") then return end
 	self:sort(self.enemies, "defenseSlash")
-	local target_count=0
+	local target_count = 0
 	for _, enemy in ipairs(self.enemies) do
 		if (self.player:canSlash(enemy, nil, not no_distance) or
-			(use.isDummy and self.player:distanceTo(enemy)<=(self.predictedRange or self.player:getAttackRange())))
-			and self:objectiveLevel(enemy)>3 and self:slashIsEffective(card, enemy) and sgs.isGoodTarget(enemy,self.enemies, self) then
+			(use.isDummy and self.player:distanceTo(enemy) <= (self.predictedRange or self.player:getAttackRange())))
+			and self:objectiveLevel(enemy) > 3 and self:slashIsEffective(card, enemy) and sgs.isGoodTarget(enemy,self.enemies, self) then
 			use.card=card
 			if use.to then
 				use.to:append(enemy)
 			end
-			target_count=target_count+1			
+			target_count = target_count+1			
 			if target_count == 1 then 
 				local flag = string.format("jijiang_%s_%s", self.player:objectName(), enemy:objectName())
 				self.room:setPlayerFlag(self.player, flag)
 			end
-			if self.slash_targets<=target_count then return end
+			if self.slash_targets <= target_count then return end
 		end
 	end	
 end
@@ -761,7 +761,7 @@ sgs.ai_card_intention.JijiangCard = function(self,card, from, tos)
 end
 
 sgs.ai_use_value.JijiangCard = 8.5
-sgs.ai_use_priority.JijiangCard = 3
+sgs.ai_use_priority.JijiangCard = 2.45
 
 sgs.ai_choicemade_filter.cardResponsed["@jijiang-slash"] = function(player, promptlist)
 	local clearJijiangTargetFlag = function(jijiangsource)

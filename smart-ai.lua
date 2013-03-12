@@ -2612,7 +2612,7 @@ function SmartAI:askForCardChosen(who, flags, reason)
 		end
 		if flags:match("e") and self:getDangerousCard(who) then return self:getDangerousCard(who) end
 		if flags:match("e") and self:hasSkills("jijiu|qingnang|qiaobian|jieyin|miji|beige|fanjian|neofanjian|tuxi|" ..
-		  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|yinling|noswuyan|manjuan", who) and not self:doNotDiscard(who, "e")then
+		  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|yinling|noswuyan|manjuan", who) and not self:doNotDiscard(who, "e") then
 			if who:getDefensiveHorse() then return who:getDefensiveHorse():getId() end
 			if who:getArmor() and not self:needToThrowArmor(who) then
 				return who:getArmor():getId()
@@ -4997,8 +4997,9 @@ function SmartAI:needToThrowArmor(player)
 	return false
 end
 
-function SmartAI:doNotDiscard(to, flags, conservative)
+function SmartAI:doNotDiscard(to, flags, conservative, n)
 	if not to then global_room:writeToConsole(debug.traceback()) return end
+	n = n or 1
 	flags = flags or "he"
 	if to:isNude() then return true end
 	if flags:match("e") then
@@ -5016,6 +5017,15 @@ function SmartAI:doNotDiscard(to, flags, conservative)
 		if not to:hasEquip() then return true end
 		if self:hasSkills(sgs.lose_equip_skill, to) then return true end	
 		if to:getCardCount(true) == 1 and self:needToThrowArmor(to) then return true end
+	end
+	if flags == "he" and n == 2 then
+		if to:getCards("he"):length() < 2 then return true end
+		if not to:hasEquip() then
+			if not self:hasLoseHandcardEffective(to) then return true end
+			if to:getHandcardNum() <= 2 and self:needKongcheng(to) then return true end
+		end
+		if self:hasSkills(sgs.lose_equip_skill, to) and to:getHandcardNum() < 2 then return true end
+		if to:getCardCount(true) <= 2 and self:needToThrowArmor(to) then return true end
 	end
 	return false
 end

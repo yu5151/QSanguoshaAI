@@ -915,9 +915,7 @@ sgs.ai_skill_use_func.TaichenCard = function(card, use, self)
 				
 				if self:isFriend(player) then
 					table.insert(friends, player)
-				elseif self:isEnemy(player) and player:getCards("he"):length() >= 2
-				  and not (self:hasSkills(sgs.lose_equip_skill, player) and player:getHandcardNum() < 2)
-				  and not (player:getHandcardNum() <= self:getLeastHandcardNum(player) and player:getCards("e"):length() < 2) then 
+				elseif self:isEnemy(player) and not self:doNotDiscard(player, "he", nil, 2) then 
 					table.insert(enemies, player)
 				end
 			end
@@ -930,9 +928,7 @@ sgs.ai_skill_use_func.TaichenCard = function(card, use, self)
 				
 				if self:isFriend(player) then
 					table.insert(friends, player)
-				elseif self:isEnemy(player) and player:getCards("he"):length() >= 2
-				  and not (self:hasSkills(sgs.lose_equip_skill, player) and player:getHandcardNum() < 2)
-				  and not (player:getHandcardNum() <= self:getLeastHandcardNum(player) and player:getCards("e"):length() < 2) then 
+				elseif self:isEnemy(player) and not self:doNotDiscard(player, "he", nil, 2) then 
 					table.insert(enemies, player)
 				end
 			end

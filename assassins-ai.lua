@@ -377,7 +377,7 @@ sgs.ai_skill_invoke.duanzhi = function(self, data)
 	end
 	]]--
 	if use.from and use.from:getCardCount(true) < 2 then return end
-	return use.from and self:isEnemy(use.from) and self.player:getHp() > 2
+	return use.from and self:isEnemy(use.from) and not self:doNotDiscard(use.from, "he", true, 2) and self.player:getHp() > 2
 end
 
 sgs.ai_skill_choice.duanzhi = function(self, choices)

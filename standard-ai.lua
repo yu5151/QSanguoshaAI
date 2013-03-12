@@ -1361,7 +1361,7 @@ sgs.dynamic_value.damage_card.FanjianCard = true
 sgs.ai_chaofeng.zhouyu = 3
 
 sgs.ai_skill_invoke.lianying = function(self, data)
-	if self:needToKeepKongcheng() then
+	if self:needKongcheng(self.player, true) then
 		return player:getPhase() == sgs.Player_Play
 	end
 	return true
@@ -2117,7 +2117,7 @@ end
 sgs.dynamic_value.damage_card.LijianCard = true
 
 sgs.ai_skill_invoke.biyue = function(self, data)
-	if self:needToKeepKongcheng() then
+	if self:needKongcheng(self.player, true) then
 		return false
 	end
 	return true

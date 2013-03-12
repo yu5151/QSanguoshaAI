@@ -113,7 +113,7 @@ function sgs.ai_weapon_value.Fan(self, enemy)
 end
 
 function sgs.ai_armor_value.Vine(player, self)
-	if (self:needKongcheng(player) or not self:hasLoseHandcardEffective()) and player:getHandcardNum() == 1 then 
+	if self:needKongcheng(player) and player:getHandcardNum() == 1 then 
 		return player:hasSkill("kongcheng") and 5 or 3.8
 	end
 	if self:hasSkills(sgs.lose_equip_skill, player) then return 3.8 end
@@ -225,7 +225,6 @@ function SmartAI:useCardSupplyShortage(card, use)
 		if self:hasSkills("guanxing|xiuluo|tiandu|guidao|zhenlie", enemy) then value = value - 5 end
 		if not sgs.isGoodTarget(enemy, self.enemies, self) then value = value - 1 end
 		if self:needKongcheng(enemy) then value = value - 1 end
-		if not self:hasLoseHandcardEffective(enemy) then value = value - 1 end
 		if enemy:getMark("@kuiwei") > 0 then value = value - 2 end
 		return value
 	end

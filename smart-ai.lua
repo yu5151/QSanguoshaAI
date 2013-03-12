@@ -2879,8 +2879,12 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 	return (dmg > 1)
 end
 
-function SmartAI:needKongcheng(player)
+function SmartAI:needKongcheng(player, keep)
 	player = player or self.player
+	if keep then
+		return player:isKongcheng() and (player:hasSkill("kongcheng") or (player:hasSkill("zhiji") and player:getMark("zhiji") == 0))
+	end
+
 	if player:hasSkill("beifa") and not player:isKongcheng() then
 		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 		for _, to in sgs.qlist(self.room:getAlivePlayers()) do 	
@@ -2891,13 +2895,9 @@ function SmartAI:needKongcheng(player)
 			end
 		end	
 	end
+	if not self:hasLoseHandcardEffective() then return true end
 	if player:hasSkill("zhiji") and player:getMark("zhiji") == 0 then return true end
 	return self:hasSkills(sgs.need_kongcheng, player)
-end
-
-function SmartAI:needToKeepKongcheng(player)
-	player = player or self.player
-	return player:isKongcheng() and (player:hasSkill("kongcheng") or (player:hasSkill("zhiji") and player:getMark("zhiji") == 0))
 end
 
 function SmartAI:getLeastHandcardNum(player)
@@ -2936,7 +2936,7 @@ function SmartAI:getCardNeedPlayer(cards)
 
 
 	for _,player in ipairs(self.friends_noself) do
-		local exclude = self:needToKeepKongcheng(player) or (player:containsTrick("indulgence") and not player:containsTrick("YanxiaoCard"))
+		local exclude = self:needKongcheng(player, true) or (player:containsTrick("indulgence") and not player:containsTrick("YanxiaoCard"))
 		if self:hasSkills("keji|qiaobian|conghui|shensu|jisu",player) or player:getHp() - player:getHandcardNum() >= 3 or (isLord(player) 
 				and self:isWeak(player) and self:getEnemyNumBySeat(self.player,player)>=1 ) then
 			exclude = false
@@ -3106,7 +3106,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	table.sort(cardtogive, cmpByNumber)
 
 	for _, friend in ipairs(friends) do
-		if not self:needToKeepKongcheng(friend) and friend:faceUp() then
+		if not self:needKongcheng(friend, true) and friend:faceUp() then
 			for _, hcard in ipairs(cardtogive) do
 				for _, askill in sgs.qlist(friend:getVisibleSkillList()) do
 					local callback = sgs.ai_cardneed[askill:objectName()]
@@ -3135,10 +3135,11 @@ function SmartAI:getCardNeedPlayer(cards)
 
 	-- kongcheng
 	self:sort(self.enemies, "defense")
-	if #self.enemies > 0 and self.enemies[1]:isKongcheng() and self:needToKeepKongcheng(self.enemies[1]) then
+	if #self.enemies > 0 and self.enemies[1]:isKongcheng() and self:needKongcheng(self.enemies[1], true)
+	  and not self.enemies[1]:hasSkill("manjuan") then
 		for _,acard in ipairs(cardtogive) do
 			if acard:isKindOf("Lightning") or acard:isKindOf("Collateral") or (acard:isKindOf("Slash") and self.player:getPhase() == sgs.Player_Play)
-				or acard:isKindOf("OffensiveHorse") or acard:isKindOf("Weapon") then
+				or acard:isKindOf("OffensiveHorse") or acard:isKindOf("Weapon") or acard:isKindOf("AmazingGrace") then
 				return acard, self.enemies[1]
 			end
 		end
@@ -3147,7 +3148,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	self:sort(friends, "defense")
 	for _, hcard in ipairs(cardtogive) do
 		for _, friend in ipairs(self.friends_noself) do
-			if not self:needToKeepKongcheng(friend) and not friend:hasSkill("manjuan") and not self:willSkipPlayPhase(friend)
+			if not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") and not self:willSkipPlayPhase(friend)
 					and (self:hasSkills(sgs.priority_skill,friend) or (sgs.ai_chaofeng[self.player:getGeneralName()] or 0) > 2) then
 				if (self:getOverflow()>0 or self.player:getHandcardNum() > 3) and friend:getHandcardNum() <= 3 then
 					return hcard, friend
@@ -3159,8 +3160,8 @@ function SmartAI:getCardNeedPlayer(cards)
 	self:sort(friends, "handcard")
 	for _, hcard in ipairs(cardtogive) do
 		for _, friend in ipairs(self.friends_noself) do
-			if not self:needToKeepKongcheng(friend) and not friend:hasSkill("manjuan") then
-				if friend:getHandcardNum() <= 3 and (self:getOverflow()>0 or self.player:getHandcardNum()>3 
+			if not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") then
+				if friend:getHandcardNum() <= 3 and (self:getOverflow() > 0 or self.player:getHandcardNum() > 3 
 						or (self.player:hasSkill("rende") and self.player:isWounded() and self.player:usedTimes("RendeCard") < 2)) then
 					return hcard, friend
 				end
@@ -3171,7 +3172,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	-- 如果所有队友都有3牌以上，刘备情愿弃牌也不仁德
 	for _, hcard in ipairs(cardtogive) do
 		for _, friend in ipairs(self.friends_noself) do
-			if not self:needToKeepKongcheng(friend) and not friend:hasSkill("manjuan") then
+			if not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") then
 				if (self:getOverflow() > 0 or self.player:getHandcardNum() > 3 
 						or (self.player:hasSkill("rende") and self.player:isWounded() and self.player:usedTimes("RendeCard") < 2)) then
 					return hcard, friend
@@ -3221,7 +3222,7 @@ function SmartAI:askForYiji(card_ids)
 	if #self.friends > 1 then
 		self:sort(self.friends, "handcard")
 		for _, afriend in ipairs(self.friends) do
-			if not (self:needToKeepKongcheng(afriend) or afriend:hasSkill("manjuan")) and not (isLirang and afriend:objectName() == self.player:objectName())
+			if not (self:needKongcheng(afriend, true) or afriend:hasSkill("manjuan")) and not (isLirang and afriend:objectName() == self.player:objectName())
 				and (not Shenfen_user or afriend:getHandcardNum() >=4) then
 				for _, acard_id in ipairs(card_ids) do
 					return afriend, acard_id
@@ -3241,7 +3242,7 @@ function SmartAI:askForYiji(card_ids)
 		local tos = {}
 		for _, target in ipairs(self.friends_noself) do
 			if self:isFriend(target) and not (target:hasSkill("manjuan") and target:getPhase() == sgs.Player_NotActive)
-				and not self:needToKeepKongcheng(target) then
+				and not self:needKongcheng(target, true) then
 				table.insert(tos, target)
 			end
 		end
@@ -4805,7 +4806,7 @@ function SmartAI:useEquipCard(card, use)
 		use.card = card
 		return
 	end
-	if self.player:getHandcardNum() <= 2 and (self:needKongcheng() or not self:hasLoseHandcardEffective()) and self:evaluateArmor(card) > -5 then
+	if self.player:getHandcardNum() <= 2 and self:needKongcheng() and self:evaluateArmor(card) > -5 then
 		use.card = card
 		return
 	end
@@ -5153,21 +5154,21 @@ function SmartAI:findPlayerToDraw(prompt, n)
 	if prompt == "noself" then
 		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do 	
 			if self:isFriend(player) and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive)
-			  and not (self:needToKeepKongcheng(player) and n < 3) then
+			  and not (self:needKongcheng(player, true) and n < 3) then
 				table.insert(friends, player)
 			end
 		end	
 	elseif prompt == "all" then
 		for _, player in sgs.qlist(self.room:getAlivePlayers()) do 	
 			if self:isFriend(player) and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive)
-			  and not (self:needToKeepKongcheng(player) and n < 3) then
+			  and not (self:needKongcheng(player, true) and n < 3) then
 				table.insert(friends, player)
 			end
 		end
 	elseif prompt == "nos_xuanhuo" then
 		for _, player in sgs.qlist(self.room:getAlivePlayers()) do 	
 			if self:isFriend(player) and not player:hasFlag("nosxuanhuo_target") and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive)
-			  and not self:needToKeepKongcheng(player) then
+			  and not self:needKongcheng(player, true) then
 				table.insert(friends, player)
 			end
 		end

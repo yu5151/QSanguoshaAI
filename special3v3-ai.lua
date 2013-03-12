@@ -46,7 +46,7 @@ end
 sgs.ai_skill_invoke.hongyuan = function(self, data)
 	local count = 0
 	for i = 1, #self.friends_noself do
-		if self:needToKeepKongcheng(self.friends_noself[i]) or self.friends_noself[i]:hasSkill("manjuan") then
+		if self:needKongcheng(self.friends_noself[i], true) or self.friends_noself[i]:hasSkill("manjuan") then
 		else
 			count = count + 1
 		end
@@ -70,7 +70,7 @@ sgs.ai_skill_use["@@hongyuan"] = function(self, prompt)
 	self:sort(self.friends_noself, "handcard")
 	local first_index, second_index
 	for i=1, #self.friends_noself do
-		if self:needToKeepKongcheng(self.friends_noself[i]) or self.friends_noself[i]:hasSkill("manjuan") then
+		if self:needKongcheng(self.friends_noself[i], true) or self.friends_noself[i]:hasSkill("manjuan") then
 		else
 			if not first_index then
 				first_index = i
@@ -84,7 +84,7 @@ sgs.ai_skill_use["@@hongyuan"] = function(self, prompt)
 	if first_index and not second_index then
 		local others = self.room:getOtherPlayers(self.player)
 		for _, other in sgs.qlist(others) do
-			if not self:isFriend(other) and (self:needToKeepKongcheng(other) and not other:hasSkill("manjuan")) and
+			if not self:isFriend(other) and (self:needKongcheng(other, true) and not other:hasSkill("manjuan")) and
 				self.friends_noself[first_index]:objectName() ~= other:objectName() then
 				return ("@HongyuanCard=.->%s+%s"):format(self.friends_noself[first_index]:objectName(), other:objectName())
 			end

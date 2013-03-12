@@ -669,33 +669,33 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 			if self.player:isChained() and self:isGoodChainTarget(self.player) then return "." end
 		end
 	else
-		if not self:hasHeavySlashDamage(target, effect.slash) then
-			if target:hasSkill("mengjin") and not (target:hasSkill("qianxi") and target:distanceTo(self.player) == 1) then
-				if self:doNotDiscard(self.player, "he", true) then return end
-				if self.player:getCards("he"):length() == 1 and not self.player:getArmor() then return end
-				if self:hasSkills("jijiu|qingnang") and self.player:getCards("he"):length() > 1 then return "." end
-				if self:canUseJieyuanDecrease(target) then return "." end
-				if self:willSkipPlayPhase() then return end
-				if (self:getCardsNum("Peach") > 0 or self:getCardsNum("Analeptic") > 0) then
-					return "."
-				end
-				if player:getHp() > 2 and player:getArmor() and not self:needToThrowArmor() then return "." end
-				if player:getHp() > 2 and player:getDefensiveHorse() then return "." end
-			end
-		end
+		if self:hasHeavySlashDamage(target, effect.slash) then return end
 		if (self.player:getHandcardNum() == 1 and self:needKongcheng()) or not self:hasLoseHandcardEffective() then return end
-		if not (target:hasSkill("qianxi") and target:distanceTo(self.player) == 1) then
-			if self:isEquip("Axe", target) then
-				if self:hasSkills(sgs.lose_equip_skill, target) and target:getEquips():length() > 1
-				  and target:getCards("he"):length() > 2 then
-					return "."
-				end
-				if target:getHandcardNum() - target:getHp() > 2 then return "." end
-			elseif self:isEquip("Blade", target) then
-				if self:hasHeavySlashDamage(target, effect.slash, self.player) then
-				elseif self:getCardsNum("Jink") <= getCardsNum("Slash", target) or self:hasSkills("jijiu|qingnang") or self:canUseJieyuanDecrease(target) then
-					return "."
-				end
+		if target:hasSkill("qianxi") and target:distanceTo(self.player) == 1 then return end
+		if self.player:hasSkill("leiji") then return end
+		if target:hasSkill("mengjin") then
+			if self:doNotDiscard(self.player, "he", true) then return end
+			if self.player:getCards("he"):length() == 1 and not self.player:getArmor() then return end
+			if self:hasSkills("jijiu|qingnang") and self.player:getCards("he"):length() > 1 then return "." end
+			if self:canUseJieyuanDecrease(target) then return "." end
+			if self:willSkipPlayPhase() then return end
+			if (self:getCardsNum("Peach") > 0 or self:getCardsNum("Analeptic") > 0) then
+				return "."
+			end
+			if self.player:getHp() > 2 and self.player:getArmor() and not self:needToThrowArmor() then return "." end
+			if self.player:getHp() > 2 and self.player:getDefensiveHorse() then return "." end
+		end
+	
+		if self:isEquip("Axe", target) then
+			if self:hasSkills(sgs.lose_equip_skill, target) and target:getEquips():length() > 1
+			  and target:getCards("he"):length() > 2 then
+				return "."
+			end
+			if target:getHandcardNum() - target:getHp() > 2 then return "." end
+		elseif self:isEquip("Blade", target) then
+			if self:hasHeavySlashDamage(target, effect.slash, self.player) then
+			elseif self:getCardsNum("Jink") <= getCardsNum("Slash", target) or self:hasSkills("jijiu|qingnang") or self:canUseJieyuanDecrease(target) then
+				return "."
 			end
 		end
 	end

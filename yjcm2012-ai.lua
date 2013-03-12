@@ -916,7 +916,7 @@ function sgs.ai_skill_invoke.newmiji(self, data)
 	local invoke
 	for _, target in ipairs(self.friends_noself) do
 		if not (target:hasSkill("manjuan") and target:getPhase() == sgs.Player_NotActive) and
-			(not self:needToKeepKongcheng(target) or self.player:getLostHp() > 1) then
+			(not self:needKongcheng(target, true) or self.player:getLostHp() > 1) then
 			invoke = true
 			break
 		end
@@ -951,7 +951,7 @@ sgs.ai_skill_askforag.newmiji = function(self, card_ids)
 	local new_friends = {}
 	for _, target in ipairs(self.friends_noself) do
 		if not (target:hasSkill("manjuan") and target:getPhase() == sgs.Player_NotActive) and
-			(not self:needToKeepKongcheng(target) or self.player:getLostHp() > 1) then
+			(not self:needKongcheng(target, true) or self.player:getLostHp() > 1) then
 			table.insert(new_friends, target)
 		end
 	end

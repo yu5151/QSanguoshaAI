@@ -161,7 +161,7 @@ end
 
 function sgs.ai_slash_prohibit.enyuan(self)
 	if self.player:hasSkill("jueqing") then return false end
-	if self.player:hasSkill("qianxi") and self.player:distanceTo(self.player) == 1 then return false end
+	if self.player:hasSkill("nosqianxi") and self.player:distanceTo(self.player) == 1 then return false end
 	if self.player:hasFlag("nosjiefanUsed") then return false end
 	local num = self.player:getHandcardNum()
 	if num >= 3 or self:hasSkills("lianying|shangshi|nosshangshi", self.player) or (self.player:hasSkill("kongcheng") and num == 2) then return false end

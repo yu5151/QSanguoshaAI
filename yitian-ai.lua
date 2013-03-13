@@ -525,7 +525,7 @@ sgs.ai_skill_invoke.caizhaoji_hujia = function(self, data)
 		self.room:setPlayerMark(self.player, "caizhaoji_hujia", invokeNum + 1) 
 		return true
 	else
-		if self:hasSkills("hongyan|zhenlie|jiushi|toudu|guicai|huanshi", self.player) then
+		if self:hasSkills("hongyan|noszhenlie|jiushi|toudu|guicai|huanshi", self.player) then
 			self.room:setPlayerMark(self.player, "caizhaoji_hujia", invokeNum + 1) 
 			return true
 		end

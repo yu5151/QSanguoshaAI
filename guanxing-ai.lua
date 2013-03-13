@@ -57,7 +57,7 @@ local function getOwnCards(self, up, bottom, next_judge)
 			table.remove(bottom, index)
 			hasNext = true
 		else
-			if self.player:hasSkill("fuhun") then				
+			if self.player:hasSkill("nosfuhun") then
 				if not fuhun1 and gcard:isRed() then
 					table.insert(up, gcard) 
 					table.remove(bottom, index)
@@ -88,12 +88,12 @@ local function getOwnCards(self, up, bottom, next_judge)
 						and (isCard("Slash", gcard, self.player) or isCard("Duel", gcard, self.player)) then
 					table.insert(up, gcard) 
 					table.remove(bottom, index)
-					shuangxiong = true					
+					shuangxiong = true
 				end
 				if not shuangxiong and ((rednum > blacknum and gcard:isBlack()) or (blacknum > rednum and gcard:isRed())) then
 					table.insert(up, gcard) 
 					table.remove(bottom, index)
-					shuangxiong = true					
+					shuangxiong = true
 				end
 			elseif self:hasSkills("xianzhen|tianyi|dahe") then
 				local maxcard = self:getMaxCard(self.player)
@@ -105,8 +105,8 @@ local function getOwnCards(self, up, bottom, next_judge)
 				end
 				if isCard("Slash", gcard, self.player) then 
 					table.insert(up, gcard) 
-					table.remove(bottom, index)					
-				end				
+					table.remove(bottom, index)
+				end
 			else
 				if has_slash then 
 					if not gcard:isKindOf("Slash") then 

@@ -25,7 +25,7 @@ function sgs.isGoodHp(player)
 end
 
 function sgs.isGoodTarget(player,targets, self)
-	local arr = {"jieming","yiji","guixin","fangzhu","neoganglie","miji","xuehen","xueji"}
+	local arr = {"jieming","yiji","guixin","fangzhu","neoganglie","nosmiji","xuehen","xueji"}
 	local m_skill=false
 	local attacker = global_room:getCurrent()
 
@@ -46,7 +46,7 @@ function sgs.isGoodTarget(player,targets, self)
 
 	for _, masochism in ipairs(arr) do
 		if player:hasSkill(masochism) then
-			if masochism=="miji" and player:isWounded() then 
+			if masochism=="nosmiji" and player:isWounded() then 
 				m_skill =false
 			else
 				m_skill=true
@@ -136,15 +136,16 @@ function sgs.getDefenseSlash(player)
 		defense = 0
 	end
 
-	if player:hasFlag("qianxi_target") then
-		local pattern = player:getTag("QianxiPattern"):toString()
-		if string.find(pattern, "red") then
+	if player:hasFlag("QianxiTarget") then
+		local red = player:getMark("@qianxi_red") > 0
+		local black = player:getMark("@qianxi_black") > 0
+		if red then
 			if player:hasSkill("qingguo") or (player:hasSkill("longhun") and player:isWounded()) then
 				defense = defense - 1
 			else
 				defense = 0
 			end
-		elseif string.find(pattern, "black") then
+		elseif black then
 			if player:hasSkill("qingguo") then
 				defense = defense - 1
 			end
@@ -328,9 +329,10 @@ end
 
 function SmartAI:shouldUseAnaleptic(target, slash)
 	if self:isEquip("SilverLion", target) and not IgnoreArmor(self.player, target) and not self.player:hasSkill("jueqing") then return false end
+	if target:hasSkill("zhenlie") then return false end
 
 	if self:hasSkills(sgs.masochism_skill .. "|longhun|buqu|" .. sgs.recover_skill ,target) and 
-			self.player:hasSkill("qianxi") and self.player:distanceTo(enemy) == 1 then
+			self.player:hasSkill("nosqianxi") and self.player:distanceTo(enemy) == 1 then
 		return false
 	end
 
@@ -671,7 +673,7 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 	else
 		if self:hasHeavySlashDamage(target, effect.slash) then return end
 		if (self.player:getHandcardNum() == 1 and self:needKongcheng()) or not self:hasLoseHandcardEffective() then return end
-		if target:hasSkill("qianxi") and target:distanceTo(self.player) == 1 then return end
+		if target:hasSkill("nosqianxi") and target:distanceTo(self.player) == 1 then return end
 		if self.player:hasSkill("leiji") then return end
 		if target:hasSkill("mengjin") then
 			if self:doNotDiscard(self.player, "he", true) then return end
@@ -1141,7 +1143,7 @@ function sgs.ai_armor_value.EightDiagram(player, self)
 	if haszj then 
 		return 2
 	end
-	if self:hasSkills("tiandu|leiji|zhenlie|gushou", player) then 
+	if self:hasSkills("tiandu|leiji|noszhenlie|gushou", player) then 
 		return 5
 	end
 	
@@ -1528,7 +1530,7 @@ function SmartAI:getValuableCard(who)
 	end
 
 	if offhorse then
-		if self:hasSkills("qianxi|kuanggu|duanbing", who) then
+		if self:hasSkills("nosqianxi|kuanggu|duanbing", who) then
 			return offhorse:getEffectiveId()
 		end
 	end
@@ -1542,7 +1544,7 @@ function SmartAI:getValuableCard(who)
 		end
 		if who:hasSkill("baobian") and who:getHp() <= 2 then return  equip:getEffectiveId() end
 		if self:hasSkills("qixi|duanliang|yinling|guidao", who) and equip:isBlack() then  return equip:getEffectiveId() end
-		if self:hasSkills("wusheng|jijiu|xueji|fuhun", who) and equip:isRed() then  return equip:getEffectiveId() end
+		if self:hasSkills("wusheng|jijiu|xueji|nosfuhun", who) and equip:isRed() then  return equip:getEffectiveId() end
 	end
 
 	if weapon then
@@ -1699,7 +1701,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 
 	for _, enemy in ipairs(enemies) do
 		if enemy:hasEquip() and self:hasTrickEffective(card, enemy) and not self:doNotDiscard(enemy) then			
-			if self:hasSkills("jijiu|qingnang|qiaobian|jieyin|beige|miji|fanjian|neofanjian|tuxi|" ..
+			if self:hasSkills("jijiu|qingnang|qiaobian|jieyin|beige|nosmiji|fanjian|neofanjian|tuxi|" ..
 			  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|manjuan", enemy) then
 				local cardchosen
 				if enemy:getDefensiveHorse() then cardchosen = enemy:getDefensiveHorse():getEffectiveId() end
@@ -2192,7 +2194,7 @@ function SmartAI:useCardIndulgence(card, use)
 		if self:hasSkills("keji|shensu", enemy) then value = value - enemy:getHandcardNum() end
 		if self:hasSkills("guanxing|xiuluo", enemy) then value = value - 5 end
 		if self:hasSkills("lirang|longluo", enemy) then value = value - 5 end
-		if self:hasSkills("tuxi|zhenlie|guanxing|qinyin|zongshi|tiandu",enemy) then value = value - 3 end
+		if self:hasSkills("tuxi|noszhenlie|guanxing|qinyin|zongshi|tiandu",enemy) then value = value - 3 end
 		if enemy:hasSkill("conghui") then value = value - 20 end
 		if self:needBear(enemy) then value = value - 20 end	
 		if not sgs.isGoodTarget(enemy, self.enemies, self) then value = value - 1 end
@@ -2371,6 +2373,12 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	end
 	if (not friendneedpeach and peach) or peachnum > 1 then return peach end
 	
+	for _, card in ipairs(cards) do
+		if card:isKindOf("Nullification") and ( self:getCardsNum("Nullification") < 2 or not nextplayercanuse ) then 
+			return card:getEffectiveId()
+		end
+	end
+	
 	local exnihilo, jink, analeptic
 	for _, card in ipairs(cards) do
 		if card:isKindOf("ExNihilo") then
@@ -2411,7 +2419,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	end
 	
 	for _, card in ipairs(cards) do
-		if card:isKindOf("EightDiagram") and self:hasSkills("tiandu|leiji|zhenlie|gushou") and not self:getSameEquip(card) then return card:getEffectiveId() end
+		if card:isKindOf("EightDiagram") and self:hasSkills("tiandu|leiji|noszhenlie|gushou") and not self:getSameEquip(card) then return card:getEffectiveId() end
 		if (card:isKindOf("Armor") or card:isKindOf("DefensiveHorse")) and self:isWeak() and not self:getSameEquip(card) then return card:getEffectiveId() end
 		if card:isKindOf("Crossbow") and (#(self:getCards("Slash")) > 1 or self:hasSkills("kurou|keji") or self:hasSkills("luoshen|yongsi|luoying") and not current) then return card:getEffectiveId() end
 		if card:isKindOf("Halberd") then
@@ -2431,7 +2439,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		end
 	end
 	
-	local snatch, dismantlement, indulgence, supplyshortage, collatera, duel, aoe, fireattack
+	local snatch, dismantlement, indulgence, supplyshortage, collateral, duel, aoe, fireattack
 	for _, card in ipairs(cards) do
 		for _, enemy in ipairs(self.enemies) do
 			if card:isKindOf("Snatch") and self:hasTrickEffective(card,enemy) and self.player:distanceTo(enemy) == 1 and not enemy:isNude() then
@@ -2442,8 +2450,8 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 				indulgence = card:getEffectiveId()
 			elseif card:isKindOf("SupplyShortage")	and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("supply_shortage") then
 				supplyshortage = card:getEffectiveId()
-			elseif card:isKindOf("Collatera") and self:hasTrickEffective(card,enemy) and enemy:getWeapon() then
-				collatera = card:getEffectiveId()
+			elseif card:isKindOf("Collateral") and self:hasTrickEffective(card,enemy) and enemy:getWeapon() then
+				collateral = card:getEffectiveId()
 			elseif card:isKindOf("Duel") and self:getCardsNum("Slash") >= getCardsNum("Slash", enemy) and self:hasTrickEffective(card,enemy) then
 				duel = card:getEffectiveId()
 			elseif card:isKindOf("AOE") then
@@ -2475,12 +2483,12 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		end
 	end
 	
-	if snatch or dismantlement or indulgence or supplyshortage or collatera or duel or aoe or fireattack then 
-		if not self:willSkipPlayPhase() or not nextplayercanuse then		
-			return snatch or dismantlement or indulgence or supplyshortage or collatera or duel or aoe or fireattack
+	if snatch or dismantlement or indulgence or supplyshortage or collateral or duel or aoe or fireattack then 
+		if not self:willSkipPlayPhase() or not nextplayercanuse then
+			return snatch or dismantlement or indulgence or supplyshortage or collateral or duel or aoe or fireattack
 		end
 		if #trickcard > nextisfriend + 1 and nextplayercanuse then
-			return fireattack or aoe or duel or collatera or supplyshortage or indulgence or dismantlement or snatch
+			return fireattack or aoe or duel or collateral or supplyshortage or indulgence or dismantlement or snatch
 		end
 	end
 	

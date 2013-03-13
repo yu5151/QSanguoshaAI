@@ -260,7 +260,7 @@ end
 
 function sgs.ai_slash_prohibit.ganglie(self, to)
 	if self.player:hasSkill("jueqing") then return false end
-	if self.player:hasSkill("qianxi") and self.player:distanceTo(self.player) == 1 then return false end
+	if self.player:hasSkill("nosqianxi") and self.player:distanceTo(self.player) == 1 then return false end
 	if self.player:hasFlag("nosjiefanUsed") then return false end
 	return self.player:getHandcardNum() + self.player:getHp() < 4
 end
@@ -384,8 +384,15 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 end
 
 sgs.ai_card_intention.TuxiCard = function(self,card, from, tos, source)
-	local lord = from:getRoom():getLord()
-	local tuxi_lord = false	
+	local lord = getLord(self.player)
+	local tuxi_lord = false
+	if sgs.evaluateRoleTrends(from) == "neutral" and sgs.evaluateRoleTrends(tos[1]) == "neutral" and
+		(not tos[2] or sgs.evaluateRoleTrends(tos[2]) == "neutral") and lord and not lord:isKongcheng() and 
+		not (self:hasSkills("kongcheng|lianying|zhiji", lord) and lord:getHandcardNum() == 1 ) and
+		not self:hasLoseHandcardEffective(lord) and not lord:hasSkill("tuntian") and from:aliveCount() >= 4 then
+			sgs.updateIntention(from, lord, -80)
+		return
+	end
 	if from:getState() == "online" then
 		for _, to in ipairs(tos) do
 			if to:hasSkill("kongcheng") or to:hasSkill("lianying") or to:hasSkill("zhiji") or to:hasSkill("tuntian") then
@@ -400,10 +407,9 @@ sgs.ai_card_intention.TuxiCard = function(self,card, from, tos, source)
 			local intention = from:hasFlag("tuxi_isfriend_"..to:objectName()) and -5 or 80
 			sgs.updateIntention(from, to, intention)
 		end
-		if sgs.turncount ==1 and not tuxi_lord and lord and not lord:isKongcheng() and not from:getRoom():alivePlayerCount() == 2 then 
+		if sgs.turncount ==1 and not tuxi_lord and lord and not lord:isKongcheng() and from:getRoom():alivePlayerCount() > 2 then 
 			sgs.updateIntention(from, lord, -80) 
 		end
-		
 	end
 end
 
@@ -497,7 +503,53 @@ sgs.ai_chaofeng.xuchu = 3
 sgs.ai_skill_invoke.tiandu = sgs.ai_skill_invoke.jianxiong
 
 function sgs.ai_slash_prohibit.tiandu(self, to)
-	if self:isEnemy(to) and self:isEquip("EightDiagram", to) then return true end
+	if self:isEnemy(to) and self:isEquip("EightDiagram", to) and #self.enemies > 1 then return true end
+end
+
+sgs.ai_skill_askforyiji.yiji = function(self, card_ids)
+
+	local cards = {}
+	for _, card_id in ipairs(card_ids) do
+		table.insert(cards, sgs.Sanguosha:getCard(card_id))
+	end
+	
+	local Shenfen_user
+	for _, player in sgs.qlist(self.room:getAlivePlayers()) do
+		if player:hasFlag("ShenfenUsing") then
+			Shenfen_user = player
+			break
+		end
+	end
+	
+	if Shenfen_user and self:isFriend(Shenfen_user) then
+		if Shenfen_user:objectName() ~= self.player:objectName() then
+			for _, id in ipairs(card_ids) do
+				return Shenfen_user, id
+			end
+		else
+			return nil, -1
+		end
+	end
+	
+	if not Shenfen_user and self.player:getHandcardNum() <= 2 then
+		return nil, -1
+	end
+
+	local card, friend = self:getCardNeedPlayer(cards)
+	if card and friend and (not Shenfen_user or friend:getHandcardNum() >=4) then
+		return friend, card:getId()
+	end
+	
+	if #self.friends > 1 then
+		self:sort(self.friends, "handcard")
+		for _, afriend in ipairs(self.friends) do
+			if not (self:needKongcheng(afriend, true) or afriend:hasSkill("manjuan")) and (not Shenfen_user or afriend:getHandcardNum() >=4) then
+				for _, acard_id in ipairs(card_ids) do
+					return afriend, acard_id
+				end
+			end
+		end
+	end	
 end
 
 sgs.ai_need_damaged.yiji = function (self, attacker)

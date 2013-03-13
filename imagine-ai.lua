@@ -861,7 +861,7 @@ function SmartAI:ImitateResult_DrawNCards(player, skills, self, overall)
 				return 3
 			elseif skillname == "xuanhuo" then --眩惑，放弃摸牌（摸牌数目不定，返回期望值）
 				return 1
-			elseif skillname == "fuhun" then --父魂，放弃摸牌
+			elseif skillname == "nosfuhun" then --老父魂，放弃摸牌
 				return 2
 			elseif skillname == "luoyi" then --裸衣，少摸一张牌
 				count = count - 1

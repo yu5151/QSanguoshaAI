@@ -222,7 +222,7 @@ function SmartAI:useCardSupplyShortage(card, use)
 		if self:objectiveLevel(enemy) < 3 then value = value - 10 end
 		if not enemy:faceUp() then value = value - 10 end
 		if self:hasSkills("keji|shensu|jisu", enemy) then value = value - enemy:getHandcardNum() end
-		if self:hasSkills("guanxing|xiuluo|tiandu|guidao|zhenlie", enemy) then value = value - 5 end
+		if self:hasSkills("guanxing|xiuluo|tiandu|guidao|noszhenlie", enemy) then value = value - 5 end
 		if not sgs.isGoodTarget(enemy, self.enemies, self) then value = value - 1 end
 		if self:needKongcheng(enemy) then value = value - 1 end
 		if enemy:getMark("@kuiwei") > 0 then value = value - 2 end
@@ -326,13 +326,13 @@ function SmartAI:useCardIronChain(card, use)
 	local yangxiu = self.room:findPlayerBySkillName("danlao")
 	self:sort(self.friends,"defense")
 	for _, friend in ipairs(self.friends) do
-		if friend:isChained() and not self:isGoodChainPartner(friend) and self:hasTrickEffective(card, friend) and not friend:hasSkill("danlao") then
+		if friend:isChained() and not self:isGoodChainPartner(friend) and self:hasTrickEffective(card, friend) and not self:hasSkills("danlao|hongyan") then
 			table.insert(friendtargets, friend)
 		end
 	end
 	self:sort(self.enemies,"defense")
 	for _, enemy in ipairs(self.enemies) do
-		if not enemy:isChained() and not self.room:isProhibited(self.player, enemy, card) and not enemy:hasSkill("danlao")
+		if not enemy:isChained() and not self.room:isProhibited(self.player, enemy, card) and not self:hasSkills("danlao|hongyan")
 			and self:hasTrickEffective(card, enemy) and not (self:objectiveLevel(enemy) <= 3) 
 			and not self:getDamagedEffects(enemy) and not (enemy:getHp() > getBestHp(enemy)) and sgs.isGoodTarget(enemy,self.enemies, self) then
 			table.insert(enemytargets, enemy)

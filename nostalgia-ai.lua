@@ -157,7 +157,7 @@ end
 
 function sgs.ai_slash_prohibit.nosenyuan(self, to, card)
 	if self.player:hasSkill("jueqing") then return false end
-	if self.player:hasSkill("qianxi") and self.player:distanceTo(self.player) == 1 then return false end
+	if self.player:hasSkill("nosqianxi") and self.player:distanceTo(self.player) == 1 then return false end
 	if self.player:hasFlag("nosjiefanUsed") then return false end
 	if self:needToLostHp(self.player) then return false end
 	if self.player:getHp() > 3 then return false end
@@ -392,3 +392,50 @@ sgs.ai_skill_cardask["jiefan-slash"] = function(self, data, pattern, target)
 	end
 	return "."
 end
+
+
+function sgs.ai_cardneed.nosqianxi(to, card)
+	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0
+end
+
+sgs.ai_skill_invoke.nosqianxi = function(self, data)
+	local damage = data:toDamage()
+	local target = damage.to
+	if self:isFriend(target) then return false end
+	if target:getLostHp() >= 2 and target:getHp() <= 1 then return false end
+	if self:hasHeavySlashDamage(self.player, damage.card, target) and target:getHp() <= 1 then return false end
+	if self:hasSkills(sgs.masochism_skill,target) or self:hasSkills(sgs.recover_skill,target) or self:hasSkills("longhun|buqu",target) then return true end
+	if self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
+	return (target:getMaxHp() - target:getHp()) < 2 
+end
+
+sgs.ai_chaofeng.nos_madai = 3
+
+sgs.ai_skill_invoke.nosfuhun = function(self, data)
+	if self:needBear() then return false end
+	local target = 0
+	for _,enemy in ipairs(self.enemies) do
+		if (self.player:distanceTo(enemy) <= self.player:getAttackRange())  then target = target + 1 end
+	end
+	return target > 0 and not self.player:isSkipped(sgs.Player_Play)
+end
+
+sgs.ai_chaofeng.nos_guanxingzhangbao = 2
+
+sgs.ai_skill_invoke.noszhenlie = function(self, data)
+	local judge = data:toJudge()
+	if not judge:isGood() then 
+	return true end
+	return false
+end
+
+sgs.ai_skill_playerchosen.nosmiji = function(self, targets)
+	if self:needBear() then return self.player end
+	local to = self:findPlayerToDraw("all", self.player:getLostHp())
+	if to then return to end
+	return self.player
+end
+
+sgs.ai_playerchosen_intention.nosmiji = -80
+
+sgs.ai_chaofeng.nos_wangyi = -2

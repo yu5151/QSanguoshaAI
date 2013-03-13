@@ -419,7 +419,7 @@ end
 
 function sgs.ai_slash_prohibit.tianxiang(self, to)
 	if self.player:hasSkill("jueqing") then return false end
-	if self.player:hasSkill("qianxi") and self.player:distanceTo(self.player) == 1 then return false end
+	if self.player:hasSkill("nosqianxi") and self.player:distanceTo(self.player) == 1 then return false end
 	if self.player:hasFlag("nosjiefanUsed") then return false end
 	if self:isFriend(to) then return false end
 	return self:cantbeHurt(to)

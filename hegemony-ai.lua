@@ -297,6 +297,46 @@ sgs.ai_skill_invoke.lirang = function(self, data)
 	return #self.friends_noself > 0
 end
 
+sgs.ai_skill_askforyiji.lirang = function(self, card_ids)
+	local cards = {}
+	for _, card_id in ipairs(card_ids) do
+		table.insert(cards, sgs.Sanguosha:getCard(card_id))
+	end
+	
+	local card, friend = self:getCardNeedPlayer(cards)
+	if card and friend and friend:objectName() ~= self.player:objectName() then
+		return friend, card:getId()
+	end
+	
+	if #self.friends > 1 then
+		self:sort(self.friends, "handcard")
+		for _, afriend in ipairs(self.friends) do
+			if not (self:needKongcheng(afriend, true) or afriend:hasSkill("manjuan")) and afriend:objectName() ~= self.player:objectName() then
+				for _, acard_id in ipairs(card_ids) do
+					return afriend, acard_id
+				end
+			end
+		end
+	end
+	
+	local tos = {}
+	for _, target in ipairs(self.friends_noself) do
+		if self:isFriend(target) and not (target:hasSkill("manjuan") and target:getPhase() == sgs.Player_NotActive)
+			and (not self:needKongcheng(target, true) or #card_ids > 2 and #self.friends_noself == 1) then
+			table.insert(tos, target)
+		end
+	end
+
+	if #tos == 0 then return end
+	self:sort(tos, "defense")
+	local afriend = tos[1]
+	for _, acard_id in ipairs(card_ids) do
+		return afriend, acard_id
+	end
+	
+end
+
+
 sgs.ai_skill_use["@@sijian"] = function(self, prompt)
 	local to
 	to = self:findPlayerToDiscard()

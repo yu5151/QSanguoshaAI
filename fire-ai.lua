@@ -608,7 +608,7 @@ sgs.ai_skill_invoke.mengjin = function(self, data)
 		end
 	end
 	if self:isFriend(effect.to) then 
-		return self:needToThrowArmor(target) or self:doNotDiscard(target)
+		return self:needToThrowArmor(effect.to) or self:doNotDiscard(effect.to)
 	end
 	return not self:isFriend(effect.to)
 end

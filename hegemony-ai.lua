@@ -339,7 +339,7 @@ end
 
 sgs.ai_skill_use["@@sijian"] = function(self, prompt)
 	local to
-	to = self:findPlayerToDiscard()
+	to = self:findPlayerToDiscard("he", "noself")
 	if to then return ("@SijianCard=.->%s"):format(to:objectName()) end
 	return "."
 end
@@ -348,11 +348,10 @@ sgs.ai_card_intention.SijianCard = function(self, card, from, tos)
 	local intention = 80
 	local to = tos[1]
 	if to:hasSkill("kongcheng") and to:getHandcardNum() == 1 and to:getHp() <= 2 then
-		intention = -30
+		intention = 0
 	end
-	if to:hasArmorEffect("SilverLion") and to:isWounded() and not self:hasSkills(sgs.use_lion_skill, to)
-	  and self:isWeak(to) then
-		  intention = -30
+	if self:needToThrowArmor(to) then
+		  intention = 0
 	end
 	sgs.updateIntention(from, tos[1], intention)
 end

@@ -138,14 +138,14 @@ sgs.ai_skill_use_func.GongqiCard = function(card, use, self)
 end
 
 sgs.ai_skill_invoke.gongqi = function(self, data)
-	local player = self:findPlayerToDiscard()
+	local player = self:findPlayerToDiscard("he", "noself")
 	if player then 
 		return true
 	end
 end
 
 sgs.ai_skill_playerchosen.gongqi = function(self, targets)
-	local player = self:findPlayerToDiscard()
+	local player = self:findPlayerToDiscard("he", "noself")
 	if player then 
 		return player
 	end

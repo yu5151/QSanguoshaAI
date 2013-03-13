@@ -4987,7 +4987,7 @@ function SmartAI:needToThrowArmor(player)
 	if self:hasSkills("bazhen|yizhong") and not player:getArmor():isKindOf("EightDiagram") then return true end
 	if player:hasArmorEffect("SilverLion") and player:isWounded() then
 		if self:isFriend(player) then
-			if player:objectName() == self.player:objectName() and not self:hasSkills(sgs.use_lion_skill) then
+			if player:objectName() == self.player:objectName() then
 				return true
 			else
 				return self:isWeak(player) and not self:hasSkills(sgs.use_lion_skill, player)

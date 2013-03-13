@@ -607,10 +607,10 @@ sgs.ai_chaofeng.tianfeng = -1
 	技能：授业
 	描述：出牌阶段，你可以弃置一张红色手牌，指定最多两名其他角色各摸一张牌 
 ]]--
-local shouye_skill={}
+local shouye_skill = {}
 shouye_skill.name = "shouye"
 table.insert(sgs.ai_skills, shouye_skill)
-shouye_skill.getTurnUseCard=function(self)
+shouye_skill.getTurnUseCard = function(self)
 	if #self.friends_noself == 0 then return end
 	if self.player:getHandcardNum() > 0 then
 		local n = self.player:getMark("jiehuo")
@@ -626,25 +626,54 @@ shouye_skill.getTurnUseCard=function(self)
 end
 
 sgs.ai_skill_use_func.ShouyeCard = function(card, use, self)
-	self:sort(self.friends_noself, "handcard")
-	local first_index, second_index
-	for i=1, #self.friends_noself do
-		if not self.friends_noself[i]:hasSkill("manjuan") 
-		and not (self.friends_noself[i]:hasSkill("kongcheng") and self.friends_noself[i]:isKongcheng()) then
-			if not first_index then
-				first_index = i
+	self:sort(self.friends_noself, "defense")
+	local first
+	local second
+
+	for _, friend in ipairs(self.friends_noself) do
+		if not friend:hasSkill("manjuan") and not self:needKongcheng(friend, true) then
+			if not first then
+				first = friend
 			else
-				second_index = i
+				second = friend
 			end
+			if second then break end
 		end
-		if second_index then break end
 	end
 
-	if first_index then
-		if use.to then use.to:append(self.friends_noself[first_index]) end
+	if self.player:hasSkill("jiehuo") and self.player:getMark("jiehuo") < 0 then
+		sgs.ai_use_priority.ShouyeCard = 9.29
+		if first and not second then
+			for _, friend in ipairs(self.friends_noself) do
+				if first:objectName() ~= friend:objectName() then
+					second = friend
+				end
+				if second then break end
+			end
+			if not second then
+				for _, enemy in ipairs(self.enemies) do
+					if first:objectName() ~= enemy:objectName() and (enemy:hasSkill("manjuan") or self:needKongcheng(enemy, true)) then
+						second = enemy
+					end
+					if second then break end
+				end
+			end
+		end		
+	else
+		sgs.ai_use_priority.ShouyeCard = 0
 	end
-	if second_index then
-		if use.to then use.to:append(self.friends_noself[second_index]) end
+	
+	if not second and not (self:getOverflow() > 0) then return end
+	if first then
+		if use.to then
+			use.to:append(first)
+			self:speak("好好学习，天天向上！")
+		end
+	end
+	if second then
+		if use.to then
+			use.to:append(second)
+		end
 	end
 	use.card = card
 	return
@@ -654,7 +683,16 @@ sgs.ai_cardneed.shouye = function(to, card)
 	return to:getMark("jiehuo") < 1 and to:getHandcardNum() < 3 and card:isRed()
 end
 
-sgs.ai_card_intention.ShouyeCard = -70
+sgs.ai_card_intention.ShouyeCard = function(self, card, from, tos)
+	local intention = -70
+	for i=1, #tos do
+		local to = tos[i]
+		if to:hasSkill("manjuan") or self:needKongcheng(to, true) then
+			intention = 0
+		end
+		sgs.updateIntention(from, tos[i], intention)
+	end
+end
 --[[
 	技能：师恩
 	描述：其他角色使用非延时锦囊时，可以让你摸一张牌

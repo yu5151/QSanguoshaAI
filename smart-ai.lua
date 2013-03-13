@@ -4827,6 +4827,7 @@ function SmartAI:useEquipCard(card, use)
 	if use.card or use.broken then return end
 	if card:isKindOf("Weapon") then
 		if self:needBear() then return end
+		if self.player:hasSkill("jiehuo") and self.player:getMark("jiehuo") < 0 and card:isRed() then return end
 		if self:hasSkill("zhulou") and same then return end
 		if self:hasSkill("taichen") and same then
 			local dummy_use = { isDummy = true }
@@ -4870,6 +4871,7 @@ function SmartAI:useEquipCard(card, use)
 		return
 	elseif self:needBear() then return 
 	elseif card:isKindOf("OffensiveHorse") then
+		if self.player:hasSkill("jiehuo") and self.player:getMark("jiehuo") < 0 and card:isRed() then return end
 		if self.player:hasSkill("rende") then
 			for _,friend in ipairs(self.friends_noself) do
 				if not friend:getOffensiveHorse() then return end
@@ -5030,16 +5032,36 @@ function SmartAI:doNotDiscard(to, flags, conservative, n)
 	return false
 end
 
-function SmartAI:findPlayerToDiscard(flags, include_self)
-	local targets, friends, enemies = {}, {}, {}
-	targets = include_self and self.room:getAlivePlayers() or self.room:getOtherPlayers(self.player)
-	targets = sgs.QList2Table(targets)
-	friends = include_self and self.friends or self.friends_noself
-	enemies = self.enemies
+function SmartAI:findPlayerToDiscard(flags, prompt, exclude)
 	flags = flags or "he"
+	local targets, friends, enemies = {}, {}, {}
+	if prompt == "noself" then
+		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do 	
+			if not exclude or (player:objectName() ~= exclude:objectName()) then
+				table.insert(targets, player)
+				if self:isFriend(player) then
+					table.insert(friends, player)
+				elseif self:isEnemy(player) and not self:doNotDiscard(player) then
+					table.insert(enemies, player)
+				end
+			end
+		end	
+	elseif prompt == "all" then
+		for _, player in sgs.qlist(self.room:getAlivePlayers()) do 	
+			if not exclude or (player:objectName() ~= exclude:objectName()) then
+				table.insert(targets, player)
+				if self:isFriend(player) then
+					table.insert(friends, player)
+				elseif self:isEnemy(player) and not self:doNotDiscard(player) then
+					table.insert(enemies, player)
+				end
+			end
+		end
+	else
+		global_room:writeToConsole(debug.traceback()) return
+	end	
 
 	if #targets == 0 then return end
-
 	self:sort(enemies, "defense")
 	if flags:match("e") then
 		for _, enemy in ipairs(enemies) do

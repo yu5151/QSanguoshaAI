@@ -768,7 +768,7 @@ end
 sgs.ai_skill_use_func.YinlingCard = function(card, use, self)
 	if self.player:getPile("brocade"):length() >= 4 then return end
 	local target
-	target = self:findPlayerToDiscard()
+	target = self:findPlayerToDiscard("he", "noself")
 	if target then
 		use.card = card
 		if use.to then

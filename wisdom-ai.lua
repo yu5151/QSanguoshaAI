@@ -641,7 +641,7 @@ sgs.ai_skill_use_func.ShouyeCard = function(card, use, self)
 		end
 	end
 
-	if self.player:hasSkill("jiehuo") and self.player:getMark("jiehuo") < 0 then
+	if self.player:hasSkill("jiehuo") and self.player:getMark("jiehuo") < 1 then
 		sgs.ai_use_priority.ShouyeCard = 9.29
 		if first and not second then
 			for _, friend in ipairs(self.friends_noself) do
@@ -659,7 +659,7 @@ sgs.ai_skill_use_func.ShouyeCard = function(card, use, self)
 				end
 			end
 		end		
-	else
+	else 
 		sgs.ai_use_priority.ShouyeCard = 0
 	end
 	
@@ -693,6 +693,7 @@ sgs.ai_card_intention.ShouyeCard = function(self, card, from, tos)
 		sgs.updateIntention(from, tos[i], intention)
 	end
 end
+
 --[[
 	技能：师恩
 	描述：其他角色使用非延时锦囊时，可以让你摸一张牌

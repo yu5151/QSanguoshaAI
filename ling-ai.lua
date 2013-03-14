@@ -144,11 +144,7 @@ sgs.ai_skill_invoke.yishi = function(self, data)
 	else
 		if self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
 		if self:isWeak(target) then return false end
-		if target:getEquips():length() == 0 
-			and (target:getHandcardNum() == 1 and (self:hasSkills(sgs.need_kongcheng, target) or not self:hasLoseHandcardEffective(target))) then
-			return false
-		end
-		if (target:hasSkill("tuntian") and target:getPhase() == sgs.Player_NotActive) or self:hasSkills(sgs.lose_equip_skill, target) then
+		if self:doNotDiscard(target, "e", true) then
 			return false
 		end
 		if self:getDamagedEffects(target, self.player, true) or (target:getArmor() and not target:getArmor():isKindOf("SilverLion")) then return true end

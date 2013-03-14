@@ -1953,7 +1953,10 @@ function SmartAI:filterEvent(event, player, data)
 		local struct = data:toCardUse()
 		local card = struct.card
 		local lord = getLord(player)
-		local who = struct.to:first()
+        local who = nil
+        if not struct.to:isEmpty() then
+            who = struct.to:first()
+        end
 		
 		if sgs.turncount == 1 and lord then
 			if (card:isKindOf("Snatch") or card:isKindOf("Dismantlement") or card:isKindOf("YinlingCard")) and sgs.evaluateRoleTrends(who) == "neutral" then

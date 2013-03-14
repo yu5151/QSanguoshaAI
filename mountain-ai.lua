@@ -753,8 +753,8 @@ sgs.ai_cardneed.zhijian = sgs.ai_cardneed.equip
 
 sgs.ai_skill_invoke.guzheng = function(self, data)
 	local player = self.room:getCurrent()
-	local invoke = (self:isFriend(player) and not (player:hasSkill("kongcheng") and player:isKongchen())) or data:toInt() >= 3
-					or (self:isEnemy(player) and player:hasSkill("kongcheng") and player:isKongchen())
+	local invoke = (self:isFriend(player) and not (player:hasSkill("kongcheng") and player:isKongcheng())) or data:toInt() >= 3
+					or (self:isEnemy(player) and player:hasSkill("kongcheng") and player:isKongcheng())
 	return invoke
 end
 

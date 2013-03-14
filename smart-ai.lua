@@ -409,7 +409,7 @@ function SmartAI:adjustUsePriority(card,v)
 	if card:isKindOf("Slash") then 
 		if card:getSkillName() == "Spear" then v = v - 0.01 end
 		if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 0.01 end
-		if card:getSkillName() == "newfuhun" then v = v + 0.1 end
+		if card:getSkillName() == "fuhun" then v = v + 0.1 end
 	end
 
 	local suits_value={}

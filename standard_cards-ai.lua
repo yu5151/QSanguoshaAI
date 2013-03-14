@@ -1530,7 +1530,7 @@ function SmartAI:getValuableCard(who)
 	end
 
 	if offhorse then
-		if self:hasSkills("nosqianxi|kuanggu|duanbing", who) then
+		if self:hasSkills("nosqianxi|kuanggu|duanbing|qianxi", who) then
 			return offhorse:getEffectiveId()
 		end
 	end

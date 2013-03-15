@@ -714,6 +714,8 @@ sgs.ai_skill_playerchosen.baonue = function(self, targets)
 	return targets[1]
 end
 
+sgs.ai_playerchosen_intention.baonue = -40
+
 sgs.jiuchi_suit_value = {
 	spade = 5,
 }

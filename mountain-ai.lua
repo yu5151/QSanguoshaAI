@@ -305,10 +305,11 @@ sgs.ai_skill_use["@qiaobian"] = function(self, prompt)
 	return "."
 end
 
-sgs.ai_card_intention.QiaobianCard = function(self, card, from, tos, source)	
-	return 0
+sgs.ai_card_intention.QiaobianCard = function(self, card, from, tos, source)
+	if from:getMark("qiaobianPhase") == 3 then
+		sgs.ai_card_intention.TuxiCard(self, card, from, tos, source)
+	end
 end
-
 function sgs.ai_cardneed.qiaobian(to, card)
 	return to:getCards("h"):length() <= 2
 end

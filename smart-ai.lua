@@ -1953,12 +1953,10 @@ function SmartAI:filterEvent(event, player, data)
 		local struct = data:toCardUse()
 		local card = struct.card
 		local lord = getLord(player)
-        local who = nil
-        if not struct.to:isEmpty() then
-            who = struct.to:first()
-        end
+		local who
+		if not struct.to:isEmpty() then who = struct.to:first() end
 		
-		if sgs.turncount == 1 and lord then
+		if sgs.turncount == 1 and lord and who then
 			if (card:isKindOf("Snatch") or card:isKindOf("Dismantlement") or card:isKindOf("YinlingCard")) and sgs.evaluateRoleTrends(who) == "neutral" then
 				local aplayer = self:exclude({lord}, card, struct.from)
 				if #aplayer ==1 then sgs.updateIntention(player, lord, -70) end
@@ -5277,3 +5275,5 @@ for _, ascenario in ipairs(sgs.Sanguosha:getModScenarioNames()) do
 		dofile("lua/ai/" .. string.lower(ascenario) .. "-ai.lua")
 	end
 end
+
+-- vi:ts=4:

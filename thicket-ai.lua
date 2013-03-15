@@ -93,6 +93,8 @@ sgs.ai_skill_playerchosen.songwei = function(self, targets)
 	return targets[1]
 end
 
+sgs.ai_playerchosen_intention.songwei = -50
+
 sgs.ai_card_intention.FangzhuCard = function(self,card, from, tos)
 	if from:getLostHp() < 3 then
 		sgs.updateIntention(from, tos[1], 80/from:getLostHp())

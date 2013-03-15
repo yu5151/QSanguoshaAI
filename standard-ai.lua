@@ -388,8 +388,8 @@ sgs.ai_card_intention.TuxiCard = function(self,card, from, tos, source)
 	local tuxi_lord = false
 	if sgs.evaluateRoleTrends(from) == "neutral" and sgs.evaluateRoleTrends(tos[1]) == "neutral" and
 		(not tos[2] or sgs.evaluateRoleTrends(tos[2]) == "neutral") and lord and not lord:isKongcheng() and 
-		not (self:hasSkills("kongcheng|lianying|zhiji", lord) and lord:getHandcardNum() == 1 ) and
-		not self:hasLoseHandcardEffective(lord) and not lord:hasSkill("tuntian") and from:aliveCount() >= 4 then
+		not (self:needKongcheng(lord) and lord:getHandcardNum() == 1 ) and
+		self:hasLoseHandcardEffective(lord) and not lord:hasSkill("tuntian") and from:aliveCount() >= 4 then
 			sgs.updateIntention(from, lord, -80)
 		return
 	end

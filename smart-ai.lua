@@ -4645,36 +4645,42 @@ function SmartAI:getAoeValue(card, player)
 	return good - bad
 end
 
-function SmartAI:hasTrickEffective(card, player)
-	if player then
-		if self.room:isProhibited(self.player, player, card) then return false end
-		if (player:hasSkill("zhichi") and self.room:getTag("Zhichi"):toString() == player:objectName()) or player:hasSkill("noswuyan") then
-			if card and not card:isKindOf("DelayedTrick") then return false end
-		end
-		if player:hasSkill("wuyan") and not self.player:hasSkill("jueqing") then
-			if card and (card:isKindOf("Duel") or card:isKindOf("FireAttack")) then return false end
-		end
-
-		if player:getMark("@fenyong") >0 and player:hasSkill("fenyong") and not self.player:hasSkill("jueqing") then
-			if card and (card:isKindOf("Duel") or card:isKindOf("FireAttack")) then return false end
-		end
-
-		if (player:getMark("@fog") > 0 or (player:hasSkill("shenjun") and self.player:getGender() ~= player:getGender())) and
-			sgs.dynamic_value.damage_card[card:getClassName()] then return false end
-		if player:hasSkill("zuixiang") and player:isLocked(card) then return false end
-	else
-		if self.player:hasSkill("wuyan") and not self.player:hasSkill("jueqing") then
-			if card:isKindOf("TrickCard") and 
-				(card:isKindOf("Duel") or card:isKindOf("FireAttack") or card:isKindOf("ArcheryAttack") or card:isKindOf("SavageAssault")) then
-			return false end
-		end
-		if self.player:hasSkill("noswuyan") then
-			if card:isKindOf("TrickCard") and not (card:isKindOf("DelayedTrick") or card:isKindOf("GodSalvation") 
-			  or card:isKindOf("AmazingGrace") or card:isKindOf("ExNihilo")) then
+function SmartAI:hasTrickEffective(card, to, from)
+	from = from or self.room:getCurrent()
+	to = to or self.player
+	if to:objectName() ~= from:objectName() then
+		if from:hasSkill("noswuyan") or to:hasSkill("noswuyan") then
+			if card:isKindOf("TrickCard") and not card:isKindOf("DelayedTrick") then
 				return false
 			end
 		end
 	end
+
+	if (from:hasSkill("wuyan") or to:hasSkill("wuyan")) and not from:hasSkill("jueqing") then
+		if card:isKindOf("TrickCard") and 
+		  (card:isKindOf("Duel") or card:isKindOf("FireAttack") or card:isKindOf("ArcheryAttack") or card:isKindOf("SavageAssault")) then
+			return false
+		end
+	end
+	
+	if self.room:isProhibited(from, to, card) then return false end
+
+	if (to:hasSkill("zhichi") and self.room:getTag("Zhichi"):toString() == to:objectName()) then
+		if card and not card:isKindOf("DelayedTrick") then return false end
+	end
+	
+	local nature = sgs.DamageStruct_Normal
+	if card:isKindOf("FireAttack") then nature = sgs.DamageStruct_Fire end
+
+	local jinxuandi = self.room:findPlayerBySkillName("wuling")
+	if jinxuandi and jinxuandi:getMark("@fire") > 0 then nature = sgs.DamageStruct_Fire end
+
+	if (card:isKindOf("Duel") or card:isKindOf("FireAttack") or card:isKindOf("ArcheryAttack") or card:isKindOf("SavageAssault")) 
+	  and not self:damageIsEffective(to, nature, from) then 
+		return false 
+	end
+		
+	if to:hasSkill("zuixiang") and to:isLocked(card) then return false end
 	return true
 end
 

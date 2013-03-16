@@ -713,7 +713,7 @@ end
 
 sgs.dynamic_value.damage_card.Slash = true
 
-sgs.ai_use_value.Slash = 4.6
+sgs.ai_use_value.Slash = 4.5
 sgs.ai_keep_value.Slash = 2
 sgs.ai_use_priority.Slash = 2.6
 

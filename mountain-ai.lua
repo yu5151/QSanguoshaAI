@@ -586,8 +586,8 @@ sgs.ai_skill_choice.zhiji = function(self, choice)
 	return "draw"
 end
 
-local zhiba_pindian_skill={}
-zhiba_pindian_skill.name="zhiba_pindian"
+local zhiba_pindian_skill = {}
+zhiba_pindian_skill.name = "zhiba_pindian"
 table.insert(sgs.ai_skills, zhiba_pindian_skill)
 zhiba_pindian_skill.getTurnUseCard = function(self)
 	if self.player:isKongcheng() or self.player:getHandcardNum() <= self.player:getHp() or self.player:getKingdom() ~= "wu"
@@ -595,7 +595,7 @@ zhiba_pindian_skill.getTurnUseCard = function(self)
 	return sgs.Card_Parse("@ZhibaCard=.")
 end
 
-sgs.ai_use_priority.ZhibaCard = sgs.ai_use_priority.Peach - 0.1
+sgs.ai_use_priority.ZhibaCard = 0
 
 sgs.ai_skill_use_func.ZhibaCard = function(card, use, self)
 	local lords = {}

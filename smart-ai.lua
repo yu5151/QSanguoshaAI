@@ -2768,6 +2768,7 @@ function SmartAI:askForUseCard(pattern, prompt, method)
 end
 
 function SmartAI:askForAG(card_ids, refusable, reason)
+	if reason == "#guzheng-get" then reason = "guzheng" end
 	local cardchosen = sgs.ai_skill_askforag[string.gsub(reason, "%-", "_")]
 	if type(cardchosen) == "function" then
 		local card_id = cardchosen(self, card_ids)

@@ -720,7 +720,7 @@ sgs.ai_skill_use_func.ZhijianCard = function(card, use, self)
 				local slash = self:getCard("Slash")
 				for _, enemy in ipairs(self.enemies) do
 					if self.player:canSlash(enemy, slash, true) and not self:slashProhibit(slash, enemy) and
-						self:slashIsEffective(slash, enemy) and self:hasHeavySlashDamage(self.player, slash, enemy) then
+						self:slashIsEffective(slash, enemy) and not self.player:hasSkill("jueqing") and enemy:isKongcheng() then
 							HeavyDamage = true
 							break
 					end

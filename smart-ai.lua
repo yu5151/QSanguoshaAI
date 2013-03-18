@@ -2378,10 +2378,13 @@ function SmartAI:askForNullification(trick, from, to, positive)
 			null_num = null_num + 1
 		end
 	end
-	if null_card then null_card = sgs.Card_Parse(null_card) else return end --没有无懈可击
+	if null_card then null_card = sgs.Card_Parse(null_card) else return nil end --没有无懈可击
 	if (from and from:isDead()) or (to and to:isDead()) then return nil end --已死
 	if self:needBear() then return nil end --“忍戒”
 	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 then return nil end --“无谋”
+
+	if trick:isKindOf("FireAttack") and to:isKongcheng() then return nil end
+	if ("snatch|dismantlement"):match(trick:objectName()) and to:isAllNude() then return nil end
 	
 	if self:isFriend(to) and to:hasFlag("will_wake") then return end
 	
@@ -2399,9 +2402,16 @@ function SmartAI:askForNullification(trick, from, to, positive)
 	end
 	--准备使用无懈可击--
 	if positive then
+		if ("snatch|dismantlement"):match(trick:objectName()) and not to:containsTrick("YanxiaoCard") and (to:containsTrick("indulgence") or to:containsTrick("supply_shortage")) then
+			if self:isEnemy(from) then return null_card end
+			if self:isFriend(to) and to:isNude() then return nil end
+		end
+		
 		if from and self:isEnemy(from) and (sgs.evaluateRoleTrends(from) ~= "neutral" or sgs.isRolePredictable()) then
 			--使用者是敌方，自己有技能“空城”且无懈可击为最后一张手牌->命中
-			if self:hasSkill("kongcheng") and self.player:getHandcardNum() == 1 and self.player:isLastHandCard(null_card) then return null_card end
+			if self:hasSkill("kongcheng") and self.player:getHandcardNum() == 1 and self.player:isLastHandCard(null_card) and trick:isKindOf("SingleTargetTrick") then
+				return null_card
+			end
 			--敌方在虚弱、需牌技、漫卷中使用无中生有->命中
 			if trick:isKindOf("ExNihilo") and (self:isWeak(from) or self:hasSkills(sgs.cardneed_skill, from) or from:hasSkill("manjuan")) then return null_card end
 			--铁索连环的目标没有藤甲->不管
@@ -2409,7 +2419,13 @@ function SmartAI:askForNullification(trick, from, to, positive)
 			if self:isFriend(to) then
 				if trick:isKindOf("Dismantlement") then 
 					--敌方拆友方威胁牌、价值牌、最后一张手牌->命中
-					if self:getDangerousCard(to) or self:getValuableCard(to) or (to:getHandcardNum() == 1 and not self:needKongcheng(to)) then return null_card end
+					if self:getDangerousCard(to) or self:getValuableCard(to) then return null_card end
+					if to:getHandcardNum() == 1 and not self:needKongcheng(to) then
+						if (getKnownCard(to, "TrickCard", false) == 1 or getKnownCard(to, "EquipCard", false) == 1 or getKnownCard(to, "Slash", false) == 1) then
+							return nil
+						end
+						return null_card
+					end
 				else
 					--敌方使用顺手牵羊->命中
 					if trick:isKindOf("Snatch") then return null_card end
@@ -2436,20 +2452,18 @@ function SmartAI:askForNullification(trick, from, to, positive)
 
 		if self:isFriend(to) then
 			if not (to:hasSkill("guanxing") and global_room:alivePlayerCount() > 4) then 
-				--无观星友方判定区有乐不思蜀->视“突袭”、“巧变”、“神速”情形而定
+				--无观星友方判定区有乐不思蜀->视“突袭”、“巧变”情形而定
 				if trick:isKindOf("Indulgence") then
 					if to:getHp() - to:getHandcardNum() >= 2 then return nil end
 					if to:hasSkill("tuxi") and to:getHp() > 2 then return nil end
 					if to:hasSkill("qiaobian") and not to:isKongcheng() then return nil end
-					if to:hasSkill("shensu") and not self:isWeak(to) then return nil end
 					return null_card
 				end
-				--无观星友方判定区有兵粮寸断->视“鬼道”、“天妒”、“溃围”、“巧变”、“神速”情形而定
+				--无观星友方判定区有兵粮寸断->视“鬼道”、“天妒”、“溃围”、“巧变”情形而定
 				if trick:isKindOf("SupplyShortage") then
 					if self:hasSkills("guidao|tiandu",to) then return nil end
 					if to:getMark("@kuiwei") == 0 then return nil end
 					if to:hasSkill("qiaobian") and not to:isKongcheng() then return nil end
-					if to:hasSkill("shensu") and not self:isWeak(to) then return nil end
 					return null_card
 				end
 			end 
@@ -2504,11 +2518,11 @@ function SmartAI:askForNullification(trick, from, to, positive)
 			end
 		end
 	else
-		if from then
+		if from then			
 			if from:objectName() == to:objectName() then
 				if self:isFriend(from) then return null_card else return end
 			end
-			if not (trick:isKindOf("AmazingGrace") or trick:isKindOf("GodSalvation") or trick:isKindOf("AOE")) then
+			if not (trick:isKindOf("GlobalEffect") or trick:isKindOf("AOE")) then
 				if self:isFriend(from) then
 					if ("snatch|dismantlement"):match(trick:objectName()) and to:isNude() then
 					elseif trick:isKindOf("FireAttack") and to:isKongcheng() then

@@ -13,7 +13,7 @@ function toTurnOver(self, player, n)
 		return false
 	end
 	if ( self:hasSkills("jushou|neojushou|kuiwei", player) or (player:hasSkill("lihun") and not player:hasUsed("LihunCard") and player:faceUp()) )
-	  and player:getPhase() == sgs.Player_Play then
+	  and player:getPhase() ~= sgs.Player_NotActive then
 		return false
 	end
 	return true

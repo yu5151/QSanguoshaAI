@@ -724,6 +724,8 @@ function SmartAI:useCardPeach(card, use)
 		math.min(self.player:getMaxCards(), self.player:getHandcardNum()) + self.player:getCards("e"):length() > 3 then return end
 	local peaches = 0
 	local cards = self.player:getHandcards()
+	local lord= getLord(self.player)
+
 	cards = sgs.QList2Table(cards)
 	for _,card in ipairs(cards) do
 		if card:isKindOf("Peach") then peaches = peaches+1 end
@@ -750,6 +752,10 @@ function SmartAI:useCardPeach(card, use)
 		return
 	end
 
+	if self.player:getHp() == 1 and not (lord and self:isFriend(lord) and lord:getHp() < 2 and self:isWeak(lord)) then
+		mustusepeach = true
+	end
+
 	if mustusepeach or (self.player:hasSkill("buqu") and self.player:getHp()<1) or peaches > self.player:getHp() then
 		use.card = card
 		return 
@@ -763,14 +769,13 @@ function SmartAI:useCardPeach(card, use)
 		return
 	end
 
-	if self.player:getHp() >= getBestHp(self.player) then return end
+	if self.player:getHp() >= getBestHp(self.player) then return end	
 	
-	local lord= getLord(self.player)
-	if lord and self:isFriend(lord) and lord:getHp() <= 2 and not lord:hasSkill("buqu") then 
+	if lord and self:isFriend(lord) and lord:getHp() <= 2 and self:isWeak(lord) then 
 		if self.player:isLord() then use.card = card end
 		if self:getCardsNum("Peach") > 1 and self:getCardsNum("Peach") + self:getCardsNum("Jink") > self.player:getMaxCards() then use.card = card end
 		return 
-	end
+	end	
 
 	self:sort(self.friends, "hp")
 	if self.friends[1]:objectName()==self.player:objectName() or self.player:getHp()<2 then

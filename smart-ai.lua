@@ -4422,6 +4422,9 @@ function SmartAI:exclude(players, card, from)
 	local excluded = {}
 	local limit = self:getDistanceLimit(card, from)
 	local range_fix = 0
+	
+	if type(players) ~= "table" then players = sgs.QList2Table(players) end	
+
 	if card:isVirtualCard() then
 		for _, id in sgs.qlist(card:getSubcards()) do
 			if from:getOffensiveHorse() and from:getOffensiveHorse():getEffectiveId() == id then range_fix = range_fix + 1 end
@@ -4429,7 +4432,7 @@ function SmartAI:exclude(players, card, from)
 		if card:getSkillName() == "jixi" then range_fix = range_fix + 1 end
 	end
 
-	for _, player in sgs.list(players) do
+	for _, player in ipairs(players) do
 		if not self.room:isProhibited(from, player, card) then
 			local should_insert = true
 			if limit then

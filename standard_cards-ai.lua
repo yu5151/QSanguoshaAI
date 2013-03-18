@@ -919,10 +919,10 @@ sgs.ai_skill_cardask["@Axe"] = function(self, data, pattern, target)
 	local allcards = self.player:getCards("he")
 	allcards = sgs.QList2Table(allcards)
 	if self:hasHeavySlashDamage(self.player, effect.slash, target) 
-	  or #allcards - 2 >= self.player:getHp() 
+	  or #allcards - 3 >= self.player:getHp() 
 	  or (self.player:hasSkill("kuanggu") and self.player:isWounded() and self.player:distanceTo(effect.to) == 1)
 	  or (effect.to:getHp() == 1 and not effect.to:hasSkill("buqu")) 
-	  or ((self:hasSkills(sgs.need_kongcheng) or self:hasLoseHandcardEffective()) and self.player:getHandcardNum() > 0)
+	  or (self:needKongcheng() and self.player:getHandcardNum() > 0)
 	  or (self:hasSkills(sgs.lose_equip_skill, self.player) and self.player:getEquips():length() > 1 and self.player:getHandcardNum() < 2) then
 		local hcards = self.player:getCards("h")
 		hcards = sgs.QList2Table(hcards)
@@ -1632,14 +1632,20 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	local enemies = {}
 
 	if #self.enemies == 0 and self:getOverflow() > 0 then
-		local lord = getLord(self.player)
-		local sb_liubei = lord and lord:hasLordSkill("shichou")
+		local lord = getLord(self.player)		
 		for _, player in ipairs(players) do
-			if not player:isLord() and sgs.evaluateRoleTrends(player) ~= "loyalist" and not (sb_liubei and player:getKingdom() == "shu") then
-				table.insert(enemies, player) 
+			if not self:isFriend(player) then
+				if lord and self.player:objectName() == lord:objectName() then
+					if player:getKingdom() ~= lord:getKingdom() and not lord:hasSkill("yongsi") then table.insert(enemies, player) end
+				elseif lord and player:objectName() ~= lord:objectName() then 
+					table.insert(enemies, player)
+				else
+					if not lord then table.insert(enemies, player) end
+				end
 			end
 		end
-		enemies = self:exclude(enemies, card)
+
+		enemies = self:exclude(enemies, card)		
 		self:sort(enemies, "defenseSlash")
 		enemies = sgs.reverse(enemies)
 	else

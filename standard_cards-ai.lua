@@ -838,7 +838,7 @@ sgs.ai_skill_cardask["double-sword-card"] = function(self, data, pattern, target
 	local need_double_jink =target and (target:hasSkill("wushuang") 
 			or (target:hasSkill("roulin") and self.player:isFemale()) 
 			or (target:isFemale() and self:hasSkills("roulin")))
-	if need_double_jink and self:getCardsNum("Jink") == 2 then return "." end
+	if need_double_jink and self:getCardsNum("Jink") == 2 and self.player:getHandcardNum() == 2 then return "." end
 
 	if self:needKongcheng(self.player, true) and self.player:getHandcardNum() <= 2 then
 		if self.player:getHandcardNum() == 1 then
@@ -856,7 +856,7 @@ sgs.ai_skill_cardask["double-sword-card"] = function(self, data, pattern, target
 	end
 	if target and self:isFriend(target) then return "." end
 	if self:needBear() then return "." end
-	if target and target:isKongcheng() and self:hasSkills("kongcheng", target) then return "." end
+	if target and self:needKongcheng(target, true) then return "." end
 	local cards = self.player:getHandcards()
 	for _, card in sgs.qlist(cards) do
 		if (card:isKindOf("Slash") and self:getCardsNum("Slash") > 1)

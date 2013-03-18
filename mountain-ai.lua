@@ -820,7 +820,7 @@ sgs.ai_skill_askforag.guzheng = function(self, card_ids)
 		if peach then
 			if peach_num > 1 
 				or (self:getCardsNum("Peach") >= self.player:getMaxCards())
-				or (who:getHp() < getBestHp(who) and who:getHp() < self.player:getHp())) then
+				or (who:getHp() < getBestHp(who) and who:getHp() < self.player:getHp()) then
 					return peach 
 			end
 		end

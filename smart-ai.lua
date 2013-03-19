@@ -2519,7 +2519,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 		end
 		
 		--五谷：目前只无邪桃子和无中，其他情况待补充
-		if trick:isKindOf("AmazingGrace") and self:isEnemy(to) thenthen
+		if trick:isKindOf("AmazingGrace") and self:isEnemy(to) then
 			local NP = to:getNextAlive()
 			if self:isFriend(NP) then
 				local ag_ids = self.room:getTag("AmazingGrace"):toStringList()

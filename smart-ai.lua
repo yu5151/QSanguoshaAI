@@ -2447,31 +2447,6 @@ function SmartAI:askForNullification(trick, from, to, positive)
 				if (trick:isKindOf("Snatch") or trick:isKindOf("Dismantlement")) and to:getCards("j"):length() > 0 then
 					return null_card
 				end
-				
-				--五谷：目前只无邪桃子和无中，其他情况待补充
-				if trick:isKindOf("AmazingGrace") then
-					local NP = to:getNextAlive()
-					if self:isFriend(NP) then
-						local ag_ids = self.room:getTag("AmazingGrace"):toStringList()
-						local peach_num, exnihilo_num = 0, 0
-						for _, ag_id in ipairs(ag_ids) do
-							local ag_card = sgs.Sanguosha:getCard(ag_id)
-							if ag_card:isKindOf("Peach") then peach_num = peach_num + 1 end
-							if ag_card:isKindOf("ExNihilo") then exnihilo_num = exnihilo_num + 1 end
-						end
-						if (peach_num == 1 and to:getHp() < getBestHp(to)) or
-							(peach_num > 0 and self:isWeak(to)) or
-							(NP:getHp() < getBestHp(NP) and not self:getOverflow(NP)) then
-							return null_card
-						end
-						if peach_num == 0 and exnihilo_num > 0 and not self:willSkipPlayPhase(NP) then
-							if self:hasSkills("jizhi|rende|zhiheng", NP) then return null_card end
-							if self:needBear(NP) then return null_card end
-							if NP:hasSkill("jilve") and NP:getMark("@bear") > 0 then return null_card end
-						end
-					end
-				end
-
 			end
 		end
 
@@ -2542,6 +2517,31 @@ function SmartAI:askForNullification(trick, from, to, positive)
 				end
 			end
 		end
+		
+		--五谷：目前只无邪桃子和无中，其他情况待补充
+		if trick:isKindOf("AmazingGrace") and self:isEnemy(to) thenthen
+			local NP = to:getNextAlive()
+			if self:isFriend(NP) then
+				local ag_ids = self.room:getTag("AmazingGrace"):toStringList()
+				local peach_num, exnihilo_num = 0, 0
+				for _, ag_id in ipairs(ag_ids) do
+					local ag_card = sgs.Sanguosha:getCard(ag_id)
+					if ag_card:isKindOf("Peach") then peach_num = peach_num + 1 end
+					if ag_card:isKindOf("ExNihilo") then exnihilo_num = exnihilo_num + 1 end
+				end
+				if (peach_num == 1 and to:getHp() < getBestHp(to)) or
+					(peach_num > 0 and self:isWeak(to)) or
+					(NP:getHp() < getBestHp(NP) and not self:getOverflow(NP)) then
+					return null_card
+				end
+				if peach_num == 0 and exnihilo_num > 0 and not self:willSkipPlayPhase(NP) then
+					if self:hasSkills("jizhi|rende|zhiheng", NP) then return null_card end
+					if self:needBear(NP) then return null_card end
+					if NP:hasSkill("jilve") and NP:getMark("@bear") > 0 then return null_card end
+				end
+			end
+		end
+		
 	else
 		if from then			
 			if from:objectName() == to:objectName() then

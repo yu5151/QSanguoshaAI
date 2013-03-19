@@ -582,41 +582,55 @@ function sgs.ai_cardneed.qingguo(to, card)
 	return to:getCards("h"):length() < 2 and card:isBlack()
 end
 
-function SmartAI:willSkipPlayPhase(player)
+function SmartAI:willSkipPlayPhase(player, NotContains_Null)
 	local player = player or self.player
 	local friend_null = 0
-	local friend_santch_dismantlement = 0
+	local friend_snatch_dismantlement = 0
 	local cp = self.room:getCurrent()
 	if self.player:objectName() == cp:objectName() and self.player:objectName() ~= player:objectName() and self:isFriend(player) then
 		for _, hcard in sgs.qlist(self.player:getCards("he")) do
 			if (isCard("Snatch", hcard, self.player) and self.player:distanceTo(player) == 1) or isCard("Dismantlement", hcard, self.player) then
 				local trick = sgs.Sanguosha:cloneCard(hcard:objectName(), hcard:getSuit(), hcard:getNumber())
-				if self:hasTrickEffective(trick, player) then friend_santch_dismantlement = friend_santch_dismantlement + 1 end
+				if self:hasTrickEffective(trick, player) then friend_snatch_dismantlement = friend_snatch_dismantlement + 1 end
 			end
 		end
-	end		
-	for _, p in sgs.qlist(self.room:getAllPlayers()) do
-		if self:isFriend(p, player) then friend_null = friend_null + getCardsNum("Nullification", p) end
-		if self:isEnemy(p, player) then friend_null = friend_null - getCardsNum("Nullification", p) end
-	end	
+	end
+	if not NotContains_Null then
+		for _, p in sgs.qlist(self.room:getAllPlayers()) do
+			if self:isFriend(p, player) then friend_null = friend_null + getCardsNum("Nullification", p) end
+			if self:isEnemy(p, player) then friend_null = friend_null - getCardsNum("Nullification", p) end
+		end
+	end
 	if player:containsTrick("indulgence") then
 		if player:containsTrick("YanxiaoCard") or self:hasSkills("keji|conghui",player) or (self:hasSkills("qiaobian",player) and not player:isKongcheng()) then return false end
-		if friend_null + friend_santch_dismantlement > 1 then return false end
+		if friend_null + friend_snatch_dismantlement > 1 then return false end
 		return true
 	end
 	return false
 end
 
-function SmartAI:willSkipDrawPhase(player)
+function SmartAI:willSkipDrawPhase(player, NotContains_Null)
 	local player = player or self.player
 	local friend_null = 0
-	for _, p in sgs.qlist(self.room:getAllPlayers()) do
-		if self:isFriend(p, player) then friend_null = friend_null + getCardsNum("Nullification", p) end
-		if self:isEnemy(p, player) then friend_null = friend_null - getCardsNum("Nullification", p) end
-	end	
+	local friend_snatch_dismantlement = 0
+	local cp = self.room:getCurrent()
+	if not NotContains_Null then
+		for _, p in sgs.qlist(self.room:getAllPlayers()) do
+			if self:isFriend(p, player) then friend_null = friend_null + getCardsNum("Nullification", p) end
+			if self:isEnemy(p, player) then friend_null = friend_null - getCardsNum("Nullification", p) end
+		end
+	end
+	if self.player:objectName() == cp:objectName() and self.player:objectName() ~= player:objectName() and self:isFriend(player) then
+		for _, hcard in sgs.qlist(self.player:getCards("he")) do
+			if (isCard("Snatch", hcard, self.player) and self.player:distanceTo(player) == 1) or isCard("Dismantlement", hcard, self.player) then
+				local trick = sgs.Sanguosha:cloneCard(hcard:objectName(), hcard:getSuit(), hcard:getNumber())
+				if self:hasTrickEffective(trick, player) then friend_snatch_dismantlement = friend_snatch_dismantlement + 1 end
+			end
+		end
+	end
 	if player:containsTrick("supply_shortage") then
 		if player:containsTrick("YanxiaoCard") or self:hasSkills("shensu|jisu",player) or (self:hasSkills("qiaobian",player) and not player:isKongcheng()) then return false end
-		if friend_null > 1 then return false end
+		if friend_null + friend_snatch_dismantlement > 1 then return false end
 		return true
 	end
 	return false

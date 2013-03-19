@@ -2335,18 +2335,18 @@ sgs.ai_keep_value.Lightning = -1
 
 sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	
-	local nextplayercanuse, NextPlayerisEnemy
-	local nextp = self.player:getNextAlive()
-	if sgs.turncount > 1 and not self:willSkipPlayPhase(nextp) then
-		if self:isFriend(nextp) then
-			nextplayercanuse = true
+	local NextPlayerCanUse, NextPlayerisEnemy
+	local NextPlayer = self.player:getNextAlive()
+	if sgs.turncount > 1 and not self:willSkipPlayPhase(NextPlayer) then
+		if self:isFriend(NextPlayer) and sgs.evaluateRoleTrends(NextPlayer) ~= "neutral" then
+			NextPlayerCanUse = true
 		else
 			NextPlayerisEnemy = true
 		end
 	end	
 	for _, enemy in ipairs(self.enemies) do
-		if enemy:hasSkill("lihun") and enemy:faceUp() and not nextp:faceUp() and nextp:getHandcardNum() > 4 and nextp:isMale() then
-			nextplayercanuse = false
+		if enemy:hasSkill("lihun") and enemy:faceUp() and not NextPlayer:faceUp() and NextPlayer:getHandcardNum() > 4 and NextPlayer:isMale() then
+			NextPlayerCanUse = false
 		end
 	end
 	
@@ -2373,6 +2373,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	
 	local SelfisCurrent
 	if self.room:getCurrent():objectName() == self.player:objectName() then SelfisCurrent = true end
+	
 ---------------
 	
 	local needbuyi
@@ -2397,7 +2398,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 				end
 			end
 		end
-		if minvaluecard and nextplayercanuse then
+		if minvaluecard and NextPlayerCanUse then
 			return minvaluecard:getEffectiveId()
 		end
 		if maxvaluecard then
@@ -2407,8 +2408,10 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	
 	local friendneedpeach, peach
 	local peachnum = 0
-	if nextplayercanuse then
-		if not self.player:isWounded() and nextp:isWounded() or self.player:getLostHp() < self:getCardsNum("Peach") or self:willSkipPlayPhase() then
+	if NextPlayerCanUse then
+		if (not self.player:isWounded() and NextPlayer:isWounded()) or
+			(self.player:getLostHp() < self:getCardsNum("Peach")) or
+			(not SelfisCurrent and self:willSkipPlayPhase() and self.player:getHandcardNum() + 2 > self.player:getMaxCards()) then
 			friendneedpeach = true
 		end
 	end
@@ -2423,7 +2426,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	local exnihilo, jink, analeptic, nullification
 	for _, card in ipairs(cards) do
 		if card:isKindOf("ExNihilo") then
-			if not nextplayercanuse or (not self:willSkipPlayPhase() and (self:hasSkills("jizhi|zhiheng|rende") or not self:hasSkills("jizhi|zhiheng", nextp))) then
+			if not NextPlayerCanUse or (not self:willSkipPlayPhase() and (self:hasSkills("jizhi|zhiheng|rende") or not self:hasSkills("jizhi|zhiheng", NextPlayer))) then
 				exnihilo = card:getEffectiveId()
 			end
 		end	
@@ -2456,14 +2459,14 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 			end
 		end
 		local possible_attack = math.min(enemy_num, InAttackRange)
-		if (possible_attack > self:getCardsNum("Jink")) and self:getCardsNum("Jink") <= 2 then
+		if possible_attack > self:getCardsNum("Jink") and self:getCardsNum("Jink") <= 2 then
 			if jink or analeptic or exnihilo then return jink or analeptic or exnihilo end
 		else
 			if exnihilo then return exnihilo end
 		end
 	end 
 	
-	if nullification and (self:getCardsNum("Nullification") < 2 or not nextplayercanuse) then 
+	if nullification and (self:getCardsNum("Nullification") < 2 or not NextPlayerCanUse) then 
 		return nullification
 	end
 	
@@ -2486,7 +2489,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		if card:isKindOf("RenwangShield") then renwang = card:getEffectiveId() end
 		if card:isKindOf("DefensiveHorse") and not self:getSameEquip(card) then DefHorse = card:getEffectiveId() end
 		if card:isKindOf("OffensiveHorse") and not self:getSameEquip(card) then OffHorse = card:getEffectiveId() end
-		if card:isKindOf("Crossbow") then crossbow = card:getEffectiveId() end
+		if card:isKindOf("Crossbow") then crossbow = card end
 		if card:isKindOf("DoubleSword") then double = card:getEffectiveId() end
 		if card:isKindOf("QinggangSword") then qinggang = card:getEffectiveId() end
 		if card:isKindOf("Axe") then axe = card:getEffectiveId() end
@@ -2496,11 +2499,17 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	end
 	
 	if eightdiagram then
+		local lord = getLord(self.player)
 		if not self:hasSkills("yizhong|bazhen") and self:hasSkills("tiandu|leiji|noszhenlie|gushou|hongyan") and not self:getSameEquip(card) then
 			return eightdiagram 
 		end
-		if NextPlayerisEnemy and self:hasSkills("tiandu|leiji|noszhenlie|gushou|hongyan", nextp) then return eightdiagram end
-		if sgs.ai_armor_value.EightDiagram(self.player, self) >= 5 then return eightdiagram end
+		if NextPlayerisEnemy and self:hasSkills("tiandu|leiji|noszhenlie|gushou|hongyan", NextPlayer) and not self:getSameEquip(card, NextPlayer) then
+			return eightdiagram
+		end
+		if self.role == "loyalist" and self.player:getKingdom()=="wei" and not self.player:hasSkill("bazhen") and
+			lord and lord:hasLordSkill("hujia") and (lord:objectName() ~= NextPlayer:objectName() and NextPlayerisEnemy or lord:getArmor()) then
+			return eightdiagram
+		end
 	end
 	
 	if silverlion then
@@ -2519,7 +2528,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		if lightning and canRetrial then return silverlion end
 		if self.player:isChained() then
 			for _, friend in ipairs(self.friends) do
-				if self:isEquip("Vine") and friend:isChained() then
+				if self:isEquip("Vine", friend) and friend:isChained() then
 					return silverlion
 				end
 			end
@@ -2562,7 +2571,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	end
 	
 	if weapon and (self:getCardsNum("Slash") > 0 and self:slashIsAvailable() or not SelfisCurrent) then
-		local current_range = self.player:getWeapon() and sgs.weapon_range[self.player:getWeapon():getClassName()] or 1
+		local current_range = (self.player:getWeapon() and sgs.weapon_range[self.player:getWeapon():getClassName()]) or 1
 		local nosuit_slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 		local slash = SelfisCurrent and self:getCard("Slash") or nosuit_slash
 		
@@ -2571,17 +2580,34 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		if crossbow then
 			if #self:getCards("Slash") > 1 or self:hasSkills("kurou|keji") 
 				or (self:hasSkills("luoshen|yongsi|luoying|guzheng") and not SelfisCurrent and self.room:alivePlayerCount() >= 4) then
-				return crossbow
+				return crossbow:getEffectiveId()
 			end
 			if self.player:hasSkill("guixin") and self.room:alivePlayerCount() >= 6 and (self.player:getHp() > 1 or self:getCardsNum("Peach") > 0) then
-				return crossbow
+				return crossbow:getEffectiveId()
 			end
 			if self.player:hasSkill("rende") then
 				for _, friend in ipairs(self.friends_noself) do
 					if getCardsNum("Slash", friend) > 1 then
-						return crossbow
+						return crossbow:getEffectiveId()
 					end
 				end
+			end
+			if self:isEnemy(NextPlayer) then
+				local CanSave, huanggai, zhenji
+				for _, enemy in ipairs(self.enemies) do
+					if enemy:hasSkill("buyi") then CanSave = true end
+					if enemy:hasSkill("jijiu") and getKnownCard(enemy, "red", nil, "he") > 1 then CanSave = true end
+					if enemy:hasSkill("chunlao") and enemy:getPile("wine"):length() > 1 then CanSave = true end
+					if enemy:hasSkill("kurou") then huanggai = enemy end
+					if enemy:hasSkill("keji") then return crossbow:getEffectiveId() end
+					if self:hasSkills("luoshen|yongsi|guzheng", enemy) then return crossbow:getEffectiveId() end
+					if enemy:hasSkill("luoying") and card:getSuit() ~= sgs.Card_Club then return crossbow:getEffectiveId() end
+				end
+				if huanggai then
+					if huanggai:getHp() > 2 then return crossbow:getEffectiveId() end
+					if CanSave then return crossbow:getEffectiveId() end
+				end
+				if getCardsNum("Slash", NextPlayer) >= 3 and NextPlayerisEnemy then return crossbow:getEffectiveId() end
 			end
 		end
 		
@@ -2606,7 +2632,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 			for _, enemy in ipairs(self.enemies) do
 				if self:isEquip("Vine", enemy) and FFFslash and self:slashIsEffective(FFFslash, enemy) and 
 					self.player:getCardCount(true) >= 3 and self.player:canSlash(enemy, FFFslash, true, range_fix) then
-					return axe	
+					return axe
 				elseif self:getCardsNum("Analeptic") > 0 and self.player:getCardCount(true) >= 4 and
 					self:slashIsEffective(slash, enemy) and self.player:canSlash(enemy, slash, true, range_fix) then
 					return axe
@@ -2634,54 +2660,87 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		
 	end
 		
-	local snatch, dismantlement, indulgence, supplyshortage, collateral, duel, aoe, fireattack
+	local snatch, dismantlement, indulgence, supplyshortage, collateral, duel, aoe, godsalvation, fireattack
+	local new_enemies = {}
+	if #self.enemies > 0 then new_enemies = self.enemies
+	else
+		for _, aplayer in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+			if sgs.evaluateRoleTrends(aplayer) == "neutral" then
+				table.insert(new_enemies, aplayer)
+			end
+		end
+	end
 	for _, card in ipairs(cards) do
-		for _, enemy in ipairs(self.enemies) do
-			if card:isKindOf("Snatch") and self:hasTrickEffective(card,enemy) and self.player:distanceTo(enemy) == 1 and not enemy:isNude() then
+		for _, enemy in ipairs(new_enemies) do
+			if card:isKindOf("Snatch") and self:hasTrickEffective(card, enemy, self.player) and self.player:distanceTo(enemy) == 1 and not enemy:isNude() then
 				snatch = card:getEffectiveId()
-			elseif not enemy:isNude() and card:isKindOf("Dismantlement") and self:hasTrickEffective(card,enemy) then
+			elseif not enemy:isNude() and card:isKindOf("Dismantlement") and self:hasTrickEffective(card, enemy, self.player) then
 				dismantlement = card:getEffectiveId()
-			elseif card:isKindOf("Indulgence") and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("indulgence") then
+			elseif card:isKindOf("Indulgence") and self:hasTrickEffective(card, enemy, self.player) and not enemy:containsTrick("indulgence") then
 				indulgence = card:getEffectiveId()
-			elseif card:isKindOf("SupplyShortage")	and self:hasTrickEffective(card,enemy) and not enemy:containsTrick("supply_shortage") then
+			elseif card:isKindOf("SupplyShortage")	and self:hasTrickEffective(card, enemy, self.player) and not enemy:containsTrick("supply_shortage") then
 				supplyshortage = card:getEffectiveId()
-			elseif card:isKindOf("Collateral") and self:hasTrickEffective(card,enemy) and enemy:getWeapon() then
+			elseif card:isKindOf("Collateral") and self:hasTrickEffective(card, enemy, self.player) and enemy:getWeapon() then
 				collateral = card:getEffectiveId()
-			elseif card:isKindOf("Duel") and self:getCardsNum("Slash") >= getCardsNum("Slash", enemy) and self:hasTrickEffective(card,enemy) then
+			elseif card:isKindOf("Duel") and self:hasTrickEffective(card, enemy, self.player) and
+					(self:getCardsNum("Slash") >= getCardsNum("Slash", enemy) or self.player:getHandcardNum() > 4) then
 				duel = card:getEffectiveId()
 			elseif card:isKindOf("AOE") then
-				local good = self:getAoeValue(card)
-				if good > 0 then aoe = card:getEffectiveId() end
-			elseif card:isKindOf("FireAttack") and self:hasTrickEffective(card,enemy) and (enemy:getHp() == 1 or self:isEquip("Vine", enemy) or enemy:getMark("@gale") > 0 ) then
-				local suits= {}
-				local suitnum = 0
-				for _, hcard in sgs.qlist(self.player:getHandcards()) do
-					if hcard:getSuit() == sgs.Card_Spade then
-						suits.spade = true
-					elseif hcard:getSuit() == sgs.Card_Heart then
-						suits.heart = true
-					elseif hcard:getSuit() == sgs.Card_Club then
-						suits.club = true
-					elseif hcard:getSuit() == sgs.Card_Diamond then
-						suits.diamond = true
+				local dummy_use = {isDummy = true}
+				self:useTrickCard(card, dummy_use)
+				if dummy_use.card then
+					aoe = card:getEffectiveId() 
+				end
+			elseif card:isKindOf("FireAttack") and self:hasTrickEffective(card, enemy, self.player) then
+				local FFF
+				local jinxuandi = self.room:findPlayerBySkillName("wuling")
+				if jinxuandi and jinxuandi:getMark("@fire") > 0 then FFF = true end
+				if self.player:hasSkill("shaoying") then FFF = true end
+				if enemy:getHp() == 1 or self:isEquip("Vine", enemy) or enemy:getMark("@gale") > 0 then FFF = true end
+				if FFF then
+					local suits= {}
+					local suitnum = 0
+					for _, hcard in sgs.qlist(self.player:getHandcards()) do
+						if hcard:getSuit() == sgs.Card_Spade then
+							suits.spade = true
+						elseif hcard:getSuit() == sgs.Card_Heart then
+							suits.heart = true
+						elseif hcard:getSuit() == sgs.Card_Club then
+							suits.club = true
+						elseif hcard:getSuit() == sgs.Card_Diamond then
+							suits.diamond = true
+						end
+					end
+					for k, hassuit in pairs(suits) do
+						if hassuit then suitnum = suitnum + 1 end
+					end
+					if suitnum >=3 or (suitnum >= 2 and enemy:getHandcardNum() == 1 ) then
+						fireattack = card:getEffectiveId()
 					end
 				end
-				for k, hassuit in pairs(suits) do
-					if hassuit then suitnum = suitnum + 1 end
-				end
-				if suitnum >=3 or (suitnum >= 2 and enemy:getHandcardNum() == 1 ) then
-					fireattack = card:getEffectiveId()
+			elseif card:isKindOf("GodSalvation") and self:willUseGodSalvation(card) then
+				godsalvation = card:getEffectiveId()
+			end
+		end
+		
+		for _, friend in ipairs(self.friends_noself) do
+			if (self:hasTrickEffective(card, friend) and (self:willSkipPlayPhase(friend, true) or self:willSkipDrawPhase(friend, true))) or
+				self:needToThrowArmor(friend) then
+				if isCard("Snatch", card, self.player) and self.player:distanceTo(friend) == 1 then				
+					snatch = card:getEffectiveId()
+				elseif isCard("Dismantlement", card, self.player) then
+					dismantlement = card:getEffectiveId()
 				end
 			end
 		end
 	end
 	
-	if snatch or dismantlement or indulgence or supplyshortage or collateral or duel or aoe or fireattack then 
-		if not self:willSkipPlayPhase() or not nextplayercanuse then
-			return snatch or dismantlement or indulgence or supplyshortage or collateral or duel or aoe or fireattack
+	if snatch or dismantlement or indulgence or supplyshortage or collateral or duel or aoe or godsalvation or fireattack then 
+		if not self:willSkipPlayPhase() or not NextPlayerCanUse then
+			return snatch or dismantlement or indulgence or supplyshortage or collateral or duel or aoe or godsalvation or fireattack
 		end
-		if #trickcard > nextfriend_num + 1 and nextplayercanuse then
-			return fireattack or aoe or duel or collateral or supplyshortage or indulgence or dismantlement or snatch
+		if #trickcard > nextfriend_num + 1 and NextPlayerCanUse then
+			return fireattack or godsalvation or aoe or duel or collateral or supplyshortage or indulgence or dismantlement or snatch
 		end
 	end
 	
@@ -2690,6 +2749,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		for _, enemy in ipairs(self.enemies) do
 			if self.player:inMyAttackRange(enemy) then
 				inAttackRange = true
+				break
 			end
 		end
 		if not inAttackRange then return weapon end

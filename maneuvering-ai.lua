@@ -138,7 +138,9 @@ function SmartAI:searchForAnaleptic(use,enemy,slash)
 	end
 
 	if not use.to then return nil end
-	if self.player:hasUsed("Analeptic") then return nil end
+	
+	local anal = sgs.Sanguosha:cloneCard("Analeptic", sgs.Card_NoSuit, 0)
+	if self.player:usedTimes("Analeptic") > = 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, anal) then return nil end
 
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)

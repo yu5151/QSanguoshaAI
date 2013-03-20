@@ -2884,7 +2884,7 @@ function SmartAI:getEnemyNumBySeat(from, to)
 	return enemynum
 end
 
-function SmartAI:hasHeavySlashDamage(from, slash, to)
+function SmartAI:hasHeavySlashDamage(from, slash, to, getValue)
 	from = from or self.room:getCurrent()
 	slash = slash or self:getCard("Slash", from)
 	to = to or self.player
@@ -2922,7 +2922,8 @@ function SmartAI:hasHeavySlashDamage(from, slash, to)
 			dmg = dmg - 1
 		end
 		if (fireSlash or thunderSlash) and jinxuandi and jinxuandi:getMark("@earth") > 0 and dmg > 1 then dmg = 1 end
-	end	
+	end
+	if getValue then return dmg end
 	return (dmg > 1)
 end
 

@@ -197,7 +197,7 @@ sgs.ai_skill_use["@@leiji"]=function(self,prompt)
 	local getCmpValue = function(enemy)
 		local value = 0
 		if not self:damageIsEffective(enemy, sgs.DamageStruct_Thunder) then return 100 end
-		if self:cantbeHurt(enemy) or self:objectiveLevel(enemy) < 3 or (enemy:isChained() and not self:isGoodChainTarget(enemy)) then return 100 end
+		if self:cantbeHurt(enemy, 2) or self:objectiveLevel(enemy) < 3 or (enemy:isChained() and not self:isGoodChainTarget(enemy)) then return 100 end
 		if enemy:hasSkill("hongyan") then value = value + 80 end
 		if not sgs.isGoodTarget(enemy, self.enemies, self) then value = value + 50 end
 		if enemy:hasArmorEffect("SilverLion") then value = value + 20 end		

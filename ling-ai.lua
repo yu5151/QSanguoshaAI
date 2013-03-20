@@ -40,7 +40,7 @@ neoluoyi_skill.getTurnUseCard = function(self)
 		if card:isKindOf("Duel") then
 			for _, enemy in ipairs(self.enemies) do
 				if self:getCardsNum("Slash") >= getCardsNum("Slash", enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
-				and self:objectiveLevel(enemy) > 3 and not self:cantbeHurt(enemy) and self:damageIsEffective(enemy) and enemy:getMark("@late") == 0 then
+				and self:objectiveLevel(enemy) > 3 and not self:cantbeHurt(enemy, 2) and self:damageIsEffective(enemy) and enemy:getMark("@late") == 0 then
 					dueltarget = dueltarget + 1 
 				end
 			end

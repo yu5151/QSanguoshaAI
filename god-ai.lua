@@ -57,6 +57,10 @@ function sgs.ai_slash_prohibit.wuhun(self, to)
 	if self.player:hasFlag("nosjiefanUsed") then return false end
 	local maxfriendmark = 0
 	local maxenemymark = 0
+	
+	local dmg = self:hasHeavySlashDamage(self.player, nil, to, true)
+	local damageNum = dmg > 1 and dmg or 1
+
 	for _, friend in ipairs(self.friends) do
 		local friendmark = friend:getMark("@nightmare")
 		if friendmark > maxfriendmark then maxfriendmark = friendmark end
@@ -66,7 +70,7 @@ function sgs.ai_slash_prohibit.wuhun(self, to)
 		if enemymark > maxenemymark and enemy:objectName() ~= to:objectName() then maxenemymark = enemymark end
 	end
 	if self:isEnemy(to) and not (to:isLord() and self.player:getRole() == "rebel") then
-		if (maxfriendmark+2 > maxenemymark) and not (#self.enemies==1 and #self.friends + #self.enemies == self.room:alivePlayerCount()) then 
+		if (maxfriendmark + damageNum >= maxenemymark) and not (#self.enemies==1 and #self.friends + #self.enemies == self.room:alivePlayerCount()) then 
 			if not (self.player:getMark("@nightmare") == maxfriendmark and  self.role == "loyalist") then
 				return true
 			end
@@ -74,11 +78,13 @@ function sgs.ai_slash_prohibit.wuhun(self, to)
 	end
 end
 
-function SmartAI:cantbeHurt(player)
+function SmartAI:cantbeHurt(player, damageNum)
 	if self.player:hasSkill("jueqing") then return false end
 	local maxfriendmark = 0
 	local maxenemymark = 0
 	local dyingfriend = 0
+	if not damageNum then damageNum = 1 end
+
 	if player:hasSkill("wuhun") then
 		for _, friend in ipairs(self.friends) do
 			local friendmark = friend:getMark("@nightmare")
@@ -89,12 +95,12 @@ function SmartAI:cantbeHurt(player)
 			if enemymark > maxenemymark and enemy:objectName() ~= player:objectName() then maxenemymark = enemymark end
 		end
 		if self:isEnemy(player) and not (player:isLord() and self.player:getRole() == "rebel") then
-			if (maxfriendmark+2 > maxenemymark) and not (#self.enemies==1 and #self.friends + #self.enemies == self.room:alivePlayerCount()) then 
+			if (maxfriendmark + damageNum  >= maxenemymark) and not (#self.enemies==1 and #self.friends + #self.enemies == self.room:alivePlayerCount()) then 
 				if not (self.player:getMark("@nightmare") == maxfriendmark and self.role == "loyalist") then
 					return true
 				end
 			end
-		elseif maxfriendmark+1 > maxenemymark then 
+		elseif maxfriendmark + damageNum > maxenemymark then 
 			return true
 		end
 	elseif player:hasSkill("duanchang") then

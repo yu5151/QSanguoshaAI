@@ -8,16 +8,6 @@ nosfanjian_skill.getTurnUseCard = function(self)
 	if self.player:isKongcheng() then return nil end
 	if self.player:usedTimes("NosFanjianCard") > 0 then return nil end
 
-	local cards = self.player:getHandcards()
-
-	for _, card in sgs.qlist(cards) do
-		if card:getSuit() == sgs.Card_Diamond and self.player:getHandcardNum() == 1 then
-			return nil
-		elseif card:isKindOf("Peach") or card:isKindOf("Analeptic") then
-			return nil
-		end
-	end
-
 	local card_str = "@NosFanjianCard=."
 	local fanjianCard = sgs.Card_Parse(card_str)
 	assert(fanjianCard)
@@ -25,7 +15,56 @@ nosfanjian_skill.getTurnUseCard = function(self)
 	return fanjianCard
 end
 
-sgs.ai_skill_use_func.NosFanjianCard = sgs.ai_skill_use_func.FanjianCard
+sgs.ai_skill_use_func.NosFanjianCard = function(card, use, self)
+	self:sort(self.enemies, "defense")
+	local target = nil
+	for _, enemy in ipairs(self.enemies) do
+		if self:canAttack(enemy) then
+			if not self:hasSkills("qingnang|tianxiang", enemy) then
+				target = enemy
+				break
+			end
+		end
+	end
+	if target then
+		local wuguotai = self.room:findPlayerBySkillName("buyi")
+		local care = (target:getHp() <= 1) and (self:isFriend(target, wuguotai))
+		local ucard = nil
+		local handcards = self.player:getCards("h")
+		handcards = sgs.QList2Table(handcards)
+		self:sortByKeepValue(handcards)
+		for _,cd in pairs(handcards) do
+			local flag = (not cd:isKindOf("Peach")) and (not card:isKindOf("Analeptic"))
+			local suit = cd:getSuit()
+			if flag and care then
+				flag = cd:isKindOf("BasicCard")
+			end
+			if flag and target:hasSkill("longhun") or target:hasSkill("noslonghun") then
+				flag = (suit ~= sgs.Card_Heart)
+			end
+			if flag and target:hasSkill("jiuchi") then
+				flag = (suit ~= sgs.Card_Spade)
+			end
+			if flag and target:hasSkill("jijiu") then
+				flag = cd:isRed()
+			end
+			if flag then
+				ucard = cd
+				break
+			end
+		end
+		if ucard then
+			local card_str = "@NosFanjianCard="..ucard:getId().."->"..target:objectName()
+			local acard = sgs.Card_Parse(card_str)
+			assert(acard)
+			use.card = acard
+			if use.to then 
+				use.to:append(target) 
+			end
+		end
+	end
+end
+--sgs.ai_skill_use_func.NosFanjianCard = sgs.ai_skill_use_func.FanjianCard
 
 sgs.ai_card_intention.NosFanjianCard = sgs.ai_card_intention.FanjianCard
 

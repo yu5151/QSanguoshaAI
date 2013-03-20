@@ -490,7 +490,7 @@ sgs.ai_card_intention.TianyiCard = 0
 sgs.dynamic_value.control_card.TianyiCard = true
 
 sgs.ai_use_value.TianyiCard = 8.5
-sgs.ai_use_priority.TianyiCard = 4.2
+sgs.ai_use_priority.TianyiCard = 7.2
 
 sgs.ai_chaofeng.taishici = 3
 

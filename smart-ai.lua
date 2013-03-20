@@ -442,6 +442,8 @@ function SmartAI:getDynamicUsePriority(card)
 		local use_card = dummy_use.card
 		local card_name = use_card:getClassName()
 
+		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+
 		if use_card:isKindOf("AmazingGrace") then
 			local zhugeliang = self.room:findPlayerBySkillName("kongcheng")
 			if zhugeliang and self:isEnemy(zhugeliang) and zhugeliang:isKongcheng() then
@@ -483,8 +485,12 @@ function SmartAI:getDynamicUsePriority(card)
 
 		if (self:hasHeavySlashDamage(self.player) or self:getOverflow() > 0) and use_card:isKindOf("QingnangCard") then 
 			value = math.min(sgs.ai_use_priority.Slash, sgs.ai_use_priority.Duel) - 0.1
-		end		
+		end
 		
+		if use_card:isKindOf("Duel") and (self:hasCrossbowEffect(self.player) or self.player:hasFlag("xianzhen_success")
+				or sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, slash) > 0)) then 
+			value = sgs.ai_use_priority.Slash - 0.1
+		end
 		
 		if use_card:isKindOf("KurouCard") and self.player:getHp()==1 and self.player:getRole()~="lord" 
 			and self.player:getRole()~="renegade" and self:getCardsNum("Analeptic")==0 then

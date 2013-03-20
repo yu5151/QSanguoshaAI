@@ -4396,7 +4396,7 @@ function SmartAI:aoeIsEffective(card, to, source)
 	if to:hasSkill("huangen") and to:getHp() > 0 and #players > 2 then
 		return false
 	end
-	
+--[[	
 	local liuxie = self.room:findPlayerBySkillName("huangen")
 	if liuxie and liuxie:getHp() > 1 then
 		if self:isFriend(to, liuxie) then
@@ -4405,7 +4405,7 @@ function SmartAI:aoeIsEffective(card, to, source)
 			end
 		end
 	end
-	
+]]--
 	if not self:damageIsEffective(to, sgs.DamageStruct_Normal, source) then
 		return false
 	end

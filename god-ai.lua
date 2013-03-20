@@ -109,7 +109,10 @@ function SmartAI:cantbeHurt(player, damageNum)
 			if self.player:getMaxHp()==3 and self.player:getArmor() and self.player:getDefensiveHorse() then return false end
 			if self.player:getMaxHp()<=3 or (self.player:isLord() and self:isWeak()) then return true end
 		end
-	elseif player:hasSkill("tianxiang") then
+	elseif player:hasSkill("tianxiang") then		
+		if getKnownCard(player, "diamond", false) + getKnownCard(player, "club", false) == player:getHandcardNum() then
+			return false
+		end	
 		for _, friend in ipairs(self.friends) do
 			if friend:getHp() < 2 and self:getCardsNum("Peach") == 0 then
 				dyingfriend = dyingfriend + 1

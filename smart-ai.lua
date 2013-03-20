@@ -3440,41 +3440,24 @@ function SmartAI:getTurnUse()
 	cards = sgs.QList2Table(cards)
 
 	local turnUse = {}
-	local slashAvail = 1
+	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+	local slashAvail = 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, slash)
 	self.predictedRange = self.player:getAttackRange()
 	self.predictNewHorse = false
 	self.retain_thresh = 5
-	self.slash_targets = 1
-	self.slash_distance_limit = false
+	self.slash_targets = 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_ExtraTarget, self.player, slash)
+	self.slash_distance_limit = (1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, slash) > 50)
 
 	self.weaponUsed = false
-
 	if self.player:isLord() then self.retain_thresh = 6 end
-	if self.player:hasFlag("tianyi_success") then
-		slashAvail = slashAvail+1
-		self.slash_targets = self.slash_targets+1
-		self.slash_distance_limit = true
-	end
-
-	if self.player:hasFlag("jiangchi_invoke") then
-		slashAvail = slashAvail+1
-		self.slash_distance_limit = true
-	end
-	
-	if self.player:getMark("huxiao") > 0 then
-		slashAvail = slashAvail + self.player:getMark("huxiao")
-	end
 
 	self:fillSkillCards(cards)
-
 	self:sortByUseValue(cards)
 
 	if self:isEquip("Crossbow") then
 		slashAvail = 100
 	end
 
-
-	local i = 0
 	for _,card in ipairs(cards) do
 		local dummy_use = {}
 		dummy_use.isDummy = true
@@ -3489,7 +3472,9 @@ function SmartAI:getTurnUse()
 					table.insert(turnUse,card)
 				end
 			else
-				if card:isKindOf("Weapon") then
+				if self.player:hasFlag("InfinityAttackRange") or self.player:getMark("InfinityAttackRange") > 0 then
+					self.predictedRange = 10000
+				elseif card:isKindOf("Weapon") then
 					self.predictedRange = sgs.weapon_range[card:getClassName()]
 					self.weaponUsed = true
 				else
@@ -3499,7 +3484,6 @@ function SmartAI:getTurnUse()
 				if card:objectName() == "Crossbow" then slashAvail = 100 end
 				table.insert(turnUse,card)
 			end
-			--i = i+1
 		end
 	end
 

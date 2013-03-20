@@ -367,20 +367,9 @@ function SmartAI:useCardSlash(card, use)
 	for _, acard in ipairs(cards) do
 		if acard:getTypeId() == sgs.Card_Basic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
 	end
-	local no_distance = self.slash_distance_limit
-	self.slash_targets = 1
-	if self.player:hasFlag("slashNoDistanceLimit") then no_distance = true end
-	if card:getSkillName() == "wushen" then no_distance = true end
-	if card:getSkillName() == "nosgongqi" then no_distance = true end
-	if self.player:hasFlag("tianyi_success") then self.slash_targets = self.slash_targets + 1 end
-	if self.player:hasSkill("lihuo") and card:isKindOf("FireSlash") then self.slash_targets = self.slash_targets + 1 end
-	if (self.player:getHandcardNum() == 1
-	and self.player:getHandcards():first():isKindOf("Slash")
-	and self.player:getWeapon()
-	and self.player:getWeapon():isKindOf("Halberd"))
-	or (self.player:hasSkill("shenji") and not self.player:getWeapon()) then
-		self.slash_targets = self.slash_targets + 2
-	end
+	
+	local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, card) > 50 or self.player:hasFlag("slashNoDistanceLimit")
+	self.slash_targets = 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_ExtraTarget, self.player, card)
 	if self.player:hasSkill("duanbing") then self.slash_targets = self.slash_targets + 1 end
 
 	self.predictedRange = self.player:getAttackRange()

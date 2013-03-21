@@ -317,8 +317,11 @@ function SmartAI:isGoodChainTarget(who)
 end
 
 
-function SmartAI:useCardIronChain(card, use)
-	if not self.player:hasSkill("noswuyan") then return end	
+function SmartAI:useCardIronChain(card, use)	
+	if self.player:hasSkill("noswuyan") then
+		use.card = card
+		return 
+	end	
 	if #self.enemies == 1 and #(self:getChainedFriends()) <= 1 then return end
 	if self:needBear() then return end
 	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 then return end

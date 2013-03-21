@@ -488,7 +488,8 @@ function SmartAI:getDynamicUsePriority(card)
 		end
 		
 		if use_card:isKindOf("Duel") and (self:hasCrossbowEffect(self.player) or self.player:hasFlag("xianzhen_success")
-				or sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, slash) > 0) then 
+				or sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, slash) > 0)
+				or self.player:hasSkill("duanbing") then 
 			value = sgs.ai_use_priority.Slash - 0.1
 		end
 		
@@ -5046,7 +5047,7 @@ function SmartAI:needToThrowArmor(player)
 	player = player or self.player
 	if not player:getArmor() or not player:hasArmorEffect(player:getArmor():objectName()) then return false end
 	if self:hasSkills("bazhen|yizhong") and not player:getArmor():isKindOf("EightDiagram") then return true end
-	if self:evaluateArmor(player:getArmor(), player) <= 0 then return true end
+	if self:evaluateArmor(player:getArmor(), player) <= -2 then return true end
 	if player:hasArmorEffect("SilverLion") and player:isWounded() then
 		if self:isFriend(player) then
 			if player:objectName() == self.player:objectName() then
@@ -5061,35 +5062,45 @@ function SmartAI:needToThrowArmor(player)
 	return false
 end
 
-function SmartAI:doNotDiscard(to, flags, conservative, n)
+function SmartAI:doNotDiscard(to, flags, conservative, n, cant_choose)
 	if not to then global_room:writeToConsole(debug.traceback()) return end
 	n = n or 1
 	flags = flags or "he"
 	if to:isNude() then return true end
-	if flags:match("e") then
-		if to:hasSkill("jieyin") and to:getDefensiveHorse() then return false end
-		if to:hasSkill("jieyin") and to:getArmor() and not to:getArmor():isKindOf("SilverLion") then return false end
-	end
 	conservative = conservative or (sgs.turncount <= 2 and self.room:alivePlayerCount() > 2)
 	if to:hasSkill("tuntian") and to:getPhase() == sgs.Player_NotActive and (conservative or #self.enemies > 1) then return true end
-	if flags == "h" or (flags == "he" and not to:hasEquip()) then
-		if to:isKongcheng() then return true end
-		if not self:hasLoseHandcardEffective(to) then return true end
-		if to:getHandcardNum() == 1 and self:needKongcheng(to) then return true end
-		if #self.friends > 1 and to:getHandcardNum() == 1 and to:hasSkill("sijian") then return false end
-	elseif flags == "e" or (flags == "he" and to:isKongcheng()) then
-		if not to:hasEquip() then return true end
-		if self:hasSkills(sgs.lose_equip_skill, to) then return true end	
-		if to:getCardCount(true) == 1 and self:needToThrowArmor(to) then return true end
-	end
-	if flags == "he" and n == 2 then
-		if to:getCards("he"):length() < 2 then return true end
-		if not to:hasEquip() then
-			if not self:hasLoseHandcardEffective(to) then return true end
-			if to:getHandcardNum() <= 2 and self:needKongcheng(to) then return true end
+	
+	if cant_choose then
+		if to:hasSkill("lirang") and #self.enemies > 1 then return true end  --没考虑仅2人另一人有漫卷
+		if self:needKongcheng(to) and to:getHandcardNum() <= n then return true end
+		if to:hasSkill("shangshi") and (to:getHandcardNum() - n) < math.min(2, to:getLostHp()) then return true end
+		if to:hasSkill("nosshangshi") and (to:getHandcardNum() - n) < player:getLostHp() then return true end
+		if self:hasSkills(sgs.lose_equip_skill, to) and to:hasEquip() then return true end
+		if self:needToThrowArmor(to) then return true end
+	else
+		if flags:match("e") then
+			if to:hasSkill("jieyin") and to:getDefensiveHorse() then return false end
+			if to:hasSkill("jieyin") and to:getArmor() and not to:getArmor():isKindOf("SilverLion") then return false end
 		end
-		if self:hasSkills(sgs.lose_equip_skill, to) and to:getHandcardNum() < 2 then return true end
-		if to:getCardCount(true) <= 2 and self:needToThrowArmor(to) then return true end
+		if flags == "h" or (flags == "he" and not to:hasEquip()) then
+			if to:isKongcheng() then return true end
+			if not self:hasLoseHandcardEffective(to) then return true end
+			if to:getHandcardNum() == 1 and self:needKongcheng(to) then return true end
+			if #self.friends > 1 and to:getHandcardNum() == 1 and to:hasSkill("sijian") then return false end
+		elseif flags == "e" or (flags == "he" and to:isKongcheng()) then
+			if not to:hasEquip() then return true end
+			if self:hasSkills(sgs.lose_equip_skill, to) then return true end	
+			if to:getCardCount(true) == 1 and self:needToThrowArmor(to) then return true end
+		end
+		if flags == "he" and n == 2 then
+			if to:getCards("he"):length() < 2 then return true end
+			if not to:hasEquip() then
+				if not self:hasLoseHandcardEffective(to) then return true end
+				if to:getHandcardNum() <= 2 and self:needKongcheng(to) then return true end
+			end
+			if self:hasSkills(sgs.lose_equip_skill, to) and to:getHandcardNum() < 2 then return true end
+			if to:getCardCount(true) <= 2 and self:needToThrowArmor(to) then return true end
+		end
 	end
 	return false
 end
@@ -5280,19 +5291,18 @@ function SmartAI:findPlayerToDraw(prompt, n)
 	end
 
 	for _, friend in ipairs(friends) do
-		if self:hasSkills(sgs.cardneed_skill, friend) then
+		if self:hasSkills(sgs.cardneed_skill, friend) and not self:willSkipPlayPhase(friend) then
 			return friend
 		end
 	end
 	self:sort(friends, "handcard")
 	for _, friend in ipairs(friends) do
-		if not self:needKongcheng(friend) then
+		if not self:needKongcheng(friend) and not self:willSkipPlayPhase(friend) then
 			return friend
 		end
 	end
 	return friends[1]
 end
-
 
 
 dofile "lua/ai/debug-ai.lua"

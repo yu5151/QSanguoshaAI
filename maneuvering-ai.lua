@@ -122,8 +122,8 @@ function sgs.ai_armor_value.Vine(player, self)
 
 	for _, enemy in ipairs(self:getEnemies(player)) do
 		if (enemy:canSlash(player) and self:isEquip("Fan",enemy)) or self:hasSkills("huoji|shaoying|zonghuo|wuling", enemy)
-		  or (enemy:hasSkill("yeyan") and enemy:getMark("@flame") > 0) then return -1 end
-		if getKnownCard(enemy, "FireSlash", true) >= 1 or getKnownCard(enemy, "FireAttack", true) >= 1 then return -1 end
+		  or (enemy:hasSkill("yeyan") and enemy:getMark("@flame") > 0) then return -2 end
+		if getKnownCard(enemy, "FireSlash", true) >= 1 or getKnownCard(enemy, "FireAttack", true) >= 1 then return -2 end
 	end
 
 	if (#self.enemies < 3 and sgs.turncount > 2) or player:getHp() <= 2 then return 5 end

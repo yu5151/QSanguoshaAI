@@ -5144,7 +5144,8 @@ function SmartAI:findPlayerToDiscard(flags, prompt, exclude)
 				return enemy
 			end
 		end
-	end	
+	end
+	
 	if flags:match("j") then
 		for _, player in ipairs(targets) do
 			if player:containsTrick("lightning") and self:getFinalRetrial(player) == 2 then 
@@ -5194,6 +5195,13 @@ function SmartAI:findPlayerToDiscard(flags, prompt, exclude)
 				end
 			end
 		end	
+	end
+	if flags:match("e") then
+		for _, enemy in ipairs(enemies) do
+			if enemy:getArmor() and enemy:getArmor():isKindOf("EightDiagram") then
+				return enemy
+			end
+		end
 	end
 	if flags:match("h") then
 		for _, enemy in ipairs(enemies) do

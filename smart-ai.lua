@@ -2658,6 +2658,8 @@ function SmartAI:askForCardChosen(who, flags, reason)
 			end
 		end
 		if flags:match("e") and self:getDangerousCard(who) then return self:getDangerousCard(who) end
+		if flags:match("e") and who:getArmor() and who:getArmor():isKindOf("EightDiagram") then return who:getArmor():getId() end
+
 		if flags:match("e") and self:hasSkills("jijiu|qingnang|qiaobian|jieyin|nosmiji|beige|fanjian|neofanjian|tuxi|" ..
 		  "buyi|weimu|anxu|guzheng|tongxin|xiliang|chouliang|shouye|qixi|yinling|noswuyan|manjuan", who) and not self:doNotDiscard(who, "e") then
 			if who:getDefensiveHorse() then return who:getDefensiveHorse():getId() end

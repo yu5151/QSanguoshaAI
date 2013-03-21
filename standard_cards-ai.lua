@@ -1777,6 +1777,18 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			end
 		end
 	end
+
+	for _, enemy in ipairs(enemies) do
+		if self:hasTrickEffective(card, enemy) and enemy:getArmor() and enemy:getArmor():isKindOf("EightDiagram") then
+			use.card = card
+			if use.to then
+				sgs.ai_skill_cardchosen[name] = enemy:getArmor():getEffectiveId()
+				use.to:append(enemy)
+				self:speak("hostile", self.player:isFemale())
+			end
+			return
+		end
+	end
 	
 	for i= 1,2,1 do
 		for _, enemy in ipairs(enemies) do

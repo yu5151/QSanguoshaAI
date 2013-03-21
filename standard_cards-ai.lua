@@ -1412,13 +1412,14 @@ function SmartAI:useCardDuel(duel, use)
 			table.insert(targets, enemy)
 		end
 	end
-
-	local godsalvation = self:getCard("GodSalvation")
-	if godsalvation and godsalvation:getId()~= duel:getId() and self:willUseGodSalvation(godsalvation) then
-		use.card = godsalvation return
-	end
 	
 	if #targets > 0 then
+
+		local godsalvation = self:getCard("GodSalvation")
+		if godsalvation and godsalvation:getId()~= duel:getId() and self:willUseGodSalvation(godsalvation) then
+			use.card = godsalvation return
+		end
+
 		local targets_num = 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_ExtraTarget, self.player, duel)
 		local enemySlash = 0
 		local setFlag = false

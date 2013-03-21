@@ -464,8 +464,8 @@ end
 
 sgs.ai_skill_use["@@kuangfeng"] = function(self,prompt)
 	local friendly_fire
-	for _, friend in ipairs(self.friends) do
-		if friend:hasSkill("huoji") or self:isEquip("Fan",friend) or (friend:hasSkill("smallyeyan") and friend:getMark("@flame")>0) then
+	for _, friend in ipairs(self.friends_noself) do
+		if friend:hasSkill("huoji") or self:isEquip("Fan",friend) or (friend:hasSkill("yeyan") and friend:getMark("@flame") > 0) then
 			friendly_fire = true
 			break
 		end
@@ -487,7 +487,7 @@ sgs.ai_skill_use["@@kuangfeng"] = function(self,prompt)
 	if friendly_fire and is_chained > 1 then usecard=true end
 	self:sort(self.friends, "hp")
 	if target[1] and not self:isWeak(self.friends[1]) then
-		if target[1]:hasArmorEffect("Vine") and friendly_fire then usecard=true end
+		if target[1]:hasArmorEffect("Vine") and friendly_fire then usecard = true end
 	end
 	if usecard then
 		if not target[1] then table.insert(target,self.enemies[1]) end

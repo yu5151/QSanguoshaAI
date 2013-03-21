@@ -488,7 +488,8 @@ function SmartAI:getDynamicUsePriority(card)
 		end
 		
 		if use_card:isKindOf("Duel") and (self:hasCrossbowEffect(self.player) or self.player:hasFlag("xianzhen_success")
-				or sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, slash) > 0) then 
+				or sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, slash) > 0)
+				or self.player:hasSkill("duanbing") then 
 			value = sgs.ai_use_priority.Slash - 0.1
 		end
 		

@@ -1180,7 +1180,7 @@ end
 function sgs.ai_armor_value.RenwangShield(player, self)
 	if player:hasSkill("yizhong") then return 0 end
 	if player:hasSkill("bazhen") then return 0 end
-	if player:hasSkill("leiji") and getCardNum("Jink", player) > 1 then return 0 end
+	if player:hasSkill("leiji") and getKnownCard(player, "Jink", true) > 1 then return 0 end
 	return 4.5
 end
 

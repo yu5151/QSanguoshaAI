@@ -504,12 +504,35 @@ sgs.ai_skill_invoke.jincui = function(self, data)
 end
 
 sgs.ai_skill_playerchosen.jincui = function(self, targets)
-	for _, player in sgs.qlist(targets) do
-		if self:isFriend(player) and player:getHp() - player:getHandcardNum() > 1 then
-			return player
+	local wf
+	for _, friend in ipairs(self.friends_noself) do
+		if self:isWeak(friend) then
+			wf = true 
+			break 
 		end
 	end
-	if #self.friends > 1 then return self.friends_noself[1] end
+
+	if not wf then
+		self:sort(self.enemies, "handcard")
+		for _, enemy in ipairs(self.enemies) do
+			if enemy:getCards("he"):length() == 3 
+			  and not self:doNotDiscard(enemy, "he", true, 3, true) then
+				sgs.jincui_discard = true
+				return enemy
+			end
+		end
+		for _, enemy in ipairs(self.enemies) do
+			if enemy:getCards("he"):length() >= 3 
+			  and not self:doNotDiscard(enemy, "he", true, 3, true)
+			  and self:hasSkills(sgs.cardneed_skill, enemy) then
+				sgs.jincui_discard = true
+				return enemy
+			end
+		end
+	end
+
+	local to = self:findPlayerToDraw("noself", 3)
+	if to then return to end
 	sgs.jincui_discard = true
 	return self.enemies[1]
 end

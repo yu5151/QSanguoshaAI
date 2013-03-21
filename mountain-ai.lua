@@ -932,7 +932,7 @@ function sgs.ai_slash_prohibit.duanchang(self, to)
 
 	if self.player:getMaxHp() == 3 and self.player:getArmor() and self.player:getDefensiveHorse() then return false end
 	if self.player:getMaxHp() <= 3 or (self.player:isLord() and self:isWeak()) then return true end
-
+	if self.player:getMaxHp() <= 3 or (self.room:getLord() and self.role == "renegade") then return true end
 	return false
 end
 

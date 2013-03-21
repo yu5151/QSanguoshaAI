@@ -498,12 +498,6 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 			and self:hasTrickEffective(fire_attack, self.player) 
 			and (self.player:getHp()>1 or self:getCardsNum("Peach")>=1 or self:getCardsNum("Analeptic")>=1 or self.player:hasSkill("buqu")
 				or (self.player:hasSkill("niepan") and self.player:getMark("@nirvana") > 0)) then
-		
-		local godsalvation = self:getCard("GodSalvation")
-		if godsalvation and godsalvation:getId()~= fire_attack:getId() and self:willUseGodSalvation(godsalvation) then
-			use.card = godsalvation return
-		end
-
 		table.insert(targets, self.player)
 	end
 
@@ -514,37 +508,31 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 			if handcards[1]:hasFlag("visible") or handcards[1]:hasFlag(flag) then
 				local suitstring = handcards[1]:getSuitString()
 				if not lack[suitstring] then
-					local godsalvation = self:getCard("GodSalvation")
-					if godsalvation and godsalvation:getId()~= fire_attack:getId() and self:willUseGodSalvation(godsalvation) then
-						use.card = godsalvation return
-					end
 					table.insert(targets, enemy)
 				end
 			end			
 		end
 	end
 	
-	if ((suitnum == 2 and lack.diamond==false and lack.spade==false) or suitnum<=1) and self:getOverflow()<=0 and #targets == 0 then return end
+	if ((suitnum == 2 and lack.diamond==false) or suitnum<=1) and self:getOverflow()<=0 and #targets == 0 then return end
 
 	for _, enemy in ipairs(enemies) do
-		if self:isEquip("Vine", enemy) or enemy:getMark("@gale") > 0 then
-			local godsalvation = self:getCard("GodSalvation")
-			if godsalvation and godsalvation:getId()~= fire_attack:getId() and self:willUseGodSalvation(godsalvation) then
-				use.card = godsalvation return
-			end
+		if self:isEquip("Vine", enemy) or enemy:getMark("@gale") > 0 then			
 			table.insert(targets, enemy)
 		end
 	end
 	for _, enemy in ipairs(enemies) do
-		local godsalvation = self:getCard("GodSalvation")
-		if godsalvation and godsalvation:getId()~= fire_attack:getId() and self:willUseGodSalvation(godsalvation) then
-			use.card = godsalvation return 
-		end
 		table.insert(targets, enemy)
 	end
 	
 	if #targets > 0 then
-		local targets_num = 2 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_ExtraTarget, self.player, fire_attack)
+		local godsalvation = self:getCard("GodSalvation")
+		if godsalvation and godsalvation:getId()~= fire_attack:getId() and self:willUseGodSalvation(godsalvation) then
+			use.card = godsalvation 
+			return
+		end
+
+		local targets_num = 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_ExtraTarget, self.player, fire_attack)
 		local setTag = false  -- 设置第一个火攻的目标为 LastFireAttack
 		use.card = fire_attack
 		for i = 1, #targets, 1 do

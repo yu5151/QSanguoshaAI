@@ -446,16 +446,27 @@ sgs.ai_skill_invoke.zhuiyi = function(self, data)
 	local damage = data:toDamageStar()
 	local exclude = self.player
 	if damage and damage.from then exclude = damage.from end
-	
-	return #self.friends_noself > (table.contains(self.friends_noself, exclude) and 1 or 0)
+
+	for _, friend in ipairs(self.friends_noself) do
+		if friend:isAlive() and friend:objectName() ~= exclude:objectName() then
+			local canInvoke = true
+			if friend:isKongcheng() and friend:hasSkill("kongcheng") then canInvoke = false end
+			if friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive then canInvoke = false end
+			if canInvoke then return true end
+		end
+	end
+	return false
 end
 
 sgs.ai_skill_playerchosen.zhuiyi = function(self, targets)	
 	targets = sgs.QList2Table(targets)
 	self:sort(targets,"defense")
 	for _, friend in ipairs(targets) do
-		if self:isFriend(friend) then
-			return friend
+		if self:isFriend(friend) and friend:isAlive() then
+			local canInvoke = true
+			if friend:isKongcheng() and friend:hasSkill("kongcheng") then canInvoke = false end
+			if friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive then canInvoke = false end
+			if canInvoke then return friend end
 		end
 	end
 end

@@ -748,12 +748,15 @@ sgs.ai_skill_choice.benghuai = function(self, choices, data)
 		return "hp"
 	end
 end
+
 sgs.ai_skill_invoke.baonue = function(self, data)
+	if not self.player:isAlive() then return false end
 	for _,p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if p:hasLordSkill("baonue") and self:isFriend(p) and not p:hasFlag("baonueused") and p:isAlive() and p:isWounded() then
 			return true
 		end
 	end
+	return false
 end
 
 sgs.ai_skill_playerchosen.baonue = function(self, targets)

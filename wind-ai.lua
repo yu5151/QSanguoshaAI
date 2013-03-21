@@ -281,20 +281,61 @@ huangtianv_skill.getTurnUseCard=function(self)
 	return skillcard
 end
 
-sgs.ai_skill_use_func.HuangtianCard=function(card,use,self)
+sgs.ai_skill_use_func.HuangtianCard = function(card, use, self)
+	if self:needBear() or self:getCardsNum("Jink", self.player, "h") <= 1 then
+		return "."
+	end
 	local targets = {}
-	for _, friend in ipairs(self.friends_noself) do
-		if friend:hasLordSkill("huangtian") and not friend:hasFlag("HuangtianInvoked") and not friend:hasSkill("manjuan") then
-			table.insert(targets, friend)
+	for _,friend in ipairs(self.friends_noself) do
+		if friend:hasLordSkill("huangtian") then
+			if not friend:hasFlag("HuangtianInvoked") then
+				if not friend:hasSkill("manjuan") then
+					table.insert(targets, friend)
+				end
+			end
 		end
 	end
-	
-	if #targets == 0 then return end
-	if self:needBear() or self:getCardsNum("Jink",self.player,"h")<=1  then return "." end
-	use.card=card
-	self:sort(targets, "defense")
-	if use.to then
-		use.to:append(targets[1])
+	if #targets > 0 then --黄天己方
+		use.card = card
+		self:sort(targets, "defense")
+		if use.to then
+			use.to:append(targets[1])
+		end
+	elseif self:getCardsNum("Slash", self.player, "he") >= 2 then --黄天对方
+		for _,enemy in ipairs(self.enemies) do
+			if enemy:hasLordSkill("huangtian") then
+				if not enemy:hasFlag("HuangtianInvoked") then
+					if not enemy:hasSkill("manjuan") then
+						if enemy:isKongcheng() then --必须保证对方空城，以保证天义/陷阵的拼点成功
+							table.insert(targets, enemy)
+						end
+					end
+				end
+			end
+		end
+		if #targets > 0 then
+			local flag = false
+			if self.player:hasSkill("tianyi") and not self.player:hasUsed("TianyiCard") then
+				flag = true
+			elseif self.player:hasSkill("xianzhen") and not self.player:hasUsed("XianzhenCard") then
+				flag = true
+			end
+			if flag then
+				local maxCard = self:getMaxCard(self.player) --最大点数的手牌
+				if maxCard:getNumber() > card:getNumber() then --可以保证拼点成功
+					self:sort(targets, "defense", true) 
+					for _,enemy in ipairs(targets) do
+						if self.player:canSlash(enemy, nil, false, 0) then --可以发动天义或陷阵
+							use.card = card
+							if use.to then
+								use.to:append(enemy)
+							end
+							break
+						end
+					end
+				end
+			end
+		end
 	end
 end
 

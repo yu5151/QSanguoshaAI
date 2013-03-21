@@ -1272,6 +1272,10 @@ local kurou_skill={}
 kurou_skill.name="kurou"
 table.insert(sgs.ai_skills,kurou_skill)
 kurou_skill.getTurnUseCard=function(self,inclusive)
+	--特殊场景
+	local func = Tactic("kurou", self, nil)
+	if func then return func(self, nil) end
+	--一般场景
 	if (self.player:getHp() > 3 and self.player:getHandcardNum() > self.player:getHp())
 		or (self.player:getHp() - self.player:getHandcardNum() >= 2) then
 		return sgs.Card_Parse("@KurouCard=.")

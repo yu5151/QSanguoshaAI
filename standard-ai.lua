@@ -903,10 +903,13 @@ wusheng_skill.getTurnUseCard=function(self,inclusive)
 	local red_card
 	
 	self:sortByUseValue(cards,true)
+
+	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+	local slashAvail = 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, slash)
 	
 	for _,card in ipairs(cards) do
 		if card:isRed() and not card:isKindOf("Slash") and not card:isKindOf("Peach") 				--not peach
-			and ((self:getUseValue(card)<sgs.ai_use_value.Slash) or inclusive) then
+			and ((self:getUseValue(card)<sgs.ai_use_value.Slash) or inclusive or slashAvail > 1) then
 			red_card = card
 			break
 		end

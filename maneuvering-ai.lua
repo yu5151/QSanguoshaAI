@@ -132,15 +132,23 @@ end
 
 function SmartAI:searchForAnaleptic(use,enemy,slash)
 	if not self.toUse then return nil end
-
-	for _,card in ipairs(self.toUse) do
-		if card:getId() ~= slash:getId() then return nil end
-	end
-
 	if not use.to then return nil end
+
+	local anal = self:getCard("Analeptic")
+	if not anal then return nil end
+
+	local analAvail = 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, anal)		
+	local slashAvail = 0
+
+	for _, card in ipairs(self.toUse) do
+		if analAvail == 1 and card:getId() ~= slash:getId() then return nil end
+		if card:isKindOf("Slash") then slashAvail = slashAvail + 1 end
+	end
 	
-	local anal = sgs.Sanguosha:cloneCard("Analeptic", sgs.Card_NoSuit, 0)
-	if self.player:usedTimes("Analeptic") >= 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, anal) then return nil end
+	if analAvail > 1 and analAvail < slashAvail then return nil end	
+	if self.player:usedTimes("Analeptic") >= analAvail then return nil end
+
+	if (slash and slash:hasFlag("drank")) or self.player:hasFlag("drank") then return nil end
 
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)

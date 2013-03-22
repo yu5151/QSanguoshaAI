@@ -161,7 +161,6 @@ sgs.ai_skill_invoke.jueji = function(self, data)
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if player:hasFlag("jueji_target") then
 			target = player
-			target:setFlags("-jueji_target")
 		end
 	end
 	if not target then return false end

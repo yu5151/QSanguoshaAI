@@ -2007,7 +2007,7 @@ sgs.ai_skill_use_func.LijianCard = function(card,use,self)
 	
 	if lord and self:isFriend(lord) and lord:hasSkill("hunzi") and lord:getHp() == 2 and lord:getMark("hunzi") == 0 and
 	self:hasTrickEffective(duel, lord) then							--让孙策主觉醒
-		local enemycount = self:playerGetRound(lord, self.player, "enemy")		--我和主公之间有几个敌人
+		local enemycount = self:getEnemyNumBySeat(self.player, lord)		--我和主公之间有几个敌人
 		local peaches = self:getAllPeachNum()
 		if peaches >= enemycount then
 			local f_target, e_target
@@ -2021,7 +2021,7 @@ sgs.ai_skill_use_func.LijianCard = function(card,use,self)
 							use.to:append(lord)
 							use.to:append(ap)
 						end
-						self.room:setPlayerFlag(lord, "will_wake")
+						lord:setFlags("will_wake")
 						return
 					elseif self:isFriend(ap) then
 						f_target = ap

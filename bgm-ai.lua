@@ -267,7 +267,7 @@ sgs.ai_skill_playerchosen.dahe = function(self, targets)
 	for _, target in ipairs(targets) do
 		if self:isFriend(target) and not self:needKongcheng(target, true) then return target end 
 	end
-	return nil
+	return targets[1]
 end
 
 sgs.ai_skill_cardask["@dahe-jink"] = function(self, data, pattern, target)

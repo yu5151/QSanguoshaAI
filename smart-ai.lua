@@ -2596,6 +2596,15 @@ function SmartAI:askForCardChosen(who, flags, reason)
 			if acard:getEffectiveId() == cardchosen then return cardchosen end
 		end
 	end
+	
+	if ("snatch|dismantlement"):match(reason) then
+		for _, card in sgs.qlist(who:getCards(flags)) do
+			if card:hasFlag(reason) then
+				self.room:setCardFlag(card, "-" .. reason)
+				return card:getId()
+			end
+		end
+	end	
 
 	if self:isFriend(who) then
 		if flags:match("j") and not who:containsTrick("YanxiaoCard") and not (who:hasSkill("qiaobian") and who:getHandcardNum() > 0) then

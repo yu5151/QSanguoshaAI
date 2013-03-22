@@ -3259,8 +3259,8 @@ function SmartAI:askForYiji(card_ids, reason)
 	if reason then
 		local callback = sgs.ai_skill_askforyiji[string.gsub(reason,"%-","_")]
 		if type(callback) == "function" then
-			local cardid, target = callback(self, card_ids)
-			if cardid and target then return cardid, target end
+			local target, cardid = callback(self, card_ids)
+			if target and cardid then return target, cardid end
 		end
 	end
 	
@@ -3398,10 +3398,9 @@ function SmartAI:askForSinglePeach(dying)
 		
 		if sgs.turncount > 1 and not dying:isLord() and dying:objectName() ~= self.player:objectName() then			-- 第2回合开始，我不是求桃的玩家，死的不是主公
 			local possible_friend = 0
-			local currentp = self.room:getCurrent()
 			for _, friend in ipairs(self.friends_noself) do
 				if (self:getKnownNum(friend) == friend:getHandcardNum() and getCardsNum("Peach", friend) == 0) or		--我知道他的全部手牌，他没桃，不计算
-					(self:playerGetRound(friend, currentp) < self:playerGetRound(self.player, currentp)) or				--在我之前的玩家，已经向他们求过桃了，不计算
+					(self:playerGetRound(friend) < self:playerGetRound(self.player)) or				--在我之前的玩家，已经向他们求过桃了，不计算
 					(sgs.card_lack[friend:objectName()]["Peach"] == 1) then												--有方求桃时，未出桃的玩家视为无桃
 				elseif friend:getHandcardNum() > 0 or getCardsNum("Peach", friend) >= 1 then							--有手牌的玩家，或者可能有桃的玩家，计算
 				
@@ -4584,6 +4583,14 @@ function SmartAI:getAoeValueTo(card, to , from)
 		end
 		
 		if to:getHp() == 1 then
+			local CP = self.room:getCurrent()
+			local wansha = CP:hasSkill("wansha") or CP:getTag("JilveWansha"):toBool()
+			if wansha and getCardsNum("Peach", to) == 0 then
+				value = value - 30
+				if self:isFriend(to) and self:getCardsNum("Peach") >= 1 then
+					value = value + 15
+				end
+			end
 			if to:hasSkill("dushi") then value = value - 40 end
 			if to:hasSkill("huilei") and sgs.evaluateRoleTrends(to) ~= "rebel" then value = value - 15 end
 		end

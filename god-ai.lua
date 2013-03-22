@@ -518,11 +518,16 @@ end
 sgs.ai_card_intention.DawuCard = -70
 
 sgs.ai_skill_invoke.guixin = function(self, data)
-	local damage = data:toDamage()
+	-- local damage = data:toDamage()
 	if self.player:hasSkill("manjuan") and self.player:getPhase() == sgs.Player_NotActive then return false end
 	local diaochan = self.room:findPlayerBySkillName("lihun")
-	if diaochan and self:isEnemy(diaochan) and self.room:alivePlayerCount() > 5 then return false end
-	return self.room:alivePlayerCount() > 2 or damage.damage > 1
+	if diaochan and self:isEnemy(diaochan) and not diaochan:hasUsed("LihunCard") and self.player:isMale() and self.room:alivePlayerCount() > 5 then
+		local CP = self.room:getCurrent()
+		if (diaochan:objectName() == CP:objectName() or self:playerGetRound(diaochan) < self:playerGetRound(self.player)) then
+			return false
+		end
+	end
+	return self.room:alivePlayerCount() > 2 or not self.player:faceUp()
 end
 
 sgs.ai_need_damaged.guixin = function (self, attacker)	
@@ -839,6 +844,14 @@ jilve_skill.getTurnUseCard = function(self)
 	if self.player:getMark("@bear") < 1 or self.player:usedTimes("JilveCard") >= 2 then return end
 	local wanshadone = self.player:getTag("JilveWansha"):toBool()
 	if not wanshadone then
+		if self.player:getMark("bear") >= 5 then
+			sgs.ai_skill_choice.jilve = "wansha"
+			sgs.ai_use_priority.JilveCard = 8
+			local wanshacard = sgs.Card_Parse("@JilveCard=.")
+			dummy_use={isDummy=true}
+			self:useSkillCard(wanshacard, dummy_use)
+			return sgs.Card_Parse("@JilveCard=.")
+		end
 		local cards = self.player:getHandcards()
 		cards = sgs.QList2Table(cards)
 		local slashes = self:getCards("Slash")

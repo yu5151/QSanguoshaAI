@@ -295,8 +295,8 @@ function SmartAI:isGoodChainPartner(player)
 end
 
 function SmartAI:isGoodChainTarget(who)	
-	local good = #(self:getChainedEnemies(self.player))
-	local bad = #(self:getChainedFriends(self.player))
+	local good = #(self:getChainedEnemies())
+	local bad = #(self:getChainedFriends())
 	
 	if not sgs.GetConfig("EnableHegemony", false) then	
 		local lord = self.room:getLord()
@@ -362,35 +362,19 @@ function SmartAI:useCardIronChain(card, use)
 					and (self:getCardId("FireSlash") or self:getCardId("ThunderSlash") or (self:getCardId("FireAttack") and self.player:getHandcardNum()>2))
 	
 	local targets_num = 2 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_ExtraTarget, self.player, card)
+	local targets = {}
 	
-	use.card = card
+	for i = 1, #friendtargets, 1 do table.insert(targets, friendtargets[i])	end			
+	for i = 1, #enemytargets, 1 do table.insert(targets, enemytargets[i]) end			
 
-	if #friendtargets > 0 then
-		for i = 1, #friendtargets, 1 do
-			if use.to then 
-				use.to:append(friendtargets[i])
-				if use.to:length() == targets_num then return end
-			end
-		end	
-	end
-		
-	if #enemytargets > 0 then
-		for i = 1, #enemytargets, 1 do
-			if use.to then 
-				use.to:append(enemytargets[i])
-				if use.to:length() == targets_num then return end
-			end
-		end			
-	end
+	if chainSelf then table.insert(targets, self.player) end
+	if yangxiu and self:isFriend(yangxiu) then 	table.insert(targets, yangxiu) end
 
-	if use.to and chainSelf then
-		use.to:append(self.player)
-		if use.to:length() == targets_num then return end
-	end
-
-	if use.to and yangxiu and self:isFriend(yangxiu) then
-		use.to:append(yangxiu)
-		if use.to:length() == targets_num then return end
+	if use.to and (#targets >=2  or  (#targets == 1 and #(self:getChainedEnemies()) > 0 and (self:isEquip("Vine", targets[1]) or targets[1]:getMark("@gale")>0))) then
+		for i = 1, #targets, 1 do
+			use.to:append(targets[i])
+			if use.to:length() == targets_num then return end
+		end				
 	end
 
 end

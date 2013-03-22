@@ -543,13 +543,32 @@ sgs.ai_skill_askforyiji.yiji = function(self, card_ids)
 	if #self.friends > 1 then
 		self:sort(self.friends, "handcard")
 		for _, afriend in ipairs(self.friends) do
-			if not (self:needKongcheng(afriend, true) or afriend:hasSkill("manjuan")) and (not Shenfen_user or afriend:getHandcardNum() >=4) then
+			if not (self:needKongcheng(afriend, true) or afriend:hasSkill("manjuan")) and (not Shenfen_user or afriend:getHandcardNum() >= 4) then
 				for _, acard_id in ipairs(card_ids) do
 					return afriend, acard_id
 				end
 			end
 		end
-	end	
+	end
+	
+	local Lihun
+	local sb_diaochan = self.room:getCurrent()
+	if self.player:isMale() and sb_diaochan:hasSkill("lihun") and not sb_diaochan:hasUsed("LihunCard") and not self:isFriend(sb_diaochan) and
+		sb_diaochan:getPhase() == sgs.Player_Play and (self:hasCrossbowEffect(sb_diaochan) or getKnownCard(sb_diaochan, "Crossbow") > 0) and 
+		(self.player:getHandcardNum() >= self.player:getHp() + 2 and sb_diaochan:faceUp() or
+			self.player:getHandcardNum() >= self.player:getHp() -1 and not sb_diaochan:faceUp()) then
+		Lihun = true
+	end
+	if Lihun then
+		self.player:speak("danger_in_lihun")
+		local other = {}
+		for _, p in sgs.qlist(self.room:getOtherPlayers(sb_diaochan)) do
+			if p:objectName() ~= self.player:objectName() then
+				table.insert(other, p)
+			end
+		end
+		return other[math.random(1, #other)], card_ids[math.random(1, #card_ids)]
+	end		
 end
 
 sgs.ai_need_damaged.yiji = function (self, attacker)
@@ -1272,6 +1291,10 @@ local kurou_skill={}
 kurou_skill.name="kurou"
 table.insert(sgs.ai_skills,kurou_skill)
 kurou_skill.getTurnUseCard=function(self,inclusive)
+	--特殊场景
+	local func = Tactic("kurou", self, nil)
+	if func then return func(self, nil) end
+	--一般场景
 	if (self.player:getHp() > 3 and self.player:getHandcardNum() > self.player:getHp())
 		or (self.player:getHp() - self.player:getHandcardNum() >= 2) then
 		return sgs.Card_Parse("@KurouCard=.")
@@ -2003,7 +2026,7 @@ sgs.ai_skill_use_func.LijianCard = function(card,use,self)
 	
 	if lord and self:isFriend(lord) and lord:hasSkill("hunzi") and lord:getHp() == 2 and lord:getMark("hunzi") == 0 and
 	self:hasTrickEffective(duel, lord) then							--让孙策主觉醒
-		local enemycount = self:playerGetRound(lord, self.player, "enemy")		--我和主公之间有几个敌人
+		local enemycount = self:getEnemyNumBySeat(self.player, lord)		--我和主公之间有几个敌人
 		local peaches = self:getAllPeachNum()
 		if peaches >= enemycount then
 			local f_target, e_target
@@ -2017,7 +2040,7 @@ sgs.ai_skill_use_func.LijianCard = function(card,use,self)
 							use.to:append(lord)
 							use.to:append(ap)
 						end
-						self.room:setPlayerFlag(lord, "will_wake")
+						lord:setFlags("will_wake")
 						return
 					elseif self:isFriend(ap) then
 						f_target = ap

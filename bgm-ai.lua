@@ -17,7 +17,6 @@ local lihun_skill = {}
 lihun_skill.name = "lihun"
 table.insert(sgs.ai_skills,lihun_skill)
 lihun_skill.getTurnUseCard = function(self)
-	if self:needBear() then return end
 	if self.player:hasUsed("LihunCard") or self.player:isNude() then return end
 	local card_id
 	local cards = self.player:getHandcards()

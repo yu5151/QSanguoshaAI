@@ -207,14 +207,19 @@ function SmartAI:useCardSupplyShortage(card, use)
 	local enemies = self:exclude(self.enemies, card)
 
 	local zhanghe = self.room:findPlayerBySkillName("qiaobian")
-	local zhanghe_seat = zhanghe and zhanghe:faceUp() and not zhanghe:isKongcheng() and self:isEnemy(zhanghe) and zhanghe:getSeat() or 0
+	local zhanghe_seat = zhanghe and zhanghe:faceUp() and not zhanghe:isKongcheng() and not self:isFriend(zhanghe) and zhanghe:getSeat() or 0
+	
+	local sb_daqiao = self.room:findPlayerBySkillName("yanxiao")
+	local yanxiao = sb_daqiao and not self:isFriend(sb_daqiao) and (getKnownCard(sb_daqiao, "diamond", nil, "he") > 0 or sb_daqiao:getHandcardNum() > 3)	
 
 	if #enemies == 0 then return end
 
 	local getvalue = function(enemy)
-		if enemy:containsTrick("supply_shortage") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) and self:enemiesContainsTrick() <= 1 then return -100 end
-		if zhanghe_seat > 0 and (self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() <= 1 or not enemy:faceUp()) then
+		if enemy:containsTrick("supply_shortage") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) and self:enemiesContainsTrick() == 0 then return -100 end
+		if zhanghe_seat > 0 and (self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() == 0 or not enemy:faceUp()) then
 			return - 100 end
+		if yanxiao and (self:playerGetRound(sb_daqiao) <= self:playerGetRound(enemy) and self:enemiesContainsTrick(true) == 0 or not enemy:faceUp()) then
+			return -100 end
 
 		local value = 0 - enemy:getHandcardNum()
 

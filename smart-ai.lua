@@ -3626,8 +3626,7 @@ function SmartAI:needRetrial(judge)
 	end
 	
 	if reason == "tuntian" then
-		if who:hasSkill("zaoxian") then return true
-		else return false end
+		if not who:hasSkill("zaoxian") and who:getMark("zaoxian") == 0 then return false end
 	end
 	
 	if self:isFriend(who) then
@@ -3688,8 +3687,8 @@ function SmartAI:getRetrialCardId(cards, judge)
 	local can_use = {}
 	
 	local DontRespondPeach
-	if reason == "tuntian" and judge.who:hasSkill("jixi") then DontRespondPeach = true end
-	if reason == "EightDiagram" and self:isFriend(judge.who) and not self:isWeak(judge.who) then DontRespondPeach = true end
+	if judge.reason == "tuntian" and judge.who:hasSkill("jixi") then DontRespondPeach = true end
+	if judge.reason == "EightDiagram" and self:isFriend(judge.who) and not self:isWeak(judge.who) then DontRespondPeach = true end
 	
 	for _, card in ipairs(cards) do
 		if self:isFriend(judge.who) and not (self:getFinalRetrial() == 2 and card:isKindOf("Peach") and DontRespondPeach) then

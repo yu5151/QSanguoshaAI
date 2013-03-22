@@ -2198,7 +2198,7 @@ function SmartAI:playerGetRound(player, source)
 	source = source or self.player
 	if player:objectName() == source:objectName() then return 0 end
 	local players_num = self.room:alivePlayerCount()
-	local round = (player:getSeat() - source:getSeat()) % #players_num
+	local round = (player:getSeat() - source:getSeat()) % players_num
 	return round
 end
 

@@ -543,13 +543,32 @@ sgs.ai_skill_askforyiji.yiji = function(self, card_ids)
 	if #self.friends > 1 then
 		self:sort(self.friends, "handcard")
 		for _, afriend in ipairs(self.friends) do
-			if not (self:needKongcheng(afriend, true) or afriend:hasSkill("manjuan")) and (not Shenfen_user or afriend:getHandcardNum() >=4) then
+			if not (self:needKongcheng(afriend, true) or afriend:hasSkill("manjuan")) and (not Shenfen_user or afriend:getHandcardNum() >= 4) then
 				for _, acard_id in ipairs(card_ids) do
 					return afriend, acard_id
 				end
 			end
 		end
-	end	
+	end
+	
+	local Lihun
+	local sb_diaochan = self.room:getCurrent()
+	if self.player:isMale() and sb_diaochan:hasSkill("lihun") and not sb_diaochan:hasUsed("LihunCard") and not self:isFriend(sb_diaochan) and
+		sb_diaochan:getPhase() == sgs.Player_Play and (self:hasCrossbowEffect(sb_diaochan) or getKnownCard(sb_diaochan, "Crossbow") > 0) and 
+		(self.player:getHandcardNum() >= self.player:getHp() + 2 and sb_diaochan:faceUp() or
+			self.player:getHandcardNum() >= self.player:getHp() -1 and not sb_diaochan:faceUp()) then
+		Lihun = true
+	end
+	if Lihun then
+		self.player:speak("danger_in_lihun")
+		local other = {}
+		for _, p in sgs.qlist(self.room:getOtherPlayers(sb_diaochan)) do
+			if p:objectName() ~= self.player:objectName() then
+				table.insert(other, p)
+			end
+		end
+		return other[math.random(1, #other)], card_ids[math.random(1, #card_ids)]
+	end		
 end
 
 sgs.ai_need_damaged.yiji = function (self, attacker)

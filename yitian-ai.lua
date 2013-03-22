@@ -164,6 +164,7 @@ sgs.ai_skill_invoke.jueji = function(self, data)
 			target:setFlags("-jueji_target")
 		end
 	end
+	if not target then return false end
 	return not self:doNotDiscard(target, "h")
 end
 
@@ -181,6 +182,7 @@ sgs.ai_skill_use_func.JuejiCard = function(card, use, self)
 		local cards = sgs.QList2Table(self.player:getHandcards())
 		self:sortByUseValue(cards, true)
 		use.card = sgs.Card_Parse("@JuejiCard=" .. cards[1]:getId())
+		zhugeliang:setFlags("jueji_target")
 		if use.to then use.to:append(zhugeliang) end
 		return
 	end

@@ -40,54 +40,73 @@ end
 sgs.ai_get_cardType = function(card)
 	if card:isKindOf("Weapon") then return 1 end
 	if card:isKindOf("Armor") then return 2 end
-	if card:isKindOf("OffensiveHorse")then return 3 end
-	if card:isKindOf("DefensiveHorse") then return 4 end
+	if card:isKindOf("DefensiveHorse") then return 3 end
+	if card:isKindOf("OffensiveHorse")then return 4 end
 end
 
-sgs.ai_skill_use["@@shensu2"]=function(self,prompt)
+sgs.ai_skill_use["@@shensu2"] = function(self, prompt)
 	self:updatePlayers()
-	self:sort(self.enemies,"defenseSlash")
+	self:sort(self.enemies, "defenseSlash")
 	
 	local selfSub = self.player:getHp() - self.player:getHandcardNum()
 	local selfDef = sgs.getDefense(self.player)
 	
 	local cards = self.player:getCards("he")
-	
 	cards = sgs.QList2Table(cards)
 	
 	local eCard
 	local hasCard = {0, 0, 0, 0}
 	
-	for _,card in ipairs(cards) do
-		if card:isKindOf("EquipCard") then
-			hasCard[sgs.ai_get_cardType(card)] = hasCard[sgs.ai_get_cardType(card)]+1
-		end		
-	end
-	
-	for _,card in ipairs(cards) do
-		if card:isKindOf("EquipCard") then
-			if hasCard[sgs.ai_get_cardType(card)] > 1 or sgs.ai_get_cardType(card) > 3 then
-				eCard = card
-				break
-			end
-			if not eCard and not card:isKindOf("Armor") then eCard = card end
-		end
-	end
-	
 	if self:needToThrowArmor() then
 		eCard = self.player:getArmor()
 	end
 
+	if not eCard then
+		for _, card in ipairs(cards) do
+			if card:isKindOf("EquipCard") then
+				hasCard[sgs.ai_get_cardType(card)] = hasCard[sgs.ai_get_cardType(card)] + 1
+			end		
+		end
+		
+		for _, card in ipairs(cards) do
+			if card:isKindOf("EquipCard") and hasCard[sgs.ai_get_cardType(card)] > 1 then
+				eCard = card
+				break
+			end
+		end
+
+		if not eCard then
+			for _, card in ipairs(cards) do
+				if card:isKindOf("EquipCard") and sgs.ai_get_cardType(card) > 3 then
+					eCard = card
+					break
+				end
+			end
+		end
+		if not eCard then
+			for _, card in ipairs(cards) do
+				if card:isKindOf("EquipCard") and not card:isKindOf("Armor") then
+					eCard = card
+					break
+				end
+			end
+		end
+	end
+
 	if not eCard then return "." end
 	
-	local effectslash, best_target, target
+	local effectslash, best_target, target, throw_weapon
 	local defense = 6
-	for _,enemy in ipairs(self.enemies) do
-		local def=sgs.getDefense(enemy)
+	local weapon = self.player:getWeapon()
+	if weapon and eCard:getId() == weapon:getId() and (eCard:isKindOf("Fan") or eCard:isKindOf("QinggangSword")) then throw_weapon = true end
+
+	for _, enemy in ipairs(self.enemies) do
+		local def = sgs.getDefense(enemy)
 		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 		local eff = self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
 
 		if not self.player:canSlash(enemy, slash, false) then
+		elseif throw_weapon and enemy:hasArmorEffect("Vine") and not self.player:hasSkill("zonghuo") then
 		elseif self:slashProhibit(nil, enemy) then
 		elseif eff then
 			if enemy:getHp() == 1 and getCardsNum("Jink", enemy) == 0 then best_target = enemy break end

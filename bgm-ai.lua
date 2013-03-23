@@ -1,14 +1,19 @@
 sgs.ai_skill_invoke.chongzhen = function(self, data)
 	local target = data:toPlayer()
 	if self:isFriend(target) then
-		return target:hasSkill("kongcheng") and target:getHandcardNum() == 1
+		if not self:hasLoseHandcardEffective(target) then return true end
+		return self:needKongcheng(target) and target:getHandcardNum() == 1
 	else
-		return not (target:hasSkill("kongcheng") and target:getHandcardNum() == 1 and target:getEquips():isEmpty())
+		return not (target:hasSkill("kongcheng") and target:getHandcardNum() == 1)
 	end
 end
 
-sgs.ai_slash_prohibit.chongzhen = function(self, to, card)
+sgs.ai_slash_prohibit.chongzhen = function(self, to, card, from)
 	if self:isFriend(to) then return false end
+	if from:hasSkill("tieji")
+		or (from:hasSkill("liegong") and (to:getHandcardNum() <= from:getAttackRange() or to:getHandcardNum() >= from:getHp())) then
+		return false
+	end
 	if to:hasSkill("longdan") and to:getHandcardNum() >= 3 and self.player:getHandcardNum() > 1 then return true end	
 	return false	
 end
@@ -353,7 +358,7 @@ sgs.ai_skill_use_func.TanhuCard = function(card, use, self)
 			return
 		end
 		for _, enemy in ipairs(self.enemies) do
-			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and not enemy:hasSkill("tuntian") then
+			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian")) then
 				use.card = sgs.Card_Parse("@TanhuCard=" .. cards[1]:getId())
 				if use.to then use.to:append(enemy) end
 				return
@@ -772,9 +777,8 @@ sgs.ai_skill_use_func.YinlingCard = function(card, use, self)
 		enemies = sgs.reverse(enemies)
 	end
 	for _, enemy in ipairs(enemies) do
-		if not enemy:isKongcheng() and not self:doNotDiscard(enemy)
-		  and (enemy:getHandcardNum() > enemy:getHp() - 2 or (enemy:getHandcardNum() == 1 and not self:needKongcheng(enemy)))
-		  and not enemy:hasSkill("tuntian") then
+		if not enemy:isKongcheng() and not self:doNotDiscard(enemy, "he", true)
+		  and (enemy:getHandcardNum() > enemy:getHp() - 2 or (enemy:getHandcardNum() == 1 and not self:needKongcheng(enemy))) then
 			use.card = card
 			if use.to then
 				sgs.ai_skill_cardchosen.yinling = enemy:getRandomHandCardId()
@@ -862,6 +866,7 @@ end
 
 function sgs.ai_slash_prohibit.fenyong(self, to)
 	if self.player:hasSkill("jueqing") then return false end
+	if self.player:hasFlag("nosjiefanUsed") then return false end
 	if self.player:hasSkill("nosqianxi") and self.player:distanceTo(self.player) == 1 then return false end
 	return to:getMark("@fenyong") > 0 and to:hasSkill("fenyong")
 end

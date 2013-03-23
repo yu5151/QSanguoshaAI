@@ -1010,7 +1010,7 @@ sgs.ai_skill_use_func.TaichenCard = function(card, use, self)
 				target = enemy 
 				break
 			end
-			if not enemy:hasSkill("tuntian") then
+			if not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian")) then
 				target = enemy 
 				break
 			end

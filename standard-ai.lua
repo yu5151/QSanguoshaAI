@@ -277,23 +277,23 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 	local jiangwei = self.room:findPlayerBySkillName("zhiji")
 	
 	local add_player = function (player,isfriend)
-		if player:getHandcardNum() ==0 or player:objectName()==self.player:objectName() then return #targets end
+		if player:getHandcardNum() ==0 or player:objectName() == self.player:objectName() then return #targets end
 		if self:objectiveLevel(player) == 0 and player:isLord() and sgs.current_mode_players["rebel"] > 1 then return #targets end
-		if #targets==0 then 
+		if #targets == 0 then 
 			table.insert(targets, player:objectName())
-		elseif #targets==1 then			
+		elseif #targets== 1 then			
 			if player:objectName()~=targets[1] then 
 				table.insert(targets, player:objectName()) 
 			end
 		end
-		if isfriend and isfriend ==1 then
+		if isfriend and isfriend == 1 then
 			self.player:setFlags("tuxi_isfriend_"..player:objectName())
 		end
 		return #targets
 	end
 	
 	local lord = self.room:getLord()
-	if lord and self:isEnemy(lord) and sgs.turncount ==1 and not lord:isKongcheng() then
+	if lord and self:isEnemy(lord) and sgs.turncount == 1 and not lord:isKongcheng() then
 		add_player(self.room:getLord())
 	end
 
@@ -303,7 +303,7 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 	end
 
 	if dengai and self:isFriend(dengai) and (not self:isWeak(dengai) or self:getEnemyNumBySeat(self.player,dengai) == 0 ) 
-			and dengai:getMark("zaoxian") == 0 and dengai:getPile("field"):length() == 2 and add_player(dengai,1) == 2 then 
+			and dengai:hasSkill("zaoxian") and dengai:getMark("zaoxian") == 0 and dengai:getPile("field"):length() == 2 and add_player(dengai, 1) == 2 then 
 		return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2]) 
 	end
 
@@ -321,7 +321,7 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 		end
 	end
 
-	if luxun and self:isFriend(luxun) and luxun:getHandcardNum() == 1 and self:getEnemyNumBySeat(self.player,luxun)>0 then	
+	if luxun and self:isFriend(luxun) and luxun:getHandcardNum() == 1 and self:getEnemyNumBySeat(self.player,luxun) > 0 then	
 		local flag = string.format("%s_%s_%s","visible",self.player:objectName(),luxun:objectName())
 		local cards = sgs.QList2Table(luxun:getHandcards())
 		if #cards==1 and (cards[1]:hasFlag("visible") or cards[1]:hasFlag(flag)) then
@@ -345,16 +345,16 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 	for i = 1, #self.enemies, 1 do
 		local p = self.enemies[i]
 		if self:hasSkills("jijiu|qingnang|xinzhan|leiji|jieyin|beige|kanpo|liuli|qiaobian|zhiheng|guidao|longhun|xuanfeng|tianxiang|lijian", p) then
-			if add_player(p)==2  then return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2]) end
+			if add_player(p) == 2  then return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2]) end
 		end
 	end
 	
 	for i = 1, #self.enemies, 1 do
 		local p = self.enemies[i]
-		local x= p:getHandcardNum()
-		local good_target=true				
-		if x==1 and self:hasSkills(sgs.need_kongcheng,p) then good_target = false end
-		if x>=2  and self:hasSkills("tuntian",p) then good_target = false end
+		local x = p:getHandcardNum()
+		local good_target = true				
+		if x == 1 and self:needKongcheng(p) then good_target = false end
+		if x >= 2 and p:hasSkill("tuntian") and p:hasSkill("zaoxian") then good_target = false end
 		if good_target and add_player(p)==2 then return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2]) end				
 	end
 
@@ -363,19 +363,19 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 		return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2]) 
 	end
 
-	if dengai and self:isFriend(dengai) and (not self:isWeak(dengai) or self:getEnemyNumBySeat(self.player,dengai) == 0 ) and add_player(dengai,1) == 2 then 
+	if dengai and self:isFriend(dengai) and dengai:hasSkill("zaoxian") and (not self:isWeak(dengai) or self:getEnemyNumBySeat(self.player,dengai) == 0 ) and add_player(dengai,1) == 2 then 
 		return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2]) 
 	end
 	
 	local others = self.room:getOtherPlayers(self.player)
 	for _, other in sgs.qlist(others) do
-		if self:objectiveLevel(other)>=0 and not self:hasSkills("tuntian",other) and add_player(other)==2  then
+		if self:objectiveLevel(other) >= 0 and not (other:hasSkill("tuntian") and other:hasSkill("zaoxian")) and add_player(other) == 2 then
 			return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2])
 		end
 	end
 
 	for _, other in sgs.qlist(others) do
-		if self:objectiveLevel(other) >= 0 and not self:hasSkills("tuntian",other) and add_player(other) == 1 and math.random(0, 5) <= 1 and not self:hasSkills("qiaobian") then
+		if self:objectiveLevel(other) >= 0 and not (other:hasSkill("tuntian") and other:hasSkill("zaoxian")) and add_player(other) == 1 and math.random(0, 5) <= 1 and not self:hasSkills("qiaobian") then
 			return ("@TuxiCard=.->%s"):format(targets[1])
 		end
 	end
@@ -389,13 +389,14 @@ sgs.ai_card_intention.TuxiCard = function(self,card, from, tos, source)
 	if sgs.evaluateRoleTrends(from) == "neutral" and sgs.evaluateRoleTrends(tos[1]) == "neutral" and
 		(not tos[2] or sgs.evaluateRoleTrends(tos[2]) == "neutral") and lord and not lord:isKongcheng() and 
 		not (self:needKongcheng(lord) and lord:getHandcardNum() == 1 ) and
-		self:hasLoseHandcardEffective(lord) and not lord:hasSkill("tuntian") and from:aliveCount() >= 4 then
+		self:hasLoseHandcardEffective(lord) and not (lord:hasSkill("tuntian") and lord:hasSkill("zaoxian")) and from:aliveCount() >= 4 then
 			sgs.updateIntention(from, lord, -80)
 		return
 	end
 	if from:getState() == "online" then
 		for _, to in ipairs(tos) do
-			if to:hasSkill("kongcheng") or to:hasSkill("lianying") or to:hasSkill("zhiji") or to:hasSkill("tuntian") then
+			if to:hasSkill("kongcheng") or to:hasSkill("lianying") or to:hasSkill("zhiji") 
+				or (to:hasSkill("tuntian") and to:hasSkill("zaoxian")) then
 				sgs.updateIntention(from, to, 0)
 			else
 				sgs.updateIntention(from, to, 80)

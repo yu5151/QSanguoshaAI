@@ -614,11 +614,42 @@ end
 	技能：共谋
 	描述：回合结束阶段开始时，可指定一名其他角色：其在摸牌阶段摸牌后，须给你X张手牌（X为你手牌数与对方手牌数的较小值），然后你须选择X张手牌交给对方 
 ]]--
-sgs.ai_skill_invoke.gongmou = true
+sgs.ai_skill_invoke.gongmou = function(self)
+	sgs.gongmou_target = nil
+	self:sort(self.friends_noself,"defense")
+	for _, friend in ipairs(self,friends_noself) do
+		if friend:hasSkill("enyuan") then
+			sgs.gongmou_target = friend
+		elseif friend:hasSkill("manjuan") then
+			sgs.gongmou_target = friend
+			return true
+		end
+	end
+	if sgs.gongmou_target then return true end
+	
+	self:sort(self.enemies,"defense")
+	for _, enemy in ipairs(self.enemies) do
+		if not enemy:hasSkill("manjuan") then
+			sgs.gongmou_target = enemy
+			return true
+		end
+	end
+	return false
+end
 
 sgs.ai_skill_playerchosen.gongmou = function(self,choices)
+	if sgs.gongmou_target then return sgs.gongmou_target end
 	self:sort(self.enemies,"defense")
 	return self.enemies[1]
+end
+
+sgs.ai_playerchosen_intention.gongmou = function(from, to)
+	local intention = 60
+	if to:hasSkill("manjuan") then intention = -intention
+	elseif to:hasSkill("enyuan") then intention = 0
+	end
+	sgs.updateIntention(from, to, intention)
+	sgs.gongmou_target = nil
 end
 
 sgs.ai_skill_discard.gongmou = function(self, discard_num, optional, include_equip)

@@ -5242,7 +5242,7 @@ function SmartAI:findPlayerToDiscard(flags, prompt, exclude)
 	end
 	if flags:match("e") then
 		for _, enemy in ipairs(enemies) do
-			if enemy:getArmor() and enemy:getArmor():isKindOf("EightDiagram") then
+			if enemy:getArmor() and enemy:getArmor():isKindOf("EightDiagram") and not self:doNotDiscard(enemy, "e") then
 				return enemy
 			end
 		end

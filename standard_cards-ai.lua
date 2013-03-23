@@ -1523,6 +1523,12 @@ function SmartAI:getDangerousCard(who)
 		return weapon:getEffectiveId()
 	end
 	if armor and armor:isKindOf("EightDiagram") and who:hasSkill("leiji") then return armor:getEffectiveId() end
+	
+	local lord = self.room:getLord()
+	if lord and lord:hasLordSkill("hujia") and self:isEnemy(lord) and armor and armor:isKindOf("EightDiagram") and who:getKingdom() == "wei" then
+		return armor:getEffectiveId()
+	end
+
 	if (weapon and weapon:isKindOf("SPMoonSpear") and self:hasSkills("guidao|longdan|guicai|jilve|huanshi|qingguo|kanpo", who)) then
 		return weapon:getEffectiveId()
 	end
@@ -1764,7 +1770,8 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	end
 
 	for _, enemy in ipairs(enemies) do
-		if self:hasTrickEffective(card, enemy) and enemy:getArmor() and enemy:getArmor():isKindOf("EightDiagram") then
+		if self:hasTrickEffective(card, enemy) and enemy:getArmor() and enemy:getArmor():isKindOf("EightDiagram")
+		  and not self:doNotDiscard(enemy, "e") then
 			addTarget(enemy, enemy:getArmor())
 		end
 	end

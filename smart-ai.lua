@@ -3386,30 +3386,37 @@ function SmartAI:askForSinglePeach(dying)
 	
 	if self:isFriend(dying) then
 		if self:needDeath(dying) then return "." end
-		
+
 		local lord = getLord(self.player)
-		if not sgs.GetConfig("EnableHegemony", false) and self.player:objectName() ~= dying:objectName() and not dying:isLord() and							-- 我不是求桃的玩家，死的不是主公
-		(self.role == "loyalist" or self.role == "renegade" and self.room:alivePlayerCount() > 2) and				--我是忠 or 我是内还没和主公单挑
-			((sgs.LordNeedPeach and self:getCardsNum("Peach") <= sgs.LordNeedPeach) or 								--1.处于连锁状态的主公需要桃，我的桃不多于主公需要的桃
-			(sgs.lord_in_danger_SA and lord and getCardsNum("Slash", lord) < 1 and self:getCardsNum("Peach") < 2) or			--2.正在放南蛮，主公可能没有杀，我的桃少于2个
-			(sgs.lord_in_danger_AA and lord and getCardsNum("Jink", lord) < 1 and self:getCardsNum("Peach") < 2)) then		--3.正在放万剑，主公可能没有闪，我的桃少于2个
-			return "." 																								-- 不救濒死的人
-		end	
+		if not sgs.GetConfig("EnableHegemony", false) and self.player:objectName() ~= dying:objectName() and not dying:isLord() and
+		(self.role == "loyalist" or self.role == "renegade" and self.room:alivePlayerCount() > 2) and
+			((sgs.LordNeedPeach and self:getCardsNum("Peach") <= sgs.LordNeedPeach) or
+			(sgs.lord_in_danger_SA and lord and getCardsNum("Slash", lord) < 1 and self:getCardsNum("Peach") < 2) or
+			(sgs.lord_in_danger_AA and lord and getCardsNum("Jink", lord) < 1 and self:getCardsNum("Peach") < 2)) then
+			return "."
+		end
 		
-		if sgs.turncount > 1 and not dying:isLord() and dying:objectName() ~= self.player:objectName() then			-- 第2回合开始，我不是求桃的玩家，死的不是主公
+		if sgs.turncount > 1 and not dying:isLord() and dying:objectName() ~= self.player:objectName() then
 			local possible_friend = 0
 			for _, friend in ipairs(self.friends_noself) do
-				if (self:getKnownNum(friend) == friend:getHandcardNum() and getCardsNum("Peach", friend) == 0) or		--我知道他的全部手牌，他没桃，不计算
-					(self:playerGetRound(friend) < self:playerGetRound(self.player)) or				--在我之前的玩家，已经向他们求过桃了，不计算
-					(sgs.card_lack[friend:objectName()]["Peach"] == 1) then												--有方求桃时，未出桃的玩家视为无桃
-				elseif friend:getHandcardNum() > 0 or getCardsNum("Peach", friend) >= 1 then							--有手牌的玩家，或者可能有桃的玩家，计算
-				
+				if (self:getKnownNum(friend) == friend:getHandcardNum() and getCardsNum("Peach", friend) == 0) or
+					(self:playerGetRound(friend) < self:playerGetRound(self.player)) or
+					(sgs.card_lack[friend:objectName()]["Peach"] == 1) then
+				elseif friend:getHandcardNum() > 0 or getCardsNum("Peach", friend) >= 1 then
 					possible_friend = possible_friend + 1
 				end
 			end
-			if possible_friend == 0 and #self:getCards("Peach") < 1 - dying:getHp() then				-- 当我的桃子不够救人，之后无队友时，不出桃
-				return "." 
+			if possible_friend == 0 and #self:getCards("Peach") < 1 - dying:getHp() then
+				return "."
 			end
+		end
+		
+		local CP = self.room:getCurrent()
+		if dying:objectName() ~= lord:objectName() and dying:objectName() ~= self.player:objectName() and lord:getHp() == 1 and
+			self:isFriend(lord) and self:isEnemy(CP) and CP:canSlash(lord, nil, true) and getCardsNum("Peach", lord) == 0 and
+			getCardsNum("Analeptic",lord) == 0 and #self.friends_noself <= 2 and self:slashIsAvailable(CP) and
+			self:damageIsEffective(CP, nil, lord) and self:getCardsNum("Peach") <= self:getEnemyNumBySeat(CP, lord) + 1 then
+			return "."
 		end
 		
 		local buqu = dying:getPile("buqu")

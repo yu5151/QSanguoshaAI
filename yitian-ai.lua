@@ -637,7 +637,7 @@ sgs.ai_skill_invoke.gongmou = function(self)
 	return false
 end
 
-sgs.ai_skill_playerchosen.gongmou = function(self,choices)
+sgs.ai_skill_playerchosen.gongmou = function(self, targets)
 	if sgs.gongmou_target then return sgs.gongmou_target end
 	self:sort(self.enemies,"defense")
 	return self.enemies[1]

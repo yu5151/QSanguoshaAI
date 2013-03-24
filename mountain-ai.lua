@@ -319,12 +319,12 @@ sgs.ai_skill_invoke.tuntian = true
 sgs.ai_slash_prohibit.tuntian = function(self, to, card)
 	if self:isFriend(to) then return false end
 	if getCardsNum("Jink", to) < 1 or sgs.card_lack[to:objectName()]["Jink"] == 1 or self:isWeak(to) then return false end
-	if to:getHandcardNum() >= 3 then return true end	
+	if to:getHandcardNum() >= 3 and to:hasSkill("zaoxian") then return true end	
 	return false	
 end
 
-local jixi_skill={}
-jixi_skill.name="jixi"
+local jixi_skill = {}
+jixi_skill.name = "jixi"
 table.insert(sgs.ai_skills, jixi_skill)
 jixi_skill.getTurnUseCard = function(self)
 	if self.player:getPile("field"):isEmpty()
@@ -332,9 +332,9 @@ jixi_skill.getTurnUseCard = function(self)
 		and self.player:getPile("field"):length() <= 2) then
 		return
 	end
-	local snatch=sgs.Sanguosha:getCard(self.player:getPile("field"):first())
-	snatch=sgs.Sanguosha:cloneCard("snatch", snatch:getSuit(), snatch:getNumber())
-	local use={isDummy=true}
+	local snatch = sgs.Sanguosha:getCard(self.player:getPile("field"):first())
+	snatch = sgs.Sanguosha:cloneCard("snatch", snatch:getSuit(), snatch:getNumber())
+	local use = {isDummy = true}
 	snatch:setSkillName("jixi")
 	self:useCardSnatch(snatch,use)
 	if use.card then return sgs.Card_Parse("@JixiCard=.") end

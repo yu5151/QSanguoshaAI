@@ -222,7 +222,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 		end
 		if not self.yinghun then
 			for _, friend in ipairs(self.friends_noself) do
-				if friend:hasSkill("tuntian") and not friend:hasSkill("manjuan") then
+				if (friend:hasSkill("tuntian") and friend:hasSkill("zaoxian")) and not friend:hasSkill("manjuan") then
 					self.yinghun = friend
 					break
 				end
@@ -272,7 +272,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 		end
 		if not self.yinghun then
 			for _, friend in ipairs(self.friends_noself) do
-				if friend:hasSkill("tuntian") and not friend:hasSkill("manjuan") then
+				if (friend:hasSkill("tuntian") and friend:hasSkill("zaoxian")) and not friend:hasSkill("manjuan") then
 					self.yinghun = friend
 					break
 				end
@@ -349,7 +349,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 			if not enemy:isNude()
 			  and not (self:hasSkills(sgs.lose_equip_skill, enemy) and enemy:getCards("e"):length() > 0)
 			  and not (enemy:hasArmorEffect("SilverLion") and enemy:isWounded() and self:isWeak(enemy))
-			  and not enemy:hasSkill("tuntian") then
+			  and not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian")) then
 				self.yinghunchoice = "d1tx"
 				self.player:setFlags("yinghun_to_enemy")
 				return "@YinghunCard=.->" .. enemy:objectName()
@@ -359,7 +359,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 			if not enemy:isNude()
 			  and not (self:hasSkills(sgs.lose_equip_skill, enemy) and enemy:getCards("e"):length() > 0)
 			  and not (enemy:hasArmorEffect("SilverLion") and enemy:isWounded() and self:isWeak(enemy))
-			  and not (enemy:hasSkill("tuntian") and x < 3 and enemy:getCards("he"):length() < 2) then
+			  and not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian") and x < 3 and enemy:getCards("he"):length() < 2) then
 				self.yinghunchoice = "d1tx"
 				self.player:setFlags("yinghun_to_enemy")
 				return "@YinghunCard=.->" .. enemy:objectName()
@@ -470,7 +470,7 @@ function DimengIsWorth(self, friend, enemy, mycards, myequips)
 	if hand1 < hand2 then
 		return false
 	elseif hand1 == hand2 and hand1 > 0 then
-		return friend:hasSkill("tuntian")
+		return friend:hasSkill("tuntian") and friend:hasSkill("zaoxian")
 	end
 	local cardNum = #mycards
 	local delt = hand1 - hand2 --assert: delt>0

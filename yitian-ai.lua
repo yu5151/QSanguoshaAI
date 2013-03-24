@@ -616,8 +616,9 @@ end
 ]]--
 sgs.ai_skill_invoke.gongmou = function(self)
 	sgs.gongmou_target = nil
-	self:sort(self.friends_noself,"defense")
-	for _, friend in ipairs(self,friends_noself) do
+	if self.player:hasSkill("manjuan") then return false end
+	self:sort(self.friends_noself, "defense")
+	for _, friend in ipairs(self, friends_noself) do
 		if friend:hasSkill("enyuan") then
 			sgs.gongmou_target = friend
 		elseif friend:hasSkill("manjuan") then
@@ -627,9 +628,9 @@ sgs.ai_skill_invoke.gongmou = function(self)
 	end
 	if sgs.gongmou_target then return true end
 	
-	self:sort(self.enemies,"defense")
+	self:sort(self.enemies, "defense")
 	for _, enemy in ipairs(self.enemies) do
-		if not enemy:hasSkill("manjuan") then
+		if not enemy:hasSkill("manjuan") and not (self:needKongcheng(enemy) and self.player:getHandcardNum() > enemy:getHandcardNum()) then
 			sgs.gongmou_target = enemy
 			return true
 		end
@@ -639,7 +640,7 @@ end
 
 sgs.ai_skill_playerchosen.gongmou = function(self, targets)
 	if sgs.gongmou_target then return sgs.gongmou_target end
-	self:sort(self.enemies,"defense")
+	self:sort(self.enemies, "defense")
 	return self.enemies[1]
 end
 
@@ -1009,7 +1010,7 @@ sgs.ai_skill_use_func.TaichenCard = function(card, use, self)
 				target = enemy 
 				break
 			end
-			if not enemy:hasSkill("tuntian") then
+			if not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian")) then
 				target = enemy 
 				break
 			end

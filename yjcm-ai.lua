@@ -198,7 +198,7 @@ sgs.ai_skill_use["@@xuanhuo"] = function(self, prompt)
 	for _, enemy in ipairs(self.enemies) do --robequip
 		for _, enemy2 in ipairs(self.enemies) do	
 			if enemy:canSlash(enemy2) and (self:getDangerousCard(enemy) or self:getValuableCard(enemy)) 
-			  and not self:hasSkills(sgs.lose_equip_skill, enemy) and not enemy:hasSkill("tuntian")
+			  and not self:hasSkills(sgs.lose_equip_skill, enemy) and not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian"))
 			  or (enemy:hasSkill("manjuan") and enemy:getCards("he"):length() > 1 and getCardsNum("Slash", enemy) == 0) then
 				enemy:setFlags("xuanhuo_target")
 				return "@XuanhuoCard=.->"..enemy:objectName()
@@ -217,7 +217,7 @@ sgs.ai_skill_use["@@xuanhuo"] = function(self, prompt)
 		
 	end
 	for _, friend in ipairs(self.friends_noself) do
-		if friend:hasSkill("tuntian") and not friend:hasSkill("manjuan") then
+		if friend:hasSkill("tuntian") and friend:hasSkill("zaoxian") and not friend:hasSkill("manjuan") then
 			friend:setFlags("xuanhuo_target")
 			return "@XuanhuoCard=.->"..friend:objectName()
 		end

@@ -1369,10 +1369,6 @@ function SmartAI:objectiveLevel(player)
 		if rebel_num == 0 then
 			if #players == 2 and self.role == "loyalist" then return 5 end
 			
-			if target_role == "renegade" and sgs.evaluatePlayerRole(player) == "renegade" and sgs.evaluateRoleTrends(player) == "renegade" then
-				return 5
-			end
-			
 			if self.player:isLord() and self:hasHeavySlashDamage(self.player, nil, player) and player:getHp() <= 2 then
 				return 0
 			end

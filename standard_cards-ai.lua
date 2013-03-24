@@ -2277,10 +2277,10 @@ function SmartAI:willUseLightning(card)
 		local enemies = 0
 
 		for _,player in ipairs(players) do
-			if self:objectiveLevel(player) >= 4 and not player:hasSkill("hongyan")
+			if self:objectiveLevel(player) >= 4 and not player:hasSkill("hongyan") and not player:hasSkill("wuyan")
 			  and not (player:hasSkill("weimu") and card:isBlack()) then
 				enemies = enemies + 1
-			elseif self:isFriend(player) and not player:hasSkill("hongyan")
+			elseif self:isFriend(player) and not player:hasSkill("hongyan") and not player:hasSkill("wuyan")
 			  and not (player:hasSkill("weimu") and card:isBlack()) then
 				friends = friends + 1
 			end

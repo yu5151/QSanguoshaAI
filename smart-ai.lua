@@ -2529,27 +2529,46 @@ function SmartAI:askForNullification(trick, from, to, positive)
 			local NP = to:getNextAlive()
 			if self:isFriend(NP) then
 				local ag_ids = self.room:getTag("AmazingGrace"):toStringList()
-				local peach_num, exnihilo_num = 0, 0
+				local peach_num, exnihilo_num, snatch_num, analeptic_num, crossbow_num = 0, 0, 0, 0, 0
 				for _, ag_id in ipairs(ag_ids) do
 					local ag_card = sgs.Sanguosha:getCard(ag_id)
 					if ag_card:isKindOf("Peach") then peach_num = peach_num + 1 end
 					if ag_card:isKindOf("ExNihilo") then exnihilo_num = exnihilo_num + 1 end
+					if ag_card:isKindOf("Snatch") then snatch_num = snatch_num + 1 end
+					if ag_card:isKindOf("Analeptic") then analeptic_num = analeptic_num + 1 end
+					if ag_card:isKindOf("Crossbow") then crossbow_num = crossbow_num + 1 end
 				end
 				if (peach_num == 1 and to:getHp() < getBestHp(to)) or
 					(peach_num > 0 and self:isWeak(to)) or
 					(NP:getHp() < getBestHp(NP) and not self:getOverflow(NP)) then
 					return null_card
 				end
-				if peach_num == 0 and exnihilo_num > 0 and not self:willSkipPlayPhase(NP) then
-					if self:hasSkills("jizhi|rende|zhiheng", NP) then return null_card end
-					if self:needBear(NP) then return null_card end
-					if NP:hasSkill("jilve") and NP:getMark("@bear") > 0 then return null_card end
+				if peach_num == 0 and not self:willSkipPlayPhase(NP) then
+					if exnihilo_num > 0 then
+						if self:hasSkills("jizhi|rende|zhiheng", NP) or NP:hasSkill("jilve") and NP:getMark("@bear") > 0 then return null_card end
+					elseif exnihilo_num == 0 then
+						for _, enemy in ipairs(self.enemies) do
+							if snatch_num > 0 and to:distanceTo(enemy) == 1 and
+								(self:willSkipPlayPhase(enemy, true) or self:willSkipDrawPhase(enemy, true)) then
+								return null_card
+							elseif analeptic_num > 0 and self:isEquip("Axe", enemy) or self:getCardsNum("Axe", enemy) > 0 then
+								return null_card
+							elseif crossbow_num > 0 and getCardsNum("Slash", enemy) >= 3 then
+								local slash = sgs.Sanguosha:clone("slash", sgs.Card_NoSuit, 0)
+								for _, friend in ipairs(self.friens) do
+									if enemy:distanceTo(friend) == 1 and self:slashIsEffective(slash, friend, nil, enemy) then
+										return null_card
+									end
+								end
+							end
+						end
+					end
 				end
 			end
 		end
 		
 	else
-		if from then			
+		if from then
 			if from:objectName() == to:objectName() then
 				if self:isFriend(from) then return null_card else return end
 			end

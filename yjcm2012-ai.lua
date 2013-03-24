@@ -986,10 +986,11 @@ function sgs.ai_skill_invoke.zhenlie(self, data)
 end
 
 function sgs.ai_skill_invoke.miji(self, data)
+	if #self.friends_noself == 0 then return false end
 	local invoke
-	for _, target in ipairs(self.friends_noself) do
-		if not (target:hasSkill("manjuan") and target:getPhase() == sgs.Player_NotActive) and 
-		 (not self:needKongcheng(target, true) or #self.player:getLostHp() > 2 and #self.friends_noself == 1) then
+	for _, friend in ipairs(self.friends_noself) do
+		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and
+		not self:needKongcheng(friend, true) and not self:IsLihunTarget(friend) then
 			invoke = true
 			break
 		end
@@ -1016,24 +1017,32 @@ sgs.ai_skill_askforyiji.miji = function(self, card_ids)
 	end
 	
 	local cards = #toGive > 0 and toGive or allcards
-	
+
 	local card, target = self:getCardNeedPlayer(cards)
-	if card and target and target:objectName() ~= self.player:objectName() then return target, card:getEffectiveId() end
-	
 	local new_friends = {}
 	for _, friend in ipairs(self.friends_noself) do
-		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and 
-		(not self:needKongcheng(friend, true) or #card_ids > 2 and #self.friends_noself == 1) then
+		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and not self:needKongcheng(friend, true) and
+		not self:IsLihunTarget(friend) then
 			table.insert(new_friends, friend)
+			if card and target and target:objectName() == friend:objectName() then
+				return target, card:getEffectiveId()
+			end
 		end
 	end
-	
+
 	if #new_friends > 0 then
 		self:sort(new_friends, "defense")
+		self:sortByKeepValue(cards, true)
 		return new_friends[1], cards[1]:getEffectiveId()
-	end	
+	else
+		local other = {}
+		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+			if not (self:IsLihunTarget(player) and self:isFriend(player)) and (self:isFriend(player) or not player:hasSkill("lihun")) then
+				table.insert(other, player)
+			end
+		end
+		return other[math.random(1, #other)], card_ids[math.random(1, #card_ids)]
+	end
 	
-	local players = sgs.qlist(self.room:getOtherPlayers(self.player))
-	return players[math.random(1, #players)], card_ids[1]
 end
 

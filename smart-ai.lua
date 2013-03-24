@@ -1368,7 +1368,11 @@ function SmartAI:objectiveLevel(player)
 	  
 		if rebel_num == 0 then
 			if #players == 2 and self.role == "loyalist" then return 5 end
-
+			
+			if target_role == "renegade" and sgs.evaluatePlayerRole(player) == "renegade" and sgs.evaluateRoleTrends(player) == "renegade" then
+				return 5
+			end
+			
 			if self.player:isLord() and self:hasHeavySlashDamage(self.player, nil, player) and player:getHp() <= 2 then
 				return 0
 			end
@@ -3261,6 +3265,7 @@ function SmartAI:askForYiji(card_ids, reason)
 		if type(callback) == "function" then
 			local target, cardid = callback(self, card_ids)
 			if target and cardid then return target, cardid end
+			return nil, -1
 		end
 	end
 	
@@ -3533,7 +3538,7 @@ function SmartAI:activate(use)
 	self.toUse = nil
 end
 
-function SmartAI:getOverflow(player)
+function SmartAI:getOverflow(player, getMaxCards)
 	player = player or self.player
 	local kingdom_num = 0
 	if player:hasSkill("yongsi") then
@@ -3545,6 +3550,7 @@ function SmartAI:getOverflow(player)
 			end
 		end
 	end
+	if getMaxCards then return player:getMaxCards() - kingdom_num end
 	return math.max(player:getHandcardNum() + kingdom_num - player:getMaxCards(), 0)
 end
 

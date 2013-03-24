@@ -502,24 +502,48 @@ sgs.ai_chaofeng.xuchu = 3
 
 sgs.ai_skill_invoke.tiandu = sgs.ai_skill_invoke.jianxiong
 
-sgs.ai_skill_invoke.yiji = function(self)
-	local sb_diaochan = self.room:getCurrent()
-	if sb_diaochan:hasSkill("lihun") and not sb_diaochan:hasUsed("LihunCard") and not self:isFriend(sb_diaochan) and sb_diaochan:getPhase() == sgs.Player_Play then
-		local invoke
-		for _, friend in ipairs(self.friends) do
-			if (not friend:isMale() or (friend:getHandcardNum() < friend:getHp() + 1 and sb_diaochan:faceUp()) or 
-					(friend:getHandcardNum() < friend:getHp() - 2 and not sb_diaochan:faceUp())) and not self:needKongcheng(friend, true) then
-				invoke = true
-				break
-			end
-		end
-		return invoke
-	end
-	return true
-end
-
 function sgs.ai_slash_prohibit.tiandu(self, to)
 	if self:isEnemy(to) and self:isEquip("EightDiagram", to) and #self.enemies > 1 then return true end
+end
+
+function SmartAI:IsLihunTarget(player, DrawCardNum)
+	player = player or self.player
+	DrawCardNum = DrawCardNum or 1	
+	local HandCardNum = player:getHandcardNum() + DrawCardNum
+	
+	if not player:isMale() then return false end
+	
+	local sb_diaochan = self.room:findPlayerBySkillName("lihun")
+	local Lihun = sb_diaochan and not sb_diaochan:hasUsed("LihunCard") and not self:isFriend(sb_diaochan)
+	
+	if not Lihun then return false end
+	
+	if sb_diaochan:getPhase() == sgs.Player_Play then
+		if HandCardNum - player:getHp() >= 2 and sb_diaochan:faceUp() or 
+			HandCardNum > 0 and HandCardNum - player:getHp() >= -1 and not sb_diaochan:faceUp() then
+			return true
+		end
+	else
+		if sb_diaochan:faceUp() and not self:willSkipPlayPhase(sb_diaochan) and 
+		self:playerGetRound(player) > self:playerGetRound(sb_diaochan) and HandCardNum >= player:getHp() + 2 then
+			return true
+		end
+	end
+	
+	return false
+end
+
+sgs.ai_skill_invoke.yiji = function(self)
+	if self.player:getHandcardNum() < 2 then return true end
+	local invoke
+	for _, friend in ipairs(self.friends) do
+		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and 
+		not self:needKongcheng(friend, true) and not self:IsLihunTarget(friend) then
+			invoke = true
+			break
+		end
+	end
+	return invoke
 end
 
 sgs.ai_skill_askforyiji.yiji = function(self, card_ids)
@@ -537,70 +561,66 @@ sgs.ai_skill_askforyiji.yiji = function(self, card_ids)
 		end
 	end
 	
-	if Shenfen_user and self:isFriend(Shenfen_user) then
-		if Shenfen_user:objectName() ~= self.player:objectName() then
-			for _, id in ipairs(card_ids) do
-				return Shenfen_user, id
+	if Shenfen_user then
+		if self:isFriend(Shenfen_user) then
+			if Shenfen_user:objectName() ~= self.player:objectName() then
+				for _, id in ipairs(card_ids) do
+					return Shenfen_user, id
+				end
+			else
+				return nil, -1
 			end
 		else
-			return nil, -1
+			if self.player:getHandcardNum() < self:getOverflow(false, true) then
+				return nil, -1
+			end
+			local card, friend = self:getCardNeedPlayer(cards)
+			if card and friend and friend:getHandcardNum() >=4 then
+				return friend, card:getId()
+			end
 		end
 	end
 	
-	if not Shenfen_user and self.player:getHandcardNum() <= 2 then
+	if self.player:getHandcardNum() <= 2 then
 		return nil, -1
 	end
-	
-	local sb_diaochan = self.room:getCurrent()
-	if sb_diaochan:hasSkill("lihun") and not sb_diaochan:hasUsed("LihunCard") and not self:isFriend(sb_diaochan) and sb_diaochan:getPhase() == sgs.Player_Play then
+			
+	local new_friends = {}
+	local CanKeep
+	for _, friend in ipairs(self.friends) do
+		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and not self:needKongcheng(friend, true) and
+		not self:IsLihunTarget(friend) then
+			if friend:objectName() == self.player:objectName() then CanKeep = true
+			else 
+				table.insert(new_friends, friend)
+			end
+		end
+	end
+P:getNextAlive():getNextAlive():throwAllCards()
+	if #new_friends > 0 then
 		local card, target = self:getCardNeedPlayer(cards)
-		local new_friends = {}
-		local CanKeep
-		for _, friend in ipairs(self.friends) do
-			if (not friend:isMale() or (friend:getHandcardNum() < friend:getHp() + 1 and sb_diaochan:faceUp()) or 
-			(friend:getHandcardNum() < friend:getHp() - 2 and not sb_diaochan:faceUp())) and not self:needKongcheng(friend, true) then
-				if self.player:objectName() == friend:objectName() then
-					CanKeep = true
-				else
-					table.insert(new_friends, friend)
-					if friend:objectName() == target:objectName() then 
-						return friend, card:getId()
-					end
+		if card and target then
+			for _, friend in ipairs(new_friends) do
+				if target:objectName() == friend:objectName() then
+					return friend, card:getEffectiveId()
 				end
 			end
 		end
-		if #new_friends > 0 then
-			self:sort(new_friends, "defense")
-			return new_friends[1], card_ids[1]
-		elseif CanKeep then
-			return nil, -1
-		else
-			local other = {}
-			for _, p in sgs.qlist(self.room:getOtherPlayers(sb_diaochan)) do
-				if p:objectName() ~= self.player:objectName() then
-					table.insert(other, p)
-				end
+		self:sort(new_friends, "defense")
+		self:sortByKeepValue(cards, true)
+		return new_friends[1], cards[1]:getEffectiveId()
+	elseif CanKeep then
+		return nil, -1
+	else
+		local other = {}
+		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+			if not (self:IsLihunTarget(player) and self:isFriend(player)) and (self:isFriend(player) or not player:hasSkill("lihun")) then
+				table.insert(other, player)
 			end
-			return other[math.random(1, #other)], card_ids[math.random(1, #card_ids)]
 		end
-	end		
-	
-	local card, friend = self:getCardNeedPlayer(cards)
-	if card and friend and (not Shenfen_user or friend:getHandcardNum() >=4) then
-		return friend, card:getId()
+		return other[math.random(1, #other)], card_ids[math.random(1, #card_ids)]
 	end
-	
-	if #self.friends > 1 then
-		self:sort(self.friends, "handcard")
-		for _, afriend in ipairs(self.friends) do
-			if not (self:needKongcheng(afriend, true) or afriend:hasSkill("manjuan")) and (not Shenfen_user or afriend:getHandcardNum() >= 4) then
-				for _, acard_id in ipairs(card_ids) do
-					return afriend, acard_id
-				end
-			end
-		end
-	end
-	
+
 end
 
 sgs.ai_need_damaged.yiji = function (self, attacker)

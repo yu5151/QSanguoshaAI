@@ -303,37 +303,24 @@ sgs.ai_skill_askforyiji.lirang = function(self, card_ids)
 		table.insert(cards, sgs.Sanguosha:getCard(card_id))
 	end
 	
-	local card, friend = self:getCardNeedPlayer(cards)
-	if card and friend and friend:objectName() ~= self.player:objectName() then
-		return friend, card:getId()
-	end
-	
-	if #self.friends > 1 then
-		self:sort(self.friends, "handcard")
-		for _, afriend in ipairs(self.friends) do
-			if not (self:needKongcheng(afriend, true) or afriend:hasSkill("manjuan")) and afriend:objectName() ~= self.player:objectName() then
-				for _, acard_id in ipairs(card_ids) do
-					return afriend, acard_id
-				end
+	local card, target = self:getCardNeedPlayer(cards)
+	local new_friends = {}
+	for _, friend in ipairs(self.friends_noself) do
+		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and not self:needKongcheng(friend, true) and
+		not self:IsLihunTarget(friend) then
+			table.insert(new_friends, friend)
+			if card and target and target:objectName() == friend:objectName() then
+				return target, card:getEffectiveId()
 			end
 		end
 	end
-	
-	local tos = {}
-	for _, target in ipairs(self.friends_noself) do
-		if self:isFriend(target) and not (target:hasSkill("manjuan") and target:getPhase() == sgs.Player_NotActive)
-			and (not self:needKongcheng(target, true) or #card_ids > 2 and #self.friends_noself == 1) then
-			table.insert(tos, target)
-		end
+
+	if #new_friends > 0 then
+		self:sort(new_friends, "defense")
+		self:sortByKeepValue(cards, true)
+		return new_friends[1], cards[1]:getEffectiveId()
 	end
 
-	if #tos == 0 then return end
-	self:sort(tos, "defense")
-	local afriend = tos[1]
-	for _, acard_id in ipairs(card_ids) do
-		return afriend, acard_id
-	end
-	
 end
 
 

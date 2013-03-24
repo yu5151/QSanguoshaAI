@@ -71,7 +71,8 @@ sgs.ai_skill_use_func.LihunCard = function(card,use,self)
 	cards = sgs.QList2Table(cards)
 
 	if not self.player:hasUsed("LihunCard") then
-		self:sort(self.enemies, "handcard", true)
+		self:sort(self.enemies, "handcard")
+		self.enemies = sgs.reverse(self.enemies)
 		local target
 		for _, enemy in ipairs(self.enemies) do
 			if enemy:isMale() and enemy:getHandcardNum() - enemy:getHp() >= 2 then
@@ -81,7 +82,7 @@ sgs.ai_skill_use_func.LihunCard = function(card,use,self)
 		end
 		if not self.player:faceUp() and not target then
 			for _, enemy in ipairs(self.enemies) do
-				if enemy:isMale() then
+				if enemy:isMale() and not enemy:isKongcheng() then
 					if enemy:getHandcardNum() - enemy:getHp() >= -1 then
 						target = enemy
 						break
@@ -89,7 +90,17 @@ sgs.ai_skill_use_func.LihunCard = function(card,use,self)
 				end
 			end
 		end
-
+		if not target and (self:isEquip("Crossbow") or self:getCardsNum("Crossbow") > 0) then
+			local slash = self:getCard("Slash") or sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+			for _, enemy in ipairs(self.enemies) do
+				if self:slashIsEffective(slash, enemy) and self.player:distanceTo(enemy) == 1 and
+					not self:hasSkill("fenyong|zhichi|fankui|neoganglie|ganglie|enyuan|nosenyuan|langgu|guixin|kongcheng", enemy) and
+					self:getCardsNum("Slash") + getKnownCard(enemy, "Slash") >= 3 then
+						target = enemy
+					break
+				end
+			end
+		end
 		if target then
 			use.card = card
 			if use.to then use.to:append(target) end

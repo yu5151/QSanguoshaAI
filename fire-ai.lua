@@ -133,15 +133,12 @@ sgs.ai_skill_use["@@jieming"] = function(self, prompt)
 	end
 	
 	local CP = self.room:getCurrent()
-	if self:isFriend(CP) and self:hasCrossbowEffect(CP) and math.min(CP:getMaxHp(), 5) > CP:getHandcardNum() then
-		return "@JiemingCard=.->"..CP:objectName()
-	end
-	
 	local max_x = 0
 	for _, friend in ipairs(friends) do
 		local x = math.min(friend:getMaxHp(), 5) - friend:getHandcardNum()
 		if friend:hasSkill("manjuan") then x = x + 1 end
-
+		if self:hasCrossbowEffect(CP) then x = x + 1 end
+		
 		if x > max_x and friend:isAlive() then
 			max_x = x
 			target = friend

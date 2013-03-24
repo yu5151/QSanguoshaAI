@@ -513,6 +513,7 @@ function SmartAI:IsLihunTarget(player, DrawCardNum)
 	local HandCardNum = player:getHandcardNum() + DrawCardNum
 	
 	if not player:isMale() then return false end
+	if not self:isFriend(player) then return false end
 	
 	local sb_diaochan = self.room:findPlayerBySkillName("lihun")
 	local Lihun = sb_diaochan and not sb_diaochan:hasUsed("LihunCard") and not self:isFriend(sb_diaochan)
@@ -535,12 +536,20 @@ function SmartAI:IsLihunTarget(player, DrawCardNum)
 end
 
 sgs.ai_skill_invoke.yiji = function(self)
+	local Shenfen_user
+	for _, player in sgs.qlist(self.room:getAlivePlayers()) do
+		if player:hasFlag("ShenfenUsing") then
+			Shenfen_user = player
+			break
+		end
+	end
 	if self.player:getHandcardNum() < 2 then return true end
 	local invoke
 	for _, friend in ipairs(self.friends) do
 		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and 
-		not self:needKongcheng(friend, true) and not self:IsLihunTarget(friend) then
-			invoke = true
+			not self:needKongcheng(friend, true) and not self:IsLihunTarget(friend) and 
+			(not Shenfen_user or Shenfen_user:objectName() == friend:objectName() or friend:getHandcardNum() >= 4) then
+				invoke = true
 			break
 		end
 	end
@@ -582,22 +591,23 @@ sgs.ai_skill_askforyiji.yiji = function(self, card_ids)
 		end
 	end
 	
-	if self.player:getHandcardNum() <= 2 then
+	if self.player:getHandcardNum() <= 2 and not Shenfen_user then
 		return nil, -1
 	end
 			
 	local new_friends = {}
 	local CanKeep
 	for _, friend in ipairs(self.friends) do
-		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and not self:needKongcheng(friend, true) and
-		not self:IsLihunTarget(friend) then
+		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and 
+		not self:needKongcheng(friend, true) and not self:IsLihunTarget(friend) and 
+		(not Shenfen_user or friend:objectName() == Shenfen_user:objectName() or friend:getHandcardNum() >= 4) then
 			if friend:objectName() == self.player:objectName() then CanKeep = true
 			else 
 				table.insert(new_friends, friend)
 			end
 		end
 	end
-P:getNextAlive():getNextAlive():throwAllCards()
+
 	if #new_friends > 0 then
 		local card, target = self:getCardNeedPlayer(cards)
 		if card and target then
@@ -606,6 +616,9 @@ P:getNextAlive():getNextAlive():throwAllCards()
 					return friend, card:getEffectiveId()
 				end
 			end
+		end
+		if Shenfen_user and self:isFriend(Shenfen_user) then
+			return Shenfen_user, cards[1]:getEffectiveId()
 		end
 		self:sort(new_friends, "defense")
 		self:sortByKeepValue(cards, true)
@@ -728,6 +741,22 @@ rende_skill.getTurnUseCard=function(self)
 	if self.player:isKongcheng() then return end
 	local mode = string.lower(global_room:getMode())
 	if self.player:usedTimes("RendeCard") > 1 and mode:find("04_1v3") then return end
+	if (self:isEquip("Crossbow") or self:getCardsNum("Crossbow") > 0) and self:getCardsNum("Slash") > 0 then
+		self:sort(self.enmeies, "defense")
+		for _, enemy in ipairs(self.enmies) do
+			if self.player:distanceTo(enemy) == 1 and (enemy:getHp() == 1 and getCardsNum("Peach", enemy) == 0 or
+					not self:hasSkill("fenyong|zhichi|fankui|neoganglie|ganglie|enyuan|nosenyuan|langgu|guixin", enemy)) then
+				local slashs = self:getCards("Slash")
+				local slash_count = 0
+				for _, slash in ipairs(slashs) do
+					if self:slashIsEffective(slash, enemy) then
+						slash_count = slash_count + 1
+					end
+				end
+				if slash_count >= enemy:getHp() then return false end
+			end
+		end
+	end
 	for _, player in ipairs(self.friends_noself) do
 		if (player:hasSkill("haoshi") and not player:containsTrick("supply_shortage")) or player:hasSkill("jijiu") then
 			return sgs.Card_Parse("@RendeCard=.")

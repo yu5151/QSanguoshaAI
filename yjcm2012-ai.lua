@@ -988,8 +988,8 @@ function sgs.ai_skill_invoke.miji(self, data)
 	if #self.friends_noself == 0 then return false end
 	local invoke
 	for _, friend in ipairs(self.friends_noself) do
-		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and
-		not self:needKongcheng(friend, true) and not self:IsLihunTarget(friend) then
+		if not friend:hasSkill("manjuan") and not self:IsLihunTarget(friend) and 
+			(not self:needKongcheng(friend, true) or self:getLostHp() > 2 and #self.friends_noself == 1) then
 			invoke = true
 			break
 		end
@@ -998,8 +998,7 @@ function sgs.ai_skill_invoke.miji(self, data)
 end
 
 sgs.ai_skill_choice.miji_draw = function(self, choices)
-	local number = choices:split("+")
-	return number[#number]
+	return tostring(self.player:getLostHp())
 end
 
 sgs.ai_skill_askforyiji.miji = function(self, card_ids)
@@ -1020,8 +1019,8 @@ sgs.ai_skill_askforyiji.miji = function(self, card_ids)
 	local card, target = self:getCardNeedPlayer(cards)
 	local new_friends = {}
 	for _, friend in ipairs(self.friends_noself) do
-		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and not self:needKongcheng(friend, true) and
-		not self:IsLihunTarget(friend) then
+		if not friend:hasSkill("manjuan") and not self:IsLihunTarget(friend) and
+		(not self:needKongcheng(friend, true) or self:getLostHp() > 2 and #self.friends_noself == 1) then
 			table.insert(new_friends, friend)
 			if card and target and target:objectName() == friend:objectName() then
 				return target, card:getEffectiveId()
@@ -1036,7 +1035,7 @@ sgs.ai_skill_askforyiji.miji = function(self, card_ids)
 	else
 		local other = {}
 		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-			if not (self:IsLihunTarget(player) and self:isFriend(player)) and (self:isFriend(player) or not player:hasSkill("lihun")) then
+			if not self:IsLihunTarget(player) and not player:hasSkill("lihun") then
 				table.insert(other, player)
 			end
 		end

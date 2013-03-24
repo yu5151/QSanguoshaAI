@@ -302,23 +302,60 @@ sgs.ai_skill_askforyiji.lirang = function(self, card_ids)
 	for _, card_id in ipairs(card_ids) do
 		table.insert(cards, sgs.Sanguosha:getCard(card_id))
 	end
+
+	local Shenfen_user
+	for _, player in sgs.qlist(self.room:getAllPlayers()) do
+		if player:hasFlag("ShenfenUsing") then
+			Shenfen_user = player
+			break
+		end
+	end
 	
 	local card, target = self:getCardNeedPlayer(cards)
 	local new_friends = {}
+	local Dimeng_friend, Dimeng_another
 	for _, friend in ipairs(self.friends_noself) do
-		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and not self:needKongcheng(friend, true) and
-		not self:IsLihunTarget(friend) then
-			table.insert(new_friends, friend)
-			if card and target and target:objectName() == friend:objectName() then
-				return target, card:getEffectiveId()
+		if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive) and
+			(not self:needKongcheng(friend, true) or #self.friends_noself == 1 and #card_ids >= 3) and
+			not self:IsLihunTarget(friend) and
+			(not Shenfen_user or self:isFriend(Shenfen_user) or friend:objectName() ~= Shenfen_user:objectName() and friend:getHandcardNum() >= 4) then
+			if friend:hasFlag("DimengTarget") then
+				for _, player in sgs.qlist(self.room:getOtherPlayers(friend)) do
+					if player:hasFlag("DimengTarget") and self:isEnemy(player) then
+						Dimeng_friend = friend
+						Dimeng_another = player
+						break
+					end
+				end
 			end
+			table.insert(new_friends, friend)
 		end
 	end
-
+	
+	
 	if #new_friends > 0 then
+		local card, target = self:getCardNeedPlayer(cards)
+		if card and target then
+			for _, friend in ipairs(new_friends) do
+				if friend:objectName() == target:objectName() then
+					if Dimeng_friend and Dimeng_another and friend:objectName() == Dimeng_friend:objectName() then
+						return Dimeng_another, card:getEffectiveId()
+					else
+						return friend, card:getEffectiveId()
+					end
+				end
+			end
+		end
+		if Shenfen_user and self:isFriend(Shenfen_user) then
+			return Shenfen_user, cards[1]:getEffectiveId()
+		end
 		self:sort(new_friends, "defense")
 		self:sortByKeepValue(cards, true)
-		return new_friends[1], cards[1]:getEffectiveId()
+		if Dimeng_friend and Dimeng_another and new_friends[1]:objectName() == Dimeng_friend:objectName() then
+			return Dimeng_another, cards[1]:getEffectiveId()
+		else
+			return new_friends[1], cards[1]:getEffectiveId()
+		end
 	end
 
 end

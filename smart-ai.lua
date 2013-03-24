@@ -4746,7 +4746,7 @@ function SmartAI:hasTrickEffective(card, to, from)
 			end
 		end
 	end
-
+	
 	if (from:hasSkill("wuyan") or to:hasSkill("wuyan")) and not from:hasSkill("jueqing") then
 		if card:isKindOf("TrickCard") and 
 		  (card:isKindOf("Duel") or card:isKindOf("FireAttack") or card:isKindOf("ArcheryAttack") or card:isKindOf("SavageAssault")) then
@@ -4899,10 +4899,6 @@ function SmartAI:getSameEquip(card, player)
 	elseif card:isKindOf("Armor") then return player:getArmor()
 	elseif card:isKindOf("DefensiveHorse") then return player:getDefensiveHorse()
 	elseif card:isKindOf("OffensiveHorse") then return player:getOffensiveHorse() end
-end
-
-function SmartAI:hasSameEquip(card, player) -- obsolete
-	if self:getSameEquip(card,player) then return true else return false end
 end
 
 function SmartAI:useEquipCard(card, use)

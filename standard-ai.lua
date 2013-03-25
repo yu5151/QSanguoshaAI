@@ -837,6 +837,7 @@ end
 table.insert(sgs.ai_choicemade_filter.cardUsed, jijiang_filter)
 
 sgs.ai_skill_invoke.jijiang = function(self, data)
+	if sgs.jijiangsource then return false end
 
 	local current = self.room:getCurrent()
 	if self:isFriend(current) and current:getKingdom() == "shu" and self:getOverflow(current) >2 and not self:isEquip("Crossbow", current) then
@@ -856,11 +857,7 @@ sgs.ai_skill_invoke.jijiang = function(self, data)
 		if other:getKingdom() == "shu" and other:isAlive() then shu_num = shu_num + 1 end
 	end
 
-	if sgs.jijiangsource then 
-		return false 
-	else 
-		return shu_num>0 and others:length()>1
-	end
+	return shu_num>0 and others:length()>1
 end
 
 sgs.ai_choicemade_filter.skillInvoke.jijiang = function(player, promptlist)

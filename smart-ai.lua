@@ -99,7 +99,7 @@ function setInitialTables()
 	sgs.wizard_harm_skill = 	"guicai|guidao|jilve"
 	sgs.priority_skill = 		"dimeng|haoshi|qingnang|jizhi|guzheng|qixi|jieyin|guose|duanliang|jujian|fanjian|neofanjian|lijian|" ..
 						"manjuan|tuxi|qiaobian|yongsi|zhiheng|luoshen|rende|mingce|wansha|gongxin|jilve|anxu|" ..
-						"qice|yinling|qingcheng|houyuan"
+						"qice|yinling|qingcheng|houyuan|zhaoxin"
 	sgs.save_skill = 		"jijiu|buyi|nosjiefan|chunlao"
 	sgs.exclusive_skill = 		"huilei|duanchang|wuhun|buqu|jincui"
 	sgs.cardneed_skill =		"paoxiao|tianyi|xianzhen|shuangxiong|jizhi|guose|duanliang|qixi|qingnang|yinling|luoyi|guhuo|kanpo|" ..

@@ -522,8 +522,8 @@ end
 
 sgs.ai_playerchosen_intention.fangquan = - 100
 
-local tiaoxin_skill={}
-tiaoxin_skill.name="tiaoxin"
+local tiaoxin_skill = {}
+tiaoxin_skill.name = "tiaoxin"
 table.insert(sgs.ai_skills, tiaoxin_skill)
 tiaoxin_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("TiaoxinCard") then return end
@@ -536,7 +536,7 @@ sgs.ai_skill_use_func.TiaoxinCard = function(card,use,self)
 	for _, enemy in ipairs(self.enemies) do
 		if enemy:distanceTo(self.player) <= enemy:getAttackRange() and
 			((getCardsNum("Slash", enemy) < 1 and self.player:getHp() > 1) or getCardsNum("Slash", enemy) == 0 or self:getCardsNum("Jink") > 0) and
-			not enemy:isNude() then
+			not enemy:isNude() and not self:doNotDiscard(enemy) then
 			table.insert(targets, enemy)
 		end
 	end

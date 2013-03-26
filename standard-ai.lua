@@ -2203,7 +2203,7 @@ sgs.ai_skill_use_func.LijianCard = function(card,use,self)
 				table.insert(males, others[1])
 				
 			elseif xunyu then
-				if getCardsNum("Slash", males) < 1 then
+				if getCardsNum("Slash", males[1]) < 1 then
 					table.insert(males, xunyu)
 				else
 					local drawcards = 0

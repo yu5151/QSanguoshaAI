@@ -840,7 +840,7 @@ sgs.ai_skill_invoke.jijiang = function(self, data)
 	if sgs.jijiangsource then return false end
 
 	local current = self.room:getCurrent()
-	if self:isFriend(current) and current:getKingdom() == "shu" and self:getOverflow(current) >2 and not self:isEquip("Crossbow", current) then
+	if self:isFriend(current) and current:getKingdom() == "shu" and self:getOverflow(current) > 2 and not self:isEquip("Crossbow", current) then
 		return true
 	end
 
@@ -851,7 +851,7 @@ sgs.ai_skill_invoke.jijiang = function(self, data)
 		end
 	end
 
-	local shu_num=0
+	local shu_num = 0
 	local others = self.room:getOtherPlayers(self.player)
 	for _, other in sgs.qlist(others) do
 		if other:getKingdom() == "shu" and other:isAlive() then shu_num = shu_num + 1 end
@@ -888,11 +888,11 @@ sgs.ai_skill_use_func.JijiangCard = function(card,use,self)
 		if (self.player:canSlash(enemy, nil, not no_distance) or
 			(use.isDummy and self.player:distanceTo(enemy) <= (self.predictedRange or self.player:getAttackRange())))
 			and self:objectiveLevel(enemy) > 3 and self:slashIsEffective(card, enemy) and sgs.isGoodTarget(enemy,self.enemies, self) then
-			use.card=card
+			use.card = card
 			if use.to then
 				use.to:append(enemy)
 			end
-			target_count = target_count+1			
+			target_count = target_count + 1			
 			if target_count == 1 then 
 				local flag = string.format("jijiang_%s_%s", self.player:objectName(), enemy:objectName())
 				self.room:setPlayerFlag(self.player, flag)
@@ -902,9 +902,7 @@ sgs.ai_skill_use_func.JijiangCard = function(card,use,self)
 	end	
 end
 
-
-
-sgs.ai_event_callback[sgs.TargetConfirmed].jijiang=function(self, player, data)
+sgs.ai_event_callback[sgs.TargetConfirmed].jijiang = function(self, player, data)
 	local use = data:toCardUse()
 	local to = sgs.QList2Table(use.to)
 
@@ -972,7 +970,7 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 
 	local slashes = self:getCards("Slash")
 	for _, slash in ipairs(slashes) do
-		if not self:slashProhibit(slash,target) and self:slashIsEffective(slash, target) then
+		if not self:slashProhibit(slash, target, sgs.jijiangsource) and self:slashIsEffective(slash, target, nil, sgs.jijiangsource) then
 			return slash:toString()
 		end
 	end	

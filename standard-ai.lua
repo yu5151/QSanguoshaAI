@@ -36,7 +36,7 @@ sgs.ai_choicemade_filter.skillInvoke.hujia = function(player, promptlist)
 	end
 end
 
-function sgs.ai_slash_prohibit.hujia(self, to)
+function sgs.ai_slash_prohibit.hujia(self, to, card, from)
 	if self:isFriend(to) then return false end
 	local guojia = self.room:findPlayerBySkillName("tiandu")
 	if guojia and guojia:getKingdom() == "wei" and self:isFriend(to, guojia) then return sgs.ai_slash_prohibit.tiandu(self, guojia) end
@@ -258,11 +258,11 @@ sgs.ai_skill_discard.ganglie = function(self, discard_num, min_num, optional, in
 	end
 end
 
-function sgs.ai_slash_prohibit.ganglie(self, to)
-	if self.player:hasSkill("jueqing") then return false end
-	if self.player:hasSkill("nosqianxi") and self.player:distanceTo(self.player) == 1 then return false end
-	if self.player:hasFlag("nosjiefanUsed") then return false end
-	return self.player:getHandcardNum() + self.player:getHp() < 4
+function sgs.ai_slash_prohibit.ganglie(self, to, card, from)
+	if from:hasSkill("jueqing") then return false end
+	if from:hasSkill("nosqianxi") and from:distanceTo(to) == 1 then return false end
+	if from:hasFlag("nosjiefanUsed") then return false end
+	return from:getHandcardNum() + from:getHp() < 4
 end
 
 sgs.ai_chaofeng.xiahoudun = -3
@@ -840,7 +840,7 @@ sgs.ai_skill_invoke.jijiang = function(self, data)
 	if sgs.jijiangsource then return false end
 
 	local current = self.room:getCurrent()
-	if self:isFriend(current) and current:getKingdom() == "shu" and self:getOverflow(current) >2 and not self:isEquip("Crossbow", current) then
+	if self:isFriend(current) and current:getKingdom() == "shu" and self:getOverflow(current) > 2 and not self:isEquip("Crossbow", current) then
 		return true
 	end
 
@@ -851,7 +851,7 @@ sgs.ai_skill_invoke.jijiang = function(self, data)
 		end
 	end
 
-	local shu_num=0
+	local shu_num = 0
 	local others = self.room:getOtherPlayers(self.player)
 	for _, other in sgs.qlist(others) do
 		if other:getKingdom() == "shu" and other:isAlive() then shu_num = shu_num + 1 end
@@ -888,11 +888,11 @@ sgs.ai_skill_use_func.JijiangCard = function(card,use,self)
 		if (self.player:canSlash(enemy, nil, not no_distance) or
 			(use.isDummy and self.player:distanceTo(enemy) <= (self.predictedRange or self.player:getAttackRange())))
 			and self:objectiveLevel(enemy) > 3 and self:slashIsEffective(card, enemy) and sgs.isGoodTarget(enemy,self.enemies, self) then
-			use.card=card
+			use.card = card
 			if use.to then
 				use.to:append(enemy)
 			end
-			target_count = target_count+1			
+			target_count = target_count + 1			
 			if target_count == 1 then 
 				local flag = string.format("jijiang_%s_%s", self.player:objectName(), enemy:objectName())
 				self.room:setPlayerFlag(self.player, flag)
@@ -902,9 +902,7 @@ sgs.ai_skill_use_func.JijiangCard = function(card,use,self)
 	end	
 end
 
-
-
-sgs.ai_event_callback[sgs.TargetConfirmed].jijiang=function(self, player, data)
+sgs.ai_event_callback[sgs.TargetConfirmed].jijiang = function(self, player, data)
 	local use = data:toCardUse()
 	local to = sgs.QList2Table(use.to)
 
@@ -972,7 +970,7 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 
 	local slashes = self:getCards("Slash")
 	for _, slash in ipairs(slashes) do
-		if not self:slashProhibit(slash,target) and self:slashIsEffective(slash, target) then
+		if not self:slashProhibit(slash, target, sgs.jijiangsource) and self:slashIsEffective(slash, target, nil, sgs.jijiangsource) then
 			return slash:toString()
 		end
 	end	
@@ -1704,15 +1702,15 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 	return "."
 end
 
-sgs.ai_card_intention.LiuliCard = function(self,card,from,to)
-	sgs.ai_liuli_effect=true
+sgs.ai_card_intention.LiuliCard = function(self, card, from, to)
+	sgs.ai_liuli_effect = true
 end
 
-function sgs.ai_slash_prohibit.liuli(self, to, card)
+function sgs.ai_slash_prohibit.liuli(self, to, card, from)
 	if self:isFriend(to) then return false end
 	if to:isNude() then return false end
 	for _, friend in ipairs(self.friends_noself) do
-		if to:canSlash(friend, card) and self:slashIsEffective(card, friend) then return true end
+		if to:canSlash(friend, card) and self:slashIsEffective(card, friend, nil, from) then return true end
 	end
 end
 
@@ -1845,7 +1843,7 @@ end
 
 sgs.ai_use_priority.JieyinCard = 2.8	-- 下调至决斗之后
 
-sgs.ai_card_intention.JieyinCard = function(self,card, from, tos)
+sgs.ai_card_intention.JieyinCard = function(self, card, from, tos)
 	if not from:hasFlag("jieyin_isenemy_"..tos[1]:objectName()) then 
 		sgs.updateIntention(from, tos[1], -80)
 	end

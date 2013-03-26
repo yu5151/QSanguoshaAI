@@ -774,10 +774,10 @@ end
 	技能：毒士
 	描述：杀死你的角色获得崩坏技能直到游戏结束 
 ]]--
-function sgs.ai_slash_prohibit.dushi(self, to)	
-	if self.player:hasSkill("jueqing") then return false end
-	if self.player:hasFlag("nosjiefanUsed") then return false end
-	return self.player:isLord() and #self.enemies > 1
+function sgs.ai_slash_prohibit.dushi(self, to, card, from)	
+	if from:hasSkill("jueqing") then return false end
+	if from:hasFlag("nosjiefanUsed") then return false end
+	return from:isLord() and #self.enemies > 1
 end
 --[[
 	技能：争功

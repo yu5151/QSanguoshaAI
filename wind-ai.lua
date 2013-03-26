@@ -243,11 +243,11 @@ end
 
 sgs.ai_card_intention.LeijiCard = 80
 
-function sgs.ai_slash_prohibit.leiji(self, to, card)
+function sgs.ai_slash_prohibit.leiji(self, to, card, from)
 	if self:isFriend(to) then return false end
 	if to:hasFlag("qianxi_target") then return false end
 	local hcard = to:getHandcardNum()
-	if self.player:hasSkill("liegong") and (hcard >= self.player:getHp() or hcard <= self.player:getAttackRange()) then return false end
+	if from:hasSkill("liegong") and from:getPhase() == sgs.Player_Play and (hcard >= from:getHp() or hcard <= from:getAttackRange()) then return false end
 	if self.role == "rebel" and to:isLord() then
 		local other_rebel
 		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
@@ -261,21 +261,21 @@ function sgs.ai_slash_prohibit.leiji(self, to, card)
 		end
 	end
 
-	if getKnownCard(to,"Jink",true) >= 1 or (self:hasSuit("spade", true, to) and hcard >= 2) or hcard >= 4 then return true end
-	if self:isEquip("EightDiagram", to) and not IgnoreArmor(self.player, to) then return true end
+	if getKnownCard(to, "Jink", true) >= 1 or (self:hasSuit("spade", true, to) and hcard >= 2) or hcard >= 4 then return true end
+	if self:isEquip("EightDiagram", to) and not IgnoreArmor(from, to) then return true end
 end
 
 
-local huangtianv_skill={}
-huangtianv_skill.name="huangtianv"
-table.insert(sgs.ai_skills,huangtianv_skill)
+local huangtianv_skill = {}
+huangtianv_skill.name = "huangtianv"
+table.insert(sgs.ai_skills, huangtianv_skill)
 
-huangtianv_skill.getTurnUseCard=function(self)
+huangtianv_skill.getTurnUseCard = function(self)
 	if self.player:hasFlag("ForbidHuangtian") then return nil end
 	if self.player:getKingdom() ~= "qun" then return nil end
 
 	local cards = self.player:getCards("h")	
-	cards=sgs.QList2Table(cards)
+	cards = sgs.QList2Table(cards)
 	
 	local card
 	
@@ -488,10 +488,10 @@ sgs.ai_card_intention.TianxiangCard = function(self,card, from, tos)
 end
 
 
-function sgs.ai_slash_prohibit.tianxiang(self, to)
-	if self.player:hasSkill("jueqing") then return false end
-	if self.player:hasSkill("nosqianxi") and self.player:distanceTo(self.player) == 1 then return false end
-	if self.player:hasFlag("nosjiefanUsed") then return false end
+function sgs.ai_slash_prohibit.tianxiang(self, to, card, from)
+	if from:hasSkill("jueqing") then return false end
+	if from:hasSkill("nosqianxi") and from:distanceTo(to) == 1 then return false end
+	if from:hasFlag("nosjiefanUsed") then return false end
 	if self:isFriend(to) then return false end
 	return self:cantbeHurt(to)
 end

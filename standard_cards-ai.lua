@@ -241,22 +241,22 @@ function SmartAI:slashProhibit(card, enemy, from)
 	end
 
 	if self:isFriend(enemy) then
-		if card:isKindOf("FireSlash") or self.player:hasWeapon("Fan") or self.player:hasSkill("zonghuo") then
+		if card:isKindOf("FireSlash") or from:hasWeapon("Fan") or from:hasSkill("zonghuo") then
 			if self:isEquip("Vine", enemy) and not (enemy:isChained() and self:isGoodChainTarget(enemy)) then return true end
 		end
-		if enemy:isChained() and (card:isKindOf("NatureSlash") or self.player:hasSkill("zonghuo")) and (not self:isGoodChainTarget(enemy) and not self.player:hasSkill("jueqing")) and
-			self:slashIsEffective(card,enemy) then return true end
-		if getCardsNum("Jink",enemy) == 0 and enemy:getHp() < 2 and self:slashIsEffective(card,enemy) then return true end
-		if enemy:isLord() and self:isWeak(enemy) and self:slashIsEffective(card,enemy) then return true end
+		if enemy:isChained() and (card:isKindOf("NatureSlash") or from:hasSkill("zonghuo")) and (not self:isGoodChainTarget(enemy) and not from:hasSkill("jueqing")) and
+			self:slashIsEffective(card, enemy, nil, from) then return true end
+		if getCardsNum("Jink",enemy) == 0 and enemy:getHp() < 2 and self:slashIsEffective(card, enemy, nil, from) then return true end
+		if enemy:isLord() and self:isWeak(enemy) and self:slashIsEffective(card, enemy, nil, from) then return true end
 		if self:isEquip("GudingBlade") and enemy:isKongcheng() then return true end
 	else
-		if enemy:isChained() and not self:isGoodChainTarget(enemy) and not self.player:hasSkill("jueqing") and self:slashIsEffective(card,enemy) 
-			and (card:isKindOf("NatureSlash") or self.player:hasSkill("zonghuo")) then
+		if enemy:isChained() and not self:isGoodChainTarget(enemy) and not from:hasSkill("jueqing") and self:slashIsEffective(card, enemy, nil, from) 
+			and (card:isKindOf("NatureSlash") or from:hasSkill("zonghuo")) then
 			return true
 		end
 	end
 
-	return self.room:isProhibited(self.player, enemy, card) or not self:slashIsEffective(card, enemy) 
+	return self.room:isProhibited(from, enemy, card) or not self:slashIsEffective(card, enemy, nil, from) 
 end
 
 function SmartAI:canLiuli(other, another)
@@ -299,14 +299,14 @@ function SmartAI:slashIsEffective(slash, to, ignore_armor, from)
 	end
 
 	local nature = natures[slash:getClassName()]
-	if self.player:hasSkill("zonghuo") then nature = sgs.DamageStruct_Fire end
-	if not self:damageIsEffective(to, nature) then return false end
+	if from:hasSkill("zonghuo") then nature = sgs.DamageStruct_Fire end
+	if not self:damageIsEffective(to, nature, from) then return false end
 
 	if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and self:getCardId("FireSlash") and slash:isKindOf("ThunderSlash") and self:objectiveLevel(to) >= 3 then
 		 return false
 	end
 
-	if IgnoreArmor(self.player, to) or ignore_armor then
+	if IgnoreArmor(from, to) or ignore_armor then
 		return true
 	end
 
@@ -325,7 +325,7 @@ function SmartAI:slashIsEffective(slash, to, ignore_armor, from)
 					can_convert = true
 				end
 			end
-			return nature ~= sgs.DamageStruct_Normal or (can_convert and (self.player:hasWeapon("Fan") or (self.player:hasSkill("lihuo") and not self:isWeak())))
+			return nature ~= sgs.DamageStruct_Normal or (can_convert and (from:hasWeapon("Fan") or (from:hasSkill("lihuo") and not self:isWeak())))
 		end
 	end
 

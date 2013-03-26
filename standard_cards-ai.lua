@@ -91,7 +91,8 @@ function SmartAI:canAttack(enemy, attacker, nature)
 	return true
 end
 
-function sgs.getDefenseSlash(player)	
+function sgs.getDefenseSlash(player)
+	if not player then return 0 end
 	local attacker = global_room:getCurrent()
 	local defense = getCardsNum("Jink",player)
 
@@ -2181,7 +2182,7 @@ function SmartAI:useCardIndulgence(card, use)
 
 	if #self.enemies == 0 then
 		if sgs.turncount == 0 and self.role == "lord" and not sgs.isRolePredictable() 
-			and sgs.role_evaluation[self.player:getNextAlive():objectName()]["loyalist"] == 30 
+			and sgs.role_evaluation[self.player:getNextAlive():objectName()]["loyalist"] == 0 
 			and not (self.player:hasLordSkill("shichou") and self.player:getNextAlive():getKingdom() == "shu") then
 			enemies = self:exclude({self.player:getNextAlive()}, card)
 		end

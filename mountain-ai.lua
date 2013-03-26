@@ -401,9 +401,9 @@ sgs.ai_skill_cardask["@xiangle-discard"] = function(self, data)
 	end
 end
 
-function sgs.ai_slash_prohibit.xiangle(self, to)
+function sgs.ai_slash_prohibit.xiangle(self, to, card, from)
 	if self:isFriend(to) then return false end
-	return self:getCardsNum("Slash") + self:getCardsNum("Analpetic") + math.max(self:getCardsNum("Jink")-1, 0) < 2
+	return self:getCardsNum("Slash", from) + self:getCardsNum("Analpetic", from) + math.max(self:getCardsNum("Jink", from)-1, 0) < 2
 end
 
 sgs.ai_skill_invoke.fangquan = function(self, data)
@@ -926,14 +926,14 @@ function sgs.ai_cardneed.beige(to, card)
 	return to:getCards("h"):length() <= 2
 end
 
-function sgs.ai_slash_prohibit.duanchang(self, to)
-	if self.player:hasSkill("jueqing") or (self.player:hasSkill("nosqianxi") and self.player:distanceTo(to) == 1) then return false end
-	if self.player:hasFlag("nosjiefanUsed") then return false end
+function sgs.ai_slash_prohibit.duanchang(self, to, card, from)
+	if from:hasSkill("jueqing") or (from:hasSkill("nosqianxi") and from:distanceTo(to) == 1) then return false end
+	if from:hasFlag("nosjiefanUsed") then return false end
 	if to:getHp() > 1 or #self.enemies == 1 then return false end
 
-	if self.player:getMaxHp() == 3 and self.player:getArmor() and self.player:getDefensiveHorse() then return false end
-	if self.player:getMaxHp() <= 3 or (self.player:isLord() and self:isWeak()) then return true end
-	if self.player:getMaxHp() <= 3 or (self.room:getLord() and self.role == "renegade") then return true end
+	if from:getMaxHp() == 3 and from:getArmor() and from:getDefensiveHorse() then return false end
+	if from:getMaxHp() <= 3 or (from:isLord() and self:isWeak()) then return true end
+	if from:getMaxHp() <= 3 or (self.room:getLord() and self.role == "renegade") then return true end
 	return false
 end
 

@@ -14,13 +14,13 @@ sgs.ai_slash_prohibit.chongzhen = function(self, to, card, from)
 		or (from:hasSkill("liegong") and (to:getHandcardNum() <= from:getAttackRange() or to:getHandcardNum() >= from:getHp())) then
 		return false
 	end
-	if to:hasSkill("longdan") and to:getHandcardNum() >= 3 and self.player:getHandcardNum() > 1 then return true end	
+	if to:hasSkill("longdan") and to:getHandcardNum() >= 3 and from:getHandcardNum() > 1 then return true end	
 	return false	
 end
 
 local lihun_skill = {}
 lihun_skill.name = "lihun"
-table.insert(sgs.ai_skills,lihun_skill)
+table.insert(sgs.ai_skills, lihun_skill)
 lihun_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("LihunCard") or self.player:isNude() then return end
 	local card_id
@@ -875,10 +875,10 @@ sgs.ai_skill_invoke.fenyong = function(self, data)
 	return true
 end
 
-function sgs.ai_slash_prohibit.fenyong(self, to)
-	if self.player:hasSkill("jueqing") then return false end
-	if self.player:hasFlag("nosjiefanUsed") then return false end
-	if self.player:hasSkill("nosqianxi") and self.player:distanceTo(self.player) == 1 then return false end
+function sgs.ai_slash_prohibit.fenyong(self, to, card, from)
+	if from:hasSkill("jueqing") then return false end
+	if from:hasFlag("nosjiefanUsed") then return false end
+	if from:hasSkill("nosqianxi") and from:distanceTo(to) == 1 then return false end
 	return to:getMark("@fenyong") > 0 and to:hasSkill("fenyong")
 end
 

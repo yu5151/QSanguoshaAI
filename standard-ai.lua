@@ -36,7 +36,7 @@ sgs.ai_choicemade_filter.skillInvoke.hujia = function(player, promptlist)
 	end
 end
 
-function sgs.ai_slash_prohibit.hujia(self, to)
+function sgs.ai_slash_prohibit.hujia(self, to, card, from)
 	if self:isFriend(to) then return false end
 	local guojia = self.room:findPlayerBySkillName("tiandu")
 	if guojia and guojia:getKingdom() == "wei" and self:isFriend(to, guojia) then return sgs.ai_slash_prohibit.tiandu(self, guojia) end
@@ -258,11 +258,11 @@ sgs.ai_skill_discard.ganglie = function(self, discard_num, min_num, optional, in
 	end
 end
 
-function sgs.ai_slash_prohibit.ganglie(self, to)
-	if self.player:hasSkill("jueqing") then return false end
-	if self.player:hasSkill("nosqianxi") and self.player:distanceTo(self.player) == 1 then return false end
-	if self.player:hasFlag("nosjiefanUsed") then return false end
-	return self.player:getHandcardNum() + self.player:getHp() < 4
+function sgs.ai_slash_prohibit.ganglie(self, to, card, from)
+	if from:hasSkill("jueqing") then return false end
+	if from:hasSkill("nosqianxi") and from:distanceTo(to) == 1 then return false end
+	if from:hasFlag("nosjiefanUsed") then return false end
+	return from:getHandcardNum() + from:getHp() < 4
 end
 
 sgs.ai_chaofeng.xiahoudun = -3
@@ -1702,15 +1702,15 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 	return "."
 end
 
-sgs.ai_card_intention.LiuliCard = function(self,card,from,to)
-	sgs.ai_liuli_effect=true
+sgs.ai_card_intention.LiuliCard = function(self, card, from, to)
+	sgs.ai_liuli_effect = true
 end
 
-function sgs.ai_slash_prohibit.liuli(self, to, card)
+function sgs.ai_slash_prohibit.liuli(self, to, card, from)
 	if self:isFriend(to) then return false end
 	if to:isNude() then return false end
 	for _, friend in ipairs(self.friends_noself) do
-		if to:canSlash(friend, card) and self:slashIsEffective(card, friend) then return true end
+		if to:canSlash(friend, card) and self:slashIsEffective(card, friend, nil, from) then return true end
 	end
 end
 
@@ -1843,7 +1843,7 @@ end
 
 sgs.ai_use_priority.JieyinCard = 2.8	-- 下调至决斗之后
 
-sgs.ai_card_intention.JieyinCard = function(self,card, from, tos)
+sgs.ai_card_intention.JieyinCard = function(self, card, from, tos)
 	if not from:hasFlag("jieyin_isenemy_"..tos[1]:objectName()) then 
 		sgs.updateIntention(from, tos[1], -80)
 	end

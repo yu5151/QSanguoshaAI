@@ -52,13 +52,13 @@ sgs.ai_skill_playerchosen.wuhun = function(self, targets)
 	return targetlist[1]
 end
 
-function sgs.ai_slash_prohibit.wuhun(self, to)
-	if self.player:hasSkill("jueqing") then return false end
-	if self.player:hasFlag("nosjiefanUsed") then return false end
+function sgs.ai_slash_prohibit.wuhun(self, to, card, from)
+	if from:hasSkill("jueqing") then return false end
+	if from:hasFlag("nosjiefanUsed") then return false end
 	local maxfriendmark = 0
 	local maxenemymark = 0
 	
-	local dmg = self:hasHeavySlashDamage(self.player, nil, to, true)
+	local dmg = self:hasHeavySlashDamage(from, nil, to, true)
 	local damageNum = dmg > 1 and dmg or 1
 
 	for _, friend in ipairs(self.friends) do
@@ -69,9 +69,9 @@ function sgs.ai_slash_prohibit.wuhun(self, to)
 		local enemymark = enemy:getMark("@nightmare")
 		if enemymark > maxenemymark and enemy:objectName() ~= to:objectName() then maxenemymark = enemymark end
 	end
-	if self:isEnemy(to) and not (to:isLord() and self.player:getRole() == "rebel") then
+	if self:isEnemy(to) and not (to:isLord() and from:getRole() == "rebel") then
 		if (maxfriendmark + damageNum >= maxenemymark) and not (#self.enemies==1 and #self.friends + #self.enemies == self.room:alivePlayerCount()) then 
-			if not (self.player:getMark("@nightmare") == maxfriendmark and  self.role == "loyalist") then
+			if not (from:getMark("@nightmare") == maxfriendmark and  self.role == "loyalist") then
 				return true
 			end
 		end

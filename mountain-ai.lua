@@ -327,7 +327,7 @@ sgs.ai_slash_prohibit.tuntian = function(self, to, card, from)
 	if self:isFriend(to) then return false end
 	if not to:hasSkill("zaoxian") then return false end
 	if from:hasSkill("tieji")
-		or (from:hasSkill("liegong") and (to:getHandcardNum() <= from:getAttackRange() or to:getHandcardNum() >= from:getHp())) then
+		or (from:hasSkill("liegong") and from:getPhase() == sgs.Player_Play and (to:getHandcardNum() <= from:getAttackRange() or to:getHandcardNum() >= from:getHp())) then
 		return false
 	end
 	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_NoSuit, 0)

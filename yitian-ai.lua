@@ -630,7 +630,8 @@ sgs.ai_skill_invoke.gongmou = function(self)
 	
 	self:sort(self.enemies, "defense")
 	for _, enemy in ipairs(self.enemies) do
-		if not enemy:hasSkill("manjuan") and not (self:needKongcheng(enemy) and self.player:getHandcardNum() > enemy:getHandcardNum()) then
+		if not self:willSkipDrawPhase(enemy) and not (self:needKongcheng(enemy) and self.player:getHandcardNum() > enemy:getHandcardNum())
+		  and not self:hasSkills("manjuan|tuxi|qiaobian|shelie|xuanhuo|nosfuhun", enemy) and not (enemy:hasSkill("zaiqi") and enemy:getLostHp() > 1) then
 			sgs.gongmou_target = enemy
 			return true
 		end

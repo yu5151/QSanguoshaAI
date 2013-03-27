@@ -826,7 +826,7 @@ sgs.ai_card_intention.general=function(from,to,level)
 			-- 进入主忠内, 但是没人跳过内，这个时候忠臣之间的相互攻击，不更新内奸值				
 		elseif (sgs.ai_role[from:objectName()] == "loyalist" and level > 0) or (sgs.ai_role[from:objectName()] == "rebel" and level < 0) then 
 			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level) 
-		elseif sgs.ai_role[from:objectName()] ~= "rebel" and level > 0 and to:isLord() then
+		elseif sgs.ai_role[from:objectName()] ~= "rebel" and sgs.ai_role[from:objectName()] ~= "neutral" and level > 0 and to:isLord() then
 			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level)
 		end
 	end

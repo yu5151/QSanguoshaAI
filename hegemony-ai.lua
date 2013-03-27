@@ -442,7 +442,10 @@ xiongyi_skill.name = "xiongyi"
 table.insert(sgs.ai_skills, xiongyi_skill)
 xiongyi_skill.getTurnUseCard = function(self)
 	if self.player:getMark("@arise") < 1 then return end
-	if #self.friends <= #self.enemies and self.player:getLostHp() > 1 then return sgs.Card_Parse("@XiongyiCard=.") end
+	if #self.friends <= #self.enemies 
+	  and ((sgs.turncount > 2 and self.player:getLostHp() > 0) or (sgs.turncount > 1 and self.player:getLostHp() > 1 and #self.friends > 1)) then
+		return sgs.Card_Parse("@XiongyiCard=.") 
+	end
 end
 
 sgs.ai_skill_use_func.XiongyiCard = function(card, use, self)
@@ -453,6 +456,7 @@ sgs.ai_skill_use_func.XiongyiCard = function(card, use, self)
 end
 
 sgs.ai_card_intention.XiongyiCard = -80
+sgs.ai_use_priority.XiongyiCard = 9.31
 
 sgs.ai_skill_invoke.kuangfu = function(self, data)
 	local damage = data:toDamage()

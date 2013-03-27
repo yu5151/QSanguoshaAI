@@ -571,7 +571,7 @@ sgs.ai_skill_invoke.zhiyu = function(self, data)
 		if self:isFriend(target) and not target:isKongcheng() then
 			return false
 		elseif self:isEnemy(target) then
-			if self:doNotDiscard(target, "h") then return false end
+			if self:doNotDiscard(target, "h") and not target:isKongcheng() then return false end
 			return true
 		end
 	end

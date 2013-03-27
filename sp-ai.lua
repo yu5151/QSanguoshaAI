@@ -435,7 +435,7 @@ sgs.ai_card_intention.XuejiCard = function(self, card, from, tos)
 end
 
 sgs.ai_use_value.XuejiCard = 3
-sgs.ai_use_priority.XuejiCard = 6.2
+sgs.ai_use_priority.XuejiCard = 2.35
 
 sgs.ai_skill_use["@@bifa"] = function(self, prompt)
 	local cards = self.player:getHandcards()

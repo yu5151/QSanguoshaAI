@@ -1527,7 +1527,7 @@ function SmartAI:getDangerousCard(who)
 	local armor = who:getArmor()
 	if weapon and weapon:isKindOf("Crossbow") then 
 		for _, friend in ipairs(self.friends) do
-			if who:distanceTo(friend) <= 1 then
+			if who:distanceTo(friend) <= 1 and getCardsNum("Slash", who) > 0 then
 				return weapon:getEffectiveId()
 			end
 		end

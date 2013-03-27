@@ -742,8 +742,8 @@ rende_skill.getTurnUseCard=function(self)
 	local mode = string.lower(global_room:getMode())
 	if self.player:usedTimes("RendeCard") > 1 and mode:find("04_1v3") then return end
 	if (self:isEquip("Crossbow") or self:getCardsNum("Crossbow") > 0) and self:getCardsNum("Slash") > 0 then
-		self:sort(self.enmies, "defense")
-		for _, enemy in ipairs(self.enmies) do
+		self:sort(self.enemies, "defense")
+		for _, enemy in ipairs(self.enemies) do
 			if self.player:distanceTo(enemy) == 1 and (enemy:getHp() == 1 and getCardsNum("Peach", enemy) == 0 or
 					not self:hasSkill("fenyong|zhichi|fankui|neoganglie|ganglie|enyuan|nosenyuan|langgu|guixin", enemy)) then
 				local slashs = self:getCards("Slash")

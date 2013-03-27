@@ -120,7 +120,7 @@ function setInitialTables()
 			sgs.ai_role[aplayer:objectName()] = "loyalist"
 		else
 			sgs.role_evaluation[aplayer:objectName()] = {rebel = 0, loyalist = 0, renegade = 0}
-			sgs.ai_role[aplayer:objectName()] = "unknown"
+			sgs.ai_role[aplayer:objectName()] = "neutral"
 		end
 	end
 	
@@ -759,16 +759,16 @@ function sgs.modifiedRoleTrends(role)
 end
 
 function sgs.evaluateRoleTrends(player)
-	local ret = sgs.evaluatePlayerRole(player)
-	return ret == "unknown" and "neutral" or ret
+	return sgs.evaluatePlayerRole(player)
 end
 
 function sgs.compareRoleEvaluation(player, first, second)
 	if player:isLord() then return "loyalist" end
+	if sgs.isRolePredictable() then return player:getRole() end
 	if (first == "renegade" or second == "renegade") and sgs.ai_role[player:objectName()] == "renegade" then return "renegade" end	
 	if sgs.ai_role[player:objectName()] == first then return first end
 	if sgs.ai_role[player:objectName()] == second then return second end	
-	return "unknown"	
+	return "neutral"	
 end
 
 function sgs.isRolePredictable()
@@ -1065,7 +1065,7 @@ function SmartAI:objectiveLevel(player)
 		if player:isLord() then return -2 end
 
 		if self.role == "loyalist" and loyal_num == 1 and renegade_num == 0 then return 5 end
-		if sgs.evaluatePlayerRole(player) == "unknown" then return 0 end
+		if sgs.evaluatePlayerRole(player) == "neutral" then return 0 end
 	  
 		if rebel_num == 0 then
 			if #players == 2 and self.role == "loyalist" then return 5 end
@@ -1104,7 +1104,7 @@ function SmartAI:objectiveLevel(player)
 	elseif self.role == "rebel" then
 	
 		if loyal_num ==0 and renegade_num ==0 then return player:isLord() and 5 or -2 end
-		if sgs.evaluatePlayerRole(player) == "unknown" then return 0 end
+		if sgs.evaluatePlayerRole(player) == "neutral" then return 0 end
 
 		if process == "loyalist" and renegade_num > 0 and sgs.evaluatePlayerRole(player) == "renegade" then return -2 end
 	  
@@ -1264,6 +1264,7 @@ function SmartAI:updatePlayers(clear_flags)
 	end	
 	table.insert(self.friends,self.player)
 	
+	if sgs.isRolePredictable() then return end
 	self:updateAlivePlayerRoles()
 
 	local players = sgs.QList2Table(self.room:getAlivePlayers())
@@ -1285,7 +1286,7 @@ function SmartAI:updatePlayers(clear_flags)
 			else
 				if sgs.role_evaluation[p:objectName()]["loyalist"] > 0  then sgs.ai_role[p:objectName()] = "loyalist" end
 				if sgs.role_evaluation[p:objectName()]["loyalist"] < 0  then sgs.ai_role[p:objectName()] = "rebel" end
-				if sgs.role_evaluation[p:objectName()]["loyalist"] == 0 then sgs.ai_role[p:objectName()] = "unknown" end
+				if sgs.role_evaluation[p:objectName()]["loyalist"] == 0 then sgs.ai_role[p:objectName()] = "neutral" end
 			end
 		end
 	end

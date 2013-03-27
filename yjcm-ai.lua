@@ -169,8 +169,9 @@ function sgs.ai_slash_prohibit.enyuan(self, to, card, from)
 	return true
 end
 
-sgs.ai_need_damaged.enyuan = function (self, attacker)
-	if self:isEnemy(attacker) and self:isWeak(attacker) and attacker:getHandcardNum() < 3 
+sgs.ai_need_damaged.enyuan = function (self, attacker, player)
+	if not player:hasSkill("enyuan") then return false end
+	if self:isEnemy(attacker, player) and self:isWeak(attacker) and attacker:getHandcardNum() < 3 
 	  and not self:hasSkills("lianying|shangshi|nosshangshi", attacker)
 	  and not (attacker:hasSkill("kongcheng") and attacker:getHandcardNum() > 0) then
 		return true

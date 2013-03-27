@@ -722,25 +722,27 @@ sgs.ai_skill_use_func.LexueCard = function(card, use, self)
 						if use.card then use.card = lexue return end
 					end
 				end
-			end						
+			end
 		end
 	else
-		local target
-		self:sort(self.enemies, "hp")
-		enemy = self.enemies[1]
-		if self:isWeak(enemy) and not enemy:isKongcheng() then
-			target = enemy
-		else
-			self:sort(self.friends_noself, "handcard")
-			target = self.friends_noself[#self.friends_noself]
-			if target and target:isKongcheng() then target = nil end
+		if #self.enemies > 0 then
+			local target
+			self:sort(self.enemies, "hp")
+			enemy = self.enemies[1]
+			if self:isWeak(enemy) and not enemy:isKongcheng() then
+				target = enemy
+			else
+				self:sort(self.friends_noself, "handcard")
+				target = self.friends_noself[#self.friends_noself]
+				if target and target:isKongcheng() then target = nil end
+			end
+			if not target then
+				self:sort(self.enemies,"handcard")
+				if self.enemies[1] and not self.enemies[1]:isKongcheng() then target = self.enemies[1] else return end
+			end
+			use.card = card
+			if use.to then use.to:append(target) end
 		end
-		if not target then
-			self:sort(self.enemies,"handcard")
-			if self.enemies[1] and not self.enemies[1]:isKongcheng() then target = self.enemies[1] else return end
-		end
-		use.card = card
-		if use.to then use.to:append(target) end
 	end
 end
 

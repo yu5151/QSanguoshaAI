@@ -523,26 +523,26 @@ sgs.ai_skill_playerchosen.shichou = function(self, targets)
 end
 
 
-sgs.ai_need_damaged.shichou = function (self, attacker)
-	local player=self.player
+sgs.ai_need_damaged.shichou = function (self, attacker, player)
 	if player:hasLordSkill("shichou") and player:getMark("@hate")==0 then
 		if player:getTag("ShichouTarget") then
-			local role
+			local victim_role
 			local victim = player:getTag("ShichouTarget"):toPlayer()
-			if not victim then return false end			
-			if sgs.isRolePredictable() and sgs.evaluatePlayerRole(player) == "rebel" then 
-				role="rebel" 
-			elseif sgs.compareRoleEvaluation(player, "rebel", "loyalist") == "rebel" then 
-				role="rebel"
+			if not victim then return false end
+			if sgs.isRolePredictable() and sgs.evaluatePlayerRole(victim) == "rebel" then
+				victim_role = "rebel"
+			elseif sgs.compareRoleEvaluation(victim, "rebel", "loyalist") == "rebel" then 
+				victim_role = "rebel"
 			end
 			local need_damage = false
-			if (self.player:getRole()=="loyalist" or self.player:isLord()) and role=="rebel" then need_damage =true end
-			if self.player:getRole()=="rebel" and role~="rebel" then need_damage =true end
-			if self.player:getRole()=="renegade" then need_damage =true end
+			local self_role = self.player:objectName() == attacker:objectName() and self.role or sgs.ai_role[attacker:objectName()]
+			if (self_role == "loyalist" or self.player:isLord()) and victim_role == "rebel" then need_damage = true end
+			if self_role == "rebel" and victim_role ~= "rebel" then need_damage = true end
+			if self_role == "renegade" then need_damage =true end
 
 			if victim:isAlive() and need_damage  then
 				return victim:hasSkill("wuhun") and 2 or 1
-			end			
+			end
 		end
 	end
 	return false

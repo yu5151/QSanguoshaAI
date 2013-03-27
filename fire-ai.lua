@@ -152,8 +152,8 @@ sgs.ai_skill_use["@@jieming"] = function(self, prompt)
 	end
 end
 
-sgs.ai_need_damaged.jieming = function (self, attacker)
-	return self:getJiemingChaofeng(self.player) <= -6
+sgs.ai_need_damaged.jieming = function (self, attacker, player)
+	return player:hasSkill("jieming") and self:getJiemingChaofeng(player) <= -6
 end
 
 sgs.ai_card_intention.JiemingCard =-80

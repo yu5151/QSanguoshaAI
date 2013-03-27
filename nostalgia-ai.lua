@@ -176,8 +176,8 @@ function sgs.ai_slash_prohibit.nosenyuan(self, to, card, from)
 	return self:isWeak(from)
 end
 
-sgs.ai_need_damaged.nosenyuan = function (self, attacker)	
-	if self:isEnemy(attacker) and self:isWeak(attacker) then
+sgs.ai_need_damaged.nosenyuan = function (self, attacker, player)	
+	if player:hasSkill("nosenyuan") and self:isEnemy(attacker, player) and self:isWeak(attacker) then
 		return true
 	end
 	return false

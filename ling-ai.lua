@@ -215,10 +215,11 @@ sgs.ai_skill_invoke.neoganglie = function(self, data)
 	return false
 end
 
-sgs.ai_need_damaged.neoganglie = function (self, attacker)
-	if self:getDamagedEffects(attacker,self.player) then return self:isFriend(attacker) end
+sgs.ai_need_damaged.neoganglie = function (self, attacker, player)
+	if not player:hasSkill("neoganglie") then return false end
+	if self:getDamagedEffects(attacker, player) then return self:isFriend(attacker, player) end
 
-	if self:isEnemy(attacker) and attacker:getHp() <= 2 and not attacker:hasSkill("buqu") and sgs.isGoodTarget(attacker,self.enemies, self) then
+	if self:isEnemy(attacker, player) and attacker:getHp() <= 2 and not attacker:hasSkill("buqu") and sgs.isGoodTarget(attacker, self.enemies, self) then
 		return true
 	end
 	return false

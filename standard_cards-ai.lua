@@ -1576,7 +1576,7 @@ function SmartAI:getValuableCard(who)
 		return defhorse:getEffectiveId()
 	end
 
-	if armor and self:evaluateArmor(armor,who) > 3
+	if armor and self:evaluateArmor(armor, who) > 3
 	  and not self:needToThrowArmor(who)
 	  and not self:doNotDiscard(who, "e") then
 		return armor:getEffectiveId()
@@ -1600,22 +1600,26 @@ function SmartAI:getValuableCard(who)
 		if self:hasSkills("wusheng|jijiu|xueji|nosfuhun", who) and equip:isRed() then  return equip:getEffectiveId() end
 	end
 
-	if weapon then
-		if not self:doNotDiscard(who, "e", true) then
-			for _,friend in ipairs(self.friends) do
-				if (who:distanceTo(friend) <= who:getAttackRange()) and (who:distanceTo(friend) > 1) then
-					return weapon:getEffectiveId()
-				end
-			end
-		end
+	if armor and not self:needToThrowArmor(who) and not self:doNotDiscard(who, "e") then
+		return armor:getEffectiveId()
 	end
-
-	if offhorse then
+	
+	if offhorse and who:getHandcardNum() > 1 then
 		if not self:doNotDiscard(who, "e", true) then
 		else
 			for _,friend in ipairs(self.friends) do
 				if who:distanceTo(friend) == who:getAttackRange() and who:getAttackRange() > 1 then
 					return offhorse:getEffectiveId()
+				end
+			end
+		end
+	end
+
+	if weapon and who:getHandcardNum() > 1 then
+		if not self:doNotDiscard(who, "e", true) then
+			for _,friend in ipairs(self.friends) do
+				if (who:distanceTo(friend) <= who:getAttackRange()) and (who:distanceTo(friend) > 1) then
+					return weapon:getEffectiveId()
 				end
 			end
 		end

@@ -1478,13 +1478,14 @@ sgs.ai_keep_value.Duel = 1.7
 sgs.dynamic_value.damage_card.Duel = true
 
 sgs.ai_skill_cardask["duel-slash"] = function(self, data, pattern, target)
+	if self.player:getPhase()==sgs.Player_Play then return self:getCardId("Slash") end
+
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
 	if self.player:hasFlag("will_wake") then return "." end
 	if (target:hasSkill("wuyan") or self.player:hasSkill("wuyan")) and not target:hasSkill("jueqing") then return "." end
 	if self.player:getMark("@fenyong") >0 and self.player:hasSkill("fenyong") and not target:hasSkill("jueqing") then return "." end
 	
-	if self:cantbeHurt(target) then return "." end
-	if self.player:getPhase()==sgs.Player_Play then return self:getCardId("Slash") end
+	if self:cantbeHurt(target) then return "." end	
 	
 	if self:isFriend(target) and target:hasSkill("rende") and self.player:hasSkill("jieming") then return "." end
 	if self:isEnemy(target) and not self:isWeak() and self:getDamagedEffects(self.player, target) then return "." end
@@ -1576,7 +1577,7 @@ function SmartAI:getValuableCard(who)
 		return defhorse:getEffectiveId()
 	end
 
-	if armor and self:evaluateArmor(armor,who) > 3
+	if armor and self:evaluateArmor(armor, who) > 3
 	  and not self:needToThrowArmor(who)
 	  and not self:doNotDiscard(who, "e") then
 		return armor:getEffectiveId()
@@ -1600,22 +1601,26 @@ function SmartAI:getValuableCard(who)
 		if self:hasSkills("wusheng|jijiu|xueji|nosfuhun", who) and equip:isRed() then  return equip:getEffectiveId() end
 	end
 
-	if weapon then
-		if not self:doNotDiscard(who, "e", true) then
-			for _,friend in ipairs(self.friends) do
-				if (who:distanceTo(friend) <= who:getAttackRange()) and (who:distanceTo(friend) > 1) then
-					return weapon:getEffectiveId()
-				end
-			end
-		end
+	if armor and not self:needToThrowArmor(who) and not self:doNotDiscard(who, "e") then
+		return armor:getEffectiveId()
 	end
-
-	if offhorse then
+	
+	if offhorse and who:getHandcardNum() > 1 then
 		if not self:doNotDiscard(who, "e", true) then
 		else
 			for _,friend in ipairs(self.friends) do
 				if who:distanceTo(friend) == who:getAttackRange() and who:getAttackRange() > 1 then
 					return offhorse:getEffectiveId()
+				end
+			end
+		end
+	end
+
+	if weapon and who:getHandcardNum() > 1 then
+		if not self:doNotDiscard(who, "e", true) then
+			for _,friend in ipairs(self.friends) do
+				if (who:distanceTo(friend) <= who:getAttackRange()) and (who:distanceTo(friend) > 1) then
+					return weapon:getEffectiveId()
 				end
 			end
 		end

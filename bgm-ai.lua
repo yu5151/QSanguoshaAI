@@ -11,7 +11,7 @@ end
 sgs.ai_slash_prohibit.chongzhen = function(self, to, card, from)
 	if self:isFriend(to) then return false end
 	if from:hasSkill("tieji")
-		or (from:hasSkill("liegong") and (to:getHandcardNum() <= from:getAttackRange() or to:getHandcardNum() >= from:getHp())) then
+		or (from:hasSkill("liegong") and from:getPhase() == sgs.Player_Play and (to:getHandcardNum() <= from:getAttackRange() or to:getHandcardNum() >= from:getHp())) then
 		return false
 	end
 	if to:hasSkill("longdan") and to:getHandcardNum() >= 3 and from:getHandcardNum() > 1 then return true end	
@@ -485,10 +485,11 @@ sgs.ai_skill_invoke.shichou = function(self, data)
 	if self.role=="rebel" and self.room:getLord():getKingdom()=="shu" then
 		return true
 	end
-
+	
 	if shu ==0 then return false end
+	if enemynum >0 or shu == 1 then return true end	
+
 	if first and shu > 1 then return false end
-	if enemynum >0 then return true end
 	return self:isWeak() and shu >0
 end
 

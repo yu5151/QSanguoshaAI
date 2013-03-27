@@ -79,6 +79,7 @@ sgs.ai_need_damaged =		{}
 sgs.ai_debug_func =			{}
 sgs.ai_chat_func =			{}
 sgs.ai_event_callback =		{}
+sgs.explicit_renegade =     false 
 
 
 for i=sgs.NonTrigger, sgs.NumOfEvents, 1 do
@@ -819,9 +820,13 @@ sgs.ai_card_intention.general=function(from,to,level)
 	
 	if sgs.evaluatePlayerRole(to) == "loyalist" then
 		sgs.role_evaluation[from:objectName()]["loyalist"] = sgs.role_evaluation[from:objectName()]["loyalist"] - level
-		if (sgs.ai_role[from:objectName()] == "loyalist" and level > 0) or (sgs.ai_role[from:objectName()] == "rebel" and level < 0) then 
+
+		if sgs.current_mode_players["rebel"] == 0 and sgs.current_mode_players["renegade"] > 0 
+				and sgs.current_mode_players["loyalist"] > 0 and level > 0 and sgs.explicit_renegade == false then
+			-- 进入主忠内, 但是没人跳过内，这个时候忠臣之间的相互攻击，不更新内奸值				
+		elseif (sgs.ai_role[from:objectName()] == "loyalist" and level > 0) or (sgs.ai_role[from:objectName()] == "rebel" and level < 0) then 
 			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level) 
-		elseif sgs.ai_role[from:objectName()] ~= "rebel" and level > 0 and to:isLord() then
+		elseif sgs.ai_role[from:objectName()] ~= "rebel" and sgs.ai_role[from:objectName()] ~= "neutral" and level > 0 and to:isLord() then
 			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level)
 		end
 	end
@@ -936,7 +941,7 @@ function sgs.gameProcess(room,arg1)
 			if aplayer:getMark("@duanchang")==1 and aplayer:getMaxHp() <=3 then loyal_value = loyal_value - 1 end
 		end		
 	end
-	local diff = loyal_value - rebel_value + (loyal_num - rebel_num) * 2
+	local diff = loyal_value - rebel_value + (loyal_num + 1 - rebel_num) * 2
 	if arg1==1 then return diff end
 
 	if diff >= 2 then
@@ -1074,16 +1079,23 @@ function SmartAI:objectiveLevel(player)
 				return 0
 			end
 
-			if self.player:isLord() then
-				if sgs.evaluatePlayerRole(player) == "renegade" and player:getHp() > 1 then
-					return 5
-				else
-					return player:getHp() > 1 and 1 or 0
-				end
+			if not sgs.explicit_renegade then
+				self:sort(players, "hp")
+				local maxhp = players[#players]:isLord() and players[#players - 1]:getHp() or players[#players]:getHp()
+				if maxhp > 2 then return player:getHp() == maxhp and 5 or 0 end
+				if maxhp == 2 then return self.player:isLord() and 0 or (player:getHp() == maxhp and 5 or 1) end      
+				return self.player:isLord() and 0 or 5
 			else
-				return sgs.evaluatePlayerRole(player) == "renegade" and 5 or 0
+				if self.player:isLord() then
+					if sgs.evaluatePlayerRole(player) == "renegade" and player:getHp() > 1 then
+						return 5
+					else
+						return player:getHp() > 1 and 1 or 0
+					end
+				else
+					return sgs.evaluatePlayerRole(player) == "renegade" and 5 or 0
+				end
 			end
-
 		end
 		if loyal_num == 0 then
 			if rebel_num > 2 then
@@ -1278,6 +1290,7 @@ function SmartAI:updatePlayers(clear_flags)
 		local renegade_val = sgs.current_mode_players["rebel"] == 0 and 10 or 20
 		if i <= sgs.current_mode_players["renegade"] and sgs.role_evaluation[p:objectName()]["renegade"] >= renegade_val then
 			sgs.ai_role[p:objectName()] = "renegade"
+			sgs.explicit_renegade = true
 		else
 			if (sgs.role_evaluation[p:objectName()]["loyalist"] > 0 and sgs.current_mode_players["loyalist"] > 0) or p:isLord() then
 				sgs.ai_role[p:objectName()] = "loyalist" 
@@ -1288,6 +1301,10 @@ function SmartAI:updatePlayers(clear_flags)
 				if sgs.role_evaluation[p:objectName()]["loyalist"] < 0  then sgs.ai_role[p:objectName()] = "rebel" end
 				if sgs.role_evaluation[p:objectName()]["loyalist"] == 0 then sgs.ai_role[p:objectName()] = "neutral" end
 			end
+		end
+		if sgs.current_mode_players["rebel"] == 0 and sgs.current_mode_players["loyalist"] == 0 and not p:isLord() then
+			sgs.ai_role[p:objectName()] = "renegade"
+			sgs.explicit_renegade = true			
 		end
 	end
 
@@ -4861,6 +4878,9 @@ function SmartAI:doNotDiscard(to, flags, conservative, n, cant_choose)
 	flags = flags or "he"
 	if to:isNude() then return true end
 	conservative = conservative or (sgs.turncount <= 2 and self.room:alivePlayerCount() > 2)
+	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_NoSuit, 0)
+	local enemies = self:getEnemies(to)
+	if #enemies == 1 and not self:hasTrickEffective(snatch, enemies[1], to) and self.room:alivePlayerCount() == 2 then conservative = false end
 	if to:hasSkill("tuntian") and to:hasSkill("zaoxian") and to:getPhase() == sgs.Player_NotActive and (conservative or #self.enemies > 1) then return true end
 	
 	if cant_choose then

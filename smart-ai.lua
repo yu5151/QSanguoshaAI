@@ -2437,9 +2437,6 @@ function SmartAI:askForCardChosen(who, flags, reason)
 					end
 				end
 			end
-			if who:getHandcardNum() == 1 and sgs.getDefenseSlash(who) < 3 and who:getHp() <= 2 and not self:doNotDiscard(who, "h") then
-				return self:getCardRandomly(who, "h")
-			end
 		end
 
 		if flags:match("e") then
@@ -2448,8 +2445,11 @@ function SmartAI:askForCardChosen(who, flags, reason)
 			end
 		end
 
-		if flags:match("h") then
-			if self:hasSkills(sgs.cardneed_skill, who) and not self:doNotDiscard(who, "h") then
+		if flags:match("h") and not self:doNotDiscard(who, "h") then
+			if who:getHandcardNum() == 1 and sgs.getDefenseSlash(who) < 3 and who:getHp() <= 2 then
+				return self:getCardRandomly(who, "h")
+			end
+			if self:hasSkills(sgs.cardneed_skill, who) then
 				return self:getCardRandomly(who, "h")
 			end
 		end	

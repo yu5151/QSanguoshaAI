@@ -462,10 +462,6 @@ function SmartAI:getDynamicUsePriority(card)
 			end
 		end
 
-		if use_card:isKindOf("Peach") and self.player:getHp() == 1 then
-			value = 8
-		end
-
 		if use_card:isKindOf("YanxiaoCard") and self.player:containsTrick("YanxiaoCard") then
 			value = 0.1
 		end
@@ -2708,6 +2704,7 @@ function SmartAI:needKongcheng(player, keep)
 	end
 	if not self:hasLoseHandcardEffective() then return true end
 	if player:hasSkill("zhiji") and player:getMark("zhiji") == 0 then return true end
+	if player:hasSkill("shude") and player:getPhase() == sgs.Player_Play then return true end
 	return self:hasSkills(sgs.need_kongcheng, player)
 end
 

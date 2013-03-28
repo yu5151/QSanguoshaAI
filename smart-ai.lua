@@ -396,7 +396,8 @@ function SmartAI:getUsePriority(card)
 	if class_name == "LuaSkillCard" then
 		v = sgs.ai_use_priority[card:objectName()] or 0
 	end
-	--if not self:hasTrickEffective(card) then v = 0 end
+	local to = card:targetFixed() and self.player or self.player:getNextAlive()
+	if not self:hasTrickEffective(card, to, self.player) then v = 0 end
 	return self:adjustUsePriority(card, v)	
 end
 

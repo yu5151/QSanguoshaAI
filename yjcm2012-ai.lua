@@ -719,42 +719,43 @@ sgs.ai_skill_invoke.qianxi = function(self, data)
 end
 
 sgs.ai_skill_playerchosen.qianxi = function(self, targets)
-	
-	local enemies = {}
-	for _, target in sgs.qlist(targets) do
-		if self:isEnemy(target) and self.player:distanceTo(target) == 1 then
-			table.insert(enemies, target)
+	if targets and not targets:isEmpty() then
+		local enemies = {}
+		for _, target in sgs.qlist(targets) do
+			if self:isEnemy(target) and self.player:distanceTo(target) == 1 then
+				table.insert(enemies, target)
+			end
 		end
-	end
-	if #enemies > 0 then
-		self:sort(enemies, "defense")
-		if self:getCardsNum("Jink", enemies[1]) >= 1 or #enemies == 1 or
-		(self:hasHeavySlashDamage(self.player, nil, enemies[1]) and enemies[1]:getHp() <= 2 or enemies[1]:getHp() > 1) then
-			return enemies[1]
-		end
-		local suit = self.player:getTag("qianxi"):toString()
-		for _, enemy in ipairs(enemies) do
-			if enemies[1]:objectName() ~= enemy:objectName() then
-				if suit == "red" then
-					if (self:hasSkills("longhun|qingnang|beige", enemy) and getKnownCard(enemy,"red", nil, "he") >= 1) or getCardsNum("Peach") >=1 then
-						return enemy
-					end
-				elseif suit == "black" then
-					if (enemy:hasSkill("qingguo") and not enemy:isKongcheng()) or 
-						(self:hasSkills("longhun|beige", enmey) and getKnownCard(enemy,"black", nil, "he") >= 1) then
-						return enmey
+		if #enemies > 0 then
+			self:sort(enemies, "defense")
+			if self:getCardsNum("Jink", enemies[1]) >= 1 or #enemies == 1 or
+			(self:hasHeavySlashDamage(self.player, nil, enemies[1]) and enemies[1]:getHp() <= 2 or enemies[1]:getHp() > 1) then
+				return enemies[1]
+			end
+			local suit = self.player:getTag("qianxi"):toString()
+			for _, enemy in ipairs(enemies) do
+				if enemies[1]:objectName() ~= enemy:objectName() then
+					if suit == "red" then
+						if (self:hasSkills("longhun|qingnang|beige", enemy) and getKnownCard(enemy,"red", nil, "he") >= 1) or getCardsNum("Peach") >=1 then
+							return enemy
+						end
+					elseif suit == "black" then
+						if (enemy:hasSkill("qingguo") and not enemy:isKongcheng()) or 
+							(self:hasSkills("longhun|beige", enmey) and getKnownCard(enemy,"black", nil, "he") >= 1) then
+							return enmey
+						end
 					end
 				end
 			end
+			return enemies[1]
 		end
-		return enemies[1]
+		return targets:first()
 	end
-	return targets:first()
 end
 
 sgs.ai_playerchosen_intention.qianxi = 80
 
-------- 新关心张包
+------- 新关兴张苞
 function sgs.ai_view_as.fuhun(card, player, card_place, class_name) 
 	if sgs.Sanguosha:getCurrentCardUseReason() == sgs.CardUseStruct_CARD_USE_REASON_RESPONSE_USE and class_name == "Slash" then
 		local cards = player:getHandcards()

@@ -520,8 +520,11 @@ end
 
 sgs.ai_skill_use_func.QingchengCard = function(card, use, self)
 	if self.room:alivePlayerCount() == 2 then
-		local only_enemy = self.room:getOtherPlayers(self.player):first()
-		if only_enemy:getLostHp() < 3 then return end
+		local others = self.room:getOtherPlayers(self.player)
+		if others:length() == 1 then
+			local only_enemy = others:first()
+			if only_enemy:getLostHp() < 3 then return end
+		end
 	end
 	for _, enemy in ipairs(self.enemies) do
 		for _, askill in ipairs(("noswuyan|wuyan|weimu|kanpo|liuli|yiji|jieming|ganglie|neoganglie|fankui|jianxiong|enyuan|nosenyuan" ..

@@ -347,7 +347,9 @@ jixi_skill.getTurnUseCard = function(self)
 		and self.player:getPile("field"):length() <= 2) then
 		return
 	end
-	local snatch = sgs.Sanguosha:getCard(self.player:getPile("field"):first())
+	local pile = self.player:getPile("field")
+	assert(not pile:isEmpty())
+	local snatch = sgs.Sanguosha:getCard(pile:first())
 	snatch = sgs.Sanguosha:cloneCard("snatch", snatch:getSuit(), snatch:getNumber())
 	local use = {isDummy = true}
 	snatch:setSkillName("jixi")
@@ -367,23 +369,25 @@ sgs.ai_skill_askforag.jixi = function(self, card_ids)
 end
 
 sgs.ai_skill_playerchosen.jixi = function(self, targets)
-	local snatch = sgs.Sanguosha:getCard(self.jixi)
-	snatch = sgs.Sanguosha:cloneCard("snatch", snatch:getSuit(), snatch:getNumber())
-	local choices = {}
-	for _, target in sgs.qlist(targets) do
-		if self:isEnemy(target) and not target:getCards("he"):isEmpty()
-			and self:hasTrickEffective(snatch, target) then
-			table.insert(choices, target)
-		elseif self:isFriend(target) and not target:getCards("j"):isEmpty()
-			and self:hasTrickEffective(snatch, target) then
-			table.insert(choices, target)
+	if targets and not targets:isEmpty() then
+		local snatch = sgs.Sanguosha:getCard(self.jixi)
+		snatch = sgs.Sanguosha:cloneCard("snatch", snatch:getSuit(), snatch:getNumber())
+		local choices = {}
+		for _, target in sgs.qlist(targets) do
+			if self:isEnemy(target) and not target:getCards("he"):isEmpty()
+				and self:hasTrickEffective(snatch, target) then
+				table.insert(choices, target)
+			elseif self:isFriend(target) and not target:getCards("j"):isEmpty()
+				and self:hasTrickEffective(snatch, target) then
+				table.insert(choices, target)
+			end
 		end
+
+		if #choices == 0 then return targets:at(0) end
+
+		self:sort(choices, "hp")
+		return choices[1]
 	end
-
-	if #choices == 0 then return targets:at(0) end
-
-	self:sort(choices, "hp")
-	return choices[1]
 end
 
 sgs.ai_card_intention.JixiCard = sgs.ai_card_intention.Snatch
@@ -532,7 +536,9 @@ sgs.ai_skill_playerchosen.fangquan = function(self, targets)
 
 	if #self.friends_noself>0 then return self.friends_noself[1] end
 	
-	return targets:first()
+	if not targets:isEmpty() then
+		return targets:first()
+	end
 end
 
 sgs.ai_playerchosen_intention.fangquan = - 100
@@ -705,7 +711,13 @@ end
 
 sgs.ai_card_intention.ZhibaCard = function(self, card, from, tos, source)
 	assert(#tos == 1)
-	local number = sgs.Sanguosha:getCard(card:getSubcards():first()):getNumber()
+	local subcards = card:getSubcards()
+	local id = 0
+	local number = 7
+	if subcards and not subcards:isEmpty() then
+		id = subcards:first()
+		number = sgs.Sanguosha:getCard(id):getNumber()
+	end
 	if number < 6 then sgs.updateIntention(from, tos[1], -60)
 	elseif number > 8 then sgs.updateIntention(from, tos[1], 60) end
 end 

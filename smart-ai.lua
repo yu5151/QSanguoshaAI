@@ -318,7 +318,13 @@ function SmartAI:getUseValue(card)
 		userstring = (userstring:split(":"))[3]
 		local guhuocard = sgs.Sanguosha:cloneCard(userstring, card:getSuit(), card:getNumber())
 		local usevalue = self:getUseValue(guhuocard) + #self.enemies*0.3
-		if sgs.Sanguosha:getCard(card:getSubcards():first()):objectName() == userstring and card:getSuit() == sgs.Card_Heart then usevalue = usevalue + 3 end
+		local subcards = card:getSubcards()
+		if subcards and not subcards:isEmpty() then
+			local sub_id = subcards:first()
+			if sgs.Sanguosha:getCard(sub_id):objectName() == userstring and card:getSuit() == sgs.Card_Heart then 
+				usevalue = usevalue + 3 
+			end
+		end
 		return usevalue
 	end
 
@@ -2316,7 +2322,7 @@ function SmartAI:getCardRandomly(who, flags)
 		if self:isEnemy(who) and who:isWounded() and card == who:getArmor() then
 			if r ~= (cards:length()-1) then
 				card = cards:at(r+1)
-			else
+			elseif r > 0 then
 				card = cards:at(r-1)
 			end
 		end
@@ -3114,7 +3120,7 @@ function SmartAI:askForPlayerChosen(targets, reason)
 	end
 	if target then
 		return target
-	else
+	elseif not targets:isEmpty() then
 		local r = math.random(0, targets:length() - 1)
 		return targets:at(r)
 	end

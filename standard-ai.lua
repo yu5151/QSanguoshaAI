@@ -510,14 +510,23 @@ end
 
 function SmartAI:IsLihunTarget(player, DrawCardNum)
 	player = player or self.player
-	DrawCardNum = DrawCardNum or 1	
+	DrawCardNum = DrawCardNum or 1
+	
+	if type(player) == "table" then
+		if #player == 0 then return false end
+		local found
+		for _, ap in ipairs(player) do
+			if self:IsLihunTarget(ap, DrawCardNum) then found = true break end			
+		end
+		if found then return true
+		else return false
+		end
+	end
+	
 	local HandCardNum = player:getHandcardNum() + DrawCardNum
-	
-	if not player:isMale() then return false end
-	
 	local sb_diaochan = self.room:findPlayerBySkillName("lihun")
 	if not sb_diaochan then return false end
-	if self:isFriend(player, sb_diaochan) or sb_diaochan:hasUsed("LihunCard") then return false end
+	if not player:isMale() or self:isFriend(player, sb_diaochan) or sb_diaochan:hasUsed("LihunCard") then return false end
 	
 	if sb_diaochan:getPhase() == sgs.Player_Play then
 		if HandCardNum - player:getHp() >= 2 and sb_diaochan:faceUp() or 

@@ -2268,7 +2268,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 				if peach_num == 0 and not self:willSkipPlayPhase(NP) then
 					if exnihilo_num > 0 then
 						if self:hasSkills("jizhi|rende|zhiheng", NP) or NP:hasSkill("jilve") and NP:getMark("@bear") > 0 then return null_card end
-					elseif exnihilo_num == 0 then
+					else
 						for _, enemy in ipairs(self.enemies) do
 							if snatch_num > 0 and to:distanceTo(enemy) == 1 and
 								(self:willSkipPlayPhase(enemy, true) or self:willSkipDrawPhase(enemy, true)) then
@@ -2276,7 +2276,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 							elseif analeptic_num > 0 and (self:isEquip("Axe", enemy) or self:getCardsNum("Axe", enemy) > 0) then
 								return null_card
 							elseif crossbow_num > 0 and getCardsNum("Slash", enemy) >= 3 then
-								local slash = sgs.Sanguosha:clone("slash", sgs.Card_NoSuit, 0)
+								local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 								for _, friend in ipairs(self.friens) do
 									if enemy:distanceTo(friend) == 1 and self:slashIsEffective(slash, friend, nil, enemy) then
 										return null_card
@@ -4287,18 +4287,18 @@ function SmartAI:getAoeValueTo(card, to , from)
 		value = value - (sj_num < 1 and 70 or 30)
 		value = value + math.min(30, to:getHp()*10)
 		
-		if self:getDamagedEffects(to, from) then value = value + 50 end
+		if self:getDamagedEffects(to, from) then value = value + 30 end
 		
 		if card:isKindOf("ArcheryAttack") then
 			if to:hasSkill("leiji") and (sj_num >= 1 or self:isEquip("EightDiagram", to)) then
 				value = value + 50
 				if self:hasSuit("spade", true, to) or to:getHandcardNum() >= 3 then value = value + 50 end
 			elseif self:isEquip("EightDiagram", to) then
-				value = value + 30
+				value = value + 20
 				if self:getFinalRetrial(to) == 2 then
-					value = value - 20
+					value = value - 15
 				elseif self:getFinalRetrial(to) == 1 then
-					value = value + 20
+					value = value + 10
 				end
 			end
 		end
@@ -4321,11 +4321,11 @@ function SmartAI:getAoeValueTo(card, to , from)
 			
 			if to:getHp() > 1 then
 				
-				if self:hasSkill("quji", to) then value = value + 15 end
+				if self:hasSkill("quji", to) then value = value + 10 end
 				if to:hasSkill("langgu") and self:isEnemy(to, from) then value = value - 15 end
 			
 				if to:hasSkill("jianxiong") then
-					value = value + ((card:isVirtualCard() and card:subcardsLength()*15) or 15)
+					value = value + ((card:isVirtualCard() and card:subcardsLength()*10) or 10)
 				end
 			
 				if to:hasSkill("fenyong") and to:hasSkill("xuehen") and to:getMark("@fenyong") == 0 then
@@ -4338,9 +4338,9 @@ function SmartAI:getAoeValueTo(card, to , from)
 				
 				if to:hasSkill("beifa") and to:getHandcardNum() == 1 then
 					if sj_num == 1 or getCardsNum("Nullification", to) == 1 then
-						value = value + 30
+						value = value + 20
 					elseif self:getKnownNum(to) < 1 then
-						value = value + 10
+						value = value + 5
 					end
 				end
 				
@@ -4442,16 +4442,22 @@ function SmartAI:getAoeValue(card, player)
 	end
 	
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-		if self:cantbeHurt(player) and self:aoeIsEffective(card, player, attacker) and 
-		not (player:hasSkill("wuhun") and attacker:getMark("nightmare") == 0 and 
-			(sgs.ai_role[attacker:objectName()] == "renegade" or sgs.ai_role[attacker:objectName()] == "lord")) then
-			bad = bad + 250
+		if self:cantbeHurt(player) and self:aoeIsEffective(card, player, attacker) then
+			if player:hasSkill("wuhun") and not self:isWeak(player) and attacker:getMark("@nightmare") == 0 then
+				if attacker:objectName() == self.player:objectName() and self.role ~= "renegade" and self.role ~= "lord" then
+				elseif attacker:objectName() ~= self.player:objectName() and not (self:isFriend(attacker) and attacker:objectName() == lord:objectName()) then
+				else
+					bad = bad + 250
+				end
+			else
+				bad = bad + 250
+			end
 		end
 
 		if player:hasSkill("huangen") then
 			if self:isFriend(player) then
 				if player:getHp() >= #self.friend_noself then
-					good = good +300
+					good = good + 300
 				else
 					good = good + player:getHp()*50
 				end
@@ -4488,12 +4494,12 @@ function SmartAI:getAoeValue(card, player)
 			if self.role ~= "rebel" then good = good + 50 else bad = bad + 50 end
 		end
 
-		if sgs.current_mode_players["rebel"] ==0 and self.role ~= "renegade" and sgs.current_mode_players["loyalist"] > 0 and not self:isWeak(lord) then
+		if sgs.current_mode_players["rebel"] ==0 and self.role ~= "lord" and sgs.current_mode_players["loyalist"] > 0 and self:isWeak(lord) then
 			bad = bad + 300
 		end
 	end
 	
-	if self:hasSkills("jianxiong|luanji|qice|manjuan") then good = good + 10 end
+	if self:hasSkills("jianxiong|luanji|qice|manjuan") then good = good + 5 end
 	
 	-- self.room:writeToConsole(attacker:getGeneralName().." Use:"..card:getClassName().." good:"..good..",bad:"..bad..",value:"..(good-bad))
 	return good - bad

@@ -644,7 +644,12 @@ sgs.ai_need_damaged.yiji = function (self, attacker, player)
 	if self:hasSkills("jieyin|jijiu",current) and self:getOverflow(current) <= 0 then need_card = true end
 	if self:isFriend(current, player) and need_card then return true end
 	
-	local friends = self:getFriends(player)
+	local friends = {}
+	for _, ap in sgs.qlist(self.room:getAlivePlayers()) do
+		if self:isFriend(ap, player) then
+			table.insert(friends, ap)
+		end
+	end
 	self:sort(friends, "hp")
 
 	if friends[1]:objectName() == player:objectName() and self:isWeak(player) and self:getCardsNum("Peach", player) == 0 then return false end

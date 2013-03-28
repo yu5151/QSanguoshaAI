@@ -456,10 +456,6 @@ function SmartAI:getDynamicUsePriority(card)
 			end
 		end
 
-		if use_card:isKindOf("Peach") and self.player:getHp() == 1 then
-			value = 8
-		end
-
 		if use_card:isKindOf("YanxiaoCard") and self.player:containsTrick("YanxiaoCard") then
 			value = 0.1
 		end

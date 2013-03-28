@@ -873,7 +873,30 @@ sgs.yinling_suit_value = {
 
 sgs.ai_skill_invoke.fenyong = function(self, data)
 	if sgs.turncount == 0 and #self.enemies == 0 then return end
-	return true
+	
+	local current = self.room:getCurrent()
+	if self:isEnemy(current) then
+		if self.player:getLostHp() >= 3 and current:getCardCount(true) >= 3
+		  and not (self:needKongcheng(current) and current:getCardCount(true) == 3)
+		  and not (not self:hasLoseHandcardEffective(current) and current:getCards("e"):length() < 2) 
+		  and not (self:hasSkills(sgs.lose_equip_skill, current) and current:getHandcardNum() < self.player:getLostHp()) then
+			self.fenyong_choice = "discard"
+			return true
+		end
+
+		if self:hasSkills("jijiu|tuntian|beige|qiaobian", current) and self.player:getLostHp() >= 2 and current:getCardCount(true) >= 2 then
+			self.fenyong_choice = "discard"
+			return true
+		end
+	end
+	
+	for _, enemy in ipairs(self.enemies) do
+		if self.player:canSlash(enemy, nil, false) then
+			self.fenyong_choice = "slash"
+			return true
+		end
+	end
+	return
 end
 
 function sgs.ai_slash_prohibit.fenyong(self, to, card, from)
@@ -883,7 +906,8 @@ function sgs.ai_slash_prohibit.fenyong(self, to, card, from)
 	return to:getMark("@fenyong") > 0 and to:hasSkill("fenyong")
 end
 
-sgs.ai_skill_choice.xuehen = function(self, choices)	
+sgs.ai_skill_choice.xuehen = function(self, choices)
+	if self.fenyong_choice then return self.fenyong_choice end
 	local current = self.room:getCurrent()
 	if self:isFriend(current) then return "slash" end
 	if self:isEnemy(current) then
@@ -896,7 +920,13 @@ sgs.ai_skill_choice.xuehen = function(self, choices)
 
 		if self:hasSkills("jijiu|tuntian|beige|qiaobian", current) and self.player:getLostHp() >= 2 and current:getCardCount(true) >= 2 then return "discard" end
 	end
-	if #self.enemies > 0 then return "slash" end
+	
+	for _, enemy in ipairs(self.enemies) do
+		if self.player:canSlash(enemy, nil, false) then
+			return "slash"
+		end
+	end	
+	
 	return "discard"
 end
 

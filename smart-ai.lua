@@ -368,7 +368,7 @@ function SmartAI:getUseValue(card)
 		if self.player:hasSkill("wumou") and card:isNDTrick() and not card:isKindOf("AOE") then
 			if not (card:isKindOf("Duel") and self.player:hasUsed("WuqianCard")) then v = 1 end
 		end
-		if not self:hasTrickEffective(card) then v = 0 end
+		--if not self:hasTrickEffective(card) then v = 0 end
 	end
 
 	if self:hasSkills(sgs.need_kongcheng) then
@@ -4887,7 +4887,7 @@ function SmartAI:doNotDiscard(to, flags, conservative, n, cant_choose)
 	flags = flags or "he"
 	if to:isNude() then return true end
 	conservative = conservative or (sgs.turncount <= 2 and self.room:alivePlayerCount() > 2)
-	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_NoSuit, 0)
+	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_Club, 0)
 	local enemies = self:getEnemies(to)
 	if #enemies == 1 and not self:hasTrickEffective(snatch, enemies[1], to) and self.room:alivePlayerCount() == 2 then conservative = false end
 	if to:hasSkill("tuntian") and to:hasSkill("zaoxian") and to:getPhase() == sgs.Player_NotActive and (conservative or #self.enemies > 1) then return true end

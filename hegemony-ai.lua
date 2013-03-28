@@ -442,8 +442,7 @@ xiongyi_skill.name = "xiongyi"
 table.insert(sgs.ai_skills, xiongyi_skill)
 xiongyi_skill.getTurnUseCard = function(self)
 	if self.player:getMark("@arise") < 1 then return end
-	if #self.friends <= #self.enemies 
-	  and ((sgs.turncount > 2 and self.player:getLostHp() > 0) or (sgs.turncount > 1 and self.player:getLostHp() > 1 and #self.friends > 1)) then
+	if (#self.friends <= #self.enemies and sgs.turncount > 2 and self.player:getLostHp() > 0) or (sgs.turncount > 1 and self:isWeak()) then
 		return sgs.Card_Parse("@XiongyiCard=.") 
 	end
 end

@@ -315,7 +315,7 @@ function sgs.ai_cardneed.qiaobian(to, card)
 end
 
 sgs.ai_skill_invoke.tuntian = function(self, data)
-	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_NoSuit, 0)
+	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_Club, 0)
 	if self.player:hasSkill("zaoxian") and #self.enemies == 1 and self.room:alivePlayerCount() == 2
 		and self.player:getMark("zaoxian") == 0 and not self:hasTrickEffective(snatch, self.enemies[1], self.player) then
 			return false
@@ -330,7 +330,7 @@ sgs.ai_slash_prohibit.tuntian = function(self, to, card, from)
 		or (from:hasSkill("liegong") and from:getPhase() == sgs.Player_Play and (to:getHandcardNum() <= from:getAttackRange() or to:getHandcardNum() >= from:getHp())) then
 		return false
 	end
-	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_NoSuit, 0)
+	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_Club, 0)
 	local enemies = self:getEnemies(to)
 	if #enemies == 1 and self.room:alivePlayerCount() == 2 and not self:hasTrickEffective(snatch, enemies[1], to) then return false end
 	if getCardsNum("Jink", to) < 1 or sgs.card_lack[to:objectName()]["Jink"] == 1 or self:isWeak(to) then return false end

@@ -7,20 +7,22 @@
 sgs.ai_skill_invoke.weiwudi_guixin = true
 
 local function findPlayerForModifyKingdom(self, players) --从目标列表中选择一名用于修改势力
-	local lord = self.room:getLord()
-	local isGood = lord and self:isFriend(lord) --自己是否为忠方
+	if players and not player:isEmpty() then
+		local lord = self.room:getLord()
+		local isGood = lord and self:isFriend(lord) --自己是否为忠方
 
-	for _, player in sgs.qlist(players) do
-		if not player:isLord() then
-			if sgs.evaluateRoleTrends(player) == "loyalist" and not self:hasSkills("huashen|liqian",player) then
-				local sameKingdom =lord and player:getKingdom() == lord:getKingdom() 
-				if isGood ~= sameKingdom then
-					return player
-				end
-			elseif lord and lord:hasLordSkill("xueyi") and not player:isLord() and not self:hasSkills("huashen|liqian",player) then
-				local isQun = player:getKingdom() == "qun"
-				if isGood ~= isQun then
-					return player
+		for _, player in sgs.qlist(players) do
+			if not player:isLord() then
+				if sgs.evaluateRoleTrends(player) == "loyalist" and not self:hasSkills("huashen|liqian",player) then
+					local sameKingdom =lord and player:getKingdom() == lord:getKingdom() 
+					if isGood ~= sameKingdom then
+						return player
+					end
+				elseif lord and lord:hasLordSkill("xueyi") and not player:isLord() and not self:hasSkills("huashen|liqian",player) then
+					local isQun = player:getKingdom() == "qun"
+					if isGood ~= isQun then
+						return player
+					end
 				end
 			end
 		end
@@ -96,8 +98,10 @@ sgs.ai_skill_choice.weiwudi_guixin = function(self, choices)
 end
 
 sgs.ai_skill_playerchosen.weiwudi_guixin = function(self, players) --选择修改势力的目标
-	local player = findPlayerForModifyKingdom(self, players)
-	return player or players:first()
+	if players and not player:isEmpty() then
+		local player = findPlayerForModifyKingdom(self, players)
+		return player or players:first()
+	end
 end
 --[[
 	技能：称象

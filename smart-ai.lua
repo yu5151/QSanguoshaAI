@@ -318,7 +318,13 @@ function SmartAI:getUseValue(card)
 		userstring = (userstring:split(":"))[3]
 		local guhuocard = sgs.Sanguosha:cloneCard(userstring, card:getSuit(), card:getNumber())
 		local usevalue = self:getUseValue(guhuocard) + #self.enemies*0.3
-		if sgs.Sanguosha:getCard(card:getSubcards():first()):objectName() == userstring and card:getSuit() == sgs.Card_Heart then usevalue = usevalue + 3 end
+		local subcards = card:getSubcards()
+		if subcards and not subcards:isEmpty() then
+			local sub_id = subcards:first()
+			if sgs.Sanguosha:getCard(sub_id):objectName() == userstring and card:getSuit() == sgs.Card_Heart then 
+				usevalue = usevalue + 3 
+			end
+		end
 		return usevalue
 	end
 
@@ -362,7 +368,7 @@ function SmartAI:getUseValue(card)
 		if self.player:hasSkill("wumou") and card:isNDTrick() and not card:isKindOf("AOE") then
 			if not (card:isKindOf("Duel") and self.player:hasUsed("WuqianCard")) then v = 1 end
 		end
-		if not self:hasTrickEffective(card) then v = 0 end
+		--if not self:hasTrickEffective(card) then v = 0 end
 	end
 
 	if self:hasSkills(sgs.need_kongcheng) then
@@ -390,7 +396,8 @@ function SmartAI:getUsePriority(card)
 	if class_name == "LuaSkillCard" then
 		v = sgs.ai_use_priority[card:objectName()] or 0
 	end
-	if not self:hasTrickEffective(card) then v = 0 end
+	local to = card:targetFixed() and self.player or self.player:getNextAlive()
+	if not self:hasTrickEffective(card, to, self.player) then v = 0 end
 	return self:adjustUsePriority(card, v)	
 end
 
@@ -454,10 +461,6 @@ function SmartAI:getDynamicUsePriority(card)
 			if zhugeliang and self:isEnemy(zhugeliang) and zhugeliang:isKongcheng() then
 				value = math.max(sgs.ai_use_priority.Slash, sgs.ai_use_priority.Duel) + 0.1
 			end
-		end
-
-		if use_card:isKindOf("Peach") and self.player:getHp() == 1 then
-			value = 8
 		end
 
 		if use_card:isKindOf("YanxiaoCard") and self.player:containsTrick("YanxiaoCard") then
@@ -2316,7 +2319,7 @@ function SmartAI:getCardRandomly(who, flags)
 		if self:isEnemy(who) and who:isWounded() and card == who:getArmor() then
 			if r ~= (cards:length()-1) then
 				card = cards:at(r+1)
-			else
+			elseif r > 0 then
 				card = cards:at(r-1)
 			end
 		end
@@ -2702,6 +2705,7 @@ function SmartAI:needKongcheng(player, keep)
 	end
 	if not self:hasLoseHandcardEffective() then return true end
 	if player:hasSkill("zhiji") and player:getMark("zhiji") == 0 then return true end
+	if player:hasSkill("shude") and player:getPhase() == sgs.Player_Play then return true end
 	return self:hasSkills(sgs.need_kongcheng, player)
 end
 
@@ -3114,7 +3118,7 @@ function SmartAI:askForPlayerChosen(targets, reason)
 	end
 	if target then
 		return target
-	else
+	elseif not targets:isEmpty() then
 		local r = math.random(0, targets:length() - 1)
 		return targets:at(r)
 	end
@@ -4912,7 +4916,7 @@ function SmartAI:doNotDiscard(to, flags, conservative, n, cant_choose)
 	flags = flags or "he"
 	if to:isNude() then return true end
 	conservative = conservative or (sgs.turncount <= 2 and self.room:alivePlayerCount() > 2)
-	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_NoSuit, 0)
+	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_Club, 0)
 	local enemies = self:getEnemies(to)
 	if #enemies == 1 and not self:hasTrickEffective(snatch, enemies[1], to) and self.room:alivePlayerCount() == 2 then conservative = false end
 	if to:hasSkill("tuntian") and to:hasSkill("zaoxian") and to:getPhase() == sgs.Player_NotActive and (conservative or #self.enemies > 1) then return true end

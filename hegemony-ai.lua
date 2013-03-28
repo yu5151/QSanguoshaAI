@@ -442,8 +442,7 @@ xiongyi_skill.name = "xiongyi"
 table.insert(sgs.ai_skills, xiongyi_skill)
 xiongyi_skill.getTurnUseCard = function(self)
 	if self.player:getMark("@arise") < 1 then return end
-	if #self.friends <= #self.enemies 
-	  and ((sgs.turncount > 2 and self.player:getLostHp() > 0) or (sgs.turncount > 1 and self.player:getLostHp() > 1 and #self.friends > 1)) then
+	if (#self.friends <= #self.enemies and sgs.turncount > 2 and self.player:getLostHp() > 0) or (sgs.turncount > 1 and self:isWeak()) then
 		return sgs.Card_Parse("@XiongyiCard=.") 
 	end
 end
@@ -520,8 +519,11 @@ end
 
 sgs.ai_skill_use_func.QingchengCard = function(card, use, self)
 	if self.room:alivePlayerCount() == 2 then
-		local only_enemy = self.room:getOtherPlayers(self.player):first()
-		if only_enemy:getLostHp() < 3 then return end
+		local others = self.room:getOtherPlayers(self.player)
+		if others:length() == 1 then
+			local only_enemy = others:first()
+			if only_enemy:getLostHp() < 3 then return end
+		end
 	end
 	for _, enemy in ipairs(self.enemies) do
 		for _, askill in ipairs(("noswuyan|wuyan|weimu|kanpo|liuli|yiji|jieming|ganglie|neoganglie|fankui|jianxiong|enyuan|nosenyuan" ..

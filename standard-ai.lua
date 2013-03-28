@@ -46,8 +46,13 @@ sgs.ai_choicemade_filter.cardResponsed["@hujia-jink"] = function(player, promptl
 	if promptlist[#promptlist] ~= "_nil_" then
 		sgs.updateIntention(player, sgs.hujiasource, -80)
 		sgs.hujiasource = nil
-	elseif sgs.hujiasource and player:objectName() == player:getRoom():getLieges("wei", sgs.hujiasource):last():objectName() then
-		sgs.hujiasource = nil
+	elseif sgs.hujiasource then
+		local lieges = player:getRoom():getLieges("wei", sgs.hujiasource)
+		if lieges and not lieges:isEmpty() then
+			if player:objectName() == lieges:last():objectName() then
+				sgs.hujiasource = nil
+			end
+		end
 	end
 end
 
@@ -952,12 +957,17 @@ sgs.ai_choicemade_filter.cardResponsed["@jijiang-slash"] = function(player, prom
 		sgs.updateIntention(player, sgs.jijiangsource, -40)
 		clearJijiangTargetFlag(sgs.jijiangsource)
 		sgs.jijiangsource = nil
-	elseif sgs.jijiangsource and player:objectName() == player:getRoom():getLieges("shu", sgs.jijiangsource):last():objectName() then
-		clearJijiangTargetFlag(sgs.jijiangsource)
-		sgs.jijiangsource = nil
-	elseif sgs.jijiangsource and player:objectName() == player:getRoom():getLieges("shu", sgs.jijiangsource):last():objectName() then	
-	sgs.jijiangsource = nil
-	sgs.jijiangtarget = nil
+	else
+		local lieges = player:getRoom():getLieges("shu", sgs.jijiangsource)
+		if lieges and not lieges:isEmpty() then
+			if sgs.jijiangsource and player:objectName() == lieges:last():objectName() then
+				clearJijiangTargetFlag(sgs.jijiangsource)
+				sgs.jijiangsource = nil
+			elseif sgs.jijiangsource and player:objectName() == lieges:last():objectName() then	
+				sgs.jijiangsource = nil
+				sgs.jijiangtarget = nil
+			end
+		end
 	end
 end
 

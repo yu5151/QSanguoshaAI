@@ -1638,6 +1638,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	local targets_num = 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_ExtraTarget, self.player, card)
 
 	local addTarget = function(player, card_or_cardid)
+		if not card_or_cardid then self.room:writeToConsole(debug.traceback()) end
 		if not usecard then 
 			use.card = card
 			usecard = true
@@ -1724,7 +1725,6 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 		end
 	end
 	
-
 	local new_enemies = table.copyFrom(enemies)
 	local compare_JudgingArea = function(a, b)
 		return a:getJudgingArea():length() > b:getJudgingArea():length()
@@ -1846,7 +1846,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			elseif enemy:getWeapon() then
 				cardchosen = enemy:getWeapon():getEffectiveId()
 			end
-			addTarget(enemy, cardchosen)			
+			if cardchosen then addTarget(enemy, cardchosen) end
 		end
 	end
 
@@ -1863,6 +1863,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			end
 		end
 	end
+	
 end
 
 SmartAI.useCardSnatch = SmartAI.useCardSnatchOrDismantlement

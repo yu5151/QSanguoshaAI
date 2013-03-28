@@ -2186,6 +2186,7 @@ sgs.ai_skill_use_func.LijianCard = function(card,use,self)
 								else
 									table.insert(others, anotherenemy)
 								end
+								if #males >= 2 then break end
 							end
 						end
 					end

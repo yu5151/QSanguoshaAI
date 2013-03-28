@@ -4278,16 +4278,20 @@ end
 
 function SmartAI:getAoeValueTo(card, to , from)
 	local value, sj_num = 0, 0
-
 	if card:isKindOf("ArcheryAttack") then sj_num = getCardsNum("Jink", to)  end
 	if card:isKindOf("SavageAssault") then sj_num = getCardsNum("Slash", to) end
 
 	if self:aoeIsEffective(card, to, from) then
+		if card:isKindOf("SavageAssault") and sgs.card_lack[to:objectName()]["Slash"] == 1 
+			or card:isKindOf("ArcheryAttack") and sgs.card_lack[to:objectName()]["Jink"] == 1 
+			or sj_num < 1 then
+			value = -70
+		else
+			value = -50
+		end
+		value = value + math.min(20, to:getHp()*5)
 		
-		value = value - (sj_num < 1 and 70 or 30)
-		value = value + math.min(30, to:getHp()*10)
-		
-		if self:getDamagedEffects(to, from) then value = value + 30 end
+		if self:getDamagedEffects(to, from) then value = value + 40 end
 		
 		if card:isKindOf("ArcheryAttack") then
 			if to:hasSkill("leiji") and (sj_num >= 1 or self:isEquip("EightDiagram", to)) then
@@ -4303,11 +4307,19 @@ function SmartAI:getAoeValueTo(card, to , from)
 			end
 		end
 		
+		if to:hasSkill("longdan+chongzhen") and self:isEnemy(to) then
+			if card:isKindOf("ArcheryAttack") and getCardsNum("Slash") >= 1 then
+				value = value + 15
+			elseif card:isKindOf("SavageAssault") and getCardsNum("Jink") >= 1 then
+				value = value + 15
+			end
+		end
+		
 		local wansha = self.room:getCurrent():hasSkill("wansha")
-		if wansha and getCardsNum("Peach", to) == 0 and to:getHp() == 1 then
+		if wansha and to:getHp() == 1 and (sgs.card_lack[to:objectName()]["Peach"] == 1 or getCardsNum("Peach", to) == 0) then
 			value = value - 30
 			if self:isFriend(to) and self:getCardsNum("Peach") >= 1 then
-				value = value + 15
+				value = value + 10
 			end
 		end
 		
@@ -4344,6 +4356,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 					end
 				end
 				
+				if to:hasSkill("tanlan") and self:isEnemy(to) and not from:isKongcheng() then value = value + 10 end
 			end
 		end
 		

@@ -872,31 +872,27 @@ sgs.yinling_suit_value = {
 }
 
 sgs.ai_skill_invoke.fenyong = function(self, data)
+	self.fenyong_choice = nil
 	if sgs.turncount == 0 and #self.enemies == 0 then return end
-	
-	local current = self.room:getCurrent()
-	if self:isEnemy(current) then
-		if self.player:getLostHp() >= 3 and current:getCardCount(true) >= 3
-		  and not (self:needKongcheng(current) and current:getCardCount(true) == 3)
-		  and not (not self:hasLoseHandcardEffective(current) and current:getCards("e"):length() < 2) 
-		  and not (self:hasSkills(sgs.lose_equip_skill, current) and current:getHandcardNum() < self.player:getLostHp()) then
-			self.fenyong_choice = "discard"
-			return true
-		end
 
-		if self:hasSkills("jijiu|tuntian|beige|qiaobian", current) and self.player:getLostHp() >= 2 and current:getCardCount(true) >= 2 then
-			self.fenyong_choice = "discard"
-			return true
+	local current = self.room:getCurrent()
+	if not current or current:getPhase() >= sgs.Player_Finish then return true end
+	if self:isFriend(current) then
+		self:sort(self.enemies, "defenseSlash")
+		for _, enemy in ipairs(self.enemies) do
+			local def = sgs.getDefenseSlash(enemy)
+			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+			local eff = self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
+
+			if self.player:canSlash(enemy, nil, false) and not self:slashProhibit(nil, enemy) and eff and def < 5 then
+				return true
+			end
+			if self.player:getLostHp() == 1 and self:needToThrowArmor(current) then return true end
 		end
+		return false
 	end
-	
-	for _, enemy in ipairs(self.enemies) do
-		if self.player:canSlash(enemy, nil, false) then
-			self.fenyong_choice = "slash"
-			return true
-		end
-	end
-	return
+
+	return true
 end
 
 function sgs.ai_slash_prohibit.fenyong(self, to, card, from)
@@ -909,24 +905,36 @@ end
 sgs.ai_skill_choice.xuehen = function(self, choices)
 	if self.fenyong_choice then return self.fenyong_choice end
 	local current = self.room:getCurrent()
-	if self:isFriend(current) then return "slash" end
 	if self:isEnemy(current) then
-		if self.player:getLostHp() >= 3 and current:getCardCount(true) >= 3
-		  and not (self:needKongcheng(current) and current:getCardCount(true) == 3)
-		  and not (not self:hasLoseHandcardEffective(current) and current:getCards("e"):length() < 2) 
-		  and not (self:hasSkills(sgs.lose_equip_skill, current) and current:getHandcardNum() < self.player:getLostHp()) then
+		if self.player:getLostHp() >= 3 and current:getCardCount(true) >= 3 and not self:needKongcheng(current)
+			and not (self:hasSkills(sgs.lose_equip_skill, current) and current:getHandcardNum() < self.player:getLostHp()) then
 			return "discard"
 		end
-
-		if self:hasSkills("jijiu|tuntian|beige|qiaobian", current) and self.player:getLostHp() >= 2 and current:getCardCount(true) >= 2 then return "discard" end
+		if self:hasSkills("jijiu|tuntian+zaoxian|beige", current) and self.player:getLostHp() >= 2 and current:getCardCount(true) >= 2 then return "discard" end
 	end
-	
+	self:sort(self.enemies, "defenseSlash")
 	for _, enemy in ipairs(self.enemies) do
-		if self.player:canSlash(enemy, nil, false) then
+		local def = sgs.getDefenseSlash(enemy)
+		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+		local eff = self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
+
+		if self.player:canSlash(enemy, nil, false) and not self:slashProhibit(nil, enemy) and eff and def < 5 then
+			self.xuehentarget = enemy
 			return "slash"
 		end
-	end	
-	
+	end
+	if self:isFriend(current) then
+		if self.player:getLostHp() == 1 and self:needToThrowArmor(current) then return "discard" end
+		for _, enemy in ipairs(self.enemies) do
+			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+			local eff = self:slashIsEffective(slash, enemy)
+
+			if self.player:canSlash(enemy, nil, false) and not self:slashProhibit(nil, enemy) then
+				self.xuehentarget = enemy
+				return "slash"
+			end
+		end
+	end
 	return "discard"
 end
 

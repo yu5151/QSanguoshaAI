@@ -4891,9 +4891,8 @@ function SmartAI:doNotDiscard(to, flags, conservative, n, cant_choose)
 	flags = flags or "he"
 	if to:isNude() then return true end
 	conservative = conservative or (sgs.turncount <= 2 and self.room:alivePlayerCount() > 2)
-	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_Club, 0)
 	local enemies = self:getEnemies(to)
-	if #enemies == 1 and not self:hasTrickEffective(snatch, enemies[1], to) and self.room:alivePlayerCount() == 2 then conservative = false end
+	if #enemies == 1 and self:hasSkills("noswuyan|qianxun|weimu", enemies[1]) and self.room:alivePlayerCount() == 2 then conservative = false end
 	if to:hasSkill("tuntian") and to:hasSkill("zaoxian") and to:getPhase() == sgs.Player_NotActive and (conservative or #self.enemies > 1) then return true end
 	
 	if cant_choose then

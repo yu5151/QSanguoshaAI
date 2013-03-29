@@ -780,8 +780,8 @@ sgs.ai_skill_choice.zili = function(self, choice)
 	return "draw"
 end
 
-local paiyi_skill={}
-paiyi_skill.name="paiyi"
+local paiyi_skill = {}
+paiyi_skill.name = "paiyi"
 table.insert(sgs.ai_skills, paiyi_skill)
 paiyi_skill.getTurnUseCard = function(self)
 	if not (self.player:getPile("power"):isEmpty()
@@ -792,9 +792,10 @@ end
 
 sgs.ai_skill_use_func.PaiyiCard = function(card, use, self)
 	local target
-	self:sort(self.friends_noself,"defense")
+	self:sort(self.friends_noself, "defense")
 	for _, friend in ipairs(self.friends_noself) do
-		if friend:getHandcardNum() < 2 and friend:getHandcardNum() + 1 < self.player:getHandcardNum() then
+		if friend:getHandcardNum() < 2 and friend:getHandcardNum() + 1 < self.player:getHandcardNum() 
+		  and not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") then
 			target = friend
 		end
 		if target then break end
@@ -804,22 +805,28 @@ sgs.ai_skill_use_func.PaiyiCard = function(card, use, self)
 			target = self.player
 		end
 	end
-	self:sort(self.friends_noself,"hp")
+	self:sort(self.friends_noself, "hp")
 	self.friends_noself = sgs.reverse(self.friends_noself)
 	if not target then
 		for _, friend in ipairs(self.friends_noself) do
-			if friend:getHandcardNum() > 1 and friend:getHandcardNum() + 2 > self.player:getHandcardNum() 
-			and self:hasSkills("jieming|yiji|xinsheng|fangzhu|guixin",friend) then
+			if friend:getHandcardNum() + 2 > self.player:getHandcardNum() 
+			  and (self:getDamagedEffects(friend, self.player) or self:needToLostHp(friend))
+			  and not friend:hasSkill("manjuan") then
 				target = friend
 			end
 			if target then break end
 		end
 	end
-	self:sort(self.enemies,"defense")
+	self:sort(self.enemies, "defense")
 	if not target then
 		for _, enemy in ipairs(self.enemies) do
-			if not self:hasSkills(sgs.masochism_skill,enemy) and not self:hasSkills("rende|jijiu|tianxiang",enemy)
-			and enemy:getHandcardNum() + 2 > self.player:getHandcardNum() then
+			if not (self:hasSkills(sgs.masochism_skill, enemy) and not self.player:hasSkill("jueqing")) 
+			  and not self:hasSkills(sgs.cardneed_skill, enemy)
+			  and not self:hasSkills("jijiu|tianxiang|buyi", enemy)
+			  and self:damageIsEffective(enemy, sgs.DamageStruct_Normal, self.player)
+			  and not (self:getDamagedEffects(enemy, self.player) or self:needToLostHp(enemy))
+			  and enemy:getHandcardNum() + 2 > self.player:getHandcardNum()
+			  and not enemy:hasSkill("manjuan") then
 				target = enemy
 			end
 			if target then break end
@@ -835,6 +842,6 @@ sgs.ai_skill_use_func.PaiyiCard = function(card, use, self)
 end
 
 sgs.ai_skill_askforag.paiyi = function(self, card_ids)
-	self.paiyi=card_ids[math.random(1,#card_ids)]
+	self.paiyi = card_ids[math.random(1, #card_ids)]
 	return self.paiyi
 end

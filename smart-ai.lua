@@ -66,7 +66,7 @@ sgs.dynamic_value = 		{
 }
 sgs.ai_choicemade_filter = 	{
 	cardUsed = 				{},
-	cardResponsed = 		{},
+	cardResponded = 		{},
 	skillInvoke = 			{},
 	skillChoice = 			{},
 	Nullification =			{},
@@ -1512,7 +1512,7 @@ function SmartAI:filterEvent(event, player, data)
 			local callbacktable = sgs.ai_choicemade_filter[promptlist[1]]
 			if callbacktable and type(callbacktable) == "table" then
 				local index = 2 
-				if promptlist[1] == "cardResponsed" then index = 3 end
+				if promptlist[1] == "cardResponded" then index = 3 end
 				local callback = callbacktable[promptlist[index]] or callbacktable.general
 				if type(callback) == "function" then
 					callback(player, promptlist, self)
@@ -1624,7 +1624,7 @@ function SmartAI:filterEvent(event, player, data)
 		end
 	elseif event == sgs.DamageDone then
 		local damage = data:toDamage()
-		if damage.from and damage.to and damame.from:objectName() ~= damage.to:objectName() and damage.to:hasSkill("fankui") then
+		if damage.from and damage.to and damage.from:objectName() ~= damage.to:objectName() and damage.to:hasSkill("fankui") then
 			sgs.fankui_target = damage.from
 		end
 	elseif event == sgs.Damaged then

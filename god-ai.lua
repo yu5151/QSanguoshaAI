@@ -829,7 +829,7 @@ sgs.ai_skill_invoke.jilve = function(self,data)
 	elseif event == sgs.Damaged then
 		if #self.enemies == 0 then return false end
 		return use and self:askForUseCard("@@fangzhu","@fangzhu")~="."
-	elseif event == sgs.CardUsed or event == sgs.CardResponsed then
+	elseif event == sgs.CardUsed or event == sgs.cardResponded then
 		local card = data:toResponsed().m_card
 		card = card or data:toCardUse().card
 		return use or card:isKindOf("ExNihilo")

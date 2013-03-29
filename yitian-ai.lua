@@ -385,7 +385,7 @@ sgs.ai_choicemade_filter.skillInvoke["lianli-jink"] = function(player, promptlis
 	end
 end
 
-sgs.ai_choicemade_filter.cardResponsed["@lianli-jink"] = function(player, promptlist)
+sgs.ai_choicemade_filter.cardResponded["@lianli-jink"] = function(player, promptlist)
 	if promptlist[#promptlist] ~= "_nil_" then
 		-- sgs.updateIntention(player, sgs.lianlisource, -80)
 		local xiahoujuan = player:getRoom():findPlayerBySkillName("lianli")
@@ -429,7 +429,7 @@ end
 
 table.insert(sgs.ai_choicemade_filter.cardUsed, lianli_slash_filter)
 
-sgs.ai_choicemade_filter.cardResponsed["@lianli-slash"] = function(player, promptlist)
+sgs.ai_choicemade_filter.cardResponded["@lianli-slash"] = function(player, promptlist)
 	if promptlist[#promptlist] ~= "_nil_" then
 		sgs.lianlislash = true
 	end

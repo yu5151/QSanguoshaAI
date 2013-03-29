@@ -42,7 +42,7 @@ function sgs.ai_slash_prohibit.hujia(self, to, card, from)
 	if guojia and guojia:getKingdom() == "wei" and self:isFriend(to, guojia) then return sgs.ai_slash_prohibit.tiandu(self, guojia) end
 end
 
-sgs.ai_choicemade_filter.cardResponsed["@hujia-jink"] = function(player, promptlist)
+sgs.ai_choicemade_filter.cardResponded["@hujia-jink"] = function(player, promptlist)
 	if promptlist[#promptlist] ~= "_nil_" then
 		sgs.updateIntention(player, sgs.hujiasource, -80)
 		sgs.hujiasource = nil
@@ -964,7 +964,7 @@ end
 sgs.ai_use_value.JijiangCard = 8.5
 sgs.ai_use_priority.JijiangCard = 2.45
 
-sgs.ai_choicemade_filter.cardResponsed["@jijiang-slash"] = function(player, promptlist)
+sgs.ai_choicemade_filter.cardResponded["@jijiang-slash"] = function(player, promptlist)
 	local clearJijiangTargetFlag = function(jijiangsource)
 		if not jijiangsource then return end
 		for _, p in sgs.qlist(player:getRoom():getOtherPlayers(jijiangsource)) do

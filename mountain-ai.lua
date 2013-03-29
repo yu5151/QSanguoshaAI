@@ -315,7 +315,7 @@ function sgs.ai_cardneed.qiaobian(to, card)
 end
 
 sgs.ai_skill_invoke.tuntian = function(self, data)
-	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_Club, 0)
+	local snatch = sgs.Sanguosha:cloneCard("snatch", sgs.Card_NoSuit, 0)
 	if self.player:hasSkill("zaoxian") and #self.enemies == 1 and self.room:alivePlayerCount() == 2
 		and self.player:getMark("zaoxian") == 0 and not self:hasTrickEffective(snatch, self.enemies[1], self.player) then
 			return false

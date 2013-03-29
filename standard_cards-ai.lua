@@ -406,9 +406,9 @@ function SmartAI:useCardSlash(card, use)
 		local slash_prohibit = false
 		slash_prohibit = self:slashProhibit(card, friend)
 		if (self.player:hasSkill("pojun") and friend:getHp() > 4 and getCardsNum("Jink", friend) == 0 and friend:getHandcardNum() < 3)
-		  or self:getDamagedEffects(friend,self.player) 
+		  --or self:getDamagedEffects(friend, self.player) 
 		  or (friend:hasSkill("leiji") and not self.player:hasFlag("luoyi") and self:hasSuit("spade", true, friend) and (getKnownCard(friend,"Jink",true) >= 1 
-		    or (not IgnoreArmor(self.player, friend) and not self:isWeak(friend) and self:isEquip("EightDiagram",friend)))
+			or (not IgnoreArmor(self.player, friend) and not self:isWeak(friend) and self:isEquip("EightDiagram",friend)))
 		  and (hasExplicitRebel(self.room) or not friend:isLord()))
 		  or (friend:isLord() and self.player:hasSkill("guagu") and friend:getLostHp() >= 1 and getCardsNum("Jink", friend) == 0)
 		  or (friend:hasSkill("jieming") and self.player:hasSkill("rende") and (huatuo and self:isFriend(huatuo)))

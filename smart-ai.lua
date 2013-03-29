@@ -1512,7 +1512,12 @@ function SmartAI:filterEvent(event, player, data)
 			local callbacktable = sgs.ai_choicemade_filter[promptlist[1]]
 			if callbacktable and type(callbacktable) == "table" then
 				local index = 2 
-				if promptlist[1] == "cardResponded" then index = 3 end
+				if promptlist[1] == "cardResponded" then
+					if (promptlist[2] == "@guicai" or promptlist[2] == "@guidao") and promptlist[4] ~= "_nil_" then
+						sgs.RetrialPlayer = player
+					end
+					index = 3 
+				end
 				local callback = callbacktable[promptlist[index]] or callbacktable.general
 				if type(callback) == "function" then
 					callback(player, promptlist, self)
@@ -1822,6 +1827,22 @@ function SmartAI:filterEvent(event, player, data)
 			local intention = -60
 			if player:objectName() == caiwenji:objectName() then intention = 0 end
 			sgs.updateIntention(caiwenji, player, intention)
+		end
+		sgs.JudgeResult = judge:isGood()
+	elseif event == sgs.AskForRetrial then
+		local judge = data:toJudge()
+		if sgs.JudgeResult ~= judge:isGood() and sgs.RetrialPlayer and judge.who then
+			local reason = "bazhen|EightDiagram|wuhun|supply_shortage|tuntian|nosqianxi|nosmiji|indulgence|lightning|baonue$"..
+									"|leiji|caizhaoji_hujia|caizhaoji_hujia|tieji|luoshen|ganglie|neoganglie"
+			if reason:match(judge.reason) then
+				if judge:isGood() then
+					sgs.updateIntention(sgs.RetrialPlayer, judge.who, -10)
+				else
+					sgs.updateIntention(sgs.RetrialPlayer, judge.who, 10)
+				end
+			end
+			sgs.RetrialPlayer = nil
+			sgs.JudgeResult = judge:isGood()
 		end
 	elseif event == sgs.EventPhaseEnd and player:getPhase() ==  sgs.Player_Play then
 		self.room:setPlayerFlag(player, "Playing")

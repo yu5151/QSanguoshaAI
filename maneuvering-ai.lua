@@ -341,8 +341,8 @@ function SmartAI:useCardIronChain(card, use)
 	local friendtargets = {}
 	local enemytargets = {}
 	local yangxiu = self.room:findPlayerBySkillName("danlao")
-	self:sort(self.friends_noself, "defense")
-	for _, friend in ipairs(self.friends_noself) do
+	self:sort(self.friends, "defense")
+	for _, friend in ipairs(self.friends) do
 		if friend:isChained() and not self:isGoodChainPartner(friend) and self:hasTrickEffective(card, friend) and not self:hasSkills("danlao|hongyan", friend) then
 			table.insert(friendtargets, friend)
 		end

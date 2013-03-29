@@ -1456,36 +1456,6 @@ sgs.ai_choicemade_filter.playerChosen.general = function(from, promptlist)
 	end
 end
 
-sgs.ai_choicemade_filter.skillInvoke.general = function(from, promptlist)
-	local reason = string.gsub(promptlist[2], "%-", "_")
-	local to = global_room:getCurrent()
-	local callback = sgs.ai_skillInvoke_intention[reason]
-	if callback then 
-		if type(callback) == "number" and promptlist[3] == "yes" and to:objectName() ~= from:objectName() then
-			sgs.updateIntention(from, to, sgs.ai_skillInvoke_intention[reason])			
-		elseif type(callback) == "function" then
-			local yesorno = promptlist[3]
-			callback(from, to, yesorno)
-			-- from->发动技能的玩家，to->正在进行回合的玩家 ，yesorno->询问是否发动技能的选择
-		end
-	end
-end
-
-sgs.ai_choicemade_filter.skillChoice.general = function(from, promptlist)
-	local reason = string.gsub(promptlist[2], "%-", "_")
-	local callback = sgs.ai_skillChoice_intention[reason] 
-	local to = global_room:getCurrent()
-	if callback and to then 
-		if type(callback) == "number" and to:objectName() ~= from:objectName() then
-			sgs.updateIntention(from, to, sgs.ai_skillChoice_intention[reason])
-		elseif type(callback) == "function" then
-			local answer = promptlist[3]
-			callback(from, to, answer)
-			-- from->选择选项的玩家，to->正在进行回合的玩家，answer->askForChoice时选择的选项
-		end
-	end
-end
-
 sgs.ai_choicemade_filter.cardChosen.general = function(from, promptlist)
 	local reason = string.gsub(promptlist[2], "%-", "_")
 	local callback = sgs.ai_cardChosen_intention[reason] 
@@ -1545,7 +1515,7 @@ function SmartAI:filterEvent(event, player, data)
 				if promptlist[1] == "cardResponsed" then index = 3 end
 				local callback = callbacktable[promptlist[index]] or callbacktable.general
 				if type(callback) == "function" then
-					callback(player, promptlist)
+					callback(player, promptlist, self)
 				end
 			end
 			if data:toString() == "skillInvoke:fenxin:yes" then
@@ -1651,6 +1621,11 @@ function SmartAI:filterEvent(event, player, data)
 			end
 		else
 			sgs.LordNeedPeach = nil
+		end
+	elseif event == sgs.DamageDone then
+		local damage = data:toDamage()
+		if damage.from and damage.to and damame.from:objectName() ~= damage.to:objectName() and damage.to:hasSkill("fankui") then
+			sgs.fankui_target = damage.from
 		end
 	elseif event == sgs.Damaged then
 		local damage = data:toDamage()

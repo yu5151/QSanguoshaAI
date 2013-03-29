@@ -93,6 +93,25 @@ sgs.ai_skill_invoke.fankui = function(self, data)
 	return true
 end
 
+sgs.ai_choicemade_filter.cardChosen.fankui = function(player, promptlist, self)
+	if sgs.fankui_target then
+		local intention = 10
+		local id = promptlist[3]
+		local card = sgs.Sanguosha:getCard(id)
+		local target = sgs.fankui_target
+		if self:needToThrowArmor(target) and self.room:getCardPlace(id) == sgs.Player_PlaceEquip and card:isKindOf("Armor") then
+			intention = -intention
+		elseif self:doNotDiscard(target) then intention = -intention
+		elseif self:hasSkills(sgs.lose_equip_skill, target) and not target:getEquips():isEmpty() and
+			self.room:getCardPlace(id) == sgs.Player_PlaceEquip and card:isKindOf("EquipCard") then
+				intention = -intention
+		elseif sgs.ai_need_damaged.fankui(self, target, player) then intention = 0
+		elseif self:getOverflow(target) > 2 then intention = 0
+		end
+		sgs.updateIntention(player, target, intention)
+		sgs.fankui_target = nil
+	end
+end
 
 sgs.ai_skill_cardchosen.fankui = function(self, who, flags)
 	local suit = sgs.ai_need_damaged.fankui(self, who, self.player)

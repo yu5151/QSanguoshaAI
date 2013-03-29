@@ -554,7 +554,7 @@ sgs.ai_slash_prohibit.wenjiu = function(self, to, card)
 	if self:isFriend(to) then
 		return card:isRed() and (has_black_slash or self:isWeak(to))
 	else		
-		if has_red_slash then return not card:isRed() end
+		if has_red_slash and getCardsNum("Jink", to) > 0 then return not card:isRed() end
 	end
 end
 
@@ -601,10 +601,9 @@ sgs.ai_slash_prohibit.badao = function(self, to, card)
 	if self:isFriend(to) then 
 		return card:isRed() and has_black_slash 
 	else
-		return card:isBlack() and (has_red_slash or getCardsNum("Slash", to) >= 1)
+		return card:isBlack() and (has_red_slash or getCardsNum("Slash", to) > 1)
 	end
 end
-
 
 sgs.ai_cardneed.wenjiu = function(to, card)
 	return card:isBlack() and isCard("Slash", card, to)

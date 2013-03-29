@@ -7,7 +7,7 @@
 sgs.ai_skill_invoke.weiwudi_guixin = true
 
 local function findPlayerForModifyKingdom(self, players) --从目标列表中选择一名用于修改势力
-	if players and not player:isEmpty() then
+	if players and not players:isEmpty() then
 		local lord = self.room:getLord()
 		local isGood = lord and self:isFriend(lord) --自己是否为忠方
 
@@ -98,7 +98,7 @@ sgs.ai_skill_choice.weiwudi_guixin = function(self, choices)
 end
 
 sgs.ai_skill_playerchosen.weiwudi_guixin = function(self, players) --选择修改势力的目标
-	if players and not player:isEmpty() then
+	if players and not players:isEmpty() then
 		local player = findPlayerForModifyKingdom(self, players)
 		return player or players:first()
 	end

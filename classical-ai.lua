@@ -228,11 +228,11 @@
 		if others:length() == 1 then
 			local enemy = others:first()
 			if self:hasSkills("fankui|guixin|fenyong|zhichi|jilei", enemy) then
-				self.player:speak("不行，这家伙不好对付，慢苦为妙。")
+				self:speak("不行，这家伙不好对付，慢苦为妙。")
 				self.room:setPlayerMark(self.player, "KKR_Forbidden", 1)
 				return false
 			end
-			self.player:speak("看我大苦肉一波带走！")
+			self:speak("看我大苦肉一波带走！")
 			self.room:setPlayerMark(self.player, "KOFKurouRush", 1)
 			return true
 		end

@@ -405,13 +405,12 @@ function SmartAI:useCardSlash(card, use)
 	for _, friend in ipairs(self.friends_noself) do
 		local slash_prohibit = false
 		slash_prohibit = self:slashProhibit(card, friend)
-		if (self.player:hasSkill("pojun") and friend:getHp() > 4 and getCardsNum("Jink", friend) == 0 and friend:getHandcardNum() < 3)
-		  --or self:getDamagedEffects(friend, self.player) 
-		  or (friend:hasSkill("leiji") and not self.player:hasFlag("luoyi") and self:hasSuit("spade", true, friend) and (getKnownCard(friend,"Jink",true) >= 1 
-			or (not IgnoreArmor(self.player, friend) and not self:isWeak(friend) and self:isEquip("EightDiagram",friend)))
-		  and (hasExplicitRebel(self.room) or not friend:isLord()))
+		if (friend:hasSkill("leiji") and not self.player:hasFlag("luoyi") and self:hasSuit("spade", true, friend) 
+			and (getKnownCard(friend, "Jink", true) >= 1 
+			or (not IgnoreArmor(self.player, friend) and not self:isWeak(friend) and self:isEquip("EightDiagram", friend)))
+			and self:findLeijiTarget(friend, 50))
 		  or (friend:isLord() and self.player:hasSkill("guagu") and friend:getLostHp() >= 1 and getCardsNum("Jink", friend) == 0)
-		  or (friend:hasSkill("jieming") and self.player:hasSkill("rende") and (huatuo and self:isFriend(huatuo)))
+		  or (friend:hasSkill("jieming") and self.player:hasSkill("rende") and not self.player:hasSkill("jueqing") and (huatuo and self:isFriend(huatuo)))
 		then
 			if not slash_prohibit then
 				if ((self.player:canSlash(friend, card, not no_distance, rangefix)) or
@@ -515,11 +514,42 @@ function SmartAI:useCardSlash(card, use)
 				else
 					use.to:append(target)
 				end
+				if self.slash_targets <= use.to:length() then return end
 			end
 		end 
 	end
-
-
+	
+	for _, friend in ipairs(self.friends_noself) do
+		local slash_prohibit = self:slashProhibit(card, friend)
+		if (self.player:hasSkill("pojun") and friend:getHp() > 4 and getCardsNum("Jink", friend) == 0 and friend:getHandcardNum() < 3)
+			or self:getDamagedEffects(friend, self.player) then
+			if not slash_prohibit then
+				if ((self.player:canSlash(friend, card, not no_distance, rangefix))
+					or (use.isDummy and self.predictedRange and self.player:distanceTo(friend, rangefix) <= self.predictedRange))
+					and self:slashIsEffective(card, friend) then
+					use.card = card
+					if use.to then
+						if use.to:length() == self.slash_targets - 1 and self.player:hasSkill("duanbing") then
+							local has_extra = false
+							for _, tg in sgs.qlist(use.to) do
+								if self.player:distanceTo(tg, rangefix) == 1 then
+									has_extra = true
+									break
+								end
+							end
+							if has_extra or self.player:distanceTo(friend, rangefix) == 1 then
+								use.to:append(friend)
+							end
+						else
+							use.to:append(friend)
+						end
+						self:speak("hostile", self.player:isFemale())
+						if self.slash_targets <= use.to:length() then return end
+					end
+				end
+			end
+		end
+	end
 end
 
 sgs.ai_skill_use.slash = function(self, prompt)
@@ -581,20 +611,20 @@ if sgs.Sanguosha:getVersion() <= "20121221" then sgs.ai_skill_use.slash = sgs.ai
 
 sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-	local targetlist=sgs.QList2Table(targets)
+	local targetlist = sgs.QList2Table(targets)
 	local arrBestHp, canAvoidSlash = {},{}
 	self:sort(targetlist, "defenseSlash")
 
 	for _, target in ipairs(targetlist) do
 		if self:isEnemy(target) and not self:slashProhibit(slash ,target) and sgs.isGoodTarget(target, targetlist, self) then
-			if self:slashIsEffective(slash,target) then
+			if self:slashIsEffective(slash, target) then
 				if target:getHp() > getBestHp(target) then
-					table.insert(arrBestHp,target)
+					table.insert(arrBestHp, target)
 				else
 					return target
 				end
 			else
-				table.insert(canAvoidSlash,target)
+				table.insert(canAvoidSlash, target)
 			end
 		end
 	end
@@ -602,7 +632,7 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 		local target = targetlist[i]
 		if not self:slashProhibit(slash, target) then
 			if self:slashIsEffective(slash,target) then
-				if self:isFriend(target) and (target:getHp() > getBestHp(target) or self:getDamagedEffects(target,self.player)) then
+				if self:isFriend(target) and (target:getHp() > getBestHp(target) or self:getDamagedEffects(target, self.player)) then
 					return target
 				end
 			else
@@ -625,18 +655,21 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 	return targetlist[1]
 end
 
-sgs.ai_card_intention.Slash = function(self, card,from,tos)
+sgs.ai_card_intention.Slash = function(self, card, from, tos)
 	if sgs.ai_liuli_effect then
 		sgs.ai_liuli_effect=false
 		return
 	end
 	for _, to in ipairs(tos) do
 		local value = 80
-		if sgs.ai_collateral then sgs.ai_collateral=false value = 0 end
+		if sgs.ai_collateral then sgs.ai_collateral = false value = 0 end
 
 		if sgs.ai_leiji_effect then
-			if from and from:hasSkill("liegong") then return end
-			sgs.ai_leiji_effect = false
+			if from and from:hasSkill("liegong") and from:getPhase() == sgs.Player_Play 
+				and (to:getHandcardNum() <= from:getAttackRange() or to:getHandcardNum() >= from:getHp()) then 
+				sgs.ai_leiji_effect = false
+			end
+			
 			if sgs.ai_pojun_effect then
 				value = value/1.5
 			else
@@ -644,7 +677,7 @@ sgs.ai_card_intention.Slash = function(self, card,from,tos)
 				value = 0
 			end
 		end
-		speakTrigger(card,from,to)
+		speakTrigger(card, from, to)
 		if to:hasSkill("yiji") then
 			-- value = value*(2-to:getHp())/1.1
 			value = math.max(value*(2-to:getHp())/1.1, 0)

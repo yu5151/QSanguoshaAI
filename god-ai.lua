@@ -78,7 +78,8 @@ function sgs.ai_slash_prohibit.wuhun(self, to, card, from)
 	end
 end
 
-function SmartAI:cantbeHurt(player, damageNum)
+function SmartAI:cantbeHurt(player, damageNum, from)
+	from = from or self.player
 	if self.player:hasSkill("jueqing") then return false end
 	local maxfriendmark = 0
 	local maxenemymark = 0

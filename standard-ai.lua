@@ -788,11 +788,20 @@ rende_skill.getTurnUseCard=function(self)
 				local slashs = self:getCards("Slash")
 				local slash_count = 0
 				for _, slash in ipairs(slashs) do
-					if self:slashIsEffective(slash, enemy) then
+					if not self:slashProhibit(slash, enemy) then
 						slash_count = slash_count + 1
 					end
 				end
 				if slash_count >= enemy:getHp() then return false end
+			end
+		end
+	end
+	for _, enemy in ipairs(self.enemies) do
+		if enemy:canSlash(self.player) and not self:slashProhibit(nil, self.player, enemy) and self:playerGetRound(enemy) <= 3 then
+			if self:isEquip("GudingBlade", enemy) and self.player:getHandcardNum() == 1 and getCardsNum("Slash", enemy) >= 1 then
+				return false
+			elseif self:isEquip("Crossbow", enemy) and not self:getOverflow() then
+				return false
 			end
 		end
 	end

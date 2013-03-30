@@ -449,7 +449,7 @@ end
 
 sgs.ai_skill_use_func.XiongyiCard = function(card, use, self)
 	use.card = card
-	for i = 1, #self.friends - 1 do
+	for i = 1, #self.friends do
 		if use.to then use.to:append(self.friends[i]) end
 	end
 end

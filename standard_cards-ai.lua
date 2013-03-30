@@ -418,12 +418,15 @@ function SmartAI:useCardSlash(card, use)
 					self:slashIsEffective(card, friend) then
 					use.card = card
 					if use.to then
-						if use.to:length() == self.slash_targets then
-							if self.player:hasSkill("duanbing") then
-								if self.player:distanceTo(friend, rangefix) == 1 then
-									use.to:append(friend)
+						if use.to:length() == self.slash_targets - 1 and self.player:hasSkill("duanbing") then
+							local has_extra = false
+							for _, tg in sgs.qlist(use.to) do
+								if self.player:distanceTo(tg, rangefix) == 1 then
+									has_extra = true
+									break
 								end
-							else
+							end
+							if has_extra or self.player:distanceTo(friend, rangefix) == 1 then
 								use.to:append(friend)
 							end
 						else
@@ -1827,7 +1830,21 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			addTarget(enemy, enemy:getArmor())
 		end
 	end
+
+	if yanxiao_card and yanxiao_target then
+		addTarget(yanxiao_target, yanxiao_card)
+	end
 	
+	for _, enemy in ipairs(enemies) do
+		if self:getValuableCard(enemy) and self:hasTrickEffective(card, enemy) then
+			addTarget(enemy, self:getValuableCard(enemy))
+		end
+	end
+
+	if hasLion then
+		addTarget(target, target:getArmor())
+	end
+
 	for i= 1,2,1 do
 		for _, enemy in ipairs(enemies) do
 			if self:hasTrickEffective(card, enemy) and not self:needKongcheng(enemy) and not self:doNotDiscard(enemy) then
@@ -1845,20 +1862,6 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 				end
 			end
 		end
-	end
-
-	if yanxiao_card and yanxiao_target then
-		addTarget(yanxiao_target, yanxiao_card)
-	end
-	
-	for _, enemy in ipairs(enemies) do
-		if self:getValuableCard(enemy) and self:hasTrickEffective(card, enemy) then
-			addTarget(enemy, self:getValuableCard(enemy))
-		end
-	end
-
-	if hasLion then
-		addTarget(target, target:getArmor())
 	end
 
 	for _, enemy in ipairs(enemies) do

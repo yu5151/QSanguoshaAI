@@ -71,7 +71,7 @@ function sgs.ai_slash_prohibit.wuhun(self, to, card, from)
 	end
 	if self:isEnemy(to) and not (to:isLord() and from:getRole() == "rebel") then
 		if (maxfriendmark + damageNum >= maxenemymark) and not (#self.enemies==1 and #self.friends + #self.enemies == self.room:alivePlayerCount()) then 
-			if not (from:getMark("@nightmare") == maxfriendmark and  self.role == "loyalist") then
+			if not (from:getMark("@nightmare") == maxfriendmark and from:getRole() == "loyalist") then
 				return true
 			end
 		end
@@ -97,7 +97,7 @@ function SmartAI:cantbeHurt(player, damageNum, from)
 		end
 		if self:isEnemy(player) and not (player:isLord() and from:getRole() == "rebel") then
 			if (maxfriendmark + damageNum  >= maxenemymark) and not (#self.enemies==1 and #self.friends + #self.enemies == self.room:alivePlayerCount()) then 
-				if not (from:getMark("@nightmare") == maxfriendmark and self.role == "loyalist") then
+				if not (from:getMark("@nightmare") == maxfriendmark and from:getRole() == "loyalist") then
 					return true
 				end
 			end
@@ -109,7 +109,7 @@ function SmartAI:cantbeHurt(player, damageNum, from)
 		if player:getHp() <=1 then
 			if from:getMaxHp() == 3 and from:getArmor() and from:getDefensiveHorse() then return false end
 			if from:getMaxHp() <= 3 or (from:isLord() and self:isWeak()) then return true end
-			if from:getMaxHp() <= 3 or (self.room:getLord() and self.role == "renegade") then return true end
+			if from:getMaxHp() <= 3 or (self.room:getLord() and from:getRole() == "renegade") then return true end
 		end
 	elseif player:hasSkill("tianxiang") then		
 		if getKnownCard(player, "diamond", false) + getKnownCard(player, "club", false) == player:getHandcardNum() then

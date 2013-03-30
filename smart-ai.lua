@@ -2700,7 +2700,7 @@ function SmartAI:needKongcheng(player, keep)
 			end
 		end
 	end
-	if not self:hasLoseHandcardEffective() then return true end
+	if not self:hasLoseHandcardEffective() and not player:isKongcheng() then return true end
 	if player:hasSkill("zhiji") and player:getMark("zhiji") == 0 then return true end
 	if player:hasSkill("shude") and player:getPhase() == sgs.Player_Play then return true end
 	return self:hasSkills(sgs.need_kongcheng, player)
@@ -4485,7 +4485,7 @@ function SmartAI:getAoeValue(card, player)
 
 		if player:hasSkill("huangen") then
 			if self:isFriend(player) then
-				if player:getHp() >= #self.friend_noself then
+				if player:getHp() >= #self.friends_noself then
 					good = good + 300
 				else
 					good = good + player:getHp()*50

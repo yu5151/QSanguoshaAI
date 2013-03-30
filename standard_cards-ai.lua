@@ -531,7 +531,7 @@ function SmartAI:useCardSlash(card, use)
 					or (use.isDummy and self.predictedRange and self.player:distanceTo(friend, rangefix) <= self.predictedRange))
 					and self:slashIsEffective(card, friend) then
 					use.card = card
-					if use.to then
+					if use.to and not use.to:contains(friend) then
 						if use.to:length() == self.slash_targets - 1 and self.player:hasSkill("duanbing") then
 							local has_extra = false
 							for _, tg in sgs.qlist(use.to) do

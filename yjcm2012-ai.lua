@@ -710,7 +710,7 @@ sgs.ai_chaofeng.xunyou = 2
 ----新马岱
 
 sgs.ai_skill_invoke.qianxi = function(self, data)
- 	for _, p in sgs.qlist(self.enemies) do
+ 	for _, p in ipairs(self.enemies) do
 		if self.player:distanceTo(p) == 1 and not p:isKongcheng() then
 			return true
 		end

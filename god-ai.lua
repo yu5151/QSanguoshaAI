@@ -80,7 +80,7 @@ end
 
 function SmartAI:cantbeHurt(player, damageNum, from)
 	from = from or self.player
-	if self.player:hasSkill("jueqing") then return false end
+	if from:hasSkill("jueqing") then return false end
 	local maxfriendmark = 0
 	local maxenemymark = 0
 	local dyingfriend = 0
@@ -95,9 +95,9 @@ function SmartAI:cantbeHurt(player, damageNum, from)
 			local enemymark = enemy:getMark("@nightmare")
 			if enemymark > maxenemymark and enemy:objectName() ~= player:objectName() then maxenemymark = enemymark end
 		end
-		if self:isEnemy(player) and not (player:isLord() and self.player:getRole() == "rebel") then
+		if self:isEnemy(player) and not (player:isLord() and from:getRole() == "rebel") then
 			if (maxfriendmark + damageNum  >= maxenemymark) and not (#self.enemies==1 and #self.friends + #self.enemies == self.room:alivePlayerCount()) then 
-				if not (self.player:getMark("@nightmare") == maxfriendmark and self.role == "loyalist") then
+				if not (from:getMark("@nightmare") == maxfriendmark and self.role == "loyalist") then
 					return true
 				end
 			end
@@ -107,9 +107,9 @@ function SmartAI:cantbeHurt(player, damageNum, from)
 	elseif player:hasSkill("duanchang") then
 		if player:getHp() > 1 or #self.enemies == 1 then return false end
 		if player:getHp() <=1 then
-			if self.player:getMaxHp() == 3 and self.player:getArmor() and self.player:getDefensiveHorse() then return false end
-			if self.player:getMaxHp() <= 3 or (self.player:isLord() and self:isWeak()) then return true end
-			if self.player:getMaxHp() <= 3 or (self.room:getLord() and self.role == "renegade") then return true end
+			if from:getMaxHp() == 3 and from:getArmor() and from:getDefensiveHorse() then return false end
+			if from:getMaxHp() <= 3 or (from:isLord() and self:isWeak()) then return true end
+			if from:getMaxHp() <= 3 or (self.room:getLord() and self.role == "renegade") then return true end
 		end
 	elseif player:hasSkill("tianxiang") then		
 		if getKnownCard(player, "diamond", false) + getKnownCard(player, "club", false) == player:getHandcardNum() then

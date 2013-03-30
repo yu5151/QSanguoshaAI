@@ -368,7 +368,8 @@ function SmartAI:getUseValue(card)
 		if self.player:hasSkill("wumou") and card:isNDTrick() and not card:isKindOf("AOE") then
 			if not (card:isKindOf("Duel") and self.player:hasUsed("WuqianCard")) then v = 1 end
 		end
-		--if not self:hasTrickEffective(card) then v = 0 end
+		local to = card:targetFixed() and self.player or self.player:getNextAlive()
+		if not self:hasTrickEffective(card, to, self.player) then v = 0 end
 	end
 
 	if self:hasSkills(sgs.need_kongcheng) then
@@ -2691,13 +2692,13 @@ function SmartAI:needKongcheng(player, keep)
 
 	if player:hasSkill("beifa") and not player:isKongcheng() then
 		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-		for _, to in sgs.qlist(self.room:getAlivePlayers()) do 	
-			if self:isEnemy(to, player) and player:canSlash(to, slash) and not self:slashProhibit(slash, to)
+		for _, to in ipairs(self:getEnemies(player)) do
+			if player:canSlash(to, slash) and not self:slashProhibit(slash, to)
 			  and self:slashIsEffective(slash, to) and not self:getDamagedEffects(to, player, true) 
 			  and not self:needToLostHp(to, player, true) then
 				return true
 			end
-		end	
+		end
 	end
 	if not self:hasLoseHandcardEffective() then return true end
 	if player:hasSkill("zhiji") and player:getMark("zhiji") == 0 then return true end

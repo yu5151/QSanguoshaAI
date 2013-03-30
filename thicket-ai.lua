@@ -289,7 +289,8 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 				if self:isWeak() and (self.player:getHp() < 2 and self:getCardsNum("Peach") < 1) then
 					wf = true
 				end
-			else
+			end
+			if not wf then
 				for _, friend in ipairs(self.friends_noself) do
 					if self:isWeak(friend) then
 						wf = true 
@@ -297,6 +298,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 					end
 				end
 			end
+
 			if not wf then
 				self:sort(self.enemies, "chaofeng")
 				for _, enemy in ipairs(self.enemies) do

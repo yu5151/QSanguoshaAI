@@ -632,7 +632,7 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 		local target = targetlist[i]
 		if not self:slashProhibit(slash, target) then
 			if self:slashIsEffective(slash,target) then
-				if self:isFriend(target) and (target:getHp() > getBestHp(target) or self:getDamagedEffects(target, self.player)) then
+				if self:isFriend(target) and (self:needToLostHp(target, self.player, true) or self:getDamagedEffects(target, self.player, true)) then
 					return target
 				end
 			else
@@ -1204,7 +1204,7 @@ sgs.ai_skill_invoke.EightDiagram = function(self, data)
 		local zhangjiao = self.room:findPlayerBySkillName("guidao")
 		return getKnownCard(zhangjiao, "black", false, "he") > 1
 	end	
-	if self:getDamagedEffects(self.player) or self.player:getHp() > getBestHp(self.player) then return false end
+	if self:getDamagedEffects(self.player, nil, true) or self.player:getHp() > getBestHp(self.player, nil, true) then return false end
 	return true
 end
 
@@ -2095,9 +2095,9 @@ sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target,
 	end
 
 	if self:isFriend(target2) and target2:hasSkill("leiji") 
-		and ( self:hasSuit("spade", true, target2) or target2:getHandcardNum() >= 3)
-		and (getKnownCard(target2,"Jink",true) >= 1 or 
-			(not self:isWeak(target2) and not self:isEquip("QinggangSword", self.player) and self:isEquip("EightDiagram",target2) )) then
+		and (self:hasSuit("spade", true, target2) or target2:getHandcardNum() >= 3)
+		and (getKnownCard(target2, "Jink", true) >= 1 or 
+			(not self:isWeak(target2) and not self:isEquip("QinggangSword", self.player) and self:isEquip("EightDiagram", target2) )) then
 
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if self:slashIsEffective(slash, target2) then 
@@ -2106,7 +2106,7 @@ sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target,
 		end		
 	end
 
-	if target2 and (self:getDamagedEffects(target2,self.player) or target2:getHp() > getBestHp(target2)) then		
+	if target2 and (self:getDamagedEffects(target2, self.player, true) or self:needToLostHp(target2, self.player, true)) then		
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if self:slashIsEffective(slash, target2) and self:isFriend(target2) then 
 				return slash:toString()

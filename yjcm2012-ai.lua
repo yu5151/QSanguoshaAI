@@ -729,18 +729,18 @@ sgs.ai_skill_playerchosen.qianxi = function(self, targets)
 		if #enemies > 0 then
 			self:sort(enemies, "defense")
 			if self:getCardsNum("Jink", enemies[1]) >= 1 or #enemies == 1 or
-			(self:hasHeavySlashDamage(self.player, nil, enemies[1]) and enemies[1]:getHp() <= 2 or enemies[1]:getHp() > 1) then
+			(not enemies[1]:isKongcheng() and self:hasHeavySlashDamage(self.player, nil, enemies[1]) and enemies[1]:getHp() <= 2) then
 				return enemies[1]
 			end
 			local suit = self.player:getTag("qianxi"):toString()
 			for _, enemy in ipairs(enemies) do
-				if enemies[1]:objectName() ~= enemy:objectName() then
+				if enemies[1]:objectName() ~= enemy:objectName() and not enemy:isKongcheng() then
 					if suit == "red" then
 						if (self:hasSkills("longhun|qingnang|beige", enemy) and getKnownCard(enemy,"red", nil, "he") >= 1) or getCardsNum("Peach") >=1 then
 							return enemy
 						end
 					elseif suit == "black" then
-						if (enemy:hasSkill("qingguo") and not enemy:isKongcheng()) or 
+						if enemy:hasSkill("qingguo") or 
 							(self:hasSkills("longhun|beige", enmey) and getKnownCard(enemy,"black", nil, "he") >= 1) then
 							return enmey
 						end

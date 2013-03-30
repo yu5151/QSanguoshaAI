@@ -22,7 +22,7 @@ sgs.ai_skill_invoke.huanshi = true
 
 sgs.ai_skill_choice.huanshi = function(self, choices)
 	local zhugejin = self.room:findPlayerBySkillName("huanshi")
-	if self:objectiveLevel(zhugejin) > 2 then return "reject" end
+	if zhugejin and self:isEnemy(zhugejin) then return "reject" end
 	return "accept"
 end
 

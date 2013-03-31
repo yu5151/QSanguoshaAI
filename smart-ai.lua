@@ -1644,6 +1644,8 @@ function SmartAI:filterEvent(event, player, data)
 				sgs.langgu_target = damage.from
 			elseif damage.to:hasSkill("tanlan") then
 				sgs.tanlan_target = damage.from
+			elseif damage.to:hasSkill("enyuan") then
+				sgs.enyuan_damage_target = damage.from
 			end
 		end
 	elseif event == sgs.Damaged then
@@ -1833,6 +1835,11 @@ function SmartAI:filterEvent(event, player, data)
 					end
 				end
 			end
+		end
+		
+		if from and to and from:objectName() ~= to:objectName() and from:isAlive() and to:hasSkill("enyuan") and 
+			move.card_ids:length() > 1 and move.reason.m_reason ~= sgs.CardMoveReason_S_REASON_PREVIEWGIVE then
+			sgs.enyuan_drawcard_target = from
 		end
 		
 	elseif event == sgs.StartJudge then

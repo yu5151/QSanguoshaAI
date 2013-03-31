@@ -125,6 +125,22 @@ sgs.ai_skill_invoke.enyuan = function(self, data)
 	return
 end
 
+sgs.ai_choicemade_filter.skillInvoke.enyuan = function(player, promptlist, self)
+	if promptlist[3] == "yes" then
+		local intention = 10
+		if sgs.enyuan_damage_target then 
+			if self:getOverflow(sgs.enyuan_damage_target) > 2 then intention = 0 end
+			sgs.updateIntention(player, sgs.enyuan_damage_target, intention)
+		elseif sgs.enyuan_drawcard_target then
+			if not self:needKongcheng(sgs.enyuan_drawcard_target, true) then
+				sgs.updateIntention(player, sgs.enyuan_drawcard_target, -10)
+			end
+		end
+	end
+	sgs.enyuan_damage_target = nil
+	sgs.enyuan_drawcard_target = nil
+end
+
 sgs.ai_skill_discard.enyuan = function(self, discard_num, min_num, optional, include_equip)
 	local to_discard = {}
 	local cards = self.player:getHandcards()
@@ -135,15 +151,15 @@ sgs.ai_skill_discard.enyuan = function(self, discard_num, min_num, optional, inc
 		for _, card in ipairs(cards) do
 			if isCard("Peach", card, fazheng) and ((not self:isWeak() and self:getCardsNum("Peach") > 0) or self:getCardsNum("Peach") > 1) then
 				table.insert(to_discard, card:getEffectiveId())
-				return to_discard				
+				return to_discard
 			end
 			if isCard("Analeptic", card, fazheng) and self:getCardsNum("Analeptic") > 1 then
 				table.insert(to_discard, card:getEffectiveId())
-				return to_discard				
+				return to_discard
 			end
 			if isCard("Jink", card, fazheng) and self:getCardsNum("Jink") > 1 then
 				table.insert(to_discard, card:getEffectiveId())
-				return to_discard				
+				return to_discard
 			end
 		end
 	end

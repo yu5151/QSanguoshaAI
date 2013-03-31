@@ -480,7 +480,7 @@ sgs.ai_skill_invoke.buyi = function(self, data)
 	if knownNum < dying.who:getHandcardNum() then allBasicCard = false end
 	
 	local ret = isFriend and (not allBasicCard)
-	if ret and dying.who:objectName() ~= self.player:objectName() then sgs.updateIntention(self.player, dying.who, -80) end
+	-- if ret and dying.who:objectName() ~= self.player:objectName() then sgs.updateIntention(self.player, dying.who, -80) end
 	return ret
 end
 
@@ -495,6 +495,15 @@ sgs.ai_cardshow.buyi = function(self, requestor)
 	end
 
 	return self.player:getRandomHandCard()
+end
+
+sgs.ai_choicemade_filter.cardChosen.buyi = function(player, promptlist, self)
+	for _, ap in sgs.qlist(self.room:getOtherPlayers(player)) do
+		if ap:hasFlag("dying") and ap:getHp() < 1 then
+			sgs.updateIntention(player, ap, -10)
+			break
+		end
+	end
 end
 
 mingce_skill={}

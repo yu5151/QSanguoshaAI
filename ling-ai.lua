@@ -216,15 +216,15 @@ sgs.ai_skill_invoke.neoganglie = function(self, data)
 end
 
 sgs.ai_choicemade_filter.skillInvoke.neoganglie = function(player, promptlist, self)
-	if sgs.ganglie_target then
+	if sgs.ganglie_target and promptlist[3] == "yes" then
 		local target = sgs.ganglie_target
 		local intention = 10
-		if self:getDamagedEffects(target, player) or self:hasSkills(sgs.masochism_skill, target) then
+		if self:getDamagedEffects(target, player) or (self:hasSkills(sgs.masochism_skill, target) and target:getHp() > 1) then
 			intention = 0 
 		end
 		sgs.updateIntention(player, target, intention)
-		sgs.ganglie_target = nil
 	end
+	sgs.ganglie_target = nil
 end
 
 sgs.ai_need_damaged.neoganglie = function (self, attacker, player)

@@ -980,8 +980,8 @@ end
 sgs.ai_choicemade_filter.skillInvoke.langgu = function(player, promptlist, self)
 	if sgs.langgu_target and promptlist[3] == "yes" then
 		sgs.updateIntention(player, sgs.langgu_target, 10)
-		sgs.langgu_target = nil
 	end
+	sgs.langgu_target = nil
 end
 
 sgs.ai_skill_askforag.langgu = function(self, card_ids)

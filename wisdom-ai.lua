@@ -171,8 +171,8 @@ sgs.ai_choicemade_filter.skillInvoke.tanlan = function(player, promptlist, self)
 		local intention = 10
 		if target:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng, target) then intention = -intention end
 		sgs.updateIntention(player, sgs.tanlan_target, intention)
-		sgs.tanlan_target = nil
 	end
+	sgs.tanlan_target = nil
 end
 
 function sgs.ai_skill_pindian.tanlan(minusecard, self, requestor, maxcard)

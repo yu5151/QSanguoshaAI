@@ -217,8 +217,6 @@ end
 
 sgs.ai_need_damaged.neoganglie = function (self, attacker, player)
 	if not player:hasSkill("neoganglie") then return false end
-	if self:getDamagedEffects(attacker, player) then return self:isFriend(attacker, player) end
-
 	if self:isEnemy(attacker, player) and attacker:getHp() <= 2 and not attacker:hasSkill("buqu") and sgs.isGoodTarget(attacker, self.enemies, self) then
 		return true
 	end
@@ -233,9 +231,9 @@ sgs.ai_skill_choice.neoganglie = function(self, choices)
 			self.room:setPlayerFlag(target, "-ganglie_target")
 		end
 	end
-	if self:getDamagedEffects(target,self.player) and self:isFriend(target) then return "damage" end
+	if self:getDamagedEffects(target, self.player) and self:isFriend(target) then return "damage" end
 
-	if (self:hasSkills(sgs.masochism_skill,target) or self:getDamagedEffects(target,self.player)) and target:getHandcardNum() > 1 then
+	if (self:hasSkills(sgs.masochism_skill, target) or self:getDamagedEffects(target, self.player)) and target:getHandcardNum() > 1 then
 		return "throw"
 	end
 	return "damage"

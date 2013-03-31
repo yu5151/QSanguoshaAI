@@ -747,4 +747,11 @@ sgs.ai_skill_invoke.shien = function(self, data)
 	return false
 end
 
+sgs.ai_choicemade_filter.skillInvoke.shien = function(player, promptlist, self)
+	local simahui = self.room:findPlayerBySkillName("shien")
+	if simahui and promptlist[3] == "yes" then
+		sgs.updateIntention(player, simahui, -10)
+	end
+end
+
 sgs.ai_chaofeng.wis_shuijing = 5

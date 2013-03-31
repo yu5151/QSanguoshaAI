@@ -686,6 +686,7 @@ sgs.ai_card_intention.Slash = function(self, card, from, tos)
 			value = math.max(value*(2-to:getHp())/1.1, 0)
 		end
 		if from:hasSkill("pojun") and to:getHp() > 3 then value = 0 end
+		if self:getDamagedEffects(to, from, true) then value = 0 end
 		sgs.updateIntention(from, to, value)
 	end
 end

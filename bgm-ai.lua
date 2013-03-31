@@ -8,6 +8,18 @@ sgs.ai_skill_invoke.chongzhen = function(self, data)
 	end
 end
 
+sgs.ai_choicemade_filter.cardChosen.chongzhen = function(player, promptlist, self)
+	if sgs.chongzhen_target then
+		local target = sgs.chongzhen_target
+		local intention = 10
+		if not self:hasLoseHandcardEffective(target) or self:needKongcheng(target) and target:getHandcardNum() == 1 then
+			intention = 0
+		end
+		sgs.updateIntention(player, target, intention)
+		sgs.chongzhen_target = nil
+	end
+end
+
 sgs.ai_slash_prohibit.chongzhen = function(self, to, card, from)
 	if self:isFriend(to) then return false end
 	if from:hasSkill("tieji")

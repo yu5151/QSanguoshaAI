@@ -1628,10 +1628,14 @@ function SmartAI:filterEvent(event, player, data)
 		else
 			sgs.LordNeedPeach = nil
 		end
-	elseif event == sgs.DamageDone then
+	elseif event == sgs.Damage then
 		local damage = data:toDamage()
-		if damage.from and damage.to and damage.from:objectName() ~= damage.to:objectName() and damage.to:hasSkill("fankui") then
-			sgs.fankui_target = damage.from
+		if damage.from and damage.to and damage.from:objectName() ~= damage.to:objectName() then
+			if damage.to:hasSkill("fankui") then
+				sgs.fankui_target = damage.from
+			elseif damage.to:hasSkills("ganglie|neoganglie") then
+				sgs.ganglie_target = damage.from
+			end
 		end
 	elseif event == sgs.Damaged then
 		local damage = data:toDamage()
@@ -1651,10 +1655,10 @@ function SmartAI:filterEvent(event, player, data)
 				intention = 100 
 			end
 
-			if sgs.ai_ganglie_effect and sgs.ai_ganglie_effect ==string.format("%s_%s_%d",from:objectName(), to:objectName(), sgs.turncount)  then
-				sgs.ai_ganglie_effect = nil
-				intention = -30
-			end
+			-- if sgs.ai_ganglie_effect and sgs.ai_ganglie_effect ==string.format("%s_%s_%d",from:objectName(), to:objectName(), sgs.turncount)  then
+				-- sgs.ai_ganglie_effect = nil
+				-- intention = -30
+			-- end
 			
 			if damage.transfer or damage.chain then intention = 0 end
 			

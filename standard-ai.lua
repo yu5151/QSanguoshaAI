@@ -236,12 +236,22 @@ sgs.ai_skill_invoke.ganglie = function(self, data)
 	local who=data:toPlayer()
 	if self:getDamagedEffects(who,self.player) then 
 		if self:isFriend(who) then
-			sgs.ai_ganglie_effect = string.format("%s_%s_%d",self.player:objectName(), who:objectName(),sgs.turncount) 
+			-- sgs.ai_ganglie_effect = string.format("%s_%s_%d",self.player:objectName(), who:objectName(),sgs.turncount) 
 			return true
 		end
 		return false
 	end
 	return not self:isFriend(who)
+end
+
+sgs.ai_choicemade_filter.skillInvoke.ganglie = function(player, promptlist, self)
+	if sgs.ganglie_target then
+		local target = sgs.ganglie_target
+		local intention = 10
+		if self:getDamagedEffects(target, player) then intention = 0 end
+		sgs.updateIntention(player, target, intention)
+		sgs.ganglie_target = nil
+	end
 end
 
 sgs.ai_need_damaged.ganglie = function (self, attacker, player)

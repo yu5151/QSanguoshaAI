@@ -405,7 +405,7 @@ function SmartAI:useCardSlash(card, use)
 	for _, friend in ipairs(self.friends_noself) do
 		local slash_prohibit = false
 		slash_prohibit = self:slashProhibit(card, friend)
-		if (friend:hasSkill("leiji") and not self.player:hasFlag("luoyi") and self:hasSuit("spade", true, friend) 
+		if not self:hasHeavySlashDamage(self.player, card, friend) and (friend:hasSkill("leiji") and not self.player:hasFlag("luoyi") and self:hasSuit("spade", true, friend) 
 			and (getKnownCard(friend, "Jink", true) >= 1 
 			or (not IgnoreArmor(self.player, friend) and not self:isWeak(friend) and self:isEquip("EightDiagram", friend)))
 			and self:findLeijiTarget(friend, 50))
@@ -524,9 +524,10 @@ function SmartAI:useCardSlash(card, use)
 	
 	for _, friend in ipairs(self.friends_noself) do
 		local slash_prohibit = self:slashProhibit(card, friend)
-		if not self:hasHeavySlashDamage(self.player, card, friend) then
+		if not self:hasHeavySlashDamage(self.player, card, friend) and (not use.to or not use.to:contains(friend)) then
 			if (self.player:hasSkill("pojun") and friend:getHp() > 4 and getCardsNum("Jink", friend) == 0 and friend:getHandcardNum() < 3)
-				or self:getDamagedEffects(friend, self.player) then
+				or self:getDamagedEffects(friend, self.player)
+				or self:needToLoseHp(friend, self.player, true) then
 				if not slash_prohibit then
 					if ((self.player:canSlash(friend, card, not no_distance, rangefix))
 						or (use.isDummy and self.predictedRange and self.player:distanceTo(friend, rangefix) <= self.predictedRange))
@@ -687,8 +688,8 @@ sgs.ai_card_intention.Slash = function(self, card, from, tos)
 			-- value = value*(2-to:getHp())/1.1
 			value = math.max(value*(2-to:getHp())/1.1, 0)
 		end
-		if from:hasSkill("pojun") and to:getHp() > 3 then value = 0 end
-		if self:getDamagedEffects(to, from, true) and not self:hasHeavySlashDamage(from, card, to) then value = 0 end
+		if not self:hasHeavySlashDamage(from, card, to) and (self:getDamagedEffects(to, from, true) or self:needToLoseHp(to, from, true)) then value = 0 end
+		if from:hasSkill("pojun") and to:getHp() > 2 + self:hasHeavySlashDamage(from, card, to, true) then value = 0 end
 		sgs.updateIntention(from, to, value)
 	end
 end

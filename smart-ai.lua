@@ -1588,9 +1588,9 @@ function SmartAI:filterEvent(event, player, data)
 		
 		local lord = getLord(player)
 		if lord and struct.card and lord:getHp() == 1 and self:aoeIsEffective(struct.card, lord, from) then
-			if struct.card:isKindOf("SavageAssault") then
+			if struct.card:isKindOf("SavageAssault") and struct.to:contains(lord) then
 				sgs.ai_lord_in_danger_SA = true
-			elseif struct.card:isKindOf("ArcheryAttack") then
+			elseif struct.card:isKindOf("ArcheryAttack") and struct.to:contains(lord) then
 				sgs.ai_lord_in_danger_AA = true
 			end
 		end
@@ -1615,7 +1615,12 @@ function SmartAI:filterEvent(event, player, data)
 				if to:isLord() and not hasExplicitRebel(self.room) then sgs.updateIntention(from, to, 50) end
 				sgs.ai_leiji_effect = true
 			end
-		end	
+		end
+		
+		if from and to and to:hasSkills("longdan+chongzhen") and (card:isKindOf("AOE") or card:isKindOf("Slash")) then
+			sgs.chongzhen_target = from
+		end
+		
 	elseif event == sgs.PreHpReduced then
 		local damage = data:toDamage()
 		local lord = getLord(player)
@@ -1628,10 +1633,20 @@ function SmartAI:filterEvent(event, player, data)
 		else
 			sgs.LordNeedPeach = nil
 		end
-	elseif event == sgs.DamageDone then
+	elseif event == sgs.Damage then
 		local damage = data:toDamage()
-		if damage.from and damage.to and damage.from:objectName() ~= damage.to:objectName() and damage.to:hasSkill("fankui") then
-			sgs.fankui_target = damage.from
+		if damage.from and damage.to and damage.from:objectName() ~= damage.to:objectName() then
+			if damage.to:hasSkill("fankui") then
+				sgs.fankui_target = damage.from
+			elseif damage.to:hasSkills("ganglie|neoganglie") then
+				sgs.ganglie_target = damage.from
+			elseif damage.to:hasSkill("langgu") then
+				sgs.langgu_target = damage.from
+			elseif damage.to:hasSkill("tanlan") then
+				sgs.tanlan_target = damage.from
+			elseif damage.to:hasSkill("enyuan") then
+				sgs.enyuan_damage_target = damage.from
+			end
 		end
 	elseif event == sgs.Damaged then
 		local damage = data:toDamage()
@@ -1651,10 +1666,10 @@ function SmartAI:filterEvent(event, player, data)
 				intention = 100 
 			end
 
-			if sgs.ai_ganglie_effect and sgs.ai_ganglie_effect ==string.format("%s_%s_%d",from:objectName(), to:objectName(), sgs.turncount)  then
-				sgs.ai_ganglie_effect = nil
-				intention = -30
-			end
+			-- if sgs.ai_ganglie_effect and sgs.ai_ganglie_effect ==string.format("%s_%s_%d",from:objectName(), to:objectName(), sgs.turncount)  then
+				-- sgs.ai_ganglie_effect = nil
+				-- intention = -30
+			-- end
 			
 			if damage.transfer or damage.chain then intention = 0 end
 			
@@ -1678,6 +1693,8 @@ function SmartAI:filterEvent(event, player, data)
 		if card and lord and card:isKindOf("Duel") and lord:hasFlag("will_wake") then
 			lord:setFlags("-will_wake")
 		end
+		
+		if sgs.chongzhen_target then sgs.chongzhen_target = nil end
 		
 	elseif event == sgs.CardsMoveOneTime then
 		local move = data:toMoveOneTime()
@@ -1818,6 +1835,11 @@ function SmartAI:filterEvent(event, player, data)
 					end
 				end
 			end
+		end
+		
+		if from and to and from:objectName() ~= to:objectName() and from:isAlive() and to:hasSkill("enyuan") and 
+			move.card_ids:length() > 1 and move.reason.m_reason ~= sgs.CardMoveReason_S_REASON_PREVIEWGIVE then
+			sgs.enyuan_drawcard_target = from
 		end
 		
 	elseif event == sgs.StartJudge then
@@ -4323,10 +4345,10 @@ function SmartAI:getAoeValueTo(card, to , from)
 			end
 		end
 		
-		if to:hasSkill("longdan+chongzhen") and self:isEnemy(to) then
-			if card:isKindOf("ArcheryAttack") and getCardsNum("Slash") >= 1 then
+		if to:hasSkills("longdan+chongzhen") and self:isEnemy(to) then
+			if card:isKindOf("ArcheryAttack") and getCardsNum("Slash", to) >= 1 then
 				value = value + 15
-			elseif card:isKindOf("SavageAssault") and getCardsNum("Jink") >= 1 then
+			elseif card:isKindOf("SavageAssault") and getCardsNum("Jink", to) >= 1 then
 				value = value + 15
 			end
 		end

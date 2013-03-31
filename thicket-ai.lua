@@ -1,6 +1,6 @@
 sgs.ai_skill_invoke.xingshang = true
 
-function toTurnOver(self, player, n) 
+function SmartAI:toTurnOver(player, n) 
 	if not player then global_room:writeToConsole(debug.traceback()) return end			
 	if (player:hasFlag("GuixinUsing") or player:hasFlag("ShenfenUsing")) and player:faceUp() then
 		return false
@@ -24,7 +24,7 @@ sgs.ai_skill_use["@@fangzhu"] = function(self, prompt)
 	local target
 	local n = self.player:getLostHp()
 	for _, friend in ipairs(self.friends_noself) do
-		if not toTurnOver(self, friend, n) then
+		if not self:toTurnOver(friend, n) then
 			target = friend
 			break
 		end
@@ -35,7 +35,7 @@ sgs.ai_skill_use["@@fangzhu"] = function(self, prompt)
 			target = self:findPlayerToDraw("noself", n)
 			if not target then
 				for _, enemy in ipairs(self.enemies) do									
-					if toTurnOver(self, enemy, n) and enemy:hasSkill("manjuan") and enemy:getPhase() == sgs.Player_NotActive then
+					if self:toTurnOver(enemy, n) and enemy:hasSkill("manjuan") and enemy:getPhase() == sgs.Player_NotActive then
 						target = enemy
 						break
 					end
@@ -44,14 +44,14 @@ sgs.ai_skill_use["@@fangzhu"] = function(self, prompt)
 		else
 			self:sort(self.enemies, "chaofeng")		
 			for _, enemy in ipairs(self.enemies) do									
-				if toTurnOver(self, enemy, n) and enemy:hasSkill("manjuan") and enemy:getPhase() == sgs.Player_NotActive then
+				if self:toTurnOver(enemy, n) and enemy:hasSkill("manjuan") and enemy:getPhase() == sgs.Player_NotActive then
 					target = enemy
 					break
 				end
 			end
 			if not target then
 				for _, enemy in ipairs(self.enemies) do									
-					if toTurnOver(self, enemy, n) and self:hasSkills(sgs.priority_skill, enemy) then
+					if self:toTurnOver(enemy, n) and self:hasSkills(sgs.priority_skill, enemy) then
 						target = enemy
 						break
 					end
@@ -59,7 +59,7 @@ sgs.ai_skill_use["@@fangzhu"] = function(self, prompt)
 			end
 			if not target then
 				for _, enemy in ipairs(self.enemies) do		
-					if toTurnOver(self, enemy, n) then					
+					if self:toTurnOver(enemy, n) then					
 						target = enemy
 						break
 					end
@@ -103,12 +103,19 @@ end
 
 sgs.ai_need_damaged.fangzhu = function (self, attacker, player)
 	if not player:hasSkill("fangzhu") then return false end
+	local enemies = self:getEnemies(player)
+	if #enemies < 1 then return false end
+	self:sort(enemies, "defense")
+	for _, enemy in ipairs(enemies) do
+		if player:getLostHp() < 1 and self:toTurnOver(enemy, player:getLostHp() + 1) then
+			return true
+		end
+	end
 	local friends = self:getFriends(player)
-	self:sort(friends)
+	self:sort(friends, "defense")
 	for _, friend in ipairs(friends) do
-		if player:objectName() ~= friend:objectName() and toTurnOver(self, friend, player:getLostHp()) then return true end
-	end	
-	if self.player:getLostHp() <= 1 and sgs.turncount > 2 then return true end	
+		if player:objectName() ~= friend:objectName() and not self:toTurnOver(friend, player:getLostHp() + 1) then return true end
+	end
 	return false
 end
 

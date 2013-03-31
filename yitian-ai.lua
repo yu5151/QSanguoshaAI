@@ -614,6 +614,14 @@ sgs.ai_skill_playerchosen.shaoying = function(self, targets)
 		return tos[1]
 	end
 end
+
+sgs.ai_playerchosen_intention.shaoying = function(from, to)
+	local zhangjiao = self.room:findPlayerBySkillName("guidao")
+	if not zhangjiao then
+		sgs.updateIntention(from, to , 10)
+	end
+end
+
 --[[
 	技能：共谋
 	描述：回合结束阶段开始时，可指定一名其他角色：其在摸牌阶段摸牌后，须给你X张手牌（X为你手牌数与对方手牌数的较小值），然后你须选择X张手牌交给对方 

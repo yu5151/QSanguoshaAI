@@ -800,7 +800,7 @@ rende_skill.getTurnUseCard=function(self)
 		if enemy:canSlash(self.player) and not self:slashProhibit(nil, self.player, enemy) and self:playerGetRound(enemy) <= 3 then
 			if self:isEquip("GudingBlade", enemy) and self.player:getHandcardNum() == 1 and getCardsNum("Slash", enemy) >= 1 then
 				return false
-			elseif self:isEquip("Crossbow", enemy) and not self:getOverflow() then
+			elseif self:isEquip("Crossbow", enemy) and not (self:getOverflow() > 0) then
 				return false
 			end
 		end

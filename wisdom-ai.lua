@@ -165,6 +165,16 @@ sgs.ai_skill_invoke.tanlan = function(self, data)
 	end
 end
 
+sgs.ai_choicemade_filter.skillInvoke.tanlan = function(player, promptlist, self)
+	if sgs.tanlan_target and promptlist[3] == "yes" then
+		local target = sgs.tanlan_target
+		local intention = 10
+		if target:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng, target) then intention = -intention end
+		sgs.updateIntention(player, sgs.tanlan_target, intention)
+		sgs.tanlan_target = nil
+	end
+end
+
 function sgs.ai_skill_pindian.tanlan(minusecard, self, requestor, maxcard)
 	local cards, maxcard = sgs.QList2Table(self.player:getHandcards())
 	local function compare_func(a, b)
@@ -537,9 +547,11 @@ sgs.ai_skill_playerchosen.jincui = function(self, targets)
 	return self.enemies[1]
 end
 
+
 sgs.ai_skill_choice.jincui = function(self, choices)
 	if sgs.jincui_discard then return "throw" else return "draw" end
 end
+
 
 --你使用黑色的【杀】造成的伤害+1，你无法闪避红色的【杀】
 

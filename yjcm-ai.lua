@@ -111,32 +111,36 @@ sgs.ai_chaofeng.masu = -4
 sgs.ai_skill_invoke.enyuan = function(self, data)
 	local move = data:toMoveOneTime()
 	if move and move.from and move.card_ids and move.card_ids:length() > 0 then
-		local from
-		for _, player in sgs.qlist(self.room:getAlivePlayers()) do
-			if player:objectName() == move.from:objectName() then from = player break end	
-		end
-		if from then return self:isFriend(from) and not (from:hasSkill("kongcheng") and from:isKongcheng()) end
-		return
+		local from = findPlayerByObjectName(self.room, move.from:objectName())
+		if from then return self:isFriend(from) and not self:needKongcheng(from, true) end
 	end
 	local damage = data:toDamage()
 	if damage.from and damage.from:isAlive() then
-		return not self:isFriend(damage.from) or self:getOverflow(damage.from) > 2
+		if self:isFriend(damage.from) then return self:getOverflow(damage.from) > 2 else return true end
 	end		
 	return
 end
 
 sgs.ai_choicemade_filter.skillInvoke.enyuan = function(player, promptlist, self)
-	if promptlist[3] == "yes" then
-		local intention = 10
-		if sgs.enyuan_damage_target then 
-			if self:getOverflow(sgs.enyuan_damage_target) > 2 then intention = 0 end
-			sgs.updateIntention(player, sgs.enyuan_damage_target, intention)
-		elseif sgs.enyuan_drawcard_target then
-			if not self:needKongcheng(sgs.enyuan_drawcard_target, true) then
-				sgs.updateIntention(player, sgs.enyuan_drawcard_target, -10)
-			end
+	local invoked = (promptlist[3] == "yes")
+	local intention = 0
+
+	if sgs.enyuan_damage_target then 
+		if not invoked then
+			intention = -10
+		elseif self:getOverflow(sgs.enyuan_damage_target) <= 2 then
+			intention = 10
 		end
+		sgs.updateIntention(player, sgs.enyuan_damage_target, intention)
+	elseif sgs.enyuan_drawcard_target then
+		if not invoked and not self:needKongcheng(sgs.enyuan_drawcard_target, true) then
+			intention = 10
+		elseif not self:needKongcheng(from, true) then
+			intention = -10
+		end
+		sgs.updateIntention(player, sgs.enyuan_drawcard_target, intention)
 	end
+
 	sgs.enyuan_damage_target = nil
 	sgs.enyuan_drawcard_target = nil
 end

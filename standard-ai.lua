@@ -233,8 +233,8 @@ sgs.ai_chaofeng.simayi = -2
 sgs.ai_skill_invoke.ganglie = function(self, data)
 	local mode = self.room:getMode()
 	if mode:find("_mini_41") then return true end
-	local who=data:toPlayer()
-	if self:getDamagedEffects(who,self.player) then 
+	local who = data:toPlayer()
+	if self:getDamagedEffects(who, self.player) then 
 		if self:isFriend(who) then
 			-- sgs.ai_ganglie_effect = string.format("%s_%s_%d",self.player:objectName(), who:objectName(),sgs.turncount) 
 			return true
@@ -245,13 +245,17 @@ sgs.ai_skill_invoke.ganglie = function(self, data)
 end
 
 sgs.ai_choicemade_filter.skillInvoke.ganglie = function(player, promptlist, self)
-	if sgs.ganglie_target and promptlist[3] == "yes" then
-		local target = sgs.ganglie_target
-		local intention = 10
-		if self:getDamagedEffects(target, player) or (self:hasSkills(sgs.masochism_skill, target) and target:getHp() > 1) then
-			intention = 0
+	if sgs.ganglie_target then
+		if promptlist[3] == "yes" then
+			local target = sgs.ganglie_target
+			local intention = 10
+			if self:getDamagedEffects(target, player) or (self:hasSkills(sgs.masochism_skill, target) and target:getHp() > 1) then
+				intention = 0
+			end
+			sgs.updateIntention(player, target, intention)
+		elseif self:canAttack(target) then
+			sgs.updateIntention(player, target, -10)
 		end
-		sgs.updateIntention(player, target, intention)
 	end
 	sgs.ganglie_target = nil
 end

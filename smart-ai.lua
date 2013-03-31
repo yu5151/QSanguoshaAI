@@ -1640,6 +1640,8 @@ function SmartAI:filterEvent(event, player, data)
 				sgs.fankui_target = damage.from
 			elseif damage.to:hasSkills("ganglie|neoganglie") then
 				sgs.ganglie_target = damage.from
+			elseif damage.to:hasSkill("langgu") then
+				sgs.langgu_target = damage.from
 			end
 		end
 	elseif event == sgs.Damaged then

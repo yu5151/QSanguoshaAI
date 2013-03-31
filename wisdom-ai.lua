@@ -632,6 +632,13 @@ sgs.ai_skill_invoke.shipo = function(self, data)
 	end
 end
 
+sgs.ai_choicemade_filter.skillInvoke.shipo = function(player, promptlist, self)
+	if promptlist[3] == "yes" then
+		local cp = self.room:getCurrent()
+		sgs.updateIntention(player, cp, -10)
+	end
+end
+
 sgs.ai_cardneed.gushou = function(to, card)
 	return to:getHandcardNum() < 3 and card:getTypeId() == sgs.Card_Basic
 end

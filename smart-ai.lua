@@ -4874,10 +4874,12 @@ function SmartAI:needRende()
 end
 
 function getBestHp(player)
-	local arr = {baiyin = 1, ganlu = 1, yinghun = 2, nosmiji = 1, xueji = 1, baobian = 2}
+	player = player or self.player
+	local arr = {ganlu = 1, yinghun = 2, nosmiji = 1, xueji = 1, baobian = math.max(0, player:getMaxHp() - 3)}
 
 	if player:hasSkill("longhun") and player:getCards("he"):length() > 2 then return 1 end
-	if player:getMark("@waked") > 0 and not player:hasSkill("xueji") then return player:getMaxHp() end
+	if player:hasSkill("baiyin") and player:getMark("baiyin") == 0 then return (player:getMaxHp() - 1) end
+	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 then return 1 end
 
 	for skill,dec in pairs(arr) do
 		if player:hasSkill(skill) then 

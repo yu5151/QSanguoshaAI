@@ -524,30 +524,32 @@ function SmartAI:useCardSlash(card, use)
 	
 	for _, friend in ipairs(self.friends_noself) do
 		local slash_prohibit = self:slashProhibit(card, friend)
-		if (self.player:hasSkill("pojun") and friend:getHp() > 4 and getCardsNum("Jink", friend) == 0 and friend:getHandcardNum() < 3)
-			or self:getDamagedEffects(friend, self.player) then
-			if not slash_prohibit then
-				if ((self.player:canSlash(friend, card, not no_distance, rangefix))
-					or (use.isDummy and self.predictedRange and self.player:distanceTo(friend, rangefix) <= self.predictedRange))
-					and self:slashIsEffective(card, friend) then
-					use.card = card
-					if use.to and not use.to:contains(friend) then
-						if use.to:length() == self.slash_targets - 1 and self.player:hasSkill("duanbing") then
-							local has_extra = false
-							for _, tg in sgs.qlist(use.to) do
-								if self.player:distanceTo(tg, rangefix) == 1 then
-									has_extra = true
-									break
+		if not self:hasHeavySlashDamage(self.player, card, friend) then
+			if (self.player:hasSkill("pojun") and friend:getHp() > 4 and getCardsNum("Jink", friend) == 0 and friend:getHandcardNum() < 3)
+				or self:getDamagedEffects(friend, self.player) then
+				if not slash_prohibit then
+					if ((self.player:canSlash(friend, card, not no_distance, rangefix))
+						or (use.isDummy and self.predictedRange and self.player:distanceTo(friend, rangefix) <= self.predictedRange))
+						and self:slashIsEffective(card, friend) then
+						use.card = card
+						if use.to and not use.to:contains(friend) then
+							if use.to:length() == self.slash_targets - 1 and self.player:hasSkill("duanbing") then
+								local has_extra = false
+								for _, tg in sgs.qlist(use.to) do
+									if self.player:distanceTo(tg, rangefix) == 1 then
+										has_extra = true
+										break
+									end
 								end
-							end
-							if has_extra or self.player:distanceTo(friend, rangefix) == 1 then
+								if has_extra or self.player:distanceTo(friend, rangefix) == 1 then
+									use.to:append(friend)
+								end
+							else
 								use.to:append(friend)
 							end
-						else
-							use.to:append(friend)
+							self:speak("hostile", self.player:isFemale())
+							if self.slash_targets <= use.to:length() then return end
 						end
-						self:speak("hostile", self.player:isFemale())
-						if self.slash_targets <= use.to:length() then return end
 					end
 				end
 			end
@@ -686,6 +688,7 @@ sgs.ai_card_intention.Slash = function(self, card, from, tos)
 			value = math.max(value*(2-to:getHp())/1.1, 0)
 		end
 		if from:hasSkill("pojun") and to:getHp() > 3 then value = 0 end
+		if self:getDamagedEffects(to, from, true) and not self:hasHeavySlashDamage(from, card, to) then value = 0 end
 		sgs.updateIntention(from, to, value)
 	end
 end

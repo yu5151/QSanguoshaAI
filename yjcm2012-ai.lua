@@ -956,7 +956,6 @@ function sgs.ai_skill_invoke.zhenlie(self, data)
 			return true
 		elseif use.card:isKindOf("Duel") and self:getCardsNum("Slash") + self:getCardsNum("Nullification") == 0 then
 			return true
-		end
 	elseif not self:isFriend(use.from) then
 		if use.card:isKindOf("FireAttack") then
 			if self.player:hasArmorEffect("Vine") and use.from:getHandcardNum() > 3 and

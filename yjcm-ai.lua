@@ -116,7 +116,13 @@ sgs.ai_skill_invoke.enyuan = function(self, data)
 	end
 	local damage = data:toDamage()
 	if damage.from and damage.from:isAlive() then
-		if self:isFriend(damage.from) then return self:getOverflow(damage.from) > 2 else return true end
+		if self:isFriend(damage.from) then 
+			if self:getOverflow(damage.from) > 2 then return true end
+			if self:needToLostHp(damage.from, self.player, nil, true) and not self:hasSkills(sgs.masochism_skill, damage.from) then return true end
+			return false
+		else
+			return true
+		end
 	end		
 	return
 end
@@ -125,9 +131,11 @@ sgs.ai_choicemade_filter.skillInvoke.enyuan = function(player, promptlist, self)
 	local invoked = (promptlist[3] == "yes")
 	local intention = 0
 
-	if sgs.enyuan_damage_target then 
+	if sgs.enyuan_damage_target then
 		if not invoked then
 			intention = -10
+		elseif self:needToLostHp(sgs.enyuan_damage_target, player, nil, true) then
+			intention = 0
 		elseif self:getOverflow(sgs.enyuan_damage_target) <= 2 then
 			intention = 10
 		end
@@ -150,7 +158,7 @@ sgs.ai_skill_discard.enyuan = function(self, discard_num, min_num, optional, inc
 	local cards = self.player:getHandcards()
 	local fazheng = self.room:findPlayerBySkillName("enyuan")
 	cards = sgs.QList2Table(cards)
-
+	if self:needToLostHp(self.player, fazheng, nil, true) and not self:hasSkills(sgs.masochism_skill) then return {} end
 	if self:isFriend(fazheng) then
 		for _, card in ipairs(cards) do
 			if isCard("Peach", card, fazheng) and ((not self:isWeak() and self:getCardsNum("Peach") > 0) or self:getCardsNum("Peach") > 1) then
@@ -167,7 +175,8 @@ sgs.ai_skill_discard.enyuan = function(self, discard_num, min_num, optional, inc
 			end
 		end
 	end
-
+	
+	if self:needToLostHp() and not self:hasSkills(sgs.masochism_skill) then return {} end
 	self:sortByKeepValue(cards)
 	for _, card in ipairs(cards) do
 		if not (card:isKindOf("Peach") or card:isKindOf("ExNihilo")) then
@@ -184,6 +193,7 @@ function sgs.ai_slash_prohibit.enyuan(self, to, card, from)
 	if from:hasSkill("jueqing") then return false end
 	if from:hasSkill("nosqianxi") and from:distanceTo(to) == 1 then return false end
 	if from:hasFlag("nosjiefanUsed") then return false end
+	if self:needToLostHp(from) and not self:hasSkills(sgs.masochism_skill, from) then return false end
 	local num = from:getHandcardNum()
 	if num >= 3 or self:hasSkills("lianying|shangshi|nosshangshi", from) or (from:hasSkill("kongcheng") and num == 2) then return false end
 	return true
@@ -193,7 +203,8 @@ sgs.ai_need_damaged.enyuan = function (self, attacker, player)
 	if not player:hasSkill("enyuan") then return false end
 	if self:isEnemy(attacker, player) and self:isWeak(attacker) and attacker:getHandcardNum() < 3 
 	  and not self:hasSkills("lianying|shangshi|nosshangshi", attacker)
-	  and not (attacker:hasSkill("kongcheng") and attacker:getHandcardNum() > 0) then
+	  and not (attacker:hasSkill("kongcheng") and attacker:getHandcardNum() > 0)
+	  and not (self:needToLostHp(attacker) and not self:hasSkills(sgs.masochism_skill, attacker)) then
 		return true
 	end
 	return false
@@ -839,7 +850,7 @@ sgs.ai_skill_use_func.PaiyiCard = function(card, use, self)
 	if not target then
 		for _, friend in ipairs(self.friends_noself) do
 			if friend:getHandcardNum() + 2 > self.player:getHandcardNum() 
-			  and (self:getDamagedEffects(friend, self.player) or self:needToLostHp(friend))
+			  and (self:getDamagedEffects(friend, self.player) or self:needToLostHp(friend, self.player, nil, true))
 			  and not friend:hasSkill("manjuan") then
 				target = friend
 			end

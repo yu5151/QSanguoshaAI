@@ -441,19 +441,22 @@ sgs.ai_skill_use["@@bifa"] = function(self, prompt)
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
 	self:sortByKeepValue(cards)
-	self:sort(self.enemies, "handcard")
-	if #self.enemies > 0 then
-		for _, c in ipairs(cards) do
-			if c:isKindOf("EquipCard") then return "@BifaCard=" .. c:getEffectiveId() .. "->" .. self.enemies[1]:objectName() end
-		end
-		for _, c in ipairs(cards) do
-			if c:isKindOf("TrickCard") and not (c:isKindOf("Nullification") and self:getCardsNum("Nullification") == 1) then 
-				return "@BifaCard=" .. c:getEffectiveId() .. "->" .. self.enemies[1]:objectName() 
+	self:sort(self.enemies, "hp")
+	if #self.enemies < 0 then return "." end
+	for _, enemy in ipairs(self.enemies) do
+		if not (self:needToLostHp(enemy) and not self:hasSkills(sgs.masochism_skill, enemy)) then
+			for _, c in ipairs(cards) do
+				if c:isKindOf("EquipCard") then return "@BifaCard=" .. c:getEffectiveId() .. "->" .. enemy:objectName() end
 			end
-		end
-		for _, c in ipairs(cards) do
-			if c:isKindOf("Slash") then 
-				return "@BifaCard=" .. c:getEffectiveId() .. "->" .. self.enemies[1]:objectName() 
+			for _, c in ipairs(cards) do
+				if c:isKindOf("TrickCard") and not (c:isKindOf("Nullification") and self:getCardsNum("Nullification") == 1) then 
+					return "@BifaCard=" .. c:getEffectiveId() .. "->" .. enemy:objectName() 
+				end
+			end
+			for _, c in ipairs(cards) do
+				if c:isKindOf("Slash") then 
+					return "@BifaCard=" .. c:getEffectiveId() .. "->" .. enemy:objectName() 
+				end
 			end
 		end
 	end
@@ -463,6 +466,7 @@ sgs.ai_skill_cardask["@bifa-give"] = function(self, data)
 	local card_type = data:toString()
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
+	if self:needToLostHp() and not self:hasSkills(sgs.masochism_skill) then return "." end
 	self:sortByUseValue(cards)
 	for _, c in ipairs(cards) do
 		if c:isKindOf(card_type) and not c:isKindOf("Peach") and not c:isKindOf("ExNihilo") then
@@ -486,7 +490,6 @@ local songci_skill = {}
 songci_skill.name = "songci"
 table.insert(sgs.ai_skills, songci_skill)
 songci_skill.getTurnUseCard = function(self)
-	if self.player:hasUsed("SongciCard") then return end
 	return sgs.Card_Parse("@SongciCard=.")
 end
 

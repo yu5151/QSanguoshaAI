@@ -95,9 +95,16 @@ end
 
 sgs.ai_playerchosen_intention.songwei = -50
 
-sgs.ai_card_intention.FangzhuCard = function(self,card, from, tos)
+sgs.ai_card_intention.FangzhuCard = function(self, card, from, tos)
+	local to = tos[1]
+	local intention = 10
+	if not self:toTurnOver(to, from:getLostHp()) then sgs.updateIntention(from, to, -10) end
+	if to:hasSkill("manjuan") and to:getPhase() == sgs.Player_NotActive then sgs.updateIntention(from, to, 10) end
+	
 	if from:getLostHp() < 3 then
-		sgs.updateIntention(from, tos[1], 80/from:getLostHp())
+		sgs.updateIntention(from, to, intention)
+	else
+		sgs.updateIntention(from, to, math.min(intention, -10))
 	end
 end
 
@@ -111,10 +118,10 @@ sgs.ai_need_damaged.fangzhu = function (self, attacker, player)
 			return true
 		end
 	end
-	local friends = self:getFriends(player)
+	local friends = self:getFriendsNoself(player)
 	self:sort(friends, "defense")
 	for _, friend in ipairs(friends) do
-		if player:objectName() ~= friend:objectName() and not self:toTurnOver(friend, player:getLostHp() + 1) then return true end
+		if not self:toTurnOver(friend, player:getLostHp() + 1) then return true end
 	end
 	return false
 end

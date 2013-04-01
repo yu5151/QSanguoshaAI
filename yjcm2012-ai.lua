@@ -954,8 +954,10 @@ function sgs.ai_skill_invoke.zhenlie(self, data)
 			return true
 		elseif use.card:isKindOf("ArcheryAttack") and self:getCardsNum("Jink") + self:getCardsNum("Nullification") == 0 then
 			return true
+		elseif use.card:isKindOf("Duel") and self:getCardsNum("Slash") + self:getCardsNum("Nullification") == 0 then
+			return true
 		end
-	elseif self:isEnemy(use.from) then
+	elseif not self:isFriend(use.from) then
 		if use.card:isKindOf("FireAttack") then
 			if self.player:hasArmorEffect("Vine") and use.from:getHandcardNum() > 3 and
 				not (use.from:hasSkill("hongyan") and getKnownCard(self.player, "spade") > 0) then
@@ -975,8 +977,8 @@ function sgs.ai_skill_invoke.zhenlie(self, data)
 			
 		else
 			if use.card:isKindOf("Duel") or use.card:isKindOf("Snatch") or use.card:isKindOf("Dismantlement") or use.card:isKindOf("FireAttack")
-			 or use.card:isKindOf("ArcheryAttack") or use.card:isKindOf("SavageAssault") or use.card:isKindOf("Collateral") then
-				if self:getCardsNum("Peach") > 1 and not use.from:isNude() and (not self.player:isWounded() or self.player:getHp() > getBestHp(self.player)) then
+			  or use.card:isKindOf("ArcheryAttack") or use.card:isKindOf("SavageAssault") or use.card:isKindOf("Collateral") then
+				if self:getCardsNum("Peach") > 1 and not use.from:isNude() and (not self.player:isWounded() or self:needToLostHp(self.player)) then
 					return true
 				end
 			end

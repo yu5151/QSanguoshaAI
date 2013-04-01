@@ -301,22 +301,21 @@ sgs.ai_skill_playerchosen.mixin = sgs.ai_skill_playerchosen.zero_card_as_slash
 sgs.ai_skill_cardask["#mixin"] = function(self, data, pattern, target)
 	if target then
 		for _, slash in ipairs(self:getCards("Slash")) do
-			if self:slashIsEffective(slash, target) and self:isFriend(target) and target:hasSkill("leiji") then
-				return slash:toString()
+			if self:isFriend(target) and self:slashIsEffective(slash, target) then
+				if self:needLeiji(target, self.player) then return slash:toString() end
+				if self:getDamagedEffects(target, self.player) then return slash:toString() end
+				if self:needToLostHp(target, self.player, nil, true) then return slash:toString() end
 			end
 			
-			if self:slashIsEffective(slash, target) and not self:getDamagedEffects(target, self.player, true) and self:isEnemy(target) then
-				return slash:toString()
-			end
-			if (not self:slashIsEffective(slash, target) or self:getDamagedEffects(target, self.player) or target:getHp() > getBestHp(target))
-				and self:isFriend(target) then
-				return slash:toString()
+			if not self:isFriend(target) and self:slashIsEffective(slash, target) 
+				and not self:getDamagedEffects(target, self.player, true) and not self:needLeiji(target, self.player) then
+					return slash:toString()
 			end
 		end
 		for _, slash in ipairs(self:getCards("Slash")) do
-			if (not (self:getDamagedEffects(target, self.player) or target:getHp() > getBestHp(target)) or not self:slashIsEffective(slash, target))
-				and not self:isFriend(target) then
-				return slash:toString()
+			if not self:isFriend(target) then
+				if not self:needLeiji(target, self.player) then return slash:toString() end
+				if not self:slashIsEffective(slash, target) then return slash:toString() end			
 			end
 		end
 	end

@@ -205,7 +205,7 @@ sgs.ai_skill_invoke.qinyin = function(self, data)
 			down = down - 5
 			up = up + 5
 		end
-		if friend:getHp() > getBestHp(friend) then
+		if self:needToLostHp(friend) then
 			down = down + 5
 			up = up - 5
 		end
@@ -225,7 +225,7 @@ sgs.ai_skill_invoke.qinyin = function(self, data)
 			down = down + 10
 			up = up - 15
 		end
-		if enemy:getHp() > getBestHp(enemy) then
+		if self:needToLostHp(enemy) then
 			down = down - 5
 		end
 		if self:isWeak(enemy) then

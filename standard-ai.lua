@@ -234,22 +234,22 @@ sgs.ai_skill_invoke.ganglie = function(self, data)
 	local mode = self.room:getMode()
 	if mode:find("_mini_41") then return true end
 	local who = data:toPlayer()
-	if self:getDamagedEffects(who, self.player) then 
-		if self:isFriend(who) then
-			-- sgs.ai_ganglie_effect = string.format("%s_%s_%d",self.player:objectName(), who:objectName(),sgs.turncount) 
-			return true
-		end
+	if self:isFriend(who) and (self:getDamagedEffects(who, self.player) or self:needToLostHp(who, self.player, nil, true)) then
+		return true
+	end
+	if self:getDamagedEffects(who, self.player) and self:isEnemy(who) then 
 		return false
 	end
+	
 	return not self:isFriend(who)
 end
 
 sgs.ai_choicemade_filter.skillInvoke.ganglie = function(player, promptlist, self)
 	if sgs.ganglie_target then
+		local target = sgs.ganglie_target
+		local intention = 10
 		if promptlist[3] == "yes" then
-			local target = sgs.ganglie_target
-			local intention = 10
-			if self:getDamagedEffects(target, player) or (self:hasSkills(sgs.masochism_skill, target) and target:getHp() > 1) then
+			if self:getDamagedEffects(target, player) or self:needToLostHp(target, player, nil, true) then
 				intention = 0
 			end
 			sgs.updateIntention(player, target, intention)
@@ -262,15 +262,19 @@ end
 
 sgs.ai_need_damaged.ganglie = function (self, attacker, player)
 	if not player:hasSkill("ganglie") then return false end
-	if self:getDamagedEffects(attacker, player) then return self:isFriend(attacker, player) end
-	if self:isEnemy(attacker, player) and attacker:getHp() + attacker:getHandcardNum() <= 3 and 
-			not (self:hasSkills(sgs.need_kongcheng.."|buqu", attacker) and attacker:getHandcardNum() > 1) and sgs.isGoodTarget(attacker, self.enemies, self) then
-		return true
+	if self:isEnemy(attacker, player) and attacker:getHp() + attacker:getHandcardNum() <= 3
+		and not self:hasSkills("buqu", attacker)
+		and not (self:needKongcheng(attacker) and attacker:getHandcardNum() > 1)
+		and sgs.isGoodTarget(attacker, self.enemies, self) 
+		and not self:getDamagedEffects(attacker, player) and not self:needToLostHp(attacker) then
+			return true
 	end
 	return false
 end
 
 sgs.ai_skill_discard.ganglie = function(self, discard_num, min_num, optional, include_equip)
+	local xiahou = self.room:findPlayerBySkillName("ganglie")
+	if self:getDamagedEffects(self.player, xiahou) or self:needToLostHp() then return {} end
 	local to_discard = {}
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	local index = 0
@@ -544,8 +548,9 @@ sgs.ai_chaofeng.xuchu = 3
 
 sgs.ai_skill_invoke.tiandu = sgs.ai_skill_invoke.jianxiong
 
-function sgs.ai_slash_prohibit.tiandu(self, to)
-	if self:isEnemy(to) and self:isEquip("EightDiagram", to) and #self.enemies > 1 then return true end
+function sgs.ai_slash_prohibit.tiandu(self, to, card, from)
+	if self:canLiegong(to, from) then return false end
+	if self:isEnemy(to) and self:isEquip("EightDiagram", to) and not IgnoreArmor(from, to) and #self.enemies > 1 then return true end
 end
 
 function SmartAI:IsLihunTarget(player, DrawCardNum)
@@ -1033,7 +1038,7 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 	
 	local ignoreArmor = IgnoreArmor(sgs.jijiangsource, target) or not target:getArmor()
 	
-	if self:isFriend(target) and not (self:needToLostHp(target, sgs.jijiangsource, true) or self:getDamagedEffects(target, sgs.jijiangsource, true)) then return "." end
+	if self:isFriend(target) and not (self:needToLostHp(target, sgs.jijiangsource, true, true) or self:getDamagedEffects(target, sgs.jijiangsource, true)) then return "." end
 
 	if ignoreArmor and not target:hasSkill("yizhong") then return self:getCardId("Slash") or "." end
 
@@ -1826,18 +1831,18 @@ end
 
 function SmartAI:getWoundedFriend(maleOnly)
 	self:sort(self.friends, "hp")
-	local list1 ={}  -- need help
-	local list2 ={}	 -- do not need help
-	local addToList=function(p,index)
+	local list1 = {}	-- need help
+	local list2 = {}	-- do not need help
+	local addToList = function(p,index)
 		if ( (not maleOnly) or (maleOnly and p:isMale()) ) and p:isWounded() then	
 			table.insert(index ==1 and list1 or list2, p)
 		end
 	end
 
-	local getCmpHp=function(p)
+	local getCmpHp = function(p)
 		local hp = p:getHp()
 		if p:isLord() and self:isWeak(p) then hp = hp - 10 end
-		if p:objectName()==self.player:objectName() and self:isWeak(p) and p:hasSkill("qingnang") then hp = hp - 5 end
+		if p:objectName() == self.player:objectName() and self:isWeak(p) and p:hasSkill("qingnang") then hp = hp - 5 end
 		if p:hasSkill("buqu") and p:getPile("buqu"):length()<=2 then hp = hp + 5 end
 		if self:hasSkills("rende|kuanggu|zaiqi", p) and p:getHp() >= 2 then hp = hp + 5 end
 		return hp
@@ -1856,17 +1861,17 @@ function SmartAI:getWoundedFriend(maleOnly)
 		if friend:isLord() then
 			if friend:getMark("hunzi") == 0 and friend:hasSkill("hunzi") 
 					and self:getEnemyNumBySeat(self.player,friend) <= (friend:getHp()>= 2 and 1 or 0) then
-				addToList(friend,2)
-			elseif friend:getHp()>=getBestHp(friend) then
-				addToList(friend,2)
+				addToList(friend, 2)
+			elseif friend:getHp() >= getBestHp(friend) then
+				addToList(friend, 2)
 			elseif not sgs.isLordHealthy() then
-				addToList(friend,1)
+				addToList(friend, 1)
 			end
 		else
-			if friend:getHp()>=getBestHp(friend) or (self:hasSkills("rende|kuanggu|zaiqi", friend) and friend:getHp() >= 2) then
-				addToList(friend,2)
+			if friend:getHp() >= getBestHp(friend) or (self:hasSkills("rende|kuanggu|zaiqi", friend) and friend:getHp() >= 2) then
+				addToList(friend, 2)
 			else
-				addToList(friend,1)
+				addToList(friend, 1)
 			end
 		end
 	end
@@ -1952,12 +1957,12 @@ qingnang_skill.getTurnUseCard=function(self)
 	return sgs.Card_Parse(card_str)
 end
 
-sgs.ai_skill_use_func.QingnangCard=function(card,use,self)
+sgs.ai_skill_use_func.QingnangCard = function(card, use, self)
 
 	local arr1,arr2 = self:getWoundedFriend()
 	local target = nil
 	
-	if #arr1>0 and (self:isWeak(arr1[1]) or self:getOverflow()>=1) and arr1[1]:getHp() < getBestHp(arr1[1]) then target=arr1[1] end
+	if #arr1 > 0 and (self:isWeak(arr1[1]) or self:getOverflow() >= 1) and arr1[1]:getHp() < getBestHp(arr1[1]) then target = arr1[1] end
 
 	if target then
 		use.card=card

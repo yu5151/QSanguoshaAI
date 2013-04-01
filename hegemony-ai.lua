@@ -63,7 +63,7 @@ sgs.ai_skill_cardask["@xiaoguo-discard"] = function(self, data)
 	if self:getDamagedEffects(self.player, yuejin) then
 		return "."
 	end
-	if player:getHp() > getBestHp(player) then
+	if self:needToLostHp(player) then
 		return "."
 	end
 	

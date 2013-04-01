@@ -325,8 +325,7 @@ end
 sgs.ai_slash_prohibit.tuntian = function(self, to, card, from)
 	if self:isFriend(to) then return false end
 	if not to:hasSkill("zaoxian") then return false end
-	if from:hasSkill("tieji")
-		or (from:hasSkill("liegong") and from:getPhase() == sgs.Player_Play and (to:getHandcardNum() <= from:getAttackRange() or to:getHandcardNum() >= from:getHp())) then
+	if from:hasSkill("tieji") or self:canLiegong(to, from) then
 		return false
 	end
 	local enemies = self:getEnemies(to)
@@ -574,22 +573,21 @@ sgs.ai_skill_choice.tiaoxin = sgs.ai_skill_choice.collateral
 sgs.ai_skill_cardask["@tiaoxin-slash"] = function(self, data, pattern, target)
 	if target then
 		for _, slash in ipairs(self:getCards("Slash")) do
-			if self:slashIsEffective(slash, target) and self:isFriend(target) and target:hasSkill("leiji") then
-				return slash:toString()
+			if self:isFriend(target) and self:slashIsEffective(slash, target) then
+				if self:needLeiji(target, self.player) then return slash:toString() end
+				if self:getDamagedEffects(target, self.player) then return slash:toString() end
+				if self:needToLostHp(target, self.player, nil, true) then return slash:toString() end
 			end
 			
-			if self:slashIsEffective(slash, target) and not self:getDamagedEffects(target, self.player, true) and self:isEnemy(target) then
-				return slash:toString()
-			end
-			if (not self:slashIsEffective(slash, target) or self:getDamagedEffects(target, self.player) or target:getHp() > getBestHp(target))
-				and self:isFriend(target) then
-				return slash:toString()
+			if not self:isFriend(target) and self:slashIsEffective(slash, target) 
+				and not self:getDamagedEffects(target, self.player, true) and not self:needLeiji(target, self.player) then
+					return slash:toString()
 			end
 		end
 		for _, slash in ipairs(self:getCards("Slash")) do
-			if (not (self:getDamagedEffects(target, self.player) or target:getHp() > getBestHp(target)) or not self:slashIsEffective(slash, target))
-				and not self:isFriend(target) then
-				return slash:toString()
+			if not self:isFriend(target) then
+				if not self:needLeiji(target, self.player) and not self:getDamagedEffects(target, self.player, true) then return slash:toString() end
+				if not self:slashIsEffective(slash, target) then return slash:toString() end			
 			end
 		end
 	end

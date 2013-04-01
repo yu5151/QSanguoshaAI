@@ -150,6 +150,15 @@ sgs.ai_skill_invoke.liegong = function(self, data)
 	return not self:isFriend(target)
 end
 
+function SmartAI:canLiegong(to, from)
+	from = from or self.room:getCurrent()
+	to = to or self.player
+	if not from then return false end
+	if not from:hasSkill("liegong") then return false end
+	if from:getPhase() == sgs.Player_Play and (to:getHandcardNum() >= from:getHp() or to:getHandcardNum() <= from:getAttackRange()) then return true end
+	return false
+end
+
 sgs.ai_chaofeng.huangzhong = 1
 sgs.ai_chaofeng.weiyan = -2
 
@@ -247,13 +256,26 @@ sgs.ai_skill_use["@@leiji"] = function(self, prompt)
 	return "@LeijiCard=.->"..to:objectName()
 end
 
+function SmartAI:needLeiji(to, from)
+	from = from or self.room:getCurrent()
+	to = to or self.player
+	if not to:hasSkill("leiji") then return false end
+	if from and self:canLiegong(to, from) and not self:isFriend(to, from) then return false end
+	if self:hasSuit("spade", true, to) and (getKnownCard(to, "Jink", true) >= 1 
+		or (not IgnoreArmor(from, to) and not self:isWeak(to) and self:isEquip("EightDiagram", to)))
+		and self:findLeijiTarget(to, 50) then
+			return true
+	end
+	return false
+end
+
 sgs.ai_card_intention.LeijiCard = 80
 
 function sgs.ai_slash_prohibit.leiji(self, to, card, from)
 	if self:isFriend(to) then return false end
 	if to:hasFlag("qianxi_target") then return false end
 	local hcard = to:getHandcardNum()
-	if from:hasSkill("liegong") and from:getPhase() == sgs.Player_Play and (hcard >= from:getHp() or hcard <= from:getAttackRange()) then return false end
+	if self:canLiegong(to, from) then return false end
 	if self.role == "rebel" and to:isLord() then
 		local other_rebel
 		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
@@ -270,7 +292,6 @@ function sgs.ai_slash_prohibit.leiji(self, to, card, from)
 	if getKnownCard(to, "Jink", true) >= 1 or (self:hasSuit("spade", true, to) and hcard >= 2) or hcard >= 4 then return true end
 	if self:isEquip("EightDiagram", to) and not IgnoreArmor(from, to) then return true end
 end
-
 
 local huangtianv_skill = {}
 huangtianv_skill.name = "huangtianv"
@@ -421,7 +442,7 @@ sgs.ai_skill_use["@@tianxiang"] = function(self, data)
 	if not dmg then self.room:writeToConsole(debug.traceback()) return "." end
 	
 	local cards = self.player:getCards("h")
-	cards=sgs.QList2Table(cards)
+	cards = sgs.QList2Table(cards)
 	self:sortByUseValue(cards,true)
 	for _,card in ipairs(cards) do
 		if ((card:getSuit() == sgs.Card_Spade and self:hasSkill("hongyan")) or card:getSuit() == sgs.Card_Heart) and not card:isKindOf("Peach") then
@@ -448,7 +469,7 @@ sgs.ai_skill_use["@@tianxiang"] = function(self, data)
 			elseif friend:getHp() >= 2 and dmg.damage < 2 and 
 				(self:hasSkills("yiji|buqu|shuangxiong|zaiqi|yinghun|jianxiong|fangzhu", friend)
 					or self:getDamagedEffects(friend, dmg.from or self.room:getCurrent())
-					or friend:getHp() > getBestHp(friend)
+					or self:needToLostHp(friend)
 					or (friend:getHandcardNum() < 3 and friend:hasSkill("rende")))
 				then return "@TianxiangCard="..card_id.."->"..friend:objectName()
 			elseif friend:hasSkill("buqu") then return "@TianxiangCard="..card_id.."->"..friend:objectName() end
@@ -543,7 +564,7 @@ sgs.ai_skill_choice.guhuo = function(self, choices)
 		if self.player:getHp()<self.friends[#self.friends]:getHp() then return "noquestion" end
 	end
 
-	if self.player:getHp() > getBestHp(self.player) and not self:hasSkills(sgs.masochism_skill,self.player) and x ~= 1 then return "question" end
+	if self:needToLostHp(self.player) and not self:hasSkills(sgs.masochism_skill, self.player) and x ~= 1 then return "question" end
 
 	local questioner
 	for _, friend in ipairs(self.friends) do

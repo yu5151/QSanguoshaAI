@@ -965,7 +965,7 @@ function sgs.ai_skill_invoke.zhenlie(self, data)
 			elseif self.player:isChained() and not self:isGoodChainTarget(self.player) then
 				return true
 			end
-		elseif (use.card:isKindOf("Snatch") or use.card:isKindOf("Dismantlement")) and
+		elseif self:isEnemy(use.from) and (use.card:isKindOf("Snatch") or use.card:isKindOf("Dismantlement")) and
 			self:getCardsNum("Peach") == self.player:getHandcardNum() and not self.player:isKongcheng() then
 			return true
 		elseif use.card:isKindOf("Duel") then
@@ -975,11 +975,14 @@ function sgs.ai_skill_invoke.zhenlie(self, data)
 			end
 		-- elseif use.card:isKindOf("Collateral") then
 			
-		else
+		elseif self:isEnemy(use.from) then
 			if use.card:isKindOf("Duel") or use.card:isKindOf("Snatch") or use.card:isKindOf("Dismantlement") or use.card:isKindOf("FireAttack")
-			  or use.card:isKindOf("ArcheryAttack") or use.card:isKindOf("SavageAssault") or use.card:isKindOf("Collateral") then
-				if self:getCardsNum("Peach") > 1 and not use.from:isNude() and (not self.player:isWounded() or self:needToLostHp(self.player)) then
-					return true
+				or use.card:isKindOf("ArcheryAttack") or use.card:isKindOf("SavageAssault") or use.card:isKindOf("Collateral") then
+					if not self:doNotDiscard(use.from) 
+						and (self:getCardsNum("Peach") > 1 or (not self.player:isWounded() and self:haveFriendsToDraw()) 
+						or self:needToLostHp(self.player)) then
+							return true
+					end
 				end
 			end
 		end

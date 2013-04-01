@@ -2652,6 +2652,18 @@ function SmartAI:getEnemyNumBySeat(from, to)
 	return enemynum
 end
 
+function SmartAI:getFriendNumBySeat(from, to)
+	local players = sgs.QList2Table(global_room:getAlivePlayers())
+	local to_seat = (to:getSeat() - from:getSeat()) % #players
+	local friendnum = 0
+	for _, p in ipairs(players) do
+		if self:isFriend(from, p) and ((p:getSeat() - from:getSeat()) % #players) < to_seat then			 
+			friendnum = friendnum + 1 
+		end
+	end
+	return friendnum
+end
+
 function SmartAI:hasHeavySlashDamage(from, slash, to, getValue)
 	from = from or self.room:getCurrent()
 	slash = slash or self:getCard("Slash", from)

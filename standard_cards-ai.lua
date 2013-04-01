@@ -32,8 +32,8 @@ function sgs.isGoodTarget(player, targets, self)
 	if attacker:hasSkill("jueqing") then return true end
 	
 	if targets and type(targets)=="table" then 
-		if #targets==1 then return true end
-		local foundtarget=false
+		if #targets == 1 then return true end
+		local foundtarget = false
 		for i = 1, #targets, 1 do
 			--if sgs.isGoodTarget(targets[i]) and not (self:cantbeHurt(targets[i]) or self:slashProhibit(nil,target[i])) then
 			if sgs.isGoodTarget(targets[i]) and not self:cantbeHurt(targets[i]) then
@@ -48,7 +48,7 @@ function sgs.isGoodTarget(player, targets, self)
 		if player:hasSkill(masochism) then
 			if masochism == "nosmiji" and player:isWounded() then 
 				m_skill = false
-			elseif masochism == "jieming" and getJiemingChaofeng(player) > -4 then
+			elseif masochism == "jieming" and self and self:getJiemingChaofeng(player) > -4 then
 				m_skill = false
 			else
 				m_skill = true
@@ -57,8 +57,8 @@ function sgs.isGoodTarget(player, targets, self)
 		end
 	end
 		
-	if player:hasSkill("huilei") and player:getHp()==1 then
-		if attacker:getHandcardNum()>=4 then return false end
+	if player:hasSkill("huilei") and player:getHp() == 1 then
+		if attacker:getHandcardNum() >= 4 then return false end
 		return sgs.compareRoleEvaluation(player, "rebel", "loyalist") == "rebel"
 	end
 	
@@ -120,7 +120,7 @@ function sgs.getDefenseSlash(player)
 		defense = defense + 1.5	
 	end
 	
-	local hujiaJink=0
+	local hujiaJink = 0
 	if player:hasLordSkill("hujia") then
 			local lieges = global_room:getLieges("wei", player)			
 			for _, liege in sgs.qlist(lieges) do

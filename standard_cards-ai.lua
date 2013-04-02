@@ -1223,8 +1223,15 @@ sgs.ai_skill_invoke.EightDiagram = function(self, data)
 	for _, aplayer in sgs.qlist(self.room:getAlivePlayers()) do
 		if aplayer:getHp() < 1 and not aplayer:hasSkill("buqu") then dying = 1 break end
 	end
+	
+	if self:hasSkills("tiandu|leiji|gushou") then
+		if self.player:hasFlag("dahe") then return true end
+		if sgs.hujiasource and not self:isFriend(sgs.hujiasource) and not sgs.hujiasource:hasFlag("dahe") then return false end
+		if sgs.lianlisource and not self:isFriend(sgs.lianlisource) and not sgs.lianlisource:hasFlag("dahe") then return false end
+		if handang and self:isFriend(handang) and dying > 0 then return false end
+		return true 
+	end
 	if handang and self:isFriend(handang) and dying > 0 then return false end
-	if self:hasSkills("tiandu|leiji|gushou") then return true end
 	if self.player:hasFlag("dahe") then return false end
 	if sgs.hujiasource and (not self:isFriend(sgs.hujiasource) or sgs.hujiasource:hasFlag("dahe")) then return false end
 	if sgs.lianlisource and (not self:isFriend(sgs.lianlisource) or sgs.lianlisource:hasFlag("dahe")) then return false end	

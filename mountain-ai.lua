@@ -700,7 +700,7 @@ sgs.ai_skill_choice.sunce_zhiba = function(self, choices)
 end
 
 function sgs.ai_skill_pindian.zhiba_pindian(minusecard, self, requestor)
-	local maxcard=self:getMaxCard()
+	local maxcard = self:getMaxCard()
 	local point = self:isFriend(requestor) and 6 or 9
 	return maxcard:getNumber() <= point and minusecard or maxcard
 end

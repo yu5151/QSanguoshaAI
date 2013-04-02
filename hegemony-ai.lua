@@ -426,7 +426,7 @@ function sgs.ai_skill_pindian.shuangren(minusecard, self, requestor, maxcard)
 	end
 	table.sort(cards, compare_func)
 	for _, card in ipairs(cards) do
-		if card:getNumber()> 10 then return card end
+		if card:getNumber() > 10 then return card end
 	end
 	self:sortByKeepValue(cards)
 	return cards[1]
@@ -613,7 +613,7 @@ sgs.ai_choicemade_filter.skillChoice.qingcheng = function(player, promptlist)
 		end
 	end
 	if not target then return end
-	if choice == "shiyong" then sgs.updateIntention(player, target, -30) else sgs.updateIntention(player, target, 30) end
+	if choice == "shiyong" then sgs.updateIntention(player, target, -10) else sgs.updateIntention(player, target, 10) end
 end
 
 sgs.ai_skill_invoke.cv_caopi = function(self, data)

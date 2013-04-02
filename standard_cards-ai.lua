@@ -1388,7 +1388,7 @@ function SmartAI:willUseGodSalvation(card)
 				else
 					if friend:isLord() then good = good + 5 end
 				end
-				if self:needToLoseHp(friend, nil, nil, true, true) then good = good - 5 end
+				if self:needToLoseHp(friend, nil, nil, true, true) then good = good - 3 end
 			elseif friend:hasSkill("danlao") then good = good + 5
 			end
 		end
@@ -1412,7 +1412,7 @@ function SmartAI:willUseGodSalvation(card)
 				else
 					if enemy:isLord() then bad = bad + 5 end
 				end
-				if self:needToLoseHp(enemy, nil, nil, true, true) then bad = bad - 5 end
+				if self:needToLoseHp(enemy, nil, nil, true, true) then bad = bad - 3 end
 			elseif enemy:hasSkill("danlao") then bad = bad + 5
 			end
 		end

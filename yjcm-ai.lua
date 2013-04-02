@@ -119,6 +119,7 @@ sgs.ai_skill_invoke.enyuan = function(self, data)
 		if self:isFriend(damage.from) then 
 			if self:getOverflow(damage.from) > 2 then return true end
 			if self:needToLoseHp(damage.from, self.player, nil, true) and not self:hasSkills(sgs.masochism_skill, damage.from) then return true end
+			if not self:hasLoseHandcardEffective(damage.from) and not damage.from:isKongcheng() then return true end
 			return false
 		else
 			return true
@@ -135,6 +136,8 @@ sgs.ai_choicemade_filter.skillInvoke.enyuan = function(player, promptlist, self)
 		if not invoked then
 			intention = -10
 		elseif self:needToLoseHp(sgs.enyuan_damage_target, player, nil, true) then
+			intention = 0
+		elseif not self:hasLoseHandcardEffective(sgs.enyuan_damage_target) and not sgs.enyuan_damage_target:isKongcheng() then
 			intention = 0
 		elseif self:getOverflow(sgs.enyuan_damage_target) <= 2 then
 			intention = 10

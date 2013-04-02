@@ -152,15 +152,21 @@ end
 ]]--
 sgs.ai_skill_invoke.tanlan = function(self, data)
 	local damage = data:toDamage()
+	local from = damage.from
 	local max_card = self:getMaxCard()
 	if not max_card then return end
-	if max_card:getNumber() > 10 and self:isFriend(damage.from) and damage.from:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng, damage.from) then return true end
-	if self:isFriend(damage.from) then return end
+	if max_card:getNumber() > 10 and self:isFriend(from) then
+		if from:getHandcardNum() == 1 and self:needKongcheng(from) then return true end
+		if self:getOverflow(from) > 2 then return true end
+		if not self:hasLoseHandcardEffective(from) then return true end
+	end
+	if self:isFriend(from) then return false end
 	if max_card:getNumber() > 10 
 		or (self.player:getHp() > 2 and self.player:getHandcardNum() > 2 and max_card:getNumber() > 4)
 		or (self.player:getHp() > 1 and self.player:getHandcardNum() > 1 and max_card:getNumber() > 7)
-		or (damage.from:getHandcardNum() <= 2 and max_card:getNumber() > 2) 
-		or (damage.from:getHandcardNum() == 1 and not self:hasSkills(sgs.need_kongcheng, damage.from)) then
+		or (from:getHandcardNum() <= 2 and max_card:getNumber() > 2) 
+		or (from:getHandcardNum() == 1 and self:hasLoseHandcardEffective(from) and not self:needKongcheng(from))
+		or self:getOverflow() > 2 then
 		return true
 	end
 end
@@ -169,23 +175,17 @@ sgs.ai_choicemade_filter.skillInvoke.tanlan = function(player, promptlist, self)
 	if sgs.tanlan_target and promptlist[3] == "yes" then
 		local target = sgs.tanlan_target
 		local intention = 10
-		if target:getHandcardNum() == 1 and self:hasSkills(sgs.need_kongcheng, target) then intention = -intention end
+		if target:getHandcardNum() == 1 and self:needKongcheng(target) then intention = 0 end
+		if self:getOverflow(target) > 2 then intention = 0 end
+		if not self:hasLoseHandcardEffective(target) then intention = 0 end
 		sgs.updateIntention(player, sgs.tanlan_target, intention)
 	end
 	sgs.tanlan_target = nil
 end
 
-function sgs.ai_skill_pindian.tanlan(minusecard, self, requestor, maxcard)
-	local cards, maxcard = sgs.QList2Table(self.player:getHandcards())
-	local function compare_func(a, b)
-		return a:getNumber() > b:getNumber()
-	end
-	table.sort(cards, compare_func)
-	for _, card in ipairs(cards) do
-		if card:getNumber() > 10 then return card end
-		if self:getUseValue(card) < 6 then maxcard = card break end
-	end
-	return maxcard or cards[1]
+function sgs.ai_skill_pindian.tanlan(minusecard, self, requestor)
+	local maxcard = self:getMaxCard()	
+	return self:isFriend(requestor) and minusecard or ( maxcard:getNumber() < 6 and minusecard or maxcard )
 end
 
 sgs.ai_cardneed.tanlan = sgs.ai_cardneed.bignumber
@@ -308,7 +308,7 @@ function sgs.ai_skill_pindian.bawang(minusecard, self, requestor, maxcard)
 	end
 	table.sort(cards, compare_func)
 	for _, card in ipairs(cards) do
-		if card:getNumber()> 9 then return card end
+		if card:getNumber() > 10 then return card end
 	end
 	self:sortByKeepValue(cards)
 	return cards[1]

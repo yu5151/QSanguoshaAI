@@ -244,6 +244,7 @@ sgs.dynamic_value.control_card.JuejiCard = true
 
 function sgs.ai_skill_pindian.jueji(minusecard, self, requestor, maxcard)
 	if self:isFriend(requestor) then return end
+	if maxcard:getNumber() == 13 then return maxcard end
 	if (maxcard:getNumber()/13)^requestor:getHandcardNum() <= 0.6 then return minusecard end
 end
 --[[

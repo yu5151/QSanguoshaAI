@@ -223,10 +223,11 @@ sgs.ai_skill_use["@@xuanhuo"] = function(self, prompt)
 	if lord and self:isEnemy(lord) then  --killloyal
 		for _, enemy in ipairs(self.enemies) do
 			if (self:getDangerousCard(lord) or self:getValuableCard(lord)) 
-			  and lord:canSlash(enemy) and (enemy:getHp() < 2 and not enemy:hasSkill("buqu"))
-			  and sgs.getDefense(enemy) < 2 then
-				lord:setFlags("xuanhuo_target")
-				return "@XuanhuoCard=.->"..lord:objectName()
+				and not self:hasSkills(sgs.lose_equip_skill, enemy) and not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian"))
+				and lord:canSlash(enemy) and (enemy:getHp() < 2 and not enemy:hasSkill("buqu"))
+				and sgs.getDefense(enemy) < 2 then
+					lord:setFlags("xuanhuo_target")
+					return "@XuanhuoCard=.->"..lord:objectName()
 			end
 		end
 	end
@@ -234,10 +235,12 @@ sgs.ai_skill_use["@@xuanhuo"] = function(self, prompt)
 	for _, enemy in ipairs(self.enemies) do --robequip
 		for _, enemy2 in ipairs(self.enemies) do	
 			if enemy:canSlash(enemy2) and (self:getDangerousCard(enemy) or self:getValuableCard(enemy)) 
-			  and not self:hasSkills(sgs.lose_equip_skill, enemy) and not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian"))
-			  or (enemy:hasSkill("manjuan") and enemy:getCards("he"):length() > 1 and getCardsNum("Slash", enemy) == 0) then
-				enemy:setFlags("xuanhuo_target")
-				return "@XuanhuoCard=.->"..enemy:objectName()
+				and not self:hasSkills(sgs.lose_equip_skill, enemy) and not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian"))
+				and not self:needLeiji(enemy2, enemy) and not self:getDamagedEffects(enemy2, enemy)
+				and not self:needToLoseHp(enemy2, enemy, nil, true)
+				or (enemy:hasSkill("manjuan") and enemy:getCards("he"):length() > 1 and getCardsNum("Slash", enemy) == 0) then
+					enemy:setFlags("xuanhuo_target")
+					return "@XuanhuoCard=.->"..enemy:objectName()
 			end
 		end
 	end
@@ -246,7 +249,7 @@ sgs.ai_skill_use["@@xuanhuo"] = function(self, prompt)
 	self:sort(self.friends_noself, "defense")
 
 	for _, friend in ipairs(self.friends_noself) do
-		if self:hasSkills(sgs.lose_equip_skill, friend) and not friend:getEquips():isEmpty() then
+		if self:hasSkills(sgs.lose_equip_skill, friend) and not friend:getEquips():isEmpty() and not friend:hasSkill("manjuan") then
 			friend:setFlags("xuanhuo_target")
 			return "@XuanhuoCard=.->"..friend:objectName()
 		end
@@ -298,23 +301,34 @@ end
 sgs.ai_skill_playerchosen.xuanhuo = sgs.ai_skill_playerchosen.zero_card_as_slash
 
 sgs.ai_skill_cardask["xuanhuo-slash"] = function(self, data, pattern, target, target2)
-	if target and target2 and self:isEnemy(target2) then
+	local fazheng = self.player:getRoom():getCurrent()
+	if target and target2 then
 		for _, slash in ipairs(self:getCards("Slash")) do
-			if self:slashIsEffective(slash, target2) then 
+			if self:isFriend(target2) and self:slashIsEffective(slash, target2) then
+				if self:needLeiji(target2, self.player) then return slash:toString() end
+				if self:getDamagedEffects(target2, self.player) then return slash:toString() end
+				if self:needToLoseHp(target2, self.player, nil, true) then return slash:toString() end
+			end
+			
+			if self:isFriend(target2) and not self:isFriend(fazheng) and not self:slashIsEffective(slash, target2) then
 				return slash:toString()
-			end 
+			end
+
+			if self:isEnemy(target2) and self:slashIsEffective(slash, target2) 
+				and not self:getDamagedEffects(target2, self.player, true) and not self:needLeiji(target2, self.player) then
+					return slash:toString()
+			end
 		end
-	end
-	if target and target2 and self:isFriend(target2) then
 		for _, slash in ipairs(self:getCards("Slash")) do
-			if not self:slashIsEffective(slash, target2) then
-				return slash:toString()
-			end 
-		end
-		if (target2:getHp() > 2 or getCardsNum("Jink", target2) > 1) and not target2:getRole() == "lord" and self.player:getHandcardNum() > 1 then
-			for _, slash in ipairs(self:getCards("Slash")) do
-				return slash:toString()
-			end 
+			if self:isFriend(target2) and not self:isFriend(fazheng) then
+				if (target2:getHp() > 2 or getCardsNum("Jink", target2) > 1) and not target2:getRole() == "lord" then return slash:toString() end
+				if self:needToLoseHp(target2, self.player) then return slash:toString() end
+			end
+			
+			if not self:isFriend(target2) and not self:isFriend(fazheng) then
+				if not self:needLeiji(target2, self.player) then return slash:toString() end
+				if not self:slashIsEffective(slash, target2) then return slash:toString() end			
+			end
 		end
 	end
 	return "."

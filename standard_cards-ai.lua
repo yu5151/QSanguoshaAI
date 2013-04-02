@@ -1238,7 +1238,10 @@ sgs.ai_skill_invoke.EightDiagram = function(self, data)
 	if self:getDamagedEffects(self.player, nil, true) or self:needToLoseHp(self.player, nil, true, true) then return false end
 	if self:getCardsNum("Jink") == 0 then return true end
 	local zhangjiao = self.room:findPlayerBySkillName("guidao")
-	if zhangjiao and self:isEnemy(zhangjiao) and getKnownCard(zhangjiao, "black", false, "he") > 1 then return false end
+	if zhangjiao and self:isEnemy(zhangjiao) then
+		if getKnownCard(zhangjiao, "black", false, "he") > 1 then return false end
+		if self:getCardsNum("Jink") > 1 and getKnownCard(zhangjiao, "black", false, "he") > 0 then return false end
+	end
 	return true
 end
 

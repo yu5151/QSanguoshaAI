@@ -1224,12 +1224,19 @@ sgs.ai_skill_invoke.EightDiagram = function(self, data)
 		if aplayer:getHp() < 1 and not aplayer:hasSkill("buqu") then dying = 1 break end
 	end
 	
+	local heart_jink = false
+	for _, card in sgs.qlist(self.player:getCards("he")) do
+		if card:getSuit() == sgs.Card_Heart and isCard("Jink", card, self.player) then
+			heart_jink = true
+			break
+		end
+	end
+
 	if self:hasSkills("tiandu|leiji|gushou") then
-		if self.player:hasFlag("dahe") then return true end
-		if sgs.hujiasource and not self:isFriend(sgs.hujiasource) and not sgs.hujiasource:hasFlag("dahe") then return false end
-		if sgs.lianlisource and not self:isFriend(sgs.lianlisource) and not sgs.lianlisource:hasFlag("dahe") then return false end
-		if handang and self:isFriend(handang) and dying > 0 then return false end
-		return true 
+		if self.player:hasFlag("dahe") and not heart_jink then return true end
+		if sgs.hujiasource and not self:isFriend(sgs.hujiasource) and (sgs.hujiasource:hasFlag("dahe") or self.player:hasFlag("dahe")) then return true end
+		if sgs.lianlisource and not self:isFriend(sgs.lianlisource) and (sgs.lianlisource:hasFlag("dahe") or self.player:hasFlag("dahe")) then return true end
+		if self.player:hasFlag("dahe") and handang and self:isFriend(handang) and dying > 0 then return true end
 	end
 	if handang and self:isFriend(handang) and dying > 0 then return false end
 	if self.player:hasFlag("dahe") then return false end

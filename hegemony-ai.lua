@@ -29,7 +29,7 @@ sgs.ai_skill_cardask["@xiaoguo"] = function(self, data)
 		end
 	elseif self:isEnemy(currentplayer) then
 		if not self:damageIsEffective(currentplayer, sgs.DamageStruct_Normal, self.player) then return "." end
-		if self:getDamagedEffects(currentplayer, self.player) or self:needToLostHp(currentplayer) then
+		if self:getDamagedEffects(currentplayer, self.player) or self:needToLoseHp(currentplayer, self.player) then
 			return "."
 		end
 		if currentplayer:hasArmorEffect("SilverLion") and currentplayer:isWounded() and self:isWeak(currentplayer) then return "." end
@@ -63,7 +63,7 @@ sgs.ai_skill_cardask["@xiaoguo-discard"] = function(self, data)
 	if self:getDamagedEffects(self.player, yuejin) then
 		return "."
 	end
-	if self:needToLostHp(player) then
+	if self:needToLoseHp(player, yuejin) then
 		return "."
 	end
 	
@@ -600,8 +600,21 @@ end
 
 sgs.ai_chaofeng.zoushi = 3
 sgs.ai_use_value.QingchengCard = 2
-sgs.ai_use_priority.QingchengCard = 2.2
-sgs.ai_card_intention.QingchengCard = 30
+sgs.ai_use_priority.QingchengCard = 7.2
+sgs.ai_card_intention.QingchengCard = 0
+
+sgs.ai_choicemade_filter.skillChoice.qingcheng = function(player, promptlist)
+	local choice = promptlist[#promptlist]
+	local target = nil
+	for _, p in sgs.qlist(player:getRoom():getOtherPlayers(player)) do
+		if p:hasSkill(choice, true) then
+			target = p
+			break
+		end
+	end
+	if not target then return end
+	if choice == "shiyong" then sgs.updateIntention(player, target, -30) else sgs.updateIntention(player, target, 30) end
+end
 
 sgs.ai_skill_invoke.cv_caopi = function(self, data)
 	if math.random(0, 2) == 0 then sgs.ai_skill_choice.cv_caopi = "heg_caopi" return true

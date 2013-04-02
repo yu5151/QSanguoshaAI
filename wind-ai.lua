@@ -217,10 +217,10 @@ function SmartAI:findLeijiTarget(player, leiji_value)
 		if self:cantbeHurt(enemy, 2, player) or self:objectiveLevel(enemy) < 3 or (enemy:isChained() and not self:isGoodChainTarget(enemy, player)) then return 100 end
 		if not sgs.isGoodTarget(enemy, self.enemies, self) then value = value + 50 end
 		if enemy:hasArmorEffect("SilverLion") then value = value + 20 end
-		if self:hasSkills(sgs.exclusive_skill, enemy) then value = value + 3 end
+		if self:hasSkills(sgs.exclusive_skill, enemy) then value = value + 1 end
 		if self:hasSkills(sgs.masochism_skill, enemy) then value = value + 3 end
 		if self:hasSkills("tiandu|zhenlie", enemy) then value = value + 2 end
-		if self:getDamagedEffects(enemy, player) or self:needToLostHp(enemy) then value = value + 5 end
+		if self:getDamagedEffects(enemy, player) or self:needToLoseHp(enemy, player) then value = value + 5 end
 		if enemy:isChained() and self:isGoodChainTarget(enemy, player) and #(self:getChainedEnemies(player)) > 1 then value = value - 25 end
 		if enemy:isLord() then value = value - 5 end
 		value = value + enemy:getHp() * 2 + sgs.getDefenseSlash(enemy) * 0.01
@@ -469,7 +469,7 @@ sgs.ai_skill_use["@@tianxiang"] = function(self, data)
 			elseif friend:getHp() >= 2 and dmg.damage < 2 and 
 				(self:hasSkills("yiji|buqu|shuangxiong|zaiqi|yinghun|jianxiong|fangzhu", friend)
 					or self:getDamagedEffects(friend, dmg.from or self.room:getCurrent())
-					or self:needToLostHp(friend)
+					or self:needToLoseHp(friend, dmg.from or self.room:getCurrent())
 					or (friend:getHandcardNum() < 3 and friend:hasSkill("rende")))
 				then return "@TianxiangCard="..card_id.."->"..friend:objectName()
 			elseif friend:hasSkill("buqu") then return "@TianxiangCard="..card_id.."->"..friend:objectName() end
@@ -564,7 +564,7 @@ sgs.ai_skill_choice.guhuo = function(self, choices)
 		if self.player:getHp()<self.friends[#self.friends]:getHp() then return "noquestion" end
 	end
 
-	if self:needToLostHp(self.player) and not self:hasSkills(sgs.masochism_skill, self.player) and x ~= 1 then return "question" end
+	if self:needToLoseHp(self.player) and not self:hasSkills(sgs.masochism_skill, self.player) and x ~= 1 then return "question" end
 
 	local questioner
 	for _, friend in ipairs(self.friends) do

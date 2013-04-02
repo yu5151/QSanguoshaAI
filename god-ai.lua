@@ -203,14 +203,13 @@ sgs.ai_skill_invoke.qinyin = function(self, data)
 		up = up + (friend:isWounded() and 10 or 0)
 		if self:hasSkills(sgs.masochism_skill, friend) then
 			down = down - 5
-			up = up + 5
+			if friend:isWounded() then up = up + 5 end
 		end
-		if self:needToLostHp(friend) then
-			down = down + 5
-			up = up - 5
-		end
+		if self:needToLoseHp(friend, nil, nil, true) then down = down + 5 end
+		if self:needToLoseHp(friend, nil, nil, true, true) and friend:isWounded() then up = up - 5 end
+		
 		if self:isWeak(friend) then
-			up = up + 10 + (friend:isLord() and 20 or 0)
+			if friend:isWounded() then up = up + 10 + (friend:isLord() and 20 or 0) end
 			down = down - 10 - (friend:isLord() and 40 or 0)
 			if friend:getHp() <= 1 and not friend:hasSkill("buqu") or friend:getPile("buqu"):length() > 4 then
 				down = down - 20 - (friend:isLord() and 40 or 0)
@@ -223,13 +222,13 @@ sgs.ai_skill_invoke.qinyin = function(self, data)
 		up = up - (enemy:isWounded() and 10 or 0)
 		if self:hasSkills(sgs.masochism_skill, enemy) then 
 			down = down + 10
-			up = up - 15
+			if enemy:isWounded() then up = up - 10 end
 		end
-		if self:needToLostHp(enemy) then
-			down = down - 5
-		end
+		if self:needToLoseHp(enemy, nil, nil, true) then down = down - 5 end
+		if self:needToLoseHp(enemy, nil, nil, true, true) and enemy:isWounded() then up = up - 5 end
+		
 		if self:isWeak(enemy) then
-			up = up - 10
+			if enemy:isWounded() then up = up - 10 end
 			down = down + 10
 			if enemy:getHp() <= 1 and not enemy:hasSkill("buqu") then
 				down = down + 10 + ((enemy:isLord() and #self.enemies > 1) and 20 or 0)

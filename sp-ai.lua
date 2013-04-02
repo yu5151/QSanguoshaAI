@@ -324,7 +324,7 @@ local function can_be_selected_as_target_xueji(self, card, who)
 		return false 
 	end
 	-- validation of strategy
-	if self:isEnemy(who) and self:damageIsEffective(who) and not self:cantbeHurt(who) and not self:getDamagedEffects(who) and not self:needToLostHp(who) then
+	if self:isEnemy(who) and self:damageIsEffective(who) and not self:cantbeHurt(who) and not self:getDamagedEffects(who) and not self:needToLoseHp(who) then
 		if not self.player:hasSkill("jueqing") then
 			if who:hasSkill("guixin") and (self.room:getAliveCount() >= 4 or not who:faceUp()) and not who:hasSkill("manjuan") then return false end
 			if (who:hasSkill("ganglie") or who:hasSkill("neoganglie")) and (self.player:getHp() == 1 and self.player:getHandcardNum() <= 2) then return false end
@@ -444,7 +444,7 @@ sgs.ai_skill_use["@@bifa"] = function(self, prompt)
 	self:sort(self.enemies, "hp")
 	if #self.enemies < 0 then return "." end
 	for _, enemy in ipairs(self.enemies) do
-		if not (self:needToLostHp(enemy) and not self:hasSkills(sgs.masochism_skill, enemy)) then
+		if not (self:needToLoseHp(enemy) and not self:hasSkills(sgs.masochism_skill, enemy)) then
 			for _, c in ipairs(cards) do
 				if c:isKindOf("EquipCard") then return "@BifaCard=" .. c:getEffectiveId() .. "->" .. enemy:objectName() end
 			end
@@ -466,7 +466,7 @@ sgs.ai_skill_cardask["@bifa-give"] = function(self, data)
 	local card_type = data:toString()
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
-	if self:needToLostHp() and not self:hasSkills(sgs.masochism_skill) then return "." end
+	if self:needToLoseHp() and not self:hasSkills(sgs.masochism_skill) then return "." end
 	self:sortByUseValue(cards)
 	for _, c in ipairs(cards) do
 		if c:isKindOf(card_type) and not c:isKindOf("Peach") and not c:isKindOf("ExNihilo") then

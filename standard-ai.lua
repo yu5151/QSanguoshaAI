@@ -234,7 +234,7 @@ sgs.ai_skill_invoke.ganglie = function(self, data)
 	local mode = self.room:getMode()
 	if mode:find("_mini_41") then return true end
 	local who = data:toPlayer()
-	if self:isFriend(who) and (self:getDamagedEffects(who, self.player) or self:needToLostHp(who, self.player, nil, true)) then
+	if self:isFriend(who) and (self:getDamagedEffects(who, self.player) or self:needToLoseHp(who, self.player, nil, true)) then
 		return true
 	end
 	if self:getDamagedEffects(who, self.player) and self:isEnemy(who) then 
@@ -249,7 +249,7 @@ sgs.ai_choicemade_filter.skillInvoke.ganglie = function(player, promptlist, self
 		local target = sgs.ganglie_target
 		local intention = 10
 		if promptlist[3] == "yes" then
-			if self:getDamagedEffects(target, player) or self:needToLostHp(target, player, nil, true) then
+			if self:getDamagedEffects(target, player) or self:needToLoseHp(target, player, nil, true) then
 				intention = 0
 			end
 			sgs.updateIntention(player, target, intention)
@@ -266,7 +266,7 @@ sgs.ai_need_damaged.ganglie = function (self, attacker, player)
 		and not self:hasSkills("buqu", attacker)
 		and not (self:needKongcheng(attacker) and attacker:getHandcardNum() > 1)
 		and sgs.isGoodTarget(attacker, self.enemies, self) 
-		and not self:getDamagedEffects(attacker, player) and not self:needToLostHp(attacker) then
+		and not self:getDamagedEffects(attacker, player) and not self:needToLoseHp(attacker, player) then
 			return true
 	end
 	return false
@@ -274,7 +274,7 @@ end
 
 sgs.ai_skill_discard.ganglie = function(self, discard_num, min_num, optional, include_equip)
 	local xiahou = self.room:findPlayerBySkillName("ganglie")
-	if self:getDamagedEffects(self.player, xiahou) or self:needToLostHp() then return {} end
+	if self:getDamagedEffects(self.player, xiahou) or self:needToLoseHp(self.player, xiahou) then return {} end
 	local to_discard = {}
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	local index = 0
@@ -1038,7 +1038,7 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 	
 	local ignoreArmor = IgnoreArmor(sgs.jijiangsource, target) or not target:getArmor()
 	
-	if self:isFriend(target) and not (self:needToLostHp(target, sgs.jijiangsource, true, true) or self:getDamagedEffects(target, sgs.jijiangsource, true)) then return "." end
+	if self:isFriend(target) and not (self:needToLoseHp(target, sgs.jijiangsource, true, true) or self:getDamagedEffects(target, sgs.jijiangsource, true)) then return "." end
 
 	if ignoreArmor and not target:hasSkill("yizhong") then return self:getCardId("Slash") or "." end
 
@@ -1743,7 +1743,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 	end
 
 	for _, friend in ipairs(self.friends_noself) do
-		if self:needToLostHp(friend, source, true) or self:getDamagedEffects(friend, source, true) then
+		if self:needToLoseHp(friend, source, true) or self:getDamagedEffects(friend, source, true) then
 			if not (source and (source:objectName() == friend:objectName())) then
 				local ret = doLiuli(friend)
 				if ret ~= "." then return ret end
@@ -1862,13 +1862,13 @@ function SmartAI:getWoundedFriend(maleOnly)
 			if friend:getMark("hunzi") == 0 and friend:hasSkill("hunzi") 
 					and self:getEnemyNumBySeat(self.player,friend) <= (friend:getHp()>= 2 and 1 or 0) then
 				addToList(friend, 2)
-			elseif friend:getHp() >= getBestHp(friend) then
+			elseif self:needToLoseHp(friend, nil, nil, true, true) then
 				addToList(friend, 2)
 			elseif not sgs.isLordHealthy() then
 				addToList(friend, 1)
 			end
 		else
-			if friend:getHp() >= getBestHp(friend) or (self:hasSkills("rende|kuanggu|zaiqi", friend) and friend:getHp() >= 2) then
+			if self:needToLoseHp(friend, nil, nil, true, true) or (self:hasSkills("rende|kuanggu|zaiqi", friend) and friend:getHp() >= 2) then
 				addToList(friend, 2)
 			else
 				addToList(friend, 1)
@@ -1936,15 +1936,15 @@ sgs.xiaoji_keep_value = {
 
 sgs.ai_chaofeng.sunshangxiang = 6
 
-local qingnang_skill={}
-qingnang_skill.name="qingnang"
-table.insert(sgs.ai_skills,qingnang_skill)
-qingnang_skill.getTurnUseCard=function(self)
-	if self.player:getHandcardNum()<1 then return nil end
-	if self.player:usedTimes("QingnangCard")>0 then return nil end
+local qingnang_skill = {}
+qingnang_skill.name = "qingnang"
+table.insert(sgs.ai_skills, qingnang_skill)
+qingnang_skill.getTurnUseCard = function(self)
+	if self.player:getHandcardNum() < 1 then return nil end
+	if self.player:usedTimes("QingnangCard") > 0 then return nil end
 	
 	local cards = self.player:getHandcards()
-	cards=sgs.QList2Table(cards)
+	cards = sgs.QList2Table(cards)
 
 	local compare_func = function(a, b)
 		local v1 = self:getKeepValue(a) + ( a:isRed() and 50 or 0 ) + ( a:isKindOf("Peach") and 50 or 0 )
@@ -1958,14 +1958,11 @@ qingnang_skill.getTurnUseCard=function(self)
 end
 
 sgs.ai_skill_use_func.QingnangCard = function(card, use, self)
-
-	local arr1,arr2 = self:getWoundedFriend()
-	local target = nil
-	
-	if #arr1 > 0 and (self:isWeak(arr1[1]) or self:getOverflow() >= 1) and arr1[1]:getHp() < getBestHp(arr1[1]) then target = arr1[1] end
-
+	local arr1, arr2 = self:getWoundedFriend()
+	local target = nil	
+	if #arr1 > 0 and (self:isWeak(arr1[1]) or self:getOverflow() >= 1) and not self:needToLoseHp(arr1[1], nil, nil, nil, true) then target = arr1[1] end
 	if target then
-		use.card=card
+		use.card = card
 		if use.to then use.to:append(target) end 
 		return
 	end	

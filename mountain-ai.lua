@@ -576,7 +576,7 @@ sgs.ai_skill_cardask["@tiaoxin-slash"] = function(self, data, pattern, target)
 			if self:isFriend(target) and self:slashIsEffective(slash, target) then
 				if self:needLeiji(target, self.player) then return slash:toString() end
 				if self:getDamagedEffects(target, self.player) then return slash:toString() end
-				if self:needToLostHp(target, self.player, nil, true) then return slash:toString() end
+				if self:needToLoseHp(target, self.player, nil, true) then return slash:toString() end
 			end
 			
 			if not self:isFriend(target) and self:slashIsEffective(slash, target) 

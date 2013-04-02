@@ -202,7 +202,7 @@ end
 
 sgs.ai_skill_invoke.neoganglie = function(self, data)
 	local who = data:toPlayer()
-	if self:isFriend(who) and (self:getDamagedEffects(who, self.player) or self:needToLostHp(who, self.player, nil, true)) then
+	if self:isFriend(who) and (self:getDamagedEffects(who, self.player) or self:needToLoseHp(who, self.player, nil, true)) then
 		who:setFlags("ganglie_target")
 		return true
 	end
@@ -218,7 +218,7 @@ sgs.ai_choicemade_filter.skillInvoke.neoganglie = function(player, promptlist, s
 		local target = sgs.ganglie_target
 		local intention = 10
 		if promptlist[3] == "yes" then
-			if self:getDamagedEffects(target, player) or self:needToLostHp(target, player, nil, true) then
+			if self:getDamagedEffects(target, player) or self:needToLoseHp(target, player, nil, true) then
 				intention = 0
 			end
 			sgs.updateIntention(player, target, intention)
@@ -232,7 +232,7 @@ end
 sgs.ai_need_damaged.neoganglie = function (self, attacker, player)
 	if not player:hasSkill("neoganglie") then return false end
 	if self:isEnemy(attacker, player) and attacker:getHp() <= 2 and not attacker:hasSkill("buqu") and sgs.isGoodTarget(attacker, self.enemies, self)
-		and not self:getDamagedEffects(attacker, player) and not self:needToLostHp(attacker) then
+		and not self:getDamagedEffects(attacker, player) and not self:needToLoseHp(attacker, player) then
 			return true
 	end
 	return false
@@ -246,9 +246,9 @@ sgs.ai_skill_choice.neoganglie = function(self, choices)
 			target:setFlags("-ganglie_target")
 		end
 	end
-	if (self:getDamagedEffects(target, self.player) or self:needToLostHp(target)) and self:isFriend(target) then return "damage" end
+	if (self:getDamagedEffects(target, self.player) or self:needToLoseHp(target, self.player)) and self:isFriend(target) then return "damage" end
 
-	if (self:getDamagedEffects(target, self.player) or self:needToLostHp(target)) and target:getHandcardNum() > 1 then
+	if (self:getDamagedEffects(target, self.player) or self:needToLoseHp(target, self.player)) and target:getHandcardNum() > 1 then
 		return "throw"
 	end
 	return "damage"

@@ -142,9 +142,9 @@ sgs.dynamic_value.benefit.NosJujianCard = true
 
 sgs.ai_skill_cardask["@enyuanheart"] = function(self, data)
 	local damage = data:toDamage()
-	if self:needToLostHp(self.player, damage.to, nil, true) and not self:hasSkills(sgs.masochism_skill) then return "." end
+	if self:needToLoseHp(self.player, damage.to, nil, true) and not self:hasSkills(sgs.masochism_skill) then return "." end
 	if self:isFriend(damage.to) then return end
-	if self:needToLostHp() and not self:hasSkills(sgs.masochism_skill) then return "." end
+	if self:needToLoseHp() and not self:hasSkills(sgs.masochism_skill) then return "." end
 
 	local cards = self.player:getHandcards()
 	for _, card in sgs.qlist(cards) do
@@ -159,7 +159,7 @@ function sgs.ai_slash_prohibit.nosenyuan(self, to, card, from)
 	if from:hasSkill("jueqing") then return false end
 	if from:hasSkill("nosqianxi") and from:distanceTo(to) == 1 then return false end
 	if from:hasFlag("nosjiefanUsed") then return false end
-	if self:needToLostHp(from) and not self:hasSkills(sgs.masochism_skill, from) then return false end
+	if self:needToLoseHp(from) and not self:hasSkills(sgs.masochism_skill, from) then return false end
 	if from:getHp() > 3 then return false end
 	
 	local n = 0
@@ -178,7 +178,7 @@ end
 
 sgs.ai_need_damaged.nosenyuan = function (self, attacker, player)	
 	if player:hasSkill("nosenyuan") and self:isEnemy(attacker, player) and self:isWeak(attacker)
-		and not (self:needToLostHp(attacker) and not self:hasSkills(sgs.masochism_skill, attacker)) then
+		and not (self:needToLoseHp(attacker) and not self:hasSkills(sgs.masochism_skill, attacker)) then
 			return true
 	end
 	return false

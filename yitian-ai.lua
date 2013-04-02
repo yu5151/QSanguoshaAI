@@ -518,14 +518,7 @@ sgs.ai_use_priority.GuihanCard = 8
 ]]--
 sgs.ai_skill_invoke.caizhaoji_hujia = function(self, data)
 	local zhangjiao = self.room:findPlayerBySkillName("guidao")
-	if zhangjiao and self:isEnemy(zhangjiao) then 
-		if not zhangjiao:getCards("e"):isEmpty() then
-			for _, card in sgs.qlist(zhangjiao:getCards("e")) do
-				if card:isBlack() then return false end
-			end
-		end
-		return zhangjiao:getHandcardNum() <= 2
-	end
+	if zhangjiao and self:isEnemy(zhangjiao) and getKnownCard(zhangjiao, "black", false, "he") > 1 then return false end
 	if not self.player:faceUp() then 
 		return true 
 	end
@@ -594,13 +587,8 @@ function sgs.ai_skill_invoke.shaoying(self, data)
 	end
 	if enemynum < 1 then return false end
 	local zhangjiao = self.room:findPlayerBySkillName("guidao")
-	if not zhangjiao or self:isFriend(zhangjiao) then return true end
-	if not zhangjiao:getCards("e"):isEmpty() then
-		for _, card in sgs.qlist(zhangjiao:getCards("e")) do
-			if card:isBlack() then return false end
-		end
-	end
-	return zhangjiao:getHandcardNum() <= 2
+	if zhangjiao and self:isEnemy(zhangjiao) and getKnownCard(zhangjiao, "black", false, "he") > 1 then return false end
+	return true
 end
 
 sgs.ai_skill_playerchosen.shaoying = function(self, targets)
@@ -616,10 +604,7 @@ sgs.ai_skill_playerchosen.shaoying = function(self, targets)
 end
 
 sgs.ai_playerchosen_intention.shaoying = function(from, to)
-	local zhangjiao = self.room:findPlayerBySkillName("guidao")
-	if not zhangjiao then
-		sgs.updateIntention(from, to , 10)
-	end
+	sgs.updateIntention(from, to , 10)
 end
 
 --[[

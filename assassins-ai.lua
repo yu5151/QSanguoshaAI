@@ -14,8 +14,7 @@ end
 
 sgs.ai_skill_invoke.tianming = function(self, data)
 	if self:hasSkill("manjuan") and self.player:getPhase() == sgs.Player_NotActive then return false end
-	if self.player:hasArmorEffect("EightDiagram") and self.player:getCardCount(true) == 2 then return false end 
-	if self:getCardsNum("Jink") == 0 then return true end
+	if self:canHit(self.player) then return true end
 	local unpreferedCards = {}
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	
@@ -231,7 +230,7 @@ sgs.ai_skill_cardask["@JieyuanDecrease"] = function(self, data)
 		end
 	end
 	if self:getDamagedEffects(self.player, damage.from) and damage.damage <= 1 then return "." end	
-	if self:needToLostHp(self.player, damage.from) and damage.damage <= 1 then return "." end	
+	if self:needToLoseHp(self.player, damage.from) and damage.damage <= 1 then return "." end	
 	for _,card in ipairs(cards) do
 		if card:isRed() then return "$" .. card:getEffectiveId() end
 	end
@@ -304,7 +303,7 @@ sgs.ai_skill_cardask["#mixin"] = function(self, data, pattern, target)
 			if self:isFriend(target) and self:slashIsEffective(slash, target) then
 				if self:needLeiji(target, self.player) then return slash:toString() end
 				if self:getDamagedEffects(target, self.player) then return slash:toString() end
-				if self:needToLostHp(target, self.player, nil, true) then return slash:toString() end
+				if self:needToLoseHp(target, self.player, nil, true) then return slash:toString() end
 			end
 			
 			if not self:isFriend(target) and self:slashIsEffective(slash, target) 

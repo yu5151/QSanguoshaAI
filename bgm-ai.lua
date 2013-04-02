@@ -662,31 +662,35 @@ end
 sgs.ai_skill_invoke.anxian = function(self, data)
 	local damage = data:toDamage()
 	local target = damage.to
-	if self:isFriend(target) and not self:hasSkills(sgs.masochism_skill, target) then return true end
-	if self:hasHeavySlashDamage(self.player, damage.card, damage.to) and damage.to:getHp() <= 1 then return false end
-	if self:isEnemy(target) and self:hasSkills(sgs.masochism_skill, target) then return true end
+	if self:isFriend(target) and not (self:getDamagedEffects(target, self.player) or self:needToLoseHp(target, self.player, nil, true)) then return true end
 	if self:hasHeavySlashDamage(self.player, damage.card, damage.to) then return false end
+	if self:isEnemy(target) and self:getDamagedEffects(target, self.player) and not self:doNotDiscard(target, "h") then return true end
 	return false
 end
 
 sgs.ai_skill_cardask["@anxian-discard"] = function(self, data)
 	local use = data:toCardUse()
 	local from = use.from
+	local to = self.player
 	if self.player:isKongcheng() then return "." end
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
 	self:sortByKeepValue(cards)
 
-	if self:hasHeavySlashDamage(from, use.card, self.player) and from:hasWeapon("Axe") and from:getCards("he"):length() > 2 then
+	if self:hasHeavySlashDamage(from, use.card, self.player) and self:canHit(to, from, true) then
 		return "$" .. cards[1]:getEffectiveId()
 	end	
 	if self:getDamagedEffects(self.player, use.from, true) then
 		return "."
 	end
-	if self:needToLostHp(self.player, use.from, true) then
+	if self:needToLoseHp(self.player, use.from, true) then
 		return "."
 	end
-	if from:hasWeapon("Axe") and self:hasSkills(sgs.lose_equip_skill, from) and from:getEquips():length() > 1 then
+	if self:isFriend(to, from) then return "$" .. cards[1]:getEffectiveId() end
+	if self:needToLoseHp(self.player, use.from, true, true) then
+		return "."
+	end
+	if self:canHit(to, from) then
 		for _, card in ipairs(cards) do
 			if not isCard("Peach", card, self.player) then
 				return "$" .. card:getEffectiveId()
@@ -695,9 +699,6 @@ sgs.ai_skill_cardask["@anxian-discard"] = function(self, data)
 	end
 	if self:getCardsNum("Jink") > 0 then
 		return "."
-	end
-	if self:hasHeavySlashDamage(from, use.card, self.player) then
-		return "$" .. cards[1]:getEffectiveId()
 	end
 
 	if #cards == self:getCardsNum("Peach") then return "." end
@@ -1100,17 +1101,18 @@ local function need_huangen(self, who)
 	if card == nil then return false end
 	local from = self.room:getCurrent()
 	if self:isEnemy(who) then
-		if card:isKindOf("GodSalvation") and who:isWounded() and who:hasSkill("manjuan") and who:getPhase() == sgs.Player_NotActive
-		  and self:hasTrickEffective(card, who, from) then
-			return true
-		end
-		if card:isKindOf("GodSalvation") and who:isWounded() and self:isWeak(who) and self:hasTrickEffective(card, who, from) then
-			return true
+		if card:isKindOf("GodSalvation") and who:isWounded() and self:hasTrickEffective(card, who, from) then
+			if who:hasSkill("manjuan") and who:getPhase() == sgs.Player_NotActive then return true end
+			if self:isWeak(who) then return true end
+			if self:hasSkills(sgs.masochism_skill, who) then return true end
 		end
 		return false
 	elseif self:isFriend(who) then
 		if self:hasSkills("noswuyan", who) and from:objectName() ~= who:objectName() then return true end
-		if card:isKindOf("GodSalvation") and who:isWounded() and self:hasTrickEffective(card, who, from) then return false end
+		if card:isKindOf("GodSalvation") and who:isWounded() and self:hasTrickEffective(card, who, from) then
+			if self:needToLoseHp(who, nil, nil, nil, true) then return true end
+			return false 
+		end
 		if card:isKindOf("IronChain") and who:isChained() and self:hasTrickEffective(card, who, from) then return false end
 		if card:isKindOf("AmazingGrace") then return not self:hasTrickEffective(card, who, from) end
 		return true
@@ -1178,7 +1180,7 @@ sgs.ai_card_intention.HuangenCard = function(self, card, from, tos)
 	if not cardx then return end
 	for _, to in ipairs(tos) do
 		local intention = -80
-		if cardx:isKindOf("GodSalvation") and to:isWounded() then intention = 50 end
+		if cardx:isKindOf("GodSalvation") and to:isWounded() and not self:needToLoseHp(to, nil, nil, nil, true) then intention = 50 end
 		sgs.updateIntention(from, to, intention)
 	end
 end

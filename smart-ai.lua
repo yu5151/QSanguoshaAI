@@ -102,8 +102,8 @@ function setInitialTables()
 	sgs.priority_skill = 		"dimeng|haoshi|qingnang|jizhi|guzheng|qixi|jieyin|guose|duanliang|jujian|fanjian|neofanjian|lijian|" ..
 						"manjuan|tuxi|qiaobian|yongsi|zhiheng|luoshen|rende|mingce|wansha|gongxin|jilve|anxu|" ..
 						"qice|yinling|qingcheng|houyuan|zhaoxin"
-	sgs.save_skill = 		"jijiu|buyi|nosjiefan|chunlao"
-	sgs.exclusive_skill = 		"huilei|duanchang|wuhun|buqu|jincui"
+	sgs.save_skill = 		"jijiu|buyi|nosjiefan|chunlao|longhun"
+	sgs.exclusive_skill = 		"huilei|duanchang|wuhun|buqu|zhuiyi|dushi|jincui"
 	sgs.cardneed_skill =		"paoxiao|tianyi|xianzhen|shuangxiong|jizhi|guose|duanliang|qixi|qingnang|yinling|luoyi|guhuo|kanpo|" ..
 						"jieyin|renjie|zhiheng|rende|nosjujian|guicai|guidao|longhun|luanji|qiaobian|beige|jieyuan|" ..
 						"mingce|nosfuhun|lirang|longluo|xuanfeng|xinzhan|dangxian|xiaoguo|neoluoyi|fuhun"
@@ -2641,7 +2641,7 @@ function sgs.ai_cardneed.weapon(to, card, self)
 end
 
 function SmartAI:getEnemyNumBySeat(from, to)
-	local players = sgs.QList2Table(global_room:getAlivePlayers())
+	local players = sgs.QList2Table(self.room:getAlivePlayers())
 	local to_seat = (to:getSeat() - from:getSeat()) % #players
 	local enemynum = 0
 	for _, p in ipairs(players) do
@@ -2653,7 +2653,7 @@ function SmartAI:getEnemyNumBySeat(from, to)
 end
 
 function SmartAI:getFriendNumBySeat(from, to)
-	local players = sgs.QList2Table(global_room:getAlivePlayers())
+	local players = sgs.QList2Table(self.room:getAlivePlayers())
 	local to_seat = (to:getSeat() - from:getSeat()) % #players
 	local friendnum = 0
 	for _, p in ipairs(players) do

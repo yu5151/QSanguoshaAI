@@ -179,6 +179,7 @@ jueji_skill.getTurnUseCard = function(self)
 end
 
 sgs.ai_skill_use_func.JuejiCard = function(card, use, self)
+	if self.player:isKongcheng() then return end
 	local zhugeliang = self.room:findPlayerBySkillName("kongcheng")
 	if zhugeliang and self:isFriend(zhugeliang) and zhugeliang:getHandcardNum() == 1 and zhugeliang:objectName() ~= self.player:objectName()
 	  and self:getEnemyNumBySeat(self.player, zhugeliang) > 0 and zhugeliang:getHp() <= 2 then

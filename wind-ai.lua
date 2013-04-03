@@ -263,7 +263,8 @@ function SmartAI:needLeiji(to, from)
 	if from and self:canLiegong(to, from) and not self:isFriend(to, from) then return false end
 	if self:hasSuit("spade", true, to) and (getKnownCard(to, "Jink", true) >= 1 
 		or (not IgnoreArmor(from, to) and not self:isWeak(to) and self:isEquip("EightDiagram", to)))
-		and self:findLeijiTarget(to, 50) then
+		and self:findLeijiTarget(to, 50)
+		and self:getFinalRetrial(to) == 2 then
 			return true
 	end
 	return false

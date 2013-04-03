@@ -713,9 +713,11 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 			if (target:hasSkill("jieyin") and (not self.player:isWounded()) and self.player:isMale()) and not (self.player:hasSkill("leiji") and self:findLeijiTarget(self.player, 50)) then return "." end
 			if self.player:isChained() and self:isGoodChainTarget(self.player) then return "." end
 		end
+		return
 	else
 		if self:hasHeavySlashDamage(target, effect.slash) then return end
-		if (self.player:getHandcardNum() == 1 and self:needKongcheng()) or not self:hasLoseHandcardEffective() then return end
+		if self.player:getHandcardNum() == 1 and self:needKongcheng() then return end
+		if not self:hasLoseHandcardEffective() and not self.player:isKongcheng() then return end
 		if target:hasSkill("nosqianxi") and target:distanceTo(self.player) == 1 then return end
 		if self.player:hasSkill("leiji") and self:findLeijiTarget(self.player, 50) then return end
 		if target:hasSkill("mengjin") then

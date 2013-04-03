@@ -768,18 +768,19 @@ function SmartAI:canHit(to, from, conservative)
 	if self:canLiegong(to, from) then return true end
 	if from:hasWeapon("Axe") and from:getCards("he"):length() > 2 and not self:isFriend(to, from) then return true end
 	local hasHeart = false
-	for _, card in ipairs(self:getCards("Jink")) do
+	for _, card in ipairs(self:getCards("Jink"), to) do
 		if card:getSuit() == sgs.Card_Heart then
 			hasHeart = true
 			break
 		end
 	end
 	if to:hasFlag("dahe") and not hasHeart then return true end
+	if not conservative and self:hasHeavySlashDamage(from, nil, to) then conservative = true end
 	if not conservative and self:isEquip("EightDiagram", to) and not IgnoreArmor(from, to) then return false end
-	if self:getCardsNum("Jink", to) == 0 then return true end
+	if getCardsNum("Jink", to) == 0 then return true end
 	local need_double_jink = from and (from:hasSkill("wushuang") 
 				or (from:hasSkill("roulin") and to:isFemale()) or (from:isFemale() and to:hasSkill("roulin")))
-	if need_double_jink and self:getCardsNum("Jink", to) < 2 then return true end
+	if need_double_jink and getCardsNum("Jink", to) < 2 then return true end
 	return false
 end
 
@@ -2155,11 +2156,7 @@ sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target,
 		return "."
 	end
 
-	if self:isFriend(target2) and target2:hasSkill("leiji") 
-		and (self:hasSuit("spade", true, target2) or target2:getHandcardNum() >= 3)
-		and (getKnownCard(target2, "Jink", true) >= 1 or 
-			(not self:isWeak(target2) and not self:isEquip("QinggangSword", self.player) and self:isEquip("EightDiagram", target2) )) then
-
+	if self:isFriend(target2) and self:needLeiji(target2, self.player) then
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if self:slashIsEffective(slash, target2) then 
 				return slash:toString()
@@ -2196,10 +2193,12 @@ sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target,
 				return slash:toString()
 			end 
 		end
-		if (target2:getHp() > 2 or getCardsNum("Jink", target2) > 1) and not target2:getRole() == "lord" and self.player:getHandcardNum() > 1 then
-			for _, slash in ipairs(self:getCards("Slash")) do
-				return slash:toString()
-			end 
+		for _, slash in ipairs(self:getCards("Slash")) do
+			if (target2:getHp() > 3 or not self:canHit(target2, self.player, self:hasHeavySlashDamage(self.player, slash, target2)))
+				and not target2:getRole() == "lord" and self.player:getHandcardNum() > 1 then
+					return slash:toString()
+			end
+			if self:needToLoseHp(target2, self.player) then return slash:toString() end
 		end
 	end
 	self:speak("collateral", self.player:isFemale())

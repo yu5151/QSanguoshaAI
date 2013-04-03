@@ -2001,8 +2001,10 @@ sgs.ai_skill_cardask["@wushuang-jink-1"] = function(self, data, pattern, target)
 	if self:canUseJieyuanDecrease(target) then return "." end	
 	if self:hasSkill("kongcheng") then
 		if target:hasWeapon("GudingBlade") and self.player:getHandcardNum() == 1 and self:getCardsNum("Jink") == 1 then return "." end
+		if self.player:getHandcardNum() == 1 and self:getCardsNum("Jink") == 1 then return end
 	else
-		if self:getCardsNum("Jink") < 2 and self:hasLoseHandcardEffective() then return "." end
+		if not self:hasLoseHandcardEffective() and not self.player:isKongcheng() then return end
+		if self:getCardsNum("Jink") < 2 then return "." end
 	end
 end
 

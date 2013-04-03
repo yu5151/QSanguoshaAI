@@ -1110,7 +1110,7 @@ local function need_huangen(self, who)
 	elseif self:isFriend(who) then
 		if self:hasSkills("noswuyan", who) and from:objectName() ~= who:objectName() then return true end
 		if card:isKindOf("GodSalvation") and who:isWounded() and self:hasTrickEffective(card, who, from) then
-			if self:needToLoseHp(who, nil, nil, nil, true) then return true end
+			if self:needToLoseHp(who, nil, nil, true, true) then return true end
 			return false 
 		end
 		if card:isKindOf("IronChain") and who:isChained() and self:hasTrickEffective(card, who, from) then return false end
@@ -1180,7 +1180,7 @@ sgs.ai_card_intention.HuangenCard = function(self, card, from, tos)
 	if not cardx then return end
 	for _, to in ipairs(tos) do
 		local intention = -80
-		if cardx:isKindOf("GodSalvation") and to:isWounded() and not self:needToLoseHp(to, nil, nil, nil, true) then intention = 50 end
+		if cardx:isKindOf("GodSalvation") and to:isWounded() and not self:needToLoseHp(to, nil, nil, true, true) then intention = 50 end
 		sgs.updateIntention(from, to, intention)
 	end
 end

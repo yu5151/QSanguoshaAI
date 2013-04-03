@@ -469,7 +469,7 @@ sgs.ai_skill_use["@@tianxiang"] = function(self, data)
 			elseif friend:getHp() >= 2 and dmg.damage < 2 and 
 				(self:hasSkills("yiji|buqu|shuangxiong|zaiqi|yinghun|jianxiong|fangzhu", friend)
 					or self:getDamagedEffects(friend, dmg.from or self.room:getCurrent())
-					or self:needToLoseHp(friend, dmg.from or self.room:getCurrent())
+					or self:needToLoseHp(friend, dmg.from or self.room:getCurrent(), nil, true)
 					or (friend:getHandcardNum() < 3 and friend:hasSkill("rende")))
 				then return "@TianxiangCard="..card_id.."->"..friend:objectName()
 			elseif friend:hasSkill("buqu") then return "@TianxiangCard="..card_id.."->"..friend:objectName() end
@@ -496,10 +496,11 @@ sgs.ai_skill_use["@@tianxiang"] = function(self, data)
 end
 
 
-sgs.ai_card_intention.TianxiangCard = function(self,card, from, tos)
+sgs.ai_card_intention.TianxiangCard = function(self, card, from, tos)
 	local to = tos[1]
 	local intention = 10
 	local friend = false
+	if self:getDamagedEffects(to) or self:needToLoseHp(to, nil, nil, true) then intention = 0 end
 	for _, askill in ipairs(("yiji|shuangxiong|zaiqi|yinghun|jianxiong|fangzhu"):split("|")) do
 		if to:hasSkill(askill) then
 			friend = true
@@ -561,7 +562,7 @@ sgs.ai_skill_choice.guhuo = function(self, choices)
 	if self.lua_ai:isFriend(yuji) then return "noquestion"
 	elseif sgs.questioner then return "noquestion"
 	else
-		if self.player:getHp()<self.friends[#self.friends]:getHp() then return "noquestion" end
+		if self.player:getHp() < self.friends[#self.friends]:getHp() then return "noquestion" end
 	end
 
 	if self:needToLoseHp(self.player) and not self:hasSkills(sgs.masochism_skill, self.player) and x ~= 1 then return "question" end

@@ -96,7 +96,7 @@ function setInitialTables()
 	sgs.draw_pile = 			global_room:getDrawPile()
 	sgs.lose_equip_skill = 		"xiaoji|xuanfeng|nosxuanfeng"
 	sgs.need_kongcheng = 		"lianying|kongcheng"
-	sgs.masochism_skill = 		"yiji|fankui|jieming|neoganglie|ganglie|enyuan|fangzhu|nosenyuan|langgu|guixin|quanji|fenyong|tanlan"
+	sgs.masochism_skill = 		"guixin|yiji|fankui|jieming|fenyong|neoganglie|ganglie|enyuan|fangzhu|nosenyuan|jianxiong|langgu|quanji|zhiyu|tanlan|tongxin|huashen"
 	sgs.wizard_skill = 		"guicai|guidao|jilve|tiandu|luoying|noszhenlie|huanshi"
 	sgs.wizard_harm_skill = 	"guicai|guidao|jilve"
 	sgs.priority_skill = 		"dimeng|haoshi|qingnang|jizhi|guzheng|qixi|jieyin|guose|duanliang|jujian|fanjian|neofanjian|lijian|" ..
@@ -109,7 +109,7 @@ function setInitialTables()
 						"mingce|nosfuhun|lirang|longluo|xuanfeng|xinzhan|dangxian|xiaoguo|neoluoyi|fuhun"
 	sgs.drawpeach_skill =		"tuxi|qiaobian"
 	sgs.recover_skill =		"rende|kuanggu|zaiqi|jieyin|qingnang|yinghun|hunzi|shenzhi|longhun|nosmiji|zishou|ganlu|xueji|shangshi|" ..
-						"nosshangshi|chengxiang|buqu|tongxin|miji"
+						"nosshangshi|chengxiang|buqu|miji"
 	sgs.use_lion_skill =		 "longhun|duanliang|qixi|guidao|lijian|jujian|nosjujian|zhiheng|mingce|yongsi|fenxun|gongqi|" ..
 						"yinling|jilve|qingcheng|neoluoyi|diyyicong"								  
 	
@@ -2717,7 +2717,7 @@ function SmartAI:needKongcheng(player, keep)
 		for _, to in ipairs(self:getEnemies(player)) do
 			if player:canSlash(to, slash) and not self:slashProhibit(slash, to)
 			  and self:slashIsEffective(slash, to) and not self:getDamagedEffects(to, player, true) 
-			  and not self:needToLoseHp(to, player, true) then
+			  and not self:needToLoseHp(to, player, true, true) then
 				return true
 			end
 		end
@@ -3523,31 +3523,33 @@ function SmartAI:getRetrialCardId(cards, judge)
 	end
 end
 
-function SmartAI:damageIsEffective(player, nature, source)
-	player = player or self.player
-	source = source or self.room:getCurrent()
+function SmartAI:damageIsEffective(to, nature, from)
+	to = to or self.player
+	from = from or self.room:getCurrent()
 	nature = nature or sgs.DamageStruct_Normal
 	
-	if source:hasSkill("jueqing") then return true end
+	if from:hasSkill("jueqing") then return true end
 
 	local jinxuandi = self.room:findPlayerBySkillName("wuling")
 	if jinxuandi and jinxuandi:getMark("@fire") > 0 then nature = sgs.DamageStruct_Fire end
 
-	if player:hasSkill("shenjun") and player:getGender() ~= source:getGender() and nature ~= sgs.DamageStruct_Thunder then
+	if to:hasSkill("shenjun") and to:getGender() ~= from:getGender() and nature ~= sgs.DamageStruct_Thunder then
 		return false
 	end
-	if player:getMark("@fenyong") > 0 and player:hasSkill("fenyong")  then
+	if to:getMark("@fenyong") > 0 and to:hasSkill("fenyong")  then
 		return false
 	end
-	if player:getMark("@fog") > 0 and nature ~= sgs.DamageStruct_Thunder then
+	if to:getMark("@fog") > 0 and nature ~= sgs.DamageStruct_Thunder then
 		return false
 	end
-	if player:hasSkill("ayshuiyong") and nature == sgs.DamageStruct_Fire then
+	if to:hasSkill("ayshuiyong") and nature == sgs.DamageStruct_Fire then
+		return false
+	end
+	if to:hasSkill("mingshi") and self:isFriend(to, from) and not from:isKongcheng() and not self:hasHeavySlashDamage(from, nil, to) then
 		return false
 	end
 	return true
 end
-
 
 function SmartAI:getDamagedEffects(to, from, slash)
 	from = from or self.room:getCurrent()
@@ -4591,13 +4593,7 @@ function SmartAI:hasTrickEffective(card, to, from)
 		return false 
 	end
 	
-	if to:hasSkill("zuixiang") and to:isLocked(card) then return false end
-	
-	if to:hasSkill("mingshi") and self:isFriend(to, from) and to:objectName() ~= from:objectName() and card and
-		(card:isKindOf("Duel") or card:isKindOf("FireAttack") or card:isKindOf("ArcheryAttack") or card:isKindOf("SavageAssault")) then
-		return false
-	end
-		
+	if to:hasSkill("zuixiang") and to:isLocked(card) then return false end		
 	return true
 end
 

@@ -1668,10 +1668,9 @@ function sgs.ai_cardneed.guose(to, card)
 end
 
 sgs.ai_skill_use["@@liuli"] = function(self, prompt)
-
-	local others=self.room:getOtherPlayers(self.player)
+	local others = self.room:getOtherPlayers(self.player)
 	local slash = self.player:getTag("liuli-card"):toCard()
-	others=sgs.QList2Table(others)
+	others = sgs.QList2Table(others)
 	local source
 	for _, player in ipairs(others) do
 		if player:hasFlag("slash_source") then
@@ -1681,7 +1680,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 	end
 	self:sort(self.enemies, "defense")
 	
-	local doLiuli=function(who)
+	local doLiuli = function(who)
 		if not self:isFriend(who) and who:hasSkill("leiji") 
 			and ( self:hasSuit("spade", true, who) or who:getHandcardNum() >= 3)
 			and (getKnownCard(who, "Jink", true) >= 1 or (not self:isEquip("QinggangSword", source) and self:isEquip("EightDiagram",who) )) then
@@ -1689,7 +1688,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 		end
 
 		local cards = self.player:getCards("h")
-		cards=sgs.QList2Table(cards)
+		cards = sgs.QList2Table(cards)
 		self:sortByKeepValue(cards)
 		for _,card in ipairs(cards) do
 			if self.player:distanceTo(who) <= self.player:getAttackRange() and not (who:hasSkill("kongcheng") and who:isKongcheng()) then
@@ -1868,7 +1867,7 @@ function SmartAI:getWoundedFriend(maleOnly)
 				addToList(friend, 1)
 			end
 		else
-			if self:needToLoseHp(friend, nil, nil, true, true) or (self:hasSkills("rende|kuanggu|zaiqi", friend) and friend:getHp() >= 2) then
+			if self:needToLoseHp(friend, nil, nil, nil, true) or (self:hasSkills("rende|kuanggu|zaiqi", friend) and friend:getHp() >= 2) then
 				addToList(friend, 2)
 			else
 				addToList(friend, 1)
@@ -2008,9 +2007,9 @@ end
 
 sgs.ai_chaofeng.lvbu = 1
 
-local lijian_skill={}
+local lijian_skill = {}
 lijian_skill.name = "lijian"
-table.insert(sgs.ai_skills,lijian_skill)
+table.insert(sgs.ai_skills, lijian_skill)
 lijian_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("LijianCard") or self.player:isNude() then
 		return 
@@ -2200,8 +2199,7 @@ sgs.ai_skill_use_func.LijianCard = function(card,use,self)
 
 	local shenguanyu = self.room:findPlayerBySkillName("wuhun")
 	if shenguanyu and shenguanyu:isMale() then
-		if self.role == "rebel" and lord and lord:isMale() and not lord:hasSkill("jueqing") and self:hasTrickEffective(duel, shenguanyu, lord) then
-		
+		if self.role == "rebel" and lord and lord:isMale() and not lord:hasSkill("jueqing") and self:hasTrickEffective(duel, shenguanyu, lord) then		
 			use.card = card
 			if use.to then 
 				use.to:append(shenguanyu)
@@ -2212,11 +2210,10 @@ sgs.ai_skill_use_func.LijianCard = function(card,use,self)
 		elseif self:isEnemy(shenguanyu) and #self.enemies >= 2 then
 			for _, enemy in ipairs(self.enemies) do
 				if enemy:objectName() ~= shenguanyu:objectName() and enemy:isMale() and self:hasTrickEffective(duel, shenguanyu, enemy) then
-				
 					use.card = card
 					if use.to then
-						use.to:append(enemy)
 						use.to:append(shenguanyu)
+						use.to:append(enemy)
 					end
 					return
 				end

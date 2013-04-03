@@ -87,7 +87,7 @@ function SmartAI:canAttack(enemy, attacker, nature)
 	attacker = attacker or self.player
 	nature = nature or sgs.DamageStruct_Normal
 	if #self.enemies == 1 or self:hasSkills("jueqing") then return true end
-	if self:getDamagedEffects(enemy, attacker) or (self:needToLoseHp(enemy, attacker) and #self.enemies > 1) or not sgs.isGoodTarget(enemy, self.enemies, self) then return false end
+	if self:getDamagedEffects(enemy, attacker) or (self:needToLoseHp(enemy, attacker, nil, true) and #self.enemies > 1) or not sgs.isGoodTarget(enemy, self.enemies, self) then return false end
 	if self:objectiveLevel(enemy) <= 3 or self:cantbeHurt(enemy) or not self:damageIsEffective(enemy, nature , attacker) then return false end
 	if nature ~= sgs.DamageStruct_Normal and enemy:isChained() and not self:isGoodChainTarget(enemy) then return false end
 	return true
@@ -638,7 +638,7 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 	for i=#targetlist, 1, -1 do
 		local target = targetlist[i]
 		if not self:slashProhibit(slash, target) then
-			if self:slashIsEffective(slash,target) then
+			if self:slashIsEffective(slash, target) then
 				if self:isFriend(target) and (self:needToLoseHp(target, self.player, true, true) or self:getDamagedEffects(target, self.player, true)) then
 					return target
 				end
@@ -2052,7 +2052,7 @@ function SmartAI:useCardCollateral(card, use)
 			if not n then
 				for _, friend in ipairs(toList) do
 					if enemy:canSlash(friend) and self:objectiveLevel(friend) < 0 and enemy:objectName() ~= friend:objectName() 
-							and (self:needToLoseHp(friend, enemy, true) or self:getDamagedEffects(friend, enemy, true)) then
+							and (self:needToLoseHp(friend, enemy, true, true) or self:getDamagedEffects(friend, enemy, true)) then
 						n = 1
 						final_enemy = friend
 						break

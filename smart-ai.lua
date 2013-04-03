@@ -4593,7 +4593,7 @@ function SmartAI:hasTrickEffective(card, to, from)
 		return false 
 	end
 	
-	if to:hasSkill("zuixiang") and to:isLocked(card) then return false end		
+	if to:hasSkill("zuixiang") and to:isLocked(card) then return false end
 	return true
 end
 

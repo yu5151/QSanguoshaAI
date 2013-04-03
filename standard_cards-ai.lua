@@ -766,7 +766,7 @@ function SmartAI:canHit(to, from, conservative)
 	from = from or self.room:getCurrent()
 	to = to or self.player
 	if self:canLiegong(to, from) then return true end
-	if from:hasWeapon("Axe") and from:getCards("he"):length() > 2 then return true end
+	if from:hasWeapon("Axe") and from:getCards("he"):length() > 2 and not self:isFriend(to, from) then return true end
 	local hasHeart = false
 	for _, card in ipairs(self:getCards("Jink")) do
 		if card:getSuit() == sgs.Card_Heart then
@@ -1342,18 +1342,30 @@ end
 sgs.ai_keep_value.Nullification = 3
 sgs.ai_use_value.Nullification = 8
 
+function AG_isEffective(card, to, from)
+	if to:hasSkill("noswuyan") and from:objectName() ~= to:objectName() then return false end
+	if to:hasSkill("zhichi") and to:getRoom():getTag("Zhichi"):toString() == to:objectName() then return false end
+	if to:hasSkill("manjuan") and to:getPhase() == sgs.Player_NotActive then return false end
+	if card:isBlack() and to:hasSkill("weimu") then return false end
+	return true
+end
+
 function SmartAI:useCardAmazingGrace(card, use)
-	if self.player:hasSkill("noswuyan") then use.card = card  return end
+	if self.player:hasSkill("noswuyan") then use.card = card return end
 	if (self.role == "lord" or self.role == "loyalist") and sgs.turncount <= 2 and self.player:getSeat() <= 3 and self.player:aliveCount() > 5 then return end
 	local value = 1
 	local suf, coeff = 0.8, 0.8
-	if self:hasSkills(sgs.need_kongcheng) and self.player:getHandcardNum() == 1 or self.player:hasSkill("jizhi") then
+	if self:needKongcheng() and self.player:getHandcardNum() == 1 or self.player:hasSkill("jizhi") then
 		suf = 0.6
 		coeff = 0.6
 	end
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		local index = 0
-		if self:isFriend(player) then index = 1 elseif self:isEnemy(player) then index = -1 end
+		if self:isFriend(player) and AG_isEffective(card, player, self.player) then
+			index = 1 
+		elseif self:isEnemy(player) and AG_isEffective(card, player, self.player) then
+			index = -1 
+		end
 		value = value + index * suf
 		if value < 0 then return end
 		suf = suf * coeff

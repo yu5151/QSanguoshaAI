@@ -270,6 +270,7 @@ sgs.ai_skill_use["@@xuanhuo"] = function(self, prompt)
 			end
 		end
 	end
+	if not self.player:hasSkill("enyuan") then return "." end
 	for _, friend in ipairs(self.friends_noself) do
 		if not friend:hasSkill("manjuan") then
 			friend:setFlags("xuanhuo_target")
@@ -277,25 +278,6 @@ sgs.ai_skill_use["@@xuanhuo"] = function(self, prompt)
 		end
 	end
 	return "."
-end
-
-sgs.ai_skill_choice.xuanhuo = function(self, choices)
-	local fazheng = self.room:findPlayerBySkillName("xuanhuo")
-	if fazheng and not self:isFriend(fazheng) then 
-		for _, friend in ipairs(self.friends_noself) do
-			if self.player:canSlash(friend) and self:isWeak(friend) then
-				return "give"
-			end
-		end
-		return "slash"
-	end
-	for _, enemy in ipairs(self.enemies) do
-		if self.player:canSlash(enemy) and (enemy:getHp() < 2 and not enemy:hasSkill("buqu"))
-		and sgs.getDefense(enemy) < 2 then
-			return "slash"
-		end
-	end
-	return "give"
 end
 
 sgs.ai_skill_playerchosen.xuanhuo = sgs.ai_skill_playerchosen.zero_card_as_slash

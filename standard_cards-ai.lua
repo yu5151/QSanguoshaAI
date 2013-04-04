@@ -35,7 +35,6 @@ function sgs.isGoodTarget(player, targets, self)
 		if #targets == 1 then return true end
 		local foundtarget = false
 		for i = 1, #targets, 1 do
-			--if sgs.isGoodTarget(targets[i]) and not (self:cantbeHurt(targets[i]) or self:slashProhibit(nil,target[i])) then
 			if sgs.isGoodTarget(targets[i]) and not self:cantbeHurt(targets[i]) then
 				foundtarget = true
 				break
@@ -50,6 +49,8 @@ function sgs.isGoodTarget(player, targets, self)
 				m_skill = false
 			elseif masochism == "jieming" and self and self:getJiemingChaofeng(player) > -4 then
 				m_skill = false
+			elseif masochism == "yiji" and self and not self:haveFriendsToDraw(player) then
+				m_skill = false
 			else
 				m_skill = true
 				break
@@ -62,11 +63,11 @@ function sgs.isGoodTarget(player, targets, self)
 		return sgs.compareRoleEvaluation(player, "rebel", "loyalist") == "rebel"
 	end
 	
-	if player:hasSkill("wuhun") and (attacker:isLord() or player:getHp()<=2) then 
+	if player:hasSkill("wuhun") and (attacker:isLord() or player:getHp() <= 2) then 
 		return false
 	end
 
-	if player:hasLordSkill("shichou") and player:getMark("@hate")==0 then
+	if player:hasLordSkill("shichou") and player:getMark("@hate") == 0 then
 		if player:getTag("ShichouTarget") and player:getTag("ShichouTarget"):toPlayer() and player:getTag("ShichouTarget"):toPlayer():isAlive() then
 			return false
 		end
@@ -619,13 +620,15 @@ if sgs.Sanguosha:getVersion() <= "20121221" then sgs.ai_skill_use.slash = sgs.ai
 sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	local targetlist = sgs.QList2Table(targets)
-	local arrBestHp, canAvoidSlash = {}, {}
+	local arrBestHp, canAvoidSlash, forbidden = {}, {}, {}
 	self:sort(targetlist, "defenseSlash")
 
 	for _, target in ipairs(targetlist) do
 		if self:isEnemy(target) and not self:slashProhibit(slash ,target) and sgs.isGoodTarget(target, targetlist, self) then
 			if self:slashIsEffective(slash, target) then
-				if self:needToLoseHp(target, self.player, true) and not self:getDamagedEffects(target, self.player, true) then
+				if self:getDamagedEffects(target, self.player, true) or self:needLeiji(target, self.player) then
+					table.insert(forbidden, target)
+				elseif self:needToLoseHp(target, self.player, true, true) then
 					table.insert(arrBestHp, target)
 				else
 					return target
@@ -655,8 +658,9 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 	self:sort(targetlist, "defenseSlash")
 	targetlist = sgs.reverse(targetlist)
 	for _, target in ipairs(targetlist) do
-		if target:objectName() ~= self.player:objectName() and not self:isFriend(target) then
-			return target
+		if target:objectName() ~= self.player:objectName() and not self:isFriend(target)
+			and not (self:getDamagedEffects(target, self.player, true) or self:needLeiji(target, self.player)) then
+				return target
 		end
 	end
 	

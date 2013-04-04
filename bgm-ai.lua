@@ -1,22 +1,30 @@
 sgs.ai_skill_invoke.chongzhen = function(self, data)
 	local target = data:toPlayer()
 	if self:isFriend(target) then
+		if self.player:hasSkill("manjuan") and self.player:getPhase() == sgs.Player_NotActive then return false end
 		if not self:hasLoseHandcardEffective(target) then return true end
-		return self:needKongcheng(target) and target:getHandcardNum() == 1
+		if self:needKongcheng(target) and target:getHandcardNum() == 1 then return true end
+		if self:getOverflow(target) > 2 then return true end
+		return false
 	else
 		return not (target:hasSkill("kongcheng") and target:getHandcardNum() == 1)
 	end
 end
 
-sgs.ai_choicemade_filter.cardChosen.chongzhen = function(player, promptlist, self)
+sgs.ai_choicemade_filter.skillInvoke.chongzhen = function(player, promptlist, self)
 	if sgs.chongzhen_target then
 		local target = sgs.chongzhen_target
-		local intention = 10
-		if not self:hasLoseHandcardEffective(target) or (self:needKongcheng(target) and target:getHandcardNum() == 1) then
-			intention = 0
-		end
-		sgs.updateIntention(player, target, intention)
 		sgs.chongzhen_target = nil
+		local intention = 10
+		if promptlist[3] == "yes" then
+			if not self:hasLoseHandcardEffective(target) or (self:needKongcheng(target) and target:getHandcardNum() == 1) then
+				intention = 0
+			end
+			if self:getOverflow(target) > 2 then intention = 0 end
+			sgs.updateIntention(player, target, intention)
+		else
+			sgs.updateIntention(player, target, -10)
+		end
 	end
 end
 

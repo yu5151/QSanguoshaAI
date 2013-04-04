@@ -13,65 +13,72 @@ sgs.ai_skill_choice.moukui = function(self, choices, data)
 end
 
 sgs.ai_skill_invoke.tianming = function(self, data)
+	self.tianming_discard = nil
 	if self:hasSkill("manjuan") and self.player:getPhase() == sgs.Player_NotActive then return false end
 	if self.player:isNude() then return true end
-	if self:canHit() then return true end
 	if not self:canHit() and self.player:getCards("he"):length() < 3 then return false end
 	local unpreferedCards = {}
 	local cards = sgs.QList2Table(self.player:getHandcards())
-	
+
 	local zcards = self.player:getCards("he")
 	for _, zcard in sgs.qlist(zcards) do
-		if not zcard:isKindOf("Peach") and not zcard:isKindOf("ExNihilo") then
+		if not isCard("Peach", zcard, self.player) then
 			table.insert(unpreferedCards, zcard:getId())
-		end	
+		end
 	end
-	
-	if #unpreferedCards == 0 then 
-		if self:getCardsNum("Slash") > 1 then 
+
+	if #unpreferedCards == 0 then
+		if self:getCardsNum("Slash") > 1 then
 			self:sortByKeepValue(cards)
-			for _,card in ipairs(cards) do
+			for _, card in ipairs(cards) do
 				if card:isKindOf("Slash") then table.insert(unpreferedCards, card:getId()) end
 			end
 			table.remove(unpreferedCards, 1)
 		end
-		
-		local num = self:getCardsNum("Jink") - 1	
+		if self:needToThrowArmor() then
+			table.insert(unpreferedCards, self.player:getArmor():getId())
+		end
+
+		local num = self:getCardsNum("Jink") - 1
 		if self.player:getArmor() then num = num + 1 end
 		if num > 0 then
-			for _,card in ipairs(cards) do
-				if card:isKindOf("Jink") and num > 0 then 
+			for _, card in ipairs(cards) do
+				if card:isKindOf("Jink") and num > 0 then
 					table.insert(unpreferedCards, card:getId())
 					num = num - 1
 				end
 			end
 		end
-		for _,card in ipairs(cards) do
-			if (card:isKindOf("Weapon") and self.player:getHandcardNum() < 3) or card:isKindOf("OffensiveHorse") or
-				self:getSameEquip(card, self.player) or	card:isKindOf("AmazingGrace") or card:isKindOf("Lightning") then
+		for _, card in ipairs(cards) do
+			if (card:isKindOf("Weapon") and self.player:getHandcardNum() < 3) or card:isKindOf("OffensiveHorse")
+				or self:getSameEquip(card, self.player) or card:isKindOf("AmazingGrace") or card:isKindOf("Lightning") then
 				table.insert(unpreferedCards, card:getId())
 			end
 		end
-	
 		if self.player:getWeapon() and self.player:getHandcardNum() < 3 then
 			table.insert(unpreferedCards, self.player:getWeapon():getId())
 		end
-				
-		if self:needToThrowArmor() then
-			table.insert(unpreferedCards, self.player:getArmor():getId())
-		end	
-
-		if self.player:getOffensiveHorse() then
+		if self.player:getOffensiveHorse() and self.player:getWeapon() then
 			table.insert(unpreferedCards, self.player:getOffensiveHorse():getId())
 		end
-	end	
-	
+	end
+
 	for index = #unpreferedCards, 1, -1 do
 		if self.player:isJilei(sgs.Sanguosha:getCard(unpreferedCards[index])) then table.remove(unpreferedCards, index) end
 	end
-	
-	if #unpreferedCards >= 2 or #unpreferedCards == #cards then 
+
+	if #unpreferedCards >= 2 or #unpreferedCards == #cards then
+		self.tianming_discard = unpreferedCards
 		return true
+	end
+end
+
+sgs.ai_skill_discard.tianming = function(self, discard_num, min_num, optional, include_equip)
+	local discard = self.tianming_discard
+	if discard and #discard >= 2 then
+		return { discard[1], discard[2] }
+	else
+		return self:askForDiscard("dummyreason", 2, 2, false, true)
 	end
 end
 

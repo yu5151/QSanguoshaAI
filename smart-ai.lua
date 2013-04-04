@@ -808,7 +808,7 @@ function sgs.findUnionSkills(first, second)
 	return findings
 end
 	
-sgs.ai_card_intention.general=function(from,to,level)
+sgs.ai_card_intention.general = function(from, to, level)
 	if sgs.isRolePredictable() then return end
 	if not to then global_room:writeToConsole(debug.traceback()) return end
 	if from:isLord() or level == 0 then return end
@@ -1947,16 +1947,22 @@ function SmartAI:askForChoice(skill_name, choices, data)
 end
 
 function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_equip)
-	if not min_num then 
-		min_num = 0 
-	end
+	min_num = min_num or discard_num
+	local exchange = { "lihun", "enyuan", "shichou", "quanji" }
 	local callback = sgs.ai_skill_discard[reason]
-	self:assignKeep(self.player:getHp(),true)
+	self:assignKeep(self.player:getHp(), true)
 	if type(callback) == "function" then
-		local ret = callback(self, discard_num, min_num, optional, include_equip)
-		if ret and type(ret) == "table" then return ret end
-	elseif optional then 
-		return {} 
+		local cb = callback(self, discard_num, min_num, optional, include_equip)
+		if cb then
+			for _, card_id in ipairs(cb) do
+				if not table.contains(exchange, reason) and self.player:isJilei(sgs.Sanguosha:getCard(card_id)) then
+					return {}
+				end
+			end
+			return cb
+		end
+	elseif optional then
+		return {}
 	end
 
 	local flag = "h"
@@ -1965,15 +1971,15 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 	local to_discard = {}
 	cards = sgs.QList2Table(cards)
 	local aux_func = function(card)
-	local place = self.room:getCardPlace(card:getEffectiveId())
-	if place == sgs.Player_PlaceEquip then
+		local place = self.room:getCardPlace(card:getEffectiveId())
+		if place == sgs.Player_PlaceEquip then
 			if card:isKindOf("SilverLion") and self.player:isWounded() then return -2
 			elseif card:isKindOf("Weapon") and self.player:getHandcardNum() < discard_num + 2 and not self:needKongcheng() then return 0
 			elseif card:isKindOf("OffensiveHorse") and self.player:getHandcardNum() < discard_num + 2 and not self:needKongcheng() then return 0
 			elseif card:isKindOf("OffensiveHorse") then return 1
 			elseif card:isKindOf("Weapon") then return 2
 			elseif card:isKindOf("DefensiveHorse") then return 3
-			elseif self:hasSkills("bazhen|yizhong") and card:isKindOf("Armor") and self:needToThrowArmor() then return 0
+			elseif self:hasSkills("bazhen|yizhong") and card:isKindOf("Armor") then return 0
 			elseif card:isKindOf("Armor") then return 4
 			end
 		elseif self:hasSkills(sgs.lose_equip_skill) then return 5
@@ -1988,11 +1994,11 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 	table.sort(cards, compare_func)
 	local least = min_num
 	if discard_num - min_num > 1 then
-		least = discard_num -1
+		least = discard_num - 1
 	end
 	for _, card in ipairs(cards) do
 		if (self.player:hasSkill("qinyin") and #to_discard >= least) or #to_discard >= discard_num then break end
-		if not self.player:isJilei(card) then table.insert(to_discard, card:getId()) end
+		if table.contains(exchange, reason) or not self.player:isJilei(card) then table.insert(to_discard, card:getId()) end
 	end
 	return to_discard
 end

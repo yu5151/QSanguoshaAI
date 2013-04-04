@@ -692,7 +692,8 @@ sgs.ai_card_intention.Slash = function(self, card, from, tos)
 			-- value = value*(2-to:getHp())/1.1
 			value = math.max(value*(2-to:getHp())/1.1, 0)
 		end
-		if self:needLeiji(to, from) then value = 0 end
+		if to:hasSkill("leiji") and getCardsNum("Jink", to) > 0 then value = 0 end
+		if self:needLeiji(to, from) then value = -10 end
 		if not self:hasHeavySlashDamage(from, card, to) and (self:getDamagedEffects(to, from, true) or self:needToLoseHp(to, from, true, true)) then value = 0 end
 		if from:hasSkill("pojun") and to:getHp() > 2 + self:hasHeavySlashDamage(from, card, to, true) then value = 0 end
 		sgs.updateIntention(from, to, value)

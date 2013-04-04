@@ -116,7 +116,7 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 	end
 
 	if self:getOverflow() > 0 then
-		local discard = self:askForDiscard("gamerule", math.min(self:getOverflow(), 3))
+		local discard = self:askForDiscard("dummyreason", math.min(self:getOverflow(), 3), nil, false, true)
 		to = self:findPlayerToDraw("noself", math.min(self:getOverflow(), 3))
 		if not to then return end
 		use.card = sgs.Card_Parse("@NosJujianCard=" .. table.concat(discard, "+"))
@@ -407,7 +407,7 @@ sgs.ai_skill_invoke.nosqianxi = function(self, data)
 	if self:isFriend(target) then return false end
 	if target:getLostHp() >= 2 and target:getHp() <= 1 then return false end
 	if self:hasHeavySlashDamage(self.player, damage.card, target) and target:getHp() <= 1 then return false end
-	if self:hasSkills(sgs.masochism_skill,target) or self:hasSkills(sgs.recover_skill,target) or self:hasSkills("longhun|buqu",target) then return true end
+	if self:hasSkills(sgs.masochism_skill, target) or self:hasSkills(sgs.recover_skill, target) or self:hasSkills(sgs.exclusive_skill, target) then return true end
 	if self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
 	return (target:getMaxHp() - target:getHp()) < 2 
 end

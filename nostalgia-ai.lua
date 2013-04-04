@@ -148,7 +148,7 @@ sgs.ai_skill_cardask["@enyuanheart"] = function(self, data)
 
 	local cards = self.player:getHandcards()
 	for _, card in sgs.qlist(cards) do
-		if card:getSuit() == sgs.Card_Heart and not (card:isKindOf("Peach") or card:isKindOf("ExNihilo")) then
+		if card:getSuit() == sgs.Card_Heart and not isCard("Peach", card, self.player) and not isCard("ExNihilo", card, self.player) then
 			return card:getEffectiveId()
 		end
 	end
@@ -164,9 +164,9 @@ function sgs.ai_slash_prohibit.nosenyuan(self, to, card, from)
 	
 	local n = 0
 	local cards = from:getHandcards()
-	for _, hcard in sgs.qlist(cards) do
-		if hcard:getSuit() == sgs.Card_Heart and not (hcard:isKindOf("Peach") or hcard:isKindOf("ExNihilo")) then
-			if not hcard:isKindOf("Slash") then return false end
+	for _, card in sgs.qlist(cards) do
+		if card:getSuit() == sgs.Card_Heart and not isCard("Peach", card, from) and not isCard("ExNihilo", card, from) then
+			if not card:isKindOf("Slash") then return false end
 			n = n + 1
 		end
 	end
@@ -290,6 +290,8 @@ sgs.ai_skill_playerchosen.nosxuanhuo = function(self, targets)
 	if to then return to end
 	return self.player
 end
+
+sgs.ai_playerchosen_intention.nosxuanhuo = -10
 
 sgs.nosenyuan_suit_value = {
 	heart = 3.9

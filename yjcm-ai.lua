@@ -182,7 +182,7 @@ sgs.ai_skill_discard.enyuan = function(self, discard_num, min_num, optional, inc
 	if self:needToLoseHp() and not self:hasSkills(sgs.masochism_skill) then return {} end
 	self:sortByKeepValue(cards)
 	for _, card in ipairs(cards) do
-		if not (card:isKindOf("Peach") or card:isKindOf("ExNihilo")) then
+		if not isCard("Peach", card, self.player) and not isCard("ExNihilo", card, self.player) then
 			table.insert(to_discard, card:getEffectiveId())
 			return to_discard
 		end
@@ -322,8 +322,8 @@ sgs.ai_skill_cardask["xuanhuo-slash"] = function(self, data, pattern, target, ta
 	return "."
 end
 
-sgs.ai_playerchosen_intention.xuanhuo = 80
-sgs.ai_card_intention.XuanhuoCard = -30
+sgs.ai_playerchosen_intention.xuanhuo = 10
+sgs.ai_card_intention.XuanhuoCard = 0
 
 sgs.ai_chaofeng.fazheng = -3
 

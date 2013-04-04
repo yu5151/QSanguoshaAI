@@ -2361,12 +2361,12 @@ sgs.ai_suit_priority.qixi= "diamond|heart|club|spade"
 sgs.ai_suit_priority.qingguo= "diamond|heart|club|spade"
 sgs.ai_suit_priority.wusheng= "club|spade|diamond|heart"
 
-function SmartAI:canUseJieyuanDecrease(damage_from, player)
-	local player = player or self.player
-	if not damage_from then return false end
-	if player:hasSkill("jieyuan") and damage_from:getHp() >= player:getHp() then
-		for _, card in sgs.qlist(player:getHandcards()) do
-			if card:isRed() and not card:isKindOf("Peach") and not card:isKindOf("ExNihilo") then return true end
+function SmartAI:canUseJieyuanDecrease(from, to)
+	local to = to or self.player
+	if not from then return false end
+	if to:hasSkill("jieyuan") and from:getHp() >= to:getHp() then
+		for _, card in sgs.qlist(to:getHandcards()) do
+			if card:isRed() and not isCard("Peach", card, to) and not isCard("ExNihilo", card, to) then return true end
 		end
 	end
 	return false

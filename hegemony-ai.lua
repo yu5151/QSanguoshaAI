@@ -32,7 +32,7 @@ sgs.ai_skill_cardask["@xiaoguo"] = function(self, data)
 		if self:getDamagedEffects(currentplayer, self.player) or self:needToLoseHp(currentplayer, self.player) then
 			return "."
 		end
-		if currentplayer:hasArmorEffect("SilverLion") and currentplayer:isWounded() and self:isWeak(currentplayer) then return "." end
+		if self:needToThrowArmor(currentplayer) then return "." end
 		if self:hasSkills(sgs.lose_equip_skill, currentplayer) and currentplayer:getCards("e"):length() > 0 then return "." end
 		return "$" .. card:getEffectiveId()
 	end
@@ -43,8 +43,9 @@ sgs.ai_choicemade_filter.cardResponded["@xiaoguo"] = function(player, promptlist
 	if promptlist[#promptlist] ~= "_nil_" then
 		local current = player:getRoom():getCurrent()
 		if not current then return end
-		local intention = 50
-		if self:needToThrowArmor(current) then intention = -30 end
+		local intention = 10
+		if self:hasSkills(sgs.lose_equip_skill, current) and current:getCards("e"):length() > 0 then intention = 0 end
+		if self:needToThrowArmor(current) then intention = 0 end
 		sgs.updateIntention(player, current, intention)
 	end
 end
@@ -88,8 +89,8 @@ sgs.ai_skill_cardask["@xiaoguo-discard"] = function(self, data)
 	if not card_id then
 		if player:getWeapon() then card_id = player:getWeapon():getId()
 		elseif player:getOffensiveHorse() then card_id = player:getOffensiveHorse():getId()
-		elseif player:getHp() < 3 and player:getArmor() then card_id = player:getArmor():getId()
-		elseif player:getHp() < 3 and player:getDefensiveHorse() then card_id = player:getDefensiveHorse():getId()	
+		elseif self:isWeak(player) and player:getArmor() then card_id = player:getArmor():getId()
+		elseif self:isWeak(player) and player:getDefensiveHorse() then card_id = player:getDefensiveHorse():getId()	
 		end
 	end
 

@@ -723,32 +723,31 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 		return
 	else
 		if self:hasHeavySlashDamage(target, effect.slash) then return end
-		if self.player:getHandcardNum() == 1 and self:needKongcheng() then return end
-		if not self:hasLoseHandcardEffective() and not self.player:isKongcheng() then return end
-		if target:hasSkill("nosqianxi") and target:distanceTo(self.player) == 1 then return end
+		if target:hasSkill("nosqianxi") and not target:hasSkill("jueqing") and target:distanceTo(self.player) == 1 then return end
 		if self:needLeiji(self.player, target) then return end
 		if target:hasSkill("mengjin") then
-			if self:doNotDiscard(self.player, "he", true) then return end
-			if self.player:getCards("he"):length() == 1 and not self.player:getArmor() then return end
-			if self:hasSkills("jijiu|qingnang") and self.player:getCards("he"):length() > 1 then return "." end
-			if self:canUseJieyuanDecrease(target) then return "." end
-			if self:willSkipPlayPhase() then return end
-			if (self:getCardsNum("Peach") > 0 or self:getCardsNum("Analeptic") > 0) then
-				return "."
+			if self:doNotDiscard(self.player, "he", true) then
+			elseif self.player:getCards("he"):length() == 1 and not self.player:getArmor() then
+			elseif self:hasSkills("jijiu|qingnang") and self.player:getCards("he"):length() > 1 then return "."
+			elseif self:canUseJieyuanDecrease(target) then return "."
+			elseif self:willSkipPlayPhase() then
+			elseif (self:getCardsNum("Peach") > 0 or self:getCardsNum("Analeptic") > 0) then return "."
 			end
-			if self.player:getHp() > 2 and self.player:getArmor() and not self:needToThrowArmor() then return "." end
-			if self.player:getHp() > 2 and self.player:getDefensiveHorse() then return "." end
+			if not self:isWeak() and self.player:getArmor() and not self:needToThrowArmor() then return "." end
+			if not self:isWeak() and self.player:getDefensiveHorse() then return "." end
 		end
 	
 		if self:isEquip("Axe", target) then
 			if self:hasSkills(sgs.lose_equip_skill, target) and target:getEquips():length() > 1
-			  and target:getCards("he"):length() > 2 then
-				return "."
+				and target:getCards("he"):length() > 2 then
+					return "."
 			end
-			if target:getHandcardNum() - target:getHp() > 2 then return "." end
+		elseif self.player:getHandcardNum() == 1 and self:needKongcheng() then
+		elseif not self:hasLoseHandcardEffective() and not self.player:isKongcheng() then
+		elseif self:isEquip("Axe", target) and target:getHandcardNum() - target:getHp() > 2 then return "."
 		elseif self:isEquip("Blade", target) then
 			if self:hasHeavySlashDamage(target, effect.slash, self.player) then
-			elseif self:getCardsNum("Jink") <= getCardsNum("Slash", target) or self:hasSkills("jijiu|qingnang") or self:canUseJieyuanDecrease(target) then
+			elseif self:getCardsNum("Jink") <= self:getCardsNum("Slash", target) or self:hasSkills("jijiu|qingnang") or self:canUseJieyuanDecrease(target) then
 				return "."
 			end
 		end
@@ -773,7 +772,22 @@ function SmartAI:canHit(to, from, conservative)
 	from = from or self.room:getCurrent()
 	to = to or self.player
 	if self:canLiegong(to, from) then return true end
-	if from:hasWeapon("Axe") and from:getCards("he"):length() > 2 and not self:isFriend(to, from) then return true end
+	if not self:isFriend(to, from) then
+		if from:hasWeapon("Axe") and from:getCards("he"):length() > 2 then return true end
+		if from:hasWeapon("Blade") and getCardsNum("Jink", to, self) <= getCardsNum("Slash", from, self) then return true end
+		if from:hasSkill("mengjin") and not (from:hasSkill("nosqianxi") and not from:hasSkill("jueqing") and from:distanceTo(to) == 1)
+			and not self:hasHeavySlashDamage(from, nil, to) and not self:needLeiji(to, from) then
+				if self:doNotDiscard(to, "he", true) then
+				elseif to:getCards("he"):length() == 1 and not to:getArmor() then
+				elseif self:canUseJieyuanDecrease(from, to) then return false
+				elseif self:willSkipPlayPhase() then
+				elseif (getCardsNum("Peach", to, self) > 0 or getCardsNum("Analeptic", to, self) > 0) then return true
+				elseif not self:isWeak(to) and to:getArmor() and not self:needToThrowArmor() then return true
+				elseif not self:isWeak(to) and to:getDefensiveHorse() then return true
+				end
+		end
+	end
+			
 	local hasHeart = false
 	for _, card in ipairs(self:getCards("Jink"), to) do
 		if card:getSuit() == sgs.Card_Heart then
@@ -783,11 +797,12 @@ function SmartAI:canHit(to, from, conservative)
 	end
 	if to:hasFlag("dahe") and not hasHeart then return true end
 	if not conservative and self:hasHeavySlashDamage(from, nil, to) then conservative = true end
+	if not conservative and from:hasSkill("moukui") then conservative = true end
 	if not conservative and self:isEquip("EightDiagram", to) and not IgnoreArmor(from, to) then return false end
-	if getCardsNum("Jink", to) == 0 then return true end
+	if getCardsNum("Jink", to, self) == 0 then return true end
 	local need_double_jink = from and (from:hasSkill("wushuang") 
 				or (from:hasSkill("roulin") and to:isFemale()) or (from:isFemale() and to:hasSkill("roulin")))
-	if need_double_jink and getCardsNum("Jink", to) < 2 then return true end
+	if need_double_jink and getCardsNum("Jink", to, self) < 2 then return true end
 	return false
 end
 

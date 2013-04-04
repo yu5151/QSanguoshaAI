@@ -58,8 +58,7 @@ function sgs.ai_slash_prohibit.wuhun(self, to, card, from)
 	local maxfriendmark = 0
 	local maxenemymark = 0
 	
-	local dmg = self:hasHeavySlashDamage(from, nil, to, true)
-	local damageNum = dmg > 1 and dmg or 1
+	local damageNum = self:hasHeavySlashDamage(from, nil, to, true)
 
 	for _, friend in ipairs(self.friends) do
 		local friendmark = friend:getMark("@nightmare")

@@ -23,6 +23,7 @@ sgs.ai_choicemade_filter.skillInvoke.chongzhen = function(player, promptlist, se
 			if self:getOverflow(target) > 2 then intention = 0 end
 			sgs.updateIntention(player, target, intention)
 		else
+			if target:hasSkill("kongcheng") and target:getHandcardNum() == 1 then intention = 0 end
 			sgs.updateIntention(player, target, -10)
 		end
 	end

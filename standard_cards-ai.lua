@@ -619,13 +619,13 @@ if sgs.Sanguosha:getVersion() <= "20121221" then sgs.ai_skill_use.slash = sgs.ai
 sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	local targetlist = sgs.QList2Table(targets)
-	local arrBestHp, canAvoidSlash = {},{}
+	local arrBestHp, canAvoidSlash = {}, {}
 	self:sort(targetlist, "defenseSlash")
 
 	for _, target in ipairs(targetlist) do
 		if self:isEnemy(target) and not self:slashProhibit(slash ,target) and sgs.isGoodTarget(target, targetlist, self) then
 			if self:slashIsEffective(slash, target) then
-				if self:needToLoseHp(target, self.player, true) then
+				if self:needToLoseHp(target, self.player, true) and not self:getDamagedEffects(target, self.player, true) then
 					table.insert(arrBestHp, target)
 				else
 					return target
@@ -639,8 +639,9 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 		local target = targetlist[i]
 		if not self:slashProhibit(slash, target) then
 			if self:slashIsEffective(slash, target) then
-				if self:isFriend(target) and (self:needToLoseHp(target, self.player, true, true) or self:getDamagedEffects(target, self.player, true)) then
-					return target
+				if self:isFriend(target) and (self:needToLoseHp(target, self.player, true, true) 
+					or self:getDamagedEffects(target, self.player, true) or self:needLeiji(target, self.player)) then
+						return target
 				end
 			else
 				table.insert(canAvoidSlash, target)
@@ -648,8 +649,8 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 		end
 	end
 
-	if #canAvoidSlash >0 then return canAvoidSlash[1] end
-	if #arrBestHp >0 then return arrBestHp[1] end
+	if #canAvoidSlash > 0 then return canAvoidSlash[1] end
+	if #arrBestHp > 0 then return arrBestHp[1] end
 	
 	self:sort(targetlist, "defenseSlash")
 	targetlist = sgs.reverse(targetlist)
@@ -664,7 +665,7 @@ end
 
 sgs.ai_card_intention.Slash = function(self, card, from, tos)
 	if sgs.ai_liuli_effect then
-		sgs.ai_liuli_effect=false
+		sgs.ai_liuli_effect = false
 		return
 	end
 	for _, to in ipairs(tos) do
@@ -688,6 +689,7 @@ sgs.ai_card_intention.Slash = function(self, card, from, tos)
 			-- value = value*(2-to:getHp())/1.1
 			value = math.max(value*(2-to:getHp())/1.1, 0)
 		end
+		if self:needLeiji(to, from) then value = 0 end
 		if not self:hasHeavySlashDamage(from, card, to) and (self:getDamagedEffects(to, from, true) or self:needToLoseHp(to, from, true, true)) then value = 0 end
 		if from:hasSkill("pojun") and to:getHp() > 2 + self:hasHeavySlashDamage(from, card, to, true) then value = 0 end
 		sgs.updateIntention(from, to, value)
@@ -707,10 +709,11 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 
 	if not target then return end
 	if self:isFriend(target) then
+		if self:needLeiji(self.player, target) then return end
+		if target:hasSkill("jieyin") and not self.player:isWounded() and self.player:isMale() then return "." end
 		if not target:hasSkill("jueqing") then
 			if target:hasSkill("rende") and self.player:hasSkill("jieming") then return "." end
 			if target:hasSkill("pojun") and not self.player:faceUp() then return "." end
-			if (target:hasSkill("jieyin") and (not self.player:isWounded()) and self.player:isMale()) and not (self.player:hasSkill("leiji") and self:findLeijiTarget(self.player, 50)) then return "." end
 			if self.player:isChained() and self:isGoodChainTarget(self.player) then return "." end
 		end
 		return
@@ -719,7 +722,7 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 		if self.player:getHandcardNum() == 1 and self:needKongcheng() then return end
 		if not self:hasLoseHandcardEffective() and not self.player:isKongcheng() then return end
 		if target:hasSkill("nosqianxi") and target:distanceTo(self.player) == 1 then return end
-		if self.player:hasSkill("leiji") and self:findLeijiTarget(self.player, 50) then return end
+		if self:needLeiji(self.player, target) then return end
 		if target:hasSkill("mengjin") then
 			if self:doNotDiscard(self.player, "he", true) then return end
 			if self.player:getCards("he"):length() == 1 and not self.player:getArmor() then return end

@@ -261,9 +261,10 @@ function SmartAI:needLeiji(to, from)
 	to = to or self.player
 	if not to:hasSkill("leiji") then return false end
 	if from and self:canLiegong(to, from) and not self:isFriend(to, from) then return false end
-	if self:hasSuit("spade", true, to) and (getKnownCard(to, "Jink", true) >= 1 
-		or (not IgnoreArmor(from, to) and not self:isWeak(to) and self:isEquip("EightDiagram", to)))
-		and self:findLeijiTarget(to, 50) and self:getFinalRetrial(to) == 2 then
+	if ( (to:hasSkill("guidao") and self:hasSuit("spade", true, to)) or (to:hasSkill("guicai") and self:hasSuit("spade", false, to))
+		or (to:hasSkill("jilve") and self:hasSuit("spade", false, to) and to:getMark("@bear" ) > 0) )
+		and (getKnownCard(to, "Jink", true) >= 1 or (not IgnoreArmor(from, to) and not self:isWeak(to) and self:isEquip("EightDiagram", to)))
+		and self:findLeijiTarget(to, 50) and self:getFinalRetrial(to) == 1 then
 			return true
 	end
 	return false

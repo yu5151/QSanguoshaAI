@@ -12,7 +12,7 @@ sgs.ai_choicemade_filter.cardChosen.chongzhen = function(player, promptlist, sel
 	if sgs.chongzhen_target then
 		local target = sgs.chongzhen_target
 		local intention = 10
-		if not self:hasLoseHandcardEffective(target) or self:needKongcheng(target) and target:getHandcardNum() == 1 then
+		if not self:hasLoseHandcardEffective(target) or (self:needKongcheng(target) and target:getHandcardNum() == 1) then
 			intention = 0
 		end
 		sgs.updateIntention(player, target, intention)

@@ -4894,7 +4894,7 @@ function SmartAI:haveFriendsToDraw(player)
 	return false
 end
 
-function SmartAI:needToLoseHp(to, from, isSlash, passive, keep)
+function SmartAI:needToLoseHp(to, from, isSlash, passive, recover)
 	from = from or self.room:getCurrent()
 	to = to or self.player
 	if isSlash and not from:hasSkill("jueqing") then
@@ -4927,7 +4927,7 @@ function SmartAI:needToLoseHp(to, from, isSlash, passive, keep)
 		end
 		if need_jieyin then n = math.min(n, to:getMaxHp() - 1) end
 	end
-	if keep then return to:getHp() >= n end
+	if recover then return to:getHp() >= n end
 	return to:getHp() > n
 end
 

@@ -788,14 +788,15 @@ function SmartAI:canHit(to, from, conservative)
 		end
 	end
 			
-	local hasHeart = false
+	local hasHeart, hasRed, hasBlack
 	for _, card in ipairs(self:getCards("Jink"), to) do
-		if card:getSuit() == sgs.Card_Heart then
-			hasHeart = true
-			break
-		end
+		if card:getSuit() == sgs.Card_Heart then hasHeart = true end
+		if card:isRed() then hasRed = true end
+		if card:isBlack() then hasBlack = true end
 	end
 	if to:hasFlag("dahe") and not hasHeart then return true end
+	if to:getMark("@qianxi_red") > 0 and not hasBlack then return true end
+	if to:getMark("@qianxi_black") > 0 and not hasRed then return true end
 	if not conservative and self:hasHeavySlashDamage(from, nil, to) then conservative = true end
 	if not conservative and from:hasSkill("moukui") then conservative = true end
 	if not conservative and self:isEquip("EightDiagram", to) and not IgnoreArmor(from, to) then return false end
@@ -1296,7 +1297,10 @@ end
 function sgs.ai_armor_value.RenwangShield(player, self)
 	if player:hasSkill("yizhong") then return 0 end
 	if player:hasSkill("bazhen") then return 0 end
-	if player:hasSkill("leiji") and getKnownCard(player, "Jink", true) > 1 then return 0 end
+	if player:hasSkill("leiji") and getKnownCard(player, "Jink", true) > 1 and player:hasSkill("guidao") 
+		and getKnownCard(player, "black", false, "he") > 0 then 
+			return 0 
+	end
 	return 4.5
 end
 

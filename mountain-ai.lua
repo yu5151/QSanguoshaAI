@@ -418,98 +418,96 @@ sgs.ai_skill_cardask["@xiangle-discard"] = function(self, data)
 end
 
 function sgs.ai_slash_prohibit.xiangle(self, to, card, from)
-	if self:isFriend(to) then return false end
-	return self:getCardsNum("Slash", from) + self:getCardsNum("Analpetic", from) + math.max(self:getCardsNum("Jink", from)-1, 0) < 2
+	if self:isFriend(to, from) then return false end
+	local slash_num, anal_num, jink_num
+	if from:objectName() == self.player:objectName() then
+		slash_num = self:getCardsNum("Slash")
+		anal_num = self:getCardsNum("Analeptic")
+		jink_num = self:getCardsNum("Jink")
+	else
+		slash_num = getCardsNum("Slash", from)
+		anal_num = getCardsNum("Analpetic", from)
+		jink_num = getCardsNum("Jink", from)
+	end
+	return slash_num + anal_num + math.max(jink_num - 1, 0) < 2
 end
 
 sgs.ai_skill_invoke.fangquan = function(self, data)
-	if #self.friends == 1 then return end
-	
-	local limit = self.player:getMaxCards()
-	if self.player:getHandcardNum() > limit + 2 then return end
-	if self.player:isKongcheng() then return end
-	if self:getCardsNum("Peach") >= limit and self.player:isWounded() then return end	
-	
-	local shouldUse, range_fix = 0, 0, 0
-	local crossbow, slashto
+	if #self.friends == 1 then
+		return false
+	end
+
+	-- First we'll judge whether it's worth skipping the Play Phase
 	local cards = sgs.QList2Table(self.player:getHandcards())
-	for _ ,card in ipairs(cards) do
+	local shouldUse, range_fix = 0, 0
+	local hasCrossbow, slashTo = false, false
+	for _, card in ipairs(cards) do
 		if card:isKindOf("TrickCard") and self:getUseValue(card) > 3.69 then
 			local dummy_use = { isDummy = true }
 			self:useTrickCard(card, dummy_use)
-			if dummy_use.card then
-				if card:isKindOf("ExNihilo") then
-					shouldUse = shouldUse + 2
-				else
-					shouldUse = shouldUse + 1
-				end
-			end
+			if dummy_use.card then shouldUse = shouldUse + (card:isKindOf("ExNihilo") and 2 or 1) end
 		end
 		if card:isKindOf("Weapon") then
-			local new_range = sgs.weapon_range[card:getClassName()]	
-			local current_range = 1
-			if self.player:getWeapon() then current_range = sgs.weapon_range[self.player:getWeapon():getClassName()] end
+			local new_range = sgs.weapon_range[card:getClassName()]
+			local current_range = self.player:getAttackRange()
 			range_fix = math.min(current_range - new_range, 0)
-		end	
+		end
 		if card:isKindOf("OffensiveHorse") and not self.player:getOffensiveHorse() then range_fix = range_fix - 1 end
 		if card:isKindOf("DefensiveHorse") or card:isKindOf("Armor") and not self:getSameEquip(card) and (self:isWeak() or self:getCardsNum("Jink") == 0) then shouldUse = shouldUse + 1 end
-		if card:isKindOf("Crossbow") or (self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow")) then crossbow = true end
+		if card:isKindOf("Crossbow") or self:hasCrossbowEffect() then hasCrossbow = true end
 	end
-	
+
 	local slashs = self:getCards("Slash")
 	for _, enemy in ipairs(self.enemies) do
 		for _, slash in ipairs(slashs) do
-			if crossbow and self:getCardsNum("Slash") > 1 and self:slashIsEffective(slash, enemy) and self.player:canSlash(enemy, nil, true, range_fix) and self:slashIsAvailable() then
+			if hasCrossbow and self:getCardsNum("Slash") > 1 and self:slashIsEffective(slash, enemy)
+				and self.player:canSlash(enemy, slash, true, range_fix) then
 				shouldUse = shouldUse + 2
-				crossbow = false
+				hasCrossbow = false
 				break
-			elseif not slashto and self:slashIsAvailable() and self:slashIsEffective(slash, enemy) and self.player:canSlash(enemy, nil, true, range_fix) and (self:getCardsNum("Jink", enemy) < 1 or enemy:isKongcheng()) then
+			elseif not slashTo and self:slashIsAvailable() and self:slashIsEffective(slash, enemy)
+				and self.player:canSlash(enemy, slash, true, range_fix) and self:getCardsNum("Jink", enemy) < 1 then
 				shouldUse = shouldUse + 1
-				slashto = true
+				slashTo = true
 			end
-		end		
-	end	
+		end
+	end
 	if shouldUse >= 2 then return end
-	
-	return shouldUse < 2
+
+	-- Then we need to find the card to be discarded
+	local limit = self.player:getMaxCards()
+	if self.player:isKongcheng() then return false end
+	if self:getCardsNum("Peach") >= limit - 2 and self.player:isWounded() then return false end
+
+	local to_discard = {}
+
+	local index = 0
+	local all_peaches = 0
+	for _, card in ipairs(cards) do
+		if isCard("Peach", card, self.player) then
+			all_peaches = all_peaches + 1
+		end
+	end
+	if all_peaches >= 2 and self:getOverflow() <= 0 then return {} end
+	self:sortByKeepValue(cards)
+	cards = sgs.reverse(cards)
+
+	for i = #cards, 1, -1 do
+		local card = cards[i]
+		if not isCard("Peach", card, self.player) and not self.player:isJilei(card) then
+			table.insert(to_discard, card:getEffectiveId())
+			table.remove(cards, i)
+			break
+		end
+	end
+	return #to_discard > 0
 end
 
 sgs.ai_skill_discard.fangquan = function(self, discard_num, min_num, optional, include_equip)
-
-	-- local to_discard = {}
-	-- local cards = sgs.QList2Table(self.player:getHandcards())
-	-- local index = 0
-	-- local all_peaches = 0
-	-- for _, card in ipairs(cards) do
-		-- if card:isKindOf("Peach") then
-			-- all_peaches = all_peaches + 1
-		-- end
-	-- end
-	-- if all_peaches >= 2 and self:getOverflow() <= 0 then return {} end
-	-- self:sortByKeepValue(cards)
-	-- cards = sgs.reverse(cards)
-
-	-- for i = #cards, 1, -1 do
-		-- local card = cards[i]
-		-- if not card:isKindOf("Peach") and not self.player:isJilei(card) then
-			-- table.insert(to_discard, card:getEffectiveId())
-			-- table.remove(cards, i)
-			-- break
-		-- end
-	-- end	
-	-- if #to_discard < 1 then return {} 
-	-- else
-		-- return to_discard
-	-- end
-	
-	local cards = sgs.QList2Table(self.player:getHandcards())
-	self:sortByKeepValue(cards, true)
-	
-	return cards[1]:getEffectiveId()
+	return self:askForDiscard("dummyreason", 1, 1, false, false)
 end
 
 sgs.ai_skill_playerchosen.fangquan = function(self, targets)
-
 	self:sort(self.friends_noself, "handcard")
 	self.friends_noself = sgs.reverse(self.friends_noself)
 
@@ -531,7 +529,7 @@ sgs.ai_skill_playerchosen.fangquan = function(self, targets)
 		end
 	end
 
-	if #self.friends_noself>0 then return self.friends_noself[1] end
+	if #self.friends_noself > 0 then return self.friends_noself[1] end
 	
 	if not targets:isEmpty() then
 		return targets:first()

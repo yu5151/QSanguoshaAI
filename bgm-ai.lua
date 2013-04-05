@@ -1118,10 +1118,16 @@ local function need_huangen(self, who)
 		return false
 	elseif self:isFriend(who) then
 		if self:hasSkills("noswuyan", who) and from:objectName() ~= who:objectName() then return true end
+		if card:isKindOf("GodSalvation") and not who:isWounded() then
+			if who:hasSkill("manjuan") and who:getPhase() == sgs.Player_NotActive then return false end
+			if self:needKongcheng(who, true) then return false end
+			return true 
+		end
 		if card:isKindOf("GodSalvation") and who:isWounded() and self:hasTrickEffective(card, who, from) then
-			if self:needToLoseHp(who, nil, nil, true, true) then return true end
+			if self:needToLoseHp(who, nil, nil, true, true) and not self:needKongcheng(who, true) then return true end
 			return false 
 		end
+		if card:isKindOf("IronChain") and self:needKongcheng(who, true) then return false end
 		if card:isKindOf("IronChain") and who:isChained() and self:hasTrickEffective(card, who, from) then return false end
 		if card:isKindOf("AmazingGrace") then return not self:hasTrickEffective(card, who, from) end
 		return true

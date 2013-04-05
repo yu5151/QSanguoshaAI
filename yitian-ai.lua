@@ -350,7 +350,7 @@ end
 	描述：回合开始阶段开始时，你可以选择一名男性角色，你和其进入连理状态直到你的下回合开始：该角色可以帮你出闪，你可以帮其出杀 
 ]]--
 sgs.ai_skill_use["@@lianli"] = function(self, prompt)
-	self:sort(self.friends)
+	self:sort(self.friends, "defense")
 	
 	for _, friend in ipairs(self.friends_noself) do --优先考虑与队友连理
 		if friend:isMale() then
@@ -358,7 +358,7 @@ sgs.ai_skill_use["@@lianli"] = function(self, prompt)
 		end
 	end
 	
-	if self.player:getGeneral():isMale() then --双将时可以和自己连理
+	if self.player:isMale() then --双将时可以和自己连理
 		return "@LianliCard=.->"..self.player:objectName()
 	end
 	

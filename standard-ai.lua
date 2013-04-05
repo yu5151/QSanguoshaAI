@@ -1351,7 +1351,7 @@ sgs.ai_skill_use_func.ZhihengCard = function(card, use, self)
 end
 
 sgs.ai_use_value.ZhihengCard = 9
-sgs.ai_use_priority.ZhihengCard = 0
+sgs.ai_use_priority.ZhihengCard = 2.61
 sgs.dynamic_value.benefit.ZhihengCard = true
 sgs.ai_chaofeng.sunquan = 2
 

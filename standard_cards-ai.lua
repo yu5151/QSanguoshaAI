@@ -1003,17 +1003,57 @@ function sgs.ai_weapon_value.GudingBlade(self, enemy)
 	return value
 end
 
+function SmartAI:needToThrowAll(player)
+	player = player or self.player
+	if self.player:hasSkill("conghui") then return false end
+	if not player:hasSkill("yongsi") then return false end
+	if player:getPhase() ~= sgs.Player_Play then return false end
+	local zhanglu = self.room:findPlayerBySkillName("xiliang")
+	if zhanglu and self:isFriend(zhanglu, player) then return false end
+	local erzhang = self.room:findPlayerBySkillName("guzheng")
+	if erzhang and not zhanglu and self:isFriend(erzhang, player) then return false end
+	
+	local kingdom_num = 0
+	local kingdoms = {}
+	for _, ap in sgs.qlist(self.room:getAlivePlayers()) do
+		if not kingdoms[ap:getKingdom()] then
+			kingdoms[ap:getKingdom()] = true
+			kingdom_num = kingdom_num + 1
+		end
+	end
+	
+	local cards = self.player:getCards("he")
+	local Discards = {}
+	for _, card in sgs.qlist(cards) do
+		local shouldDiscard = true
+		if isCard("Peach", card, player) or isCard("Slash", card, player) then
+			local dummy_use = { isDummy = true }
+			self:useBasicCard(card, dummy_use)
+			if dummy_use.card then shouldDiscard = false end
+		end
+		if card:getTypeId() == sgs.Card_TypeTrick then
+			local dummy_use = { isDummy = true }
+			self:useTrickCard(card, dummy_use)
+			if dummy_use.card then shouldDiscard = false end
+		end
+		if shouldDiscard then table.insert(Discards, card:getId()) end
+	end
+	if #Discards > 2 and #Discards <= kingdom_num then return true end
+	return false
+end
+
 sgs.ai_skill_cardask["@Axe"] = function(self, data, pattern, target)
 	if target and self:isFriend(target) then return "." end
 	local effect = data:toSlashEffect()
 	local allcards = self.player:getCards("he")
 	allcards = sgs.QList2Table(allcards)
 	if self:hasHeavySlashDamage(self.player, effect.slash, target) 
-	  or #allcards - 3 >= self.player:getHp() 
+	  or (#allcards - 3 >= self.player:getHp()) 
 	  or (self.player:hasSkill("kuanggu") and self.player:isWounded() and self.player:distanceTo(effect.to) == 1)
 	  or (effect.to:getHp() == 1 and not effect.to:hasSkill("buqu")) 
 	  or (self:needKongcheng() and self.player:getHandcardNum() > 0)
-	  or (self:hasSkills(sgs.lose_equip_skill, self.player) and self.player:getEquips():length() > 1 and self.player:getHandcardNum() < 2) then
+	  or (self:hasSkills(sgs.lose_equip_skill, self.player) and self.player:getEquips():length() > 1 and self.player:getHandcardNum() < 2)
+	  or self:needToThrowAll() then
 		local hcards = self.player:getCards("h")
 		hcards = sgs.QList2Table(hcards)
 		self:sortByKeepValue(hcards)

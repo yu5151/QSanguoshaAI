@@ -1048,7 +1048,14 @@ function SmartAI:objectiveLevel(player)
 				end
 			end	
 		elseif process == "neutral" or (sgs.turncount <= 1 and sgs.isLordHealthy()) then			
-			if sgs.turncount <= 1 and sgs.isLordHealthy() then return 0 end
+			if sgs.turncount <= 1 and sgs.isLordHealthy() then
+				if self:getOverflow() <= 0 then return 0 end
+				if player:isLord() then return -1 end
+				if sgs.evaluatePlayerRole(player) == "loyalist" then return 0
+				elseif sgs.evaluatePlayerRole(player) == "rebel" then return 3.5
+				else return 5
+				end
+			end
 			if player:isLord() then return -1 end
 
 			local renegade_attack_skill = string.format("buqu|%s|%s|%s|%s",sgs.priority_skill,sgs.save_skill,sgs.recover_skill,sgs.drawpeach_skill)

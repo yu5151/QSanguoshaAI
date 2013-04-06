@@ -318,9 +318,7 @@ sgs.ai_skill_cardask["@dahe-jink"] = function(self, data, pattern, target)
 end
 
 sgs.ai_cardneed.dahe = sgs.ai_cardneed.bignumber
-
 sgs.ai_card_intention.DaheCard = 60
-
 sgs.dynamic_value.control_card.DaheCard = true
 
 sgs.ai_use_value.DaheCard = 8.5
@@ -328,7 +326,7 @@ sgs.ai_use_priority.DaheCard = 8
 
 local tanhu_skill = {}
 tanhu_skill.name = "tanhu"
-table.insert(sgs.ai_skills,tanhu_skill)
+table.insert(sgs.ai_skills, tanhu_skill)
 tanhu_skill.getTurnUseCard = function(self)
 	if self:needBear() then return end
 	if not self.player:hasUsed("TanhuCard") and not self.player:isKongcheng() then
@@ -402,6 +400,17 @@ sgs.ai_cardneed.tanhu = sgs.ai_cardneed.bignumber
 sgs.ai_card_intention.TanhuCard = 30
 sgs.dynamic_value.control_card.TanhuCard = true
 sgs.ai_use_priority.TanhuCard = 8
+
+function sgs.ai_skill_pindian.tanhu(minusecard, self, requestor)
+	if self.player:objectName() == requestor:objectName() then
+		if self.tanhu_card then
+			return self.tanhu_card
+		else
+			self.room:writeToConsole("Pindian card not found!!")
+			return self:getMaxCard(self.player):getId()
+		end
+	end
+end
 
 local function need_mouduan(self)
 	local cardsCount = self.player:getHandcardNum()
@@ -1121,14 +1130,15 @@ local function need_huangen(self, who)
 		if card:isKindOf("GodSalvation") and not who:isWounded() then
 			if who:hasSkill("manjuan") and who:getPhase() == sgs.Player_NotActive then return false end
 			if self:needKongcheng(who, true) then return false end
-			return true 
+			return true
 		end
 		if card:isKindOf("GodSalvation") and who:isWounded() and self:hasTrickEffective(card, who, from) then
 			if self:needToLoseHp(who, nil, nil, true, true) and not self:needKongcheng(who, true) then return true end
-			return false 
+			return false
 		end
-		if card:isKindOf("IronChain") and self:needKongcheng(who, true) then return false end
-		if card:isKindOf("IronChain") and who:isChained() and self:hasTrickEffective(card, who, from) then return false end
+		if card:isKindOf("IronChain") and (self:needKongcheng(who, true) or (who:isChained() and self:hasTrickEffective(card, who, from))) then
+			return false
+		end
 		if card:isKindOf("AmazingGrace") then return not self:hasTrickEffective(card, who, from) end
 		return true
 	end
@@ -1196,6 +1206,7 @@ sgs.ai_card_intention.HuangenCard = function(self, card, from, tos)
 	for _, to in ipairs(tos) do
 		local intention = -80
 		if cardx:isKindOf("GodSalvation") and to:isWounded() and not self:needToLoseHp(to, nil, nil, true, true) then intention = 50 end
+		if self:needKongcheng(to, true) then intention = 0 end
 		sgs.updateIntention(from, to, intention)
 	end
 end

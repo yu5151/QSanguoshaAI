@@ -217,7 +217,7 @@ function SmartAI:findLeijiTarget(player, leiji_value)
 		if self:cantbeHurt(enemy, 2, player) or self:objectiveLevel(enemy) < 3 or (enemy:isChained() and not self:isGoodChainTarget(enemy, player)) then return 100 end
 		if not sgs.isGoodTarget(enemy, self.enemies, self) then value = value + 50 end
 		if enemy:hasArmorEffect("SilverLion") then value = value + 20 end
-		if self:hasSkills(sgs.exclusive_skill, enemy) then value = value + 1 end
+		if self:hasSkills(sgs.exclusive_skill, enemy) then value = value + 5 end
 		if self:hasSkills(sgs.masochism_skill, enemy) then value = value + 3 end
 		if self:hasSkills("tiandu|zhenlie", enemy) then value = value + 2 end
 		if self:getDamagedEffects(enemy, player) or self:needToLoseHp(enemy, player) then value = value + 5 end
@@ -303,22 +303,16 @@ huangtianv_skill.getTurnUseCard = function(self)
 	if self.player:getKingdom() ~= "qun" then return nil end
 
 	local cards = self.player:getCards("h")	
-	cards = sgs.QList2Table(cards)
-	
-	local card
-	
-	self:sortByUseValue(cards,true)
-	
+	cards = sgs.QList2Table(cards)	
+	local card	
+	self:sortByUseValue(cards,true)	
 	for _,acard in ipairs(cards)  do
 		if acard:isKindOf("Jink") then
 			card = acard
 			break
 		end
-	end
-	
-	if not card then
-		return nil
-	end
+	end	
+	if not card then return nil end
 	
 	local card_id = card:getEffectiveId()
 	local card_str = "@HuangtianCard="..card_id
@@ -353,7 +347,7 @@ sgs.ai_skill_use_func.HuangtianCard = function(card, use, self)
 			if enemy:hasLordSkill("huangtian") then
 				if not enemy:hasFlag("HuangtianInvoked") then
 					if not enemy:hasSkill("manjuan") then
-						if enemy:isKongcheng() then --必须保证对方空城，以保证天义/陷阵的拼点成功
+						if enemy:isKongcheng() and not enemy:hasSkill("kongcheng") and not enemy:hasSkills("tuntian+zaoxian") then --必须保证对方空城，以保证天义/陷阵的拼点成功
 							table.insert(targets, enemy)
 						end
 					end
@@ -373,11 +367,12 @@ sgs.ai_skill_use_func.HuangtianCard = function(card, use, self)
 					self:sort(targets, "defense", true) 
 					for _,enemy in ipairs(targets) do
 						if self.player:canSlash(enemy, nil, false, 0) then --可以发动天义或陷阵
-							use.card = card
-							if use.to then
-								use.to:append(enemy)
-							end
-							break
+								use.card = card
+								enemy:setFlags("AI_HuangtianPindian")
+								if use.to then
+									use.to:append(enemy)
+								end
+								break
 						end
 					end
 				end

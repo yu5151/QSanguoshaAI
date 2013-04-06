@@ -96,14 +96,15 @@ function setInitialTables()
 	sgs.draw_pile = 			global_room:getDrawPile()
 	sgs.lose_equip_skill = 		"xiaoji|xuanfeng|nosxuanfeng"
 	sgs.need_kongcheng = 		"lianying|kongcheng"
-	sgs.masochism_skill = 		"guixin|yiji|fankui|jieming|fenyong|neoganglie|ganglie|enyuan|fangzhu|nosenyuan|jianxiong|langgu|quanji|zhiyu|tanlan|tongxin|huashen"
+	sgs.masochism_skill = 		"guixin|yiji|fankui|jieming|fenyong|neoganglie|ganglie|enyuan|fangzhu|nosenyuan|jianxiong|langgu|quanji|" ..
+						"zhiyu|renjie|tanlan|tongxin|huashen"
 	sgs.wizard_skill = 		"guicai|guidao|jilve|tiandu|luoying|noszhenlie|huanshi"
 	sgs.wizard_harm_skill = 	"guicai|guidao|jilve"
 	sgs.priority_skill = 		"dimeng|haoshi|qingnang|jizhi|guzheng|qixi|jieyin|guose|duanliang|jujian|fanjian|neofanjian|lijian|" ..
 						"manjuan|tuxi|qiaobian|yongsi|zhiheng|luoshen|rende|mingce|wansha|gongxin|jilve|anxu|" ..
 						"qice|yinling|qingcheng|houyuan|zhaoxin"
 	sgs.save_skill = 		"jijiu|buyi|nosjiefan|chunlao|longhun"
-	sgs.exclusive_skill = 		"huilei|duanchang|wuhun|buqu|zhuiyi|dushi|jincui"
+	sgs.exclusive_skill = 		"huilei|duanchang|wuhun|buqu|dushi"
 	sgs.cardneed_skill =		"paoxiao|tianyi|xianzhen|shuangxiong|jizhi|guose|duanliang|qixi|qingnang|yinling|luoyi|guhuo|kanpo|" ..
 						"jieyin|renjie|zhiheng|rende|nosjujian|guicai|guidao|longhun|luanji|qiaobian|beige|jieyuan|" ..
 						"mingce|nosfuhun|lirang|longluo|xuanfeng|xinzhan|dangxian|xiaoguo|neoluoyi|fuhun"
@@ -1050,9 +1051,10 @@ function SmartAI:objectiveLevel(player)
 		elseif process == "neutral" or (sgs.turncount <= 1 and sgs.isLordHealthy()) then			
 			if sgs.turncount <= 1 and sgs.isLordHealthy() then
 				if self:getOverflow() <= 0 then return 0 end
-				if player:isLord() then return -1 end
-				if sgs.evaluatePlayerRole(player) == "loyalist" then return 0
-				elseif sgs.evaluatePlayerRole(player) == "rebel" then return 3.5
+				local rebelish = (sgs.current_mode_players["loyalist"] + 1 < sgs.current_mode_players["rebel"])
+				if player:isLord() then return rebelish and -1 or 0 end
+				if sgs.evaluatePlayerRole(player) == "loyalist" then return rebelish and 0 or 3.5
+				elseif sgs.evaluatePlayerRole(player) == "rebel" then return rebelish and 3.5 or 0
 				else return 5
 				end
 			end
@@ -3108,6 +3110,15 @@ function SmartAI:askForYiji(card_ids, reason)
 end
 
 function SmartAI:askForPindian(requestor, reason)
+	local passive = { "mizhao", "lieren" }
+	if self.player:objectName() == requestor:objectName() and not table.contains(passive, reason) then
+		if self[reason .. "_card"] then
+			return self[reason .. "_card"]
+		else
+			self.room:writeToConsole("Pindian card for " .. reason .. " not found!!")
+			return self:getMaxCard(self.player):getId()
+		end
+	end
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	local compare_func = function(a, b)
 		return a:getNumber() < b:getNumber()
@@ -3328,7 +3339,7 @@ function SmartAI:getOverflow(player, getMaxCards)
 		end
 	end
 	if getMaxCards then return player:getMaxCards() - kingdom_num end
-	return math.max(player:getHandcardNum() + kingdom_num - player:getMaxCards(), 0)
+	return math.max(player:getHandcardNum() - player:getMaxCards() - kingdom_num, 0)
 end
 
 function SmartAI:isWeak(player)
@@ -4621,28 +4632,41 @@ function SmartAI:useTrickCard(card, use)
 	end
 	if self:needRende() and not card:isKindOf("ExNihilo") then return end
 	if card:isKindOf("AOE") then
-		if self.player:hasSkill("wuyan") then return end
-		if self.player:hasSkill("noswuyan") then return end
-				
+		local others = self.room:getOtherPlayers(self.player)
+		others = sgs.QList2Table(others)
+		local avail = #others
+		local avail_friends = 0
+		for _, other in ipairs(others) do
+			if self.room:isProhibited(self.player, other, card) then
+				avail = avail - 1
+			elseif self:isFriend(other) then
+				avail_friends = avail_friends + 1
+			end
+		end
+		if avail < 1 then return end
+
+		local menghuo = nil
+		if card:isKindOf("SavageAssault") then menghuo = self.room:findPlayerBySkillName("huoshou") end
+		if self.player:hasSkill("noswuyan")
+			or (self.player:hasSkill("wuyan")
+				and not (menghuo and (not menghuo:hasSkill("wuyan") or menghuo:hasSkill("jueqing")) and avail > 1)
+				and not self.player:hasSkill("jueqing")) then
+			if self.player:hasSkill("huangen") and self.player:getHp() > 0 and avail > 1 and avail_friends > 0 then use.card = card else return end
+		end
+
 		local mode = global_room:getMode()
 		if mode:find("p") and mode >= "04p" then
 			if self.player:isLord() and sgs.turncount < 2 and card:isKindOf("ArcheryAttack") and self:getOverflow() < 1 then return end
-			if self.role == "loyalist" and not self.player:isLord() and sgs.turncount < 2 and card:isKindOf("ArcheryAttack") then return end
+			if self.role == "loyalist" and sgs.turncount < 2 and card:isKindOf("ArcheryAttack") then return end
 			if self.role == "rebel" and sgs.turncount < 2 and card:isKindOf("SavageAssault") then return end
 		end
 
-		local others = self.room:getOtherPlayers(self.player)
-		others = sgs.QList2Table(others)
-		local aval = #others
-		for _, other in ipairs(others) do
-			if self.room:isProhibited(self.player, other, card) then
-				aval = aval -1
-			end
-		end
-		if aval < 1 then return end
 		local good = self:getAoeValue(card)
 		if good > 0 then
 			use.card = card
+		end
+		if self:hasSkills("jianxiong|luanji|qice|manjuan") then
+			if good > -5 then use.card = card end
 		end
 	else
 		self:useCardByClassName(card, use)
@@ -4788,12 +4812,12 @@ function SmartAI:useEquipCard(card, use)
 			end
 		end
 		if self:hasSkills("paoxiao|nosfuhun", self.player) and card:isKindOf("Crossbow") then return end
-		if not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow() <= 0 and not canUseSlash then return end
+		if not self:needKongcheng() and not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow() <= 0 and not canUseSlash then return end
 		if not self.player:getWeapon() or self:evaluateWeapon(card) > self:evaluateWeapon(self.player:getWeapon()) then
 			if (not use.to) and self.weaponUsed and (not self:hasSkills(sgs.lose_equip_skill)) then return end
 			if (self.player:hasSkill("zhiheng") or self.player:hasSkill("jilve") and self.player:getMark("@bear") > 0) and
 				not self.player:hasUsed("ZhihengCard") and self.player:getWeapon() and not card:isKindOf("Crossbow") then return end
-			if self.player:getHandcardNum() <= self.player:getHp() - 2 then return end
+			if not self:needKongcheng() and self.player:getHandcardNum() <= self.player:getHp() - 2 then return end
 			use.card = card
 			return
 		end
@@ -5007,13 +5031,16 @@ function SmartAI:doNotDiscard(to, flags, conservative, n, cant_choose)
 			if to:getCardCount(true) == 1 and self:needToThrowArmor(to) then return true end
 		end
 		if flags == "he" and n == 2 then
-			if to:getCards("he"):length() < 2 then return true end
+			if to:getCardCount(true) < 2 then return true end
 			if not to:hasEquip() then
 				if not self:hasLoseHandcardEffective(to) then return true end
 				if to:getHandcardNum() <= 2 and self:needKongcheng(to) then return true end
 			end
 			if self:hasSkills(sgs.lose_equip_skill, to) and to:getHandcardNum() < 2 then return true end
 			if to:getCardCount(true) <= 2 and self:needToThrowArmor(to) then return true end
+		end
+		if flags == "he" and n > 2 then 
+			if to:getCardCount(true) < n then return true end 
 		end
 	end
 	return false

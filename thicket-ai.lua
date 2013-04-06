@@ -178,17 +178,21 @@ sgs.ai_cardneed.lieren = function(to, card)
 end
 
 sgs.ai_skill_invoke.lieren = function(self, data)
+	local damage = data:toDamage()
+	if not self:isEnemy(damage.to) then return false end
+
 	if self.player:getHandcardNum() == 1 then
+		if (self:needKongcheng() or not self:hasLoseHandcardEffective()) and not self:isWeak() then return true end
 		local card  = self.player:getHandcards():first()
 		if card:isKindOf("Jink") or card:isKindOf("Peach") then return end
 	end
-	local damage = data:toDamage()
-	if self:isEnemy(damage.to) then
-		if self.player:getHandcardNum()>=self.player:getHp() then return true
-		else return false
-		end
+	
+	if (self.player:getHandcardNum() >= self.player:getHp() or self:getMaxCard():getNumber() > 10 
+		or (self:needKongcheng() and self.player:getHandcardNum() == 1) or not self:hasLoseHandcardEffective()) 
+		and not self:doNotDiscard(damage.to, "h", true) and not (self.player:getHandcardNum() == 1 and self:doNotDiscard(damage.to, "e", true)) then
+			return true
 	end
-
+	if self:doNotDiscard(damage.to, "he", true, 2) then return false end
 	return false
 end
 

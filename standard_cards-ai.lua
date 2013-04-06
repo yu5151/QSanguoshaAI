@@ -348,9 +348,9 @@ function SmartAI:shouldUseAnaleptic(target, slash)
 	if self:isEquip("SilverLion", target) and not IgnoreArmor(self.player, target) and not self.player:hasSkill("jueqing") then return false end
 	if target:hasSkill("zhenlie") then return false end
 
-	if self:hasSkills(sgs.masochism_skill .. "|longhun|buqu|" .. sgs.recover_skill ,target) and 
-			self.player:hasSkill("nosqianxi") and self.player:distanceTo(enemy) == 1 then
-		return false
+	if self:hasSkills(sgs.masochism_skill .. "|longhun|buqu|" .. sgs.recover_skill .. "|" .. sgs.exclusive_skill ,target) and 
+		self.player:hasSkill("nosqianxi") and self.player:distanceTo(enemy) == 1 then
+			return false
 	end
 
 	local hcard = target:getHandcardNum()
@@ -365,7 +365,7 @@ function SmartAI:shouldUseAnaleptic(target, slash)
 		return getCardsNum("Jink", target) < 2
 	end
 	
-	if getKnownCard(target, "Jink", true, "he") >=1 then return false end
+	if getKnownCard(target, "Jink", true, "he") >= 1 then return false end
 
 	return self:getCardsNum("Analeptic") > 1 or getCardsNum("Jink", target) < 1 or sgs.card_lack[target:objectName()]["Jink"] == 1
 end
@@ -693,9 +693,9 @@ sgs.ai_card_intention.Slash = function(self, card, from, tos)
 			value = math.max(value*(2-to:getHp())/1.1, 0)
 		end
 		if to:hasSkill("leiji") and getCardsNum("Jink", to) > 0 then value = 0 end
-		if self:needLeiji(to, from) then value = -10 end
 		if not self:hasHeavySlashDamage(from, card, to) and (self:getDamagedEffects(to, from, true) or self:needToLoseHp(to, from, true, true)) then value = 0 end
 		if from:hasSkill("pojun") and to:getHp() > 2 + self:hasHeavySlashDamage(from, card, to, true) then value = 0 end
+		if self:needLeiji(to, from) then value = -10 end
 		sgs.updateIntention(from, to, value)
 	end
 end

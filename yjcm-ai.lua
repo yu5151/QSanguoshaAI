@@ -718,6 +718,17 @@ sgs.ai_skill_use_func.XianzhenCard = function(card, use, self)
 	if max_card:isKindOf("Slash") then slashcount = slashcount - 1 end
 
 	if slashcount > 0  then
+		for _, enemy in ipairs(self.enemies) do
+			if enemy:hasFlag("AI_HuangtianPindian") and enemy:getHandcardNum() == 1 then
+				use.card = sgs.Card_Parse("@XianzhenCard=" .. max_card:getId())
+				if use.to then
+					use.to:append(enemy)
+					enemy:setFlags("-AI_HuangtianPindian")
+				end
+				return
+			end
+		end
+
 		local slash = self:getCard("Slash")
 		assert(slash)
 		local dummy_use = {isDummy = true}
@@ -779,7 +790,8 @@ sgs.ai_cardneed.xianzhen = function(to, card, self)
 end
 
 function sgs.ai_skill_pindian.xianzhen(minusecard, self, requestor)
-	local maxcard = self:getMaxCard()	
+	local maxcard = self:getMaxCard()
+	if requestor:getHandcardNum() <= 2 then return minusecard end
 	return self:isFriend(requestor) and minusecard or ( maxcard:getNumber() < 6 and  minusecard or maxcard )
 end
 

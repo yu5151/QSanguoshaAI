@@ -689,14 +689,23 @@ sgs.ai_skill_use_func.ZhibaCard = function(card, use, self)
 	end
 end
 
-sgs.ai_need_damaged.hunzi = function (self, attacker, player)
-	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 then return true end
-	return false
-end
-
 sgs.ai_skill_choice.zhiba_pindian = function(self, choices)
 	local who = self.room:getCurrent()
-	if self:isEnemy(who) then return "reject"
+	local cards = self.player:getHandcards()
+	local has_large_number, all_small_number = false, true
+	for _, c in sgs.qlist(cards) do
+		if c:getNumber() > 12 then
+			has_large_number = true
+			break
+		end
+	end
+	for _, c in sgs.qlist(cards) do
+		if c:getNumber() > 4 then
+			all_small_number = false
+			break
+		end
+	end
+	if all_small_number or (self:isEnemy(who) and not has_large_number) then return "reject"
 	else return "accept"
 	end
 end
@@ -705,9 +714,9 @@ sgs.ai_skill_choice.sunce_zhiba = function(self, choices)
 	return "yes"
 end
 
-function sgs.ai_skill_pindian.zhiba_pindian(minusecard, self, requestor)
+function sgs.ai_skill_pindian.zhiba_pindian(minusecard, self, requestor, maxcard)
 	local maxcard = self:getMaxCard()
-	local point = self:isFriend(requestor) and 6 or 9
+	local point = self:isFriend(requestor) and 5 or 9
 	return maxcard:getNumber() <= point and minusecard or maxcard
 end
 
@@ -724,8 +733,13 @@ sgs.ai_card_intention.ZhibaCard = function(self, card, from, tos, source)
 	elseif number > 8 then sgs.updateIntention(from, tos[1], 60) end
 end 
 
-local zhijian_skill={}
-zhijian_skill.name="zhijian"
+sgs.ai_need_damaged.hunzi = function (self, attacker, player)
+	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 then return true end
+	return false
+end
+
+local zhijian_skill = {}
+zhijian_skill.name = "zhijian"
 table.insert(sgs.ai_skills, zhijian_skill)
 zhijian_skill.getTurnUseCard = function(self)
 	local equips = {}

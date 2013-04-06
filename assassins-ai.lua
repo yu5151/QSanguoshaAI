@@ -110,7 +110,7 @@ sgs.ai_skill_use_func.MizhaoCard = function(card, use, self)
 		for _, enemy in ipairs(self.enemies) do
 			if not (enemy:hasSkill("manjuan") and enemy:isKongcheng()) then
 				use.card = card
-				enemy:setFlags("mizhao_target")
+				enemy:setFlags("MizhaoTarget")
 				if use.to then use.to:append(enemy) end
 				return
 			end
@@ -122,7 +122,7 @@ sgs.ai_skill_use_func.MizhaoCard = function(card, use, self)
 	for _, friend in ipairs(self.friends_noself) do
 		if not friend:hasSkill("manjuan") then
 			use.card = card
-			friend:setFlags("mizhao_target")
+			friend:setFlags("MizhaoTarget")
 			if use.to then use.to:append(friend) end
 			return
 		end
@@ -138,25 +138,39 @@ sgs.ai_skill_playerchosen.mizhao = function(self, targets)
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	local from
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-		if player:hasFlag("mizhao_target") then
+		if player:hasFlag("MizhaoTarget") then
 			from = player
-			from:setFlags("-mizhao_target")
+			from:setFlags("-MizhaoTarget")
+			break
 		end
 	end
 	for _, to in ipairs(self.enemies) do
 		if targets:contains(to) and self:slashIsEffective(slash, to, nil, from) and not self:getDamagedEffects(to, from, true) 
 			  and not self:needToLoseHp(to, from, true, true) and not self:needLeiji(to, from) then
+				to:setFlags("MizhaoPindianTarget")
 				return to
 		end
 	end
 	for _, to in ipairs(self.enemies) do
 		if targets:contains(to) then
+			to:setFlags("MizhaoPindianTarget")
 			return to
 		end
 	end
 end
 
 function sgs.ai_skill_pindian.mizhao(minusecard, self, requestor, maxcard)
+	local req
+	if self.player:objectName() == requestor:objectName() then
+		for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+			if p:hasFlag("MizhaoPindianTarget") then
+				req = p
+				break
+			end
+		end
+	else
+		req = requestor
+	end
 	local cards, maxcard = sgs.QList2Table(self.player:getHandcards())
 	local function compare_func1(a, b)
 		return a:getNumber() > b:getNumber()
@@ -164,7 +178,7 @@ function sgs.ai_skill_pindian.mizhao(minusecard, self, requestor, maxcard)
 	local function compare_func2(a, b)
 		return a:getNumber() < b:getNumber()
 	end
-	if self:isFriend(requestor) and self.player:getHp() > requestor:getHp() then
+	if self:isFriend(requestor) and self.player:getHp() > req:getHp() then
 		table.sort(cards, compare_func2)
 	else
 		table.sort(cards, compare_func1)

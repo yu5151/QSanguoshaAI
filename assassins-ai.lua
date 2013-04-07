@@ -102,6 +102,7 @@ sgs.ai_skill_use_func.MizhaoCard = function(card, use, self)
 	local handcardnum = self.player:getHandcardNum()
 	local trash = self:getCard("Disaster") or self:getCard("GodSalvation") or self:getCard("AmazingGrace")
 	local count = 0
+	local target
 	for _, enemy in ipairs(self.enemies) do
 		if not enemy:isKongcheng() then count = count + 1 end
 	end
@@ -109,24 +110,34 @@ sgs.ai_skill_use_func.MizhaoCard = function(card, use, self)
 		self:sort(self.enemies, "handcard")
 		for _, enemy in ipairs(self.enemies) do
 			if not (enemy:hasSkill("manjuan") and enemy:isKongcheng()) then
-				use.card = card
-				enemy:setFlags("MizhaoTarget")
-				if use.to then use.to:append(enemy) end
-				return
+				target = enemy
+				break
 			end
 		end
 	end
-	self:sort(self.friends_noself, "defense")
-	self.friends_noself = sgs.reverse(self.friends_noself)
-	if count < 1 then return end
-	for _, friend in ipairs(self.friends_noself) do
-		if not friend:hasSkill("manjuan") then
-			use.card = card
-			friend:setFlags("MizhaoTarget")
-			if use.to then use.to:append(friend) end
-			return
+	if not target then
+		self:sort(self.friends_noself, "defense")
+		self.friends_noself = sgs.reverse(self.friends_noself)
+		if count < 1 then return end
+		for _, friend in ipairs(self.friends_noself) do
+			if not friend:hasSkill("manjuan") then
+				target = friend
+				break
+			end
 		end
 	end
+	if not target then return end
+	
+	for _, acard in sgs.qlist(self.player:getHandcards()) do
+		if isCard("Peach", acard, self.player) and self.player:isWounded() then
+			use.card = acard
+			return
+		end
+	end	
+	use.card = card
+	target:setFlags("MizhaoTarget")
+	if use.to then use.to:append(target) end
+	return
 end
 
 sgs.ai_use_priority.MizhaoCard = 1.5

@@ -1368,7 +1368,7 @@ function getTrickIntention(TrickClass, target)
 			local judgelist = target:getCards("j")
 			if not judgelist or judgelist:isEmpty() then
 				local armor = target:getArmor()
-				if not armor or not armor:isKindOf("SilverLion") or not armor:isKindOf("GaleShell") then
+				if not armor or not (armor:isKindOf("SilverLion") and target:isWounded()) or not armor:isKindOf("GaleShell") then
 					return 80
 				end
 			end
@@ -1712,19 +1712,19 @@ function SmartAI:filterEvent(event, player, data)
 		if move.from then from = findPlayerByObjectName(self.room, move.from:objectName(), true) end
 		if move.to   then to   = findPlayerByObjectName(self.room, move.to:objectName(), true)	end
 		local reason = move.reason
-		local from_places=sgs.QList2Table(move.from_places)
+		local from_places = sgs.QList2Table(move.from_places)
 
 		for i = 0, move.card_ids:length()-1 do
 			local place = move.from_places:at(i)
-			local card_id=move.card_ids:at(i)
+			local card_id = move.card_ids:at(i)
 			local card = sgs.Sanguosha:getCard(card_id)
 
 			if sgs.ai_snat_disma_effect then
 				sgs.ai_snat_disma_effect = false
 				local intention = 70
 				if place == sgs.Player_PlaceDelayedTrick then
-					if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end
-					if card:isKindOf("YanxiaoCard") then intention=math.abs(intention) end
+					if card:isKindOf("YanxiaoCard") then intention = 70 end  --此处不起作用
+					if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end	
 				elseif place == sgs.Player_PlaceEquip then
 					if self:isWeak(player) and player:getLostHp() > 0 and card:isKindOf("SilverLion") then 
 						if self:hasSkills(sgs.use_lion_skill, player) then 
@@ -1742,7 +1742,7 @@ function SmartAI:filterEvent(event, player, data)
 					end
 				elseif place == sgs.Player_PlaceHand then
 					if player:hasSkill("kongcheng") and player:isKongcheng() then						
-						intention = - (intention / 10)
+						intention = 0
 					end
 				end				
 				if from then sgs.updateIntention(sgs.ai_snat_dism_from, from, intention) end
@@ -1769,7 +1769,7 @@ function SmartAI:filterEvent(event, player, data)
 			end
 
 			if reason.m_skillName == "qiaobian" and from and to and self.room:getCurrent():objectName() == player:objectName() then			
-				if table.contains(from_places,sgs.Player_PlaceDelayedTrick) then
+				if table.contains(from_places, sgs.Player_PlaceDelayedTrick) then
 					if card:isKindOf("YanxiaoCard") then
 						sgs.updateIntention(player, from, 80)
 						sgs.updateIntention(player, to, -80)
@@ -1780,7 +1780,7 @@ function SmartAI:filterEvent(event, player, data)
 					end
 				end
 
-				if table.contains(from_places,sgs.Player_PlaceEquip) then
+				if table.contains(from_places, sgs.Player_PlaceEquip) then
 					sgs.updateIntention(player, to, -80)
 				end
 

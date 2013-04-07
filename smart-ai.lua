@@ -3406,17 +3406,6 @@ function SmartAI:useCardByClassName(card, use)
 	end
 end
 
-function sgs.getSkillLists(player)
-	local slist = player:getVisibleSkillList()
-	local vsnlist = {}
-	local fsnlist = {}
-	for _, askill in sgs.qlist(player:getVisibleSkillList()) do
-		if askill:inherits("ViewAsSkill") then table.insert(vsnlist, askill:objectName()) end
-		if askill:inherits("FilterSkill") then table.insert(fsnlist, askill:objectName()) end
-	end
-	return vsnlist, fsnlist
-end
-
 function SmartAI:hasWizard(players,onlyharm)
 	local skill
 	if onlyharm then skill = sgs.wizard_harm_skill else skill = sgs.wizard_skill end
@@ -3647,46 +3636,44 @@ function SmartAI:getDamagedEffects(to, from, slash)
 			if type(callback) == "function" and callback(self, from, to) then return true end
 		end
 	end
-	return false	
+	return false
 end
 
 local function prohibitUseDirectly(card, player)
 	if player:isLocked(card) or player:isJilei(card) then return true end
-	
-	local _, flist = sgs.getSkillLists(player)
-	for _, askill in ipairs(flist) do
-		local callback = sgs.ai_filterskill_filter[askill]
+	for _, askill in sgs.qlist(player:getVisibleSkillList()) do
+		local skillname = askill:objectName()
+		local callback = sgs.ai_filterskill_filter[skillname]
 		local card_place = global_room:getCardPlace(card:getEffectiveId())
-		if type(callback) == "function" and callback(card, card_place, player) then return true end
+		if type(callback) == "function" and callback(card, card_place, player) then
+			local filterskill_card = callback(card, card_place, player)
+			filterskill_card = sgs.Card_Parse(filterskill_card)
+			if filterskill_card and not filterskill_card:isKindOf(card:getClassName()) then return true end
+		end
 	end
 	return false
 end
 
 local function cardsView(class_name, player)
-	local vlist = sgs.getSkillLists(player)
-	for _, askill in ipairs(vlist) do
-		if player:hasSkill(askill) then
-			local callback = sgs.ai_cardsview[askill]
-			if type(callback) == "function" and callback(class_name, player) then
-				return callback(class_name, player)
-			end
+	for _, askill in sgs.qlist(player:getVisibleSkillList()) do
+		local skillname = askill:objectName()
+		local callback = sgs.ai_cardsview[skillname]
+		if type(callback) == "function" and callback(class_name, player) then
+			return callback(class_name, player)
 		end
 	end
 end
 
 local function getSkillViewCard(card, class_name, player, card_place)
-	local vlist = sgs.getSkillLists(player)
-	if player:hasSkill("fuhun") then table.insert(vlist, "fuhun") end
-	for _, askill in ipairs(vlist) do
-		if player:hasSkill(askill) then
-			local callback = sgs.ai_view_as[askill]
-			if type(callback) == "function" then
-				local skill_card_str = callback(card, player, card_place, class_name)
-				if skill_card_str then
-					local skill_card = sgs.Card_Parse(skill_card_str)
-					if skill_card and skill_card:isKindOf(class_name) and not player:isCardLimited(skill_card, skill_card:getHandlingMethod()) then
-						return skill_card_str 
-					end
+	for _, askill in sgs.qlist(player:getVisibleSkillList()) do
+		local skillname = askill:objectName()
+		local callback = sgs.ai_view_as[skillname]
+		if type(callback) == "function" then
+			local skill_card_str = callback(card, player, card_place, class_name)
+			if skill_card_str then
+				local skill_card = sgs.Card_Parse(skill_card_str)
+				if skill_card and skill_card:isKindOf(class_name) and not player:isCardLimited(skill_card, skill_card:getHandlingMethod()) then
+					return skill_card_str 
 				end
 			end
 		end
@@ -3694,14 +3681,14 @@ local function getSkillViewCard(card, class_name, player, card_place)
 end
 
 local function getFilterSkillViewCard(card, player, card_place)
-	local vlist = sgs.getSkillLists(player)
-	for _, askill in ipairs(vlist) do
-		local skill = sgs.Sanguosha:getSkill(askill)
-		if player:hasSkill(askill) and skill and skill:inherits("FilterSkill") then
-			local callback = sgs.ai_view_as[askill]
-			if type(callback) == "function" then
-				local skill_card_str = callback(card, player, card_place, class_name)
-				if skill_card_str then
+	for _, askill in sgs.qlist(player:getVisibleSkillList()) do
+		local skillname = askill:objectName()
+		local callback = sgs.ai_filterskill_filter[skillname]
+		if type(callback) == "function" then
+			local skill_card_str = callback(card, card_place, player)
+			if skill_card_str then
+				local skill_card = sgs.Card_Parse(skill_card_str)
+				if skill_card and not player:isCardLimited(skill_card, skill_card:getHandlingMethod()) then
 					return sgs.Card_Parse(skill_card_str)
 				end
 			end
@@ -3826,7 +3813,7 @@ function SmartAI:getCardId(class_name, player, acard)
 		local card_place = self.room:getCardPlace(card:getEffectiveId())
 		viewas = getSkillViewCard(card, class_name, player, card_place)
 		if viewas then table.insert(viewArr, viewas) end
-		if card:isKindOf(class_name) and not prohibitUseDirectly(card, player) then table.insert(cardArr,card:getEffectiveId()) end		
+		if card:isKindOf(class_name) and not prohibitUseDirectly(card, player) then table.insert(cardArr,card:getEffectiveId()) end
 	end
 
 	if #viewArr >0 or #cardArr > 0 then

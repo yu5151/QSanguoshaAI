@@ -14,7 +14,7 @@ end
 
 sgs.ai_skill_invoke.tianming = function(self, data)
 	self.tianming_discard = nil
-	if self:hasSkill("manjuan") and self.player:getPhase() == sgs.Player_NotActive then return false end
+	if self.player:hasSkill("manjuan") and self.player:getPhase() == sgs.Player_NotActive then return false end
 	if self.player:isNude() then return true end
 	if not self:canHit() and self.player:getCards("he"):length() < 3 then return false end
 	if self:canHit() then return true end

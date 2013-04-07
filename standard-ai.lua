@@ -762,7 +762,7 @@ function SmartAI:willSkipPlayPhase(player, NotContains_Null)
 		end
 	end
 	if player:containsTrick("indulgence") then
-		if player:containsTrick("YanxiaoCard") or self:hasSkills("keji|conghui",player) or (self:hasSkills("qiaobian",player) and not player:isKongcheng()) then return false end
+		if player:containsTrick("YanxiaoCard") or self:hasSkills("keji|conghui",player) or (player:hasSkill("qiaobian") and not player:isKongcheng()) then return false end
 		if friend_null + friend_snatch_dismantlement > 1 then return false end
 		return true
 	end
@@ -789,7 +789,7 @@ function SmartAI:willSkipDrawPhase(player, NotContains_Null)
 		end
 	end
 	if player:containsTrick("supply_shortage") then
-		if player:containsTrick("YanxiaoCard") or self:hasSkills("shensu|jisu",player) or (self:hasSkills("qiaobian",player) and not player:isKongcheng()) then return false end
+		if player:containsTrick("YanxiaoCard") or self:hasSkills("shensu|jisu",player) or (player:hasSkill("qiaobian") and not player:isKongcheng()) then return false end
 		if friend_null + friend_snatch_dismantlement > 1 then return false end
 		return true
 	end
@@ -820,7 +820,7 @@ rende_skill.getTurnUseCard=function(self)
 		self:sort(self.enemies, "defense")
 		for _, enemy in ipairs(self.enemies) do
 			if self.player:distanceTo(enemy) == 1 and (enemy:getHp() == 1 and getCardsNum("Peach", enemy) == 0 or
-					not self:hasSkill("fenyong|zhichi|fankui|neoganglie|ganglie|enyuan|nosenyuan|langgu|guixin", enemy)) then
+					not self:hasSkills("fenyong|zhichi|fankui|neoganglie|ganglie|enyuan|nosenyuan|langgu|guixin", enemy)) then
 				local slashs = self:getCards("Slash")
 				local slash_count = 0
 				for _, slash in ipairs(slashs) do
@@ -2014,7 +2014,7 @@ end
 sgs.ai_skill_cardask["@wushuang-jink-1"] = function(self, data, pattern, target)
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
 	if self:canUseJieyuanDecrease(target) then return "." end	
-	if self:hasSkill("kongcheng") then
+	if self.player:hasSkill("kongcheng") then
 		if target:hasWeapon("GudingBlade") and self.player:getHandcardNum() == 1 and self:getCardsNum("Jink") == 1 then return "." end
 		if self.player:getHandcardNum() == 1 and self:getCardsNum("Jink") == 1 then return end
 	else

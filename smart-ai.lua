@@ -339,7 +339,7 @@ function SmartAI:getUseValue(card)
 		if self.weaponUsed and card:isKindOf("Weapon") then v = 2 end
 		if self:hasSkills("qiangxi|taichen|zhulou") and card:isKindOf("Weapon") then v = 2 end
 		if self.player:hasSkill("kurou") and card:isKindOf("Crossbow") then return 9 end
-		if (self:hasSkill("bazhen") or self:hasSkill("yizhong")) and card:isKindOf("Armor") then v = 2 end
+		if self:hasSkills("bazhen|yizhong") and card:isKindOf("Armor") then v = 2 end
 		if self.role == "loyalist" and self.player:getKingdom()=="wei" and not self.player:hasSkill("bazhen") and getLord(self.player) and getLord(self.player):hasLordSkill("hujia") and card:isKindOf("EightDiagram") then
 			v = 9
 		end
@@ -2185,7 +2185,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 		
 		if from and self:isEnemy(from) and (sgs.evaluateRoleTrends(from) ~= "neutral" or sgs.isRolePredictable()) then
 			--使用者是敌方，自己有技能“空城”且无懈可击为最后一张手牌->命中
-			if self:hasSkill("kongcheng") and self.player:getHandcardNum() == 1 and self.player:isLastHandCard(null_card) and trick:isKindOf("SingleTargetTrick") then
+			if self.player:hasSkill("kongcheng") and self.player:getHandcardNum() == 1 and self.player:isLastHandCard(null_card) and trick:isKindOf("SingleTargetTrick") then
 				return null_card
 			end
 			--敌方在虚弱、需牌技、漫卷中使用无中生有->命中
@@ -2613,7 +2613,7 @@ function SmartAI:askForAG(card_ids, refusable, reason)
 		if card_id then return card_id end
 	end
 
-	if refusable and self:hasSkill("xinzhan") then
+	if refusable and self.player:hasSkill("xinzhan") then
 		local next_player = self.player:getNextAlive()
 		if self:isFriend(next_player) and next_player:containsTrick("indulgence") then
 			if #card_ids == 1 then return -1 end
@@ -4200,7 +4200,7 @@ function SmartAI:fillSkillCards(cards)
 		end
 	end
 	for _,skill in ipairs(sgs.ai_skills) do
-		if self:hasSkill(skill) then
+		if self.player:hasSkill(skill) then
 			local skill_card = skill.getTurnUseCard(self)
 			if #cards == 0 then skill_card = skill.getTurnUseCard(self,true) end
 			if skill_card then table.insert(cards, skill_card) end
@@ -4422,7 +4422,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 			
 			if to:getHp() > 1 then
 				
-				if self:hasSkill("quji", to) then value = value + 10 end
+				if to:hasSkill("quji") then value = value + 10 end
 				if to:hasSkill("langgu") and self:isEnemy(to, from) then value = value - 15 end
 			
 				if to:hasSkill("jianxiong") then
@@ -4806,9 +4806,9 @@ function SmartAI:useEquipCard(card, use)
 		or (self:hasSkills("longluo") and self:getOverflow() < 2 and not card:isKindOf("Crossbow") and #self.friends > 1)
 		or (self:hasSkills("qixi|duanliang|yinling") and (card:isBlack() or same:isBlack()))
 		or (self:hasSkills("guose|yanxiao") and (card:getSuit() == sgs.Card_Diamond or same:getSuit() == sgs.Card_Diamond))
-		or (self:hasSkill("longhun") and (card:getSuit() ~= sgs.Card_Diamond or same:getSuit() ~= sgs.Card_Diamond))
-		or (self:hasSkill("jijiu") and (card:isRed() or same:isRed()))
-		or (self:hasSkill("luanji") and self:getOverflow() == 0)
+		or (self.player:hasSkill("longhun") and (card:getSuit() ~= sgs.Card_Diamond or same:getSuit() ~= sgs.Card_Diamond))
+		or (self.player:hasSkill("jijiu") and (card:isRed() or same:isRed()))
+		or (self.player:hasSkill("luanji") and self:getOverflow() == 0)
 		then return end
 	end
 	local canUseSlash = self:getCardId("Slash") and self:slashIsAvailable(self.player)
@@ -4817,13 +4817,13 @@ function SmartAI:useEquipCard(card, use)
 	if card:isKindOf("Weapon") then
 		if self:needBear() then return end
 		if self.player:hasSkill("jiehuo") and self.player:getMark("jiehuo") < 0 and card:isRed() then return end
-		if self:hasSkill("zhulou") and same then return end
-		if self:hasSkill("taichen") and same then
+		if self.player:hasSkill("zhulou") and same then return end
+		if self.player:hasSkill("taichen") and same then
 			local dummy_use = { isDummy = true }
 			self:useSkillCard(sgs.Card_Parse("@TaichenCard=" .. same:getEffectiveId()), dummy_use)
 			if dummy_use.card then return end
 		end
-		if self:hasSkill("qiangxi") and not self.player:hasUsed("QiangxiCard") and same then
+		if self.player:hasSkill("qiangxi") and not self.player:hasUsed("QiangxiCard") and same then
 			local dummy_use = { isDummy = true }
 			self:useSkillCard(sgs.Card_Parse("@QiangxiCard=" .. same:getEffectiveId()), dummy_use)
 			if dummy_use.card then return end

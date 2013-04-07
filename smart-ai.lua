@@ -1705,12 +1705,52 @@ function SmartAI:filterEvent(event, player, data)
 		
 		if sgs.chongzhen_target then sgs.chongzhen_target = nil end
 		
+	elseif event == sgs.BeforeCardsMove then
+		local move = data:toMoveOneTime()
+		local from = nil   -- convert move.from from const Player * to ServerPlayer *
+		local to   = nil   -- convert move.to to const Player * to ServerPlayer *
+		if move.from then from = findPlayerByObjectName(self.room, move.from:objectName(), true) end
+		if move.to   then to   = findPlayerByObjectName(self.room, move.to:objectName(), true) end
+		for i = 0, move.card_ids:length()-1 do
+			local place = move.from_places:at(i)
+			local card_id = move.card_ids:at(i)
+			local card = sgs.Sanguosha:getCard(card_id)
+			if sgs.ai_snat_disma_effect then
+				sgs.ai_snat_disma_effect = false
+				local intention = 70
+				if place == sgs.Player_PlaceDelayedTrick then
+					if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end
+					if card:isKindOf("YanxiaoCard") then intention = 70 end
+				elseif place == sgs.Player_PlaceEquip then
+					if self:isWeak(player) and player:getLostHp() > 0 and card:isKindOf("SilverLion") then
+						if self:hasSkills(sgs.use_lion_skill, player) then
+							intention = self:willSkipPlayPhase(player) and -intention or 0
+						else
+							intention = self:isWeak(player) and  -intention  or -intention / 10 
+						end
+					end
+					if self:hasSkills(sgs.lose_equip_skill, player) then 
+						if self:isWeak(player) and (card:isKindOf("DefensiveHorse") or card:isKindOf("Armor")) then
+							intention = math.abs(intention)
+						else
+							intention = 0
+						end
+					end
+				elseif place == sgs.Player_PlaceHand then
+					if player:hasSkill("kongcheng") and player:isKongcheng() then
+						intention = 0
+					end
+				end
+				if from then sgs.updateIntention(sgs.ai_snat_dism_from, from, intention) end
+			end
+		end
+		
 	elseif event == sgs.CardsMoveOneTime then
 		local move = data:toMoveOneTime()
 		local from = nil   -- convert move.from from const Player * to ServerPlayer *
 		local to   = nil   -- convert move.to to const Player * to ServerPlayer *
 		if move.from then from = findPlayerByObjectName(self.room, move.from:objectName(), true) end
-		if move.to   then to   = findPlayerByObjectName(self.room, move.to:objectName(), true)	end
+		if move.to   then to   = findPlayerByObjectName(self.room, move.to:objectName(), true) end
 		local reason = move.reason
 		local from_places = sgs.QList2Table(move.from_places)
 
@@ -1719,35 +1759,6 @@ function SmartAI:filterEvent(event, player, data)
 			local card_id = move.card_ids:at(i)
 			local card = sgs.Sanguosha:getCard(card_id)
 
-			if sgs.ai_snat_disma_effect then
-				sgs.ai_snat_disma_effect = false
-				local intention = 70
-				if place == sgs.Player_PlaceDelayedTrick then
-					if card:isKindOf("YanxiaoCard") then intention = 70 end  --此处不起作用
-					if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end	
-				elseif place == sgs.Player_PlaceEquip then
-					if self:isWeak(player) and player:getLostHp() > 0 and card:isKindOf("SilverLion") then 
-						if self:hasSkills(sgs.use_lion_skill, player) then 
-							intention = self:willSkipPlayPhase(player) and -intention or 0
-						else	
-							intention = self:isWeak(player) and  -intention  or -intention / 10 
-						end
-					end
-					if self:hasSkills(sgs.lose_equip_skill, player) then 
-						if self:isWeak(player) and (card:isKindOf("DefensiveHorse") or card:isKindOf("Armor")) then
-							intention = math.abs(intention)
-						else
-							intention = 0 
-						end						
-					end
-				elseif place == sgs.Player_PlaceHand then
-					if player:hasSkill("kongcheng") and player:isKongcheng() then						
-						intention = 0
-					end
-				end				
-				if from then sgs.updateIntention(sgs.ai_snat_dism_from, from, intention) end
-			end
-			
 			if move.to_place == sgs.Player_PlaceHand and to and player:objectName() == to:objectName() then
 				if card:hasFlag("visible") then
 					if isCard("Slash",card, player) then sgs.card_lack[player:objectName()]["Slash"]=0 end

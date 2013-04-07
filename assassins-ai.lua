@@ -129,7 +129,7 @@ sgs.ai_skill_use_func.MizhaoCard = function(card, use, self)
 	if not target then return end
 	
 	for _, acard in sgs.qlist(self.player:getHandcards()) do
-		if isCard("Peach", acard, self.player) and self.player:isWounded() then
+		if acard:isKindOf("Peach") and self.player:isWounded() and not self:needToLoseHp(self.player, nil, nil, true, true) then
 			use.card = acard
 			return
 		end

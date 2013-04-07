@@ -3640,17 +3640,7 @@ function SmartAI:getDamagedEffects(to, from, slash)
 end
 
 local function prohibitUseDirectly(card, player)
-	if player:isLocked(card) or player:isJilei(card) then return true end
-	for _, askill in sgs.qlist(player:getVisibleSkillList()) do
-		local skillname = askill:objectName()
-		local callback = sgs.ai_filterskill_filter[skillname]
-		local card_place = global_room:getCardPlace(card:getEffectiveId())
-		if type(callback) == "function" and callback(card, card_place, player) then
-			local filterskill_card = callback(card, card_place, player)
-			filterskill_card = sgs.Card_Parse(filterskill_card)
-			if filterskill_card and not filterskill_card:isKindOf(card:getClassName()) then return true end
-		end
-	end
+	if player:isCardLimited(card, card:getHandlingMethod()) then return true end
 	return false
 end
 

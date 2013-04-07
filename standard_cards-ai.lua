@@ -1973,7 +1973,36 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	if hasLion then
 		addTarget(target, target:getArmor())
 	end
+	
+	local dengai = self.room:findPlayerBySkillName("tuntian")
+	local jiangwei = self.room:findPlayerBySkillName("zhiji")
+	local zhijiangwei = self.room:findPlayerBySkillName("beifa")
 
+	if jiangwei and self:isFriend(jiangwei) and jiangwei:getMark("zhiji") == 0 and jiangwei:getHandcardNum()== 1 
+			and self:getEnemyNumBySeat(self.player, jiangwei) <= (jiangwei:getHp() >= 3 and 1 or 0) then
+		addTarget(jiangwei, self:getCardRandomly(jiangwei, "h"))
+	end
+
+	if dengai and self:isFriend(dengai) and (not self:isWeak(dengai) or self:getEnemyNumBySeat(self.player,dengai) == 0 ) 
+			and dengai:hasSkill("zaoxian") and dengai:getMark("zaoxian") == 0 and dengai:getPile("field"):length() == 2
+			and dengai:getCardCount(true) > 0 then
+		addTarget(dengai, self:getCardRandomly(dengai, "h"))
+	end
+
+	if zhijiangwei and self:isFriend(zhijiangwei) and zhijiangwei:getHandcardNum()== 1 and
+		self:getEnemyNumBySeat(self.player, zhijiangwei) <= (zhijiangwei:getHp() >= 3 and 1 or 0) then
+		local isGood
+		for _, enemy in ipairs(self.enemies) do
+			local def = sgs.getDefenseSlash(enemy)
+			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+			local eff = self:slashIsEffective(slash, enemy, zhijiangwei) and sgs.isGoodTarget(enemy, self.enemies, self)
+			if zhijiangwei:canSlash(enemy, nil, false) and not self:slashProhibit(nil, enemy, zhijiangwei) and eff and def < 4 then
+				isGood = true
+			end
+		end
+		if isGood then addTarget(zhijiangwei, self:getCardRandomly(zhijiangwei, "h"))  end
+	end
+	
 	for i= 1,2,1 do
 		for _, enemy in ipairs(enemies) do
 			if self:hasTrickEffective(card, enemy) and not self:needKongcheng(enemy) and not self:doNotDiscard(enemy) then

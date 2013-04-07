@@ -737,7 +737,7 @@ sgs.ai_card_intention.ZhibaCard = function(self, card, from, tos, source)
 end 
 
 sgs.ai_need_damaged.hunzi = function (self, attacker, player)
-	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 then return true end
+	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 and player:getHp() > 1 then return true end
 	return false
 end
 

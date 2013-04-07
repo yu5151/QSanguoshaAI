@@ -3822,13 +3822,11 @@ function SmartAI:getCards(class_name, player, flag)
 	return getCards(class_name, player, self.room, flag)
 end
 
-function getCardsNum(class_name, player, self)
+function getCardsNum(class_name, player)
 	if not player then 
 		global_room:writeToConsole(debug.traceback()) 
 		return 0
 	end
-	if self and player:objectName() == self.player:objectName() then return self:getCardsNum(class_name, player) end
-
 	local cards = sgs.QList2Table(player:getHandcards())
 	local num = 0
 	local shownum = 0

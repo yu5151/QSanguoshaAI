@@ -800,10 +800,14 @@ function SmartAI:canHit(to, from, conservative)
 	if not conservative and self:hasHeavySlashDamage(from, nil, to) then conservative = true end
 	if not conservative and from:hasSkill("moukui") then conservative = true end
 	if not conservative and self:isEquip("EightDiagram", to) and not IgnoreArmor(from, to) then return false end
-	if getCardsNum("Jink", to, self) == 0 then return true end
 	local need_double_jink = from and (from:hasSkill("wushuang") 
-				or (from:hasSkill("roulin") and to:isFemale()) or (from:isFemale() and to:hasSkill("roulin")))
-	if need_double_jink and getCardsNum("Jink", to, self) < 2 then return true end
+			or (from:hasSkill("roulin") and to:isFemale()) or (from:isFemale() and to:hasSkill("roulin")))
+	if to:objectName() == self.player:objectName() then
+		if self:getCardsNum("Jink", to) == 0 then return true end
+		if need_double_jink and self:getCardsNum("Jink", to) < 2 then return true end
+	end
+	if getCardsNum("Jink", to) == 0 then return true end
+	if need_double_jink and getCardsNum("Jink", to) < 2 then return true end
 	return false
 end
 

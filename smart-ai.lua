@@ -3248,8 +3248,44 @@ function SmartAI:askForSinglePeach(dying)
 				card_str = self:getCardId("Peach") 
 			end
 		end
+	else --救对方的情形
+		if dying:hasSkill("wuhun") then --濒死者有技能“武魂”
+			if not sgs.GetConfig("EnableHegemony", false) then
+				local should = true
+				if self.role == "rebel" then --反贼
+					should = false
+				elseif self.role == "renegade" then --内奸
+					should = self.room:alivePlayerCount() > 2
+				end
+				if should then --可能有救的必要
+					local willKillLord = false
+					local revengeTargets = getRevengeTargets(self.room) --武魂复仇目标
+					if #revengeTargets > 0 then
+						local lord = getLord(self.player)
+						if lord then
+							for _,target in pairs(revengeTargets) do
+								if target:objectName() == lord:objectName() then
+									willKillLord = true
+									break
+								end
+							end
+						end
+					end
+					if willKillLord then --主公会被武魂带走，真的有必要……
+						local finalRetrial = self:getFinalRetrial()
+						if finalRetrial == 0 then --没有判官，需要考虑观星、心战、攻心的结果（已忽略）
+							card_str = self:getCardId("Peach")
+						elseif finalRetrial == 1 then --己方后判，需要考虑最后的判官是否有桃或桃园结义改判（已忽略）
+							card_str = self:getCardId("Peach")
+						elseif finalRetrial == 2 then --对方后判，这个一定要救了……
+							card_str = self:getCardId("Peach")
+						end
+					end
+				end
+			end
+		end
 	end
-		return card_str or "."
+	return card_str or "."
 end
 
 function SmartAI:getTurnUse()

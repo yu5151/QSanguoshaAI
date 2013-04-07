@@ -695,7 +695,7 @@ sgs.ai_skill_use_func.QiceCard = function(card,use,self)
 	self:useTrickCard(qicecard,use) 
 	if use.card then
 		for _, acard in sgs.qlist(self.player:getHandcards()) do
-			if acard:isKindOf("Peach") and self.player:getHandcardNum() > 1 and self.player:isWounded() then
+			if isCard("Peach", acard, self.player) and self.player:getHandcardNum() > 1 and self.player:isWounded() then
 				use.card = acard
 				return
 			end

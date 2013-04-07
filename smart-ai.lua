@@ -1693,7 +1693,7 @@ function SmartAI:filterEvent(event, player, data)
 		if not struct.to:isEmpty() then who = struct.to:first() end
 		
 		if sgs.turncount == 1 and lord and who then
-			if (card:isKindOf("Snatch") or card:isKindOf("Dismantlement") or card:isKindOf("YinlingCard")) and sgs.evaluateRoleTrends(who) == "neutral" then
+			if (card:isKindOf("Snatch") or card:isKindOf("Dismantlement") or card:isKindOf("YinlingCard") or card:isKindOf("Slash")) and sgs.evaluateRoleTrends(who) == "neutral" then
 				local aplayer = self:exclude({lord}, card, struct.from)
 				if #aplayer ==1 then sgs.updateIntention(player, lord, -70) end
 			end
@@ -1726,16 +1726,16 @@ function SmartAI:filterEvent(event, player, data)
 					if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end
 					if card:isKindOf("YanxiaoCard") then intention=math.abs(intention) end
 				elseif place == sgs.Player_PlaceEquip then
-					if player:getLostHp() > 1 and card:isKindOf("SilverLion") then 
+					if self:isWeak(player) and player:getLostHp() > 0 and card:isKindOf("SilverLion") then 
 						if self:hasSkills(sgs.use_lion_skill, player) then 
-							intention = player:containsTrick("indulgence") and -intention or 0
+							intention = self:willSkipPlayPhase(player) and -intention or 0
 						else	
 							intention = self:isWeak(player) and  -intention  or -intention / 10 
 						end
 					end
 					if self:hasSkills(sgs.lose_equip_skill, player) then 
 						if self:isWeak(player) and (card:isKindOf("DefensiveHorse") or card:isKindOf("Armor")) then
-							intention=math.abs(intention)
+							intention = math.abs(intention)
 						else
 							intention = 0 
 						end						
@@ -1799,7 +1799,7 @@ function SmartAI:filterEvent(event, player, data)
 			end
 			
 			if player:hasFlag("Playing") and sgs.turncount <= 3 and player:getPhase() == sgs.Player_Discard 
-						and reason.m_reason==sgs.CardMoveReason_S_REASON_RULEDISCARD and not self:needBear(player) then
+					and reason.m_reason==sgs.CardMoveReason_S_REASON_RULEDISCARD and not self:needBear(player) then
 				local is_neutral = sgs.evaluateRoleTrends(player) == "neutral"
 					
 				if isCard("Slash", card, player) and player:canSlashWithoutCrossbow() then

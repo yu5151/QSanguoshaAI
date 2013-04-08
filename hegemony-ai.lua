@@ -425,6 +425,13 @@ sgs.ai_skill_use["@@shuangren"] = function(self, prompt)
 				end
 			end
 		end
+		for _, enemy in ipairs(self.enemies) do
+			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() then
+				if  #(self:getTurnUse()) == 0 and self:getOverflow() > 0 and not self:doNotDiscard(enemy, "h") then
+					return "@ShuangrenCard=" .. max_card:getEffectiveId() .. "->" .. enemy:objectName()
+				end
+			end
+		end
 		if #self.enemies < 1 then return end
 		self:sort(self.friends_noself, "handcard")
 		for index = #self.friends_noself, 1, -1 do

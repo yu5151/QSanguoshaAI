@@ -21,10 +21,10 @@ local function card_for_qiaobian(self, who, return_prompt)
 		if not target and not equips:isEmpty() and self:hasSkills(sgs.lose_equip_skill, who) then
 			for _, equip in sgs.qlist(equips) do
 				if equip:isKindOf("OffensiveHorse") then card = equip break
+				elseif equip:isKindOf("Weapon") then card = equip break
 				elseif equip:isKindOf("DefensiveHorse") and not self:isWeak(who) then
 					card = equip
 					break
-				elseif equip:isKindOf("Weapon") then card = equip break
 				elseif equip:isKindOf("Armor") and ((not self:isWeak(who)) or equip:isKindOf("SilverLion")) then
 					card = equip
 					break
@@ -40,9 +40,10 @@ local function card_for_qiaobian(self, who, return_prompt)
 				end
 
 				for _, friend in ipairs(self.friends) do
-					if not self:getSameEquip(card, friend) and friend:objectName() ~= who:objectName() and self:hasSkills(sgs.lose_equip_skill .. "|shensu" , friend) then
-						target = friend
-						break
+					if not self:getSameEquip(card, friend) and friend:objectName() ~= who:objectName() 
+						and self:hasSkills(sgs.need_equip_skill, friend) then
+							target = friend
+							break
 					end
 				end
 				for _, friend in ipairs(self.friends) do
@@ -784,6 +785,14 @@ sgs.ai_skill_use_func.ZhijianCard = function(card, use, self)
 
 	local select_equip, target
 	for _, friend in ipairs(self.friends_noself) do
+		for _, equip in ipairs(equips) do
+			if not self:getSameEquip(equip, friend) and self:hasSkills(sgs.need_equip_skill, friend) then
+				target = friend
+				select_equip = equip
+				break
+			end
+		end
+		if target then break end
 		for _, equip in ipairs(equips) do
 			if not self:getSameEquip(equip, friend) then
 				target = friend

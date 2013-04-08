@@ -101,7 +101,7 @@ end
 
 sgs.ai_skill_use_func.MizhaoCard = function(card, use, self)
 	local handcardnum = self.player:getHandcardNum()
-	local trash = self:getCard("Disaster") or self:getCard("GodSalvation") or self:getCard("AmazingGrace")
+	local trash = self:getCard("Disaster") or self:getCard("GodSalvation") or self:getCard("AmazingGrace") or self:getCard("Slash") or self:getCard("FireAttack")
 	local count = 0
 	local target
 	for _, enemy in ipairs(self.enemies) do
@@ -110,7 +110,7 @@ sgs.ai_skill_use_func.MizhaoCard = function(card, use, self)
 	if handcardnum == 1 and trash and count >= 1 and #self.enemies > 1 then
 		self:sort(self.enemies, "handcard")
 		for _, enemy in ipairs(self.enemies) do
-			if not (enemy:hasSkill("manjuan") and enemy:isKongcheng()) then
+			if not (enemy:hasSkill("manjuan") and enemy:isKongcheng()) and not enemy:hasSkills("tuntian+zaoxian") then
 				target = enemy
 				break
 			end
@@ -121,9 +121,17 @@ sgs.ai_skill_use_func.MizhaoCard = function(card, use, self)
 		self.friends_noself = sgs.reverse(self.friends_noself)
 		if count < 1 then return end
 		for _, friend in ipairs(self.friends_noself) do
-			if not friend:hasSkill("manjuan") then
+			if friend:hasSkills("tuntian+zaoxian") and not friend:hasSkill("manjuan") and not self:isWeak(friend) then
 				target = friend
 				break
+			end
+		end
+		if not target then
+			for _, friend in ipairs(self.friends_noself) do
+				if not friend:hasSkill("manjuan") then
+					target = friend
+					break
+				end
 			end
 		end
 	end
@@ -136,7 +144,7 @@ sgs.ai_skill_use_func.MizhaoCard = function(card, use, self)
 		end
 	end	
 	use.card = card
-	target:setFlags("MizhaoTarget")
+	target:setFlags("AI_MizhaoTarget")
 	if use.to then use.to:append(target) end
 	return
 end
@@ -150,9 +158,9 @@ sgs.ai_skill_playerchosen.mizhao = function(self, targets)
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	local from
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-		if player:hasFlag("MizhaoTarget") then
+		if player:hasFlag("AI_MizhaoTarget") then
 			from = player
-			from:setFlags("-MizhaoTarget")
+			from:setFlags("-AI_MizhaoTarget")
 			break
 		end
 	end
@@ -257,6 +265,13 @@ sgs.ai_skill_use_func.MixinCard = function(card, use, self)
 	
 	if slash then
 		for _, friend in ipairs(self.friends_noself) do
+			if friend:hasSkills("tuntian+zaoxian") and not friend:hasSkill("manjuan") then
+				use.card = sgs.Card_Parse("@MixinCard="..slash:getEffectiveId())
+				if use.to then use.to:append(friend) end
+				return
+			end
+		end
+		for _, friend in ipairs(self.friends_noself) do
 			if not friend:hasSkill("manjuan") then
 				use.card = sgs.Card_Parse("@MixinCard="..slash:getEffectiveId())
 				if use.to then use.to:append(friend) end
@@ -270,6 +285,13 @@ sgs.ai_skill_use_func.MixinCard = function(card, use, self)
 		table.sort(self.friends_noself, compare_more_slash)
 		for _, friend in ipairs(self.friends_noself) do
 			if not friend:hasSkill("manjuan") and self:getCardsNum("Slash", friend) >= 1 then
+				use.card = sgs.Card_Parse("@MixinCard="..cards[1]:getEffectiveId())
+				if use.to then use.to:append(friend) end
+				return
+			end
+		end
+		for _, friend in ipairs(self.friends_noself) do
+			if friend:hasSkills("tuntian+zaoxian") and not friend:hasSkill("manjuan") then
 				use.card = sgs.Card_Parse("@MixinCard="..cards[1]:getEffectiveId())
 				if use.to then use.to:append(friend) end
 				return

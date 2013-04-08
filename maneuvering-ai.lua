@@ -372,7 +372,7 @@ function SmartAI:useCardIronChain(card, use)
 	local chainSelf =(self:needToLoseHp(self.player, nil, nil, true) or self:getDamagedEffects(self.player)) and not self.player:isChained()
 					and not self.player:hasSkill("jueqing")
 					and (self:getCardId("NatureSlash") or (self:getCardId("Slash") and (self.player:hasWeapon("fan") or self.player:hasSkill("lihuo"))) 
-					or (self:getCardId("FireAttack") and self.player:getHandcardNum() > 2)
+					or (self:getCardId("FireAttack") and self.player:getHandcardNum() > 2))
 	
 	local targets_num = 2 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_ExtraTarget, self.player, card)
 	local targets = {}

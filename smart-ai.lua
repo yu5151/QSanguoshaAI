@@ -5281,12 +5281,12 @@ function SmartAI:DontRespondPeach(judge)
 	
 	if peach_num > self.player:getLostHp() then
 		for _, friend in ipairs(self.friends) do
-			if friend:isWeak() then return true end
+			if self:isWeak(friend) then return true end
 		end
 	end
 	
 	if judge then
-		if not type(judge) ~= "userdata" then self.room:writeToConsole(debug.traceback()) end
+		if type(judge) ~= "userdata" then self.room:writeToConsole(debug.traceback()) end
 		--judge.reason:beige,baonue,neoganglie,ganglie,caizhaoji_hujia
 		if judge.reason == "tuntian" and judge.who:getMark("zaoxian") == 0 and judge.who:getPile("field"):length() < 2 then return true
 		elseif (judge.reason == "EightDiagram" or judge.reason == "bazhen") and

@@ -97,27 +97,39 @@ end
 function sgs.getDefenseSlash(player)
 	if not player then return 0 end
 	local attacker = global_room:getCurrent()
-	local defense = getCardsNum("Jink",player)
+	local defense = getCardsNum("Jink", player)
 
-	local knownJink = getKnownCard(player,"Jink",true)
+	local knownJink = getKnownCard(player, "Jink", true)
 
-	if sgs.card_lack[player:objectName()]["Jink"] == 1 and knownJink ==0 then defense =0 end
+	if sgs.card_lack[player:objectName()]["Jink"] == 1 and knownJink == 0 then defense = 0 end
 	
-	defense= defense + knownJink * 1.2
+	defense = defense + knownJink * 1.2
 	
-	local hasEightDiagram=false
+	local hasEightDiagram = false
 	
 	if (player:hasArmorEffect("EightDiagram") or (player:hasSkill("bazhen") and not player:getArmor())) 
 	  and not IgnoreArmor(attacker, player) then
-		hasEightDiagram=true
+		hasEightDiagram = true
 	end
 	
 	if hasEightDiagram then 
 		defense = defense + 1.3 
 		if player:hasSkill("tiandu") then defense = defense + 0.6 end
+		if player:hasSkill("gushou") then defense = defense + 0.4 end
+		if player:hasSkill("leiji") then defense = defense + 0.2 end
+		if player:hasSkill("noszhenlie") then defense = defense + 0.2 end
+		if player:hasSkill("hongyan") then defense = defense + 0.2 end
+	end
+	
+	if player:hasSkill("mingzhe") and getCardsNum("Jink", player) >= 1 then
+		defense = defense + 0.2	
 	end
 
-	if player:hasSkill("tuntian") and player:hasSkill("zaoxian") and getCardsNum("Jink",player) >= 1 then
+	if player:hasSkill("gushou") and getCardsNum("Jink", player) >= 1 then
+		defense = defense + 0.2	
+	end
+
+	if player:hasSkill("tuntian") and player:hasSkill("zaoxian") and getCardsNum("Jink", player) >= 1 then
 		defense = defense + 1.5	
 	end
 	
@@ -173,7 +185,7 @@ function sgs.getDefenseSlash(player)
 
 	if player:getHp() <= 2 then defense = defense - 0.4 end
 	
-	local playernum=global_room:alivePlayerCount()
+	local playernum = global_room:alivePlayerCount()
 	if (player:getSeat()-attacker:getSeat()) % playernum >= playernum-2 and playernum>3 and player:getHandcardNum()<=2 and player:getHp()<=2 then
 		defense = defense - 0.4
 	end
@@ -204,7 +216,7 @@ function sgs.getDefenseSlash(player)
 	end	
 
 	if isLord(player) then 
-		defense = defense -0.4
+		defense = defense - 0.4
 		if sgs.isLordInDanger() then defense = defense - 0.7 end
 	end
 
@@ -212,7 +224,7 @@ function sgs.getDefenseSlash(player)
 		defense = defense - math.max(6, (sgs.ai_chaofeng[player:getGeneralName()] or 0)) * 0.035
 	end
 
-	if not player:faceUp() then defense = defense -0.35 end
+	if not player:faceUp() then defense = defense - 0.35 end
 
 	if player:containsTrick("indulgence") and not player:containsTrick("YanxiaoCard") then defense = defense - 0.15  end
 	if player:containsTrick("supply_shortage") and not player:containsTrick("YanxiaoCard") then defense = defense - 0.15  end
@@ -220,11 +232,12 @@ function sgs.getDefenseSlash(player)
 	if (attacker:hasSkill("roulin") and player:isFemale()) or (attacker:isFemale() and player:hasSkill("roulin")) then
 		defense = defense - 2.4
 	end
-
 	
 	if not hasEightDiagram then
 		if player:hasSkill("jijiu") then defense = defense - 3 end
 		if player:hasSkill("jieyin") then defense = defense - 2.5 end
+		if player:hasSkill("dimeng") then defense = defense - 0.5 end
+		if player:hasSkill("tianming") then defense = defense + 0.1 end
 	end
 	return defense
 end

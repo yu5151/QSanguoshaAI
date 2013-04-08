@@ -1049,8 +1049,9 @@ sgs.ai_skill_cardask["@jijiang-slash"] = function(self, data)
 		end
 	end
 
-	if not target then return self:getCardId("Slash") or "." end	
-	
+	if not target then return self:getCardId("Slash") or "." end
+	local forbid = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+	if target and target:hasSkill("zuixiang") and target:isLocked(forbid) then return "." end
 	local ignoreArmor = IgnoreArmor(sgs.jijiangsource, target) or not target:getArmor()
 	
 	if self:isFriend(target) and not (self:needToLoseHp(target, sgs.jijiangsource, true, true) or self:getDamagedEffects(target, sgs.jijiangsource, true)) then return "." end
@@ -2155,7 +2156,7 @@ sgs.ai_skill_use_func.LijianCard = function(card,use,self)
 				self:sort(self.enemies, "hp")
 				
 				for _, a_friend in ipairs(self.friends_noself) do	-- 目标1：寻找1血友方
-					if a_friend:getHp() == 1 and a_friend:isKongcheng() and not self:hasSkills("kongcheng", a_friend) and a_friend:isMale() then
+					if a_friend:getHp() == 1 and a_friend:isKongcheng() and not self:hasSkills("kongcheng|yuwen", a_friend) and a_friend:isMale() then
 						for _, b_friend in ipairs(self.friends_noself) do		--目标2：寻找位于我之后，离我最近的友方
 							if b_friend:objectName() ~= a_friend:objectName() and b_friend:isMale() and self:playerGetRound(b_friend) < round
 							and self:hasTrickEffective(duel, a_friend, b_friend) then

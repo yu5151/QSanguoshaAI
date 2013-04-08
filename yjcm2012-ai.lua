@@ -947,7 +947,8 @@ function sgs.ai_skill_invoke.zhenlie(self, data)
 	if not use.from or use.from:isDead() then return false end
 	if self.role == "rebel" and sgs.evaluatePlayerRole(use.from) == "rebel" and self.player:getHp() == 1 and self:getAllPeachNum() < 1 then return false end
 
-	if self:isEnemy(use.from) or (self:isFriend(use.from) and self.role == "loyalist" and use.from:isLord() and self.player:getHp() == 1) then
+	if self:isEnemy(use.from) or (self:isFriend(use.from) and self.role == "loyalist" and use.from:isLord() and self.player:getHp() == 1 
+			and not self.player:hasSkill("yuwen")) then
 		local friend_null = 0
 		for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 			if self:isFriend(p) then friend_null = friend_null + getCardsNum("Nullification", p) end
@@ -1004,7 +1005,7 @@ function sgs.ai_skill_invoke.zhenlie(self, data)
 				end
 			elseif (use.card:isKindOf("Snatch") or use.card:isKindOf("Dismantlement")) and self:getCardsNum("Peach") == self.player:getHandcardNum() and not self.player:isKongcheng() then
 				if not self:hasTrickEffective(use.card, self.player) then return false end
-				return friend_null <= 0 and not self:doNotDiscard(use.from)
+				return not self:doNotDiscard(use.from)
 			elseif use.card:isKindOf("Duel") then
 				if self:getCardsNum("Slash") == 0 or self:getCardsNum("Slash") < getCardsNum("Slash", use.from) then
 					if not self:hasTrickEffective(use.card, self.player) then return false end

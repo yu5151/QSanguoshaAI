@@ -345,17 +345,13 @@ function SmartAI:getUseValue(card)
 		end
 		if self:hasSkills(sgs.lose_equip_skill) then return 10 end
 	elseif card:getTypeId() == sgs.Card_Basic then
-		if card:isKindOf("Slash") then
-			
+		if card:isKindOf("Slash") then		
 			v = sgs.ai_use_value[class_name] or 0
-
 			if self.player:hasFlag("tianyi_success") or self.player:hasFlag("jiangchi_invoke")
 				or self:hasHeavySlashDamage(self.player, card) then v = 8.7 end
 			if self:isEquip("Crossbow") then v = v + 4 end
-
 			if card:getSkillName() == "Spear"   then v = v - 1 end
 			if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 1 end
-
 		elseif card:isKindOf("Jink") then
 			if self:getCardsNum("Jink") > 1 then v = v-6 end
 			if self.player:hasSkill("longdan") and self:hasSkills("chongzhen") then v = 8.7 end
@@ -4249,15 +4245,11 @@ function SmartAI:aoeIsEffective(card, to, source)
 		return false
 	end
 
-	if self.player:hasSkill("noswuyan") or to:hasSkill("noswuyan") then
+	if source:hasSkill("noswuyan") or to:hasSkill("noswuyan") then
 		return false
 	end
 
-	if to:hasSkill("wuyan") and not source:hasSkill("jueqing")  then
-		return false
-	end
-
-	if self.player:hasSkill("wuyan") and not self.player:hasSkill("jueqing")  then
+	if (source:hasSkill("wuyan") and to:hasSkill("wuyan")) and not source:hasSkill("jueqing") then
 		return false
 	end
 	
@@ -4379,6 +4371,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 		value = value + math.min(20, to:getHp()*5)
 		
 		if self:getDamagedEffects(to, from) then value = value + 40 end
+		if self:needToLoseHp(to, from, nil, true) then value = value + 10 end
 		
 		if card:isKindOf("ArcheryAttack") then
 			if to:hasSkill("leiji") and (sj_num >= 1 or self:isEquip("EightDiagram", to)) then
@@ -4394,6 +4387,14 @@ function SmartAI:getAoeValueTo(card, to , from)
 			end
 		end
 		
+		if card:isKindOf("ArcheryAttack") and getCardsNum("Jink", to) >= 1 then
+			if self:hasSkills("mingzhe|gushou", to) then value = value + 8 end
+			if to:hasSkill("xiaoguo") then value = value - 4 end
+		elseif card:isKindOf("SavageAssault") and getCardsNum("Slash", to) >= 1 then
+			if to:hasSkill("gushou") then value = value + 8 end
+			if to:hasSkill("xiaoguo") then value = value - 4 end
+		end		
+
 		if to:hasSkills("longdan+chongzhen") and self:isEnemy(to) then
 			if card:isKindOf("ArcheryAttack") and getCardsNum("Slash", to) >= 1 then
 				value = value + 15

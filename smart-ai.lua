@@ -1693,9 +1693,14 @@ function SmartAI:filterEvent(event, player, data)
 		if not struct.to:isEmpty() then who = struct.to:first() end
 		
 		if sgs.turncount == 1 and lord and who then
-			if (card:isKindOf("Snatch") or card:isKindOf("Dismantlement") or card:isKindOf("YinlingCard") or card:isKindOf("Slash")) and sgs.evaluateRoleTrends(who) == "neutral" then
-				local aplayer = self:exclude({lord}, card, struct.from)
-				if #aplayer ==1 then sgs.updateIntention(player, lord, -70) end
+			if (card:isKindOf("Snatch") or card:isKindOf("Dismantlement") or card:isKindOf("YinlingCard") or card:isKindOf("FireAttack")
+				or (card:isKindOf("Slash") and not (self:getDamagedEffects(who, player, true) or self:needToLoseHp(who, player, true, true, true))
+					and not who:hasSkill("leiji"))
+				or (card:isKindOf("Duel") and not (self:getDamagedEffects(who, player) or self:needToLoseHp(who, player, nil, true, true)))
+				or (card:isKindOf("IronChain") and who:isChained() and not self:hasSkills("danlao|huangen|tianxiang", who)))
+				and sgs.evaluateRoleTrends(who) == "neutral" then
+					local aplayer = self:exclude({lord}, card, struct.from)
+					if #aplayer ==1 then sgs.updateIntention(player, lord, -70) end
 			end
 		end
 		

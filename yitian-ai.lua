@@ -606,6 +606,7 @@ sgs.ai_skill_playerchosen.shaoying = function(self, targets)
 end
 
 sgs.ai_playerchosen_intention.shaoying = function(from, to)
+	sgs.shaoying_target = to
 	sgs.updateIntention(from, to , 10)
 end
 

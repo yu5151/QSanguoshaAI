@@ -4193,7 +4193,7 @@ function SmartAI:fillSkillCards(cards)
 		end
 	end
 	for _,skill in ipairs(sgs.ai_skills) do
-		if self.player:hasSkill(skill) then
+		if self:hasSkill(skill) then
 			local skill_card = skill.getTurnUseCard(self)
 			if #cards == 0 then skill_card = skill.getTurnUseCard(self,true) end
 			if skill_card then table.insert(cards, skill_card) end
@@ -4415,7 +4415,7 @@ function SmartAI:getAoeValueTo(card, to , from)
 			
 			if to:getHp() > 1 then
 				
-				if to:hasSkill("quji") then value = value + 10 end
+				if to:hasSkill("quanji") then value = value + 10 end
 				if to:hasSkill("langgu") and self:isEnemy(to, from) then value = value - 15 end
 			
 				if to:hasSkill("jianxiong") then

@@ -320,13 +320,14 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 	local luxun = self.room:findPlayerBySkillName("lianying")
 	local dengai = self.room:findPlayerBySkillName("tuntian")
 	local jiangwei = self.room:findPlayerBySkillName("zhiji")
+	local zhijiangwei = self.room:findPlayerBySkillName("beifa")
 	
 	local add_player = function (player,isfriend)
 		if player:getHandcardNum() ==0 or player:objectName() == self.player:objectName() then return #targets end
 		if self:objectiveLevel(player) == 0 and player:isLord() and sgs.current_mode_players["rebel"] > 1 then return #targets end
 		if #targets == 0 then 
 			table.insert(targets, player:objectName())
-		elseif #targets== 1 then			
+		elseif #targets== 1 then
 			if player:objectName()~=targets[1] then 
 				table.insert(targets, player:objectName()) 
 			end
@@ -351,7 +352,7 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 			and dengai:hasSkill("zaoxian") and dengai:getMark("zaoxian") == 0 and dengai:getPile("field"):length() == 2 and add_player(dengai, 1) == 2 then 
 		return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2]) 
 	end
-
+	
 	if zhugeliang and self:isFriend(zhugeliang) and zhugeliang:getHandcardNum() == 1 and self:getEnemyNumBySeat(self.player,zhugeliang) > 0 then
 		if zhugeliang:getHp() <= 2 then
 			if add_player(zhugeliang,1) == 2 then return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2]) end
@@ -361,7 +362,7 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 			if #cards == 1 and (cards[1]:hasFlag("visible") or cards[1]:hasFlag(flag)) then
 				if cards[1]:isKindOf("TrickCard") or cards[1]:isKindOf("Slash") or cards[1]:isKindOf("EquipCard") then
 					if add_player(zhugeliang,1) == 2 then return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2]) end
-				end				
+				end
 			end
 		end
 	end
@@ -375,6 +376,20 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 			end
 		end	
 	end
+	
+	if zhijiangwei and self:isFriend(zhijiangwei) and zhijiangwei:getHandcardNum()== 1 and
+		self:getEnemyNumBySeat(self.player,zhijiangwei) <= (zhijiangwei:getHp() >= 3 and 1 or 0) then
+		local isGood
+		for _, enemy in ipairs(self.enemies) do
+			local def = sgs.getDefenseSlash(enemy)
+			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+			local eff = self:slashIsEffective(slash, enemy, zhijiangwei) and sgs.isGoodTarget(enemy, self.enemies, self)
+			if zhijiangwei:canSlash(enemy, nil, false) and not self:slashProhibit(nil, enemy, zhijiangwei) and eff and def < 4 then
+				isGood = true
+			end
+		end
+		if isGood and add_player(zhijiangwei, 1) == 2  then return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2]) end
+	end	
 	
 	for i = 1, #self.enemies, 1 do
 		local p = self.enemies[i]
@@ -747,7 +762,7 @@ function SmartAI:willSkipPlayPhase(player, NotContains_Null)
 		end
 	end
 	if player:containsTrick("indulgence") then
-		if player:containsTrick("YanxiaoCard") or self:hasSkills("keji|conghui",player) or (self:hasSkills("qiaobian",player) and not player:isKongcheng()) then return false end
+		if player:containsTrick("YanxiaoCard") or self:hasSkills("keji|conghui",player) or (player:hasSkill("qiaobian") and not player:isKongcheng()) then return false end
 		if friend_null + friend_snatch_dismantlement > 1 then return false end
 		return true
 	end
@@ -774,7 +789,7 @@ function SmartAI:willSkipDrawPhase(player, NotContains_Null)
 		end
 	end
 	if player:containsTrick("supply_shortage") then
-		if player:containsTrick("YanxiaoCard") or self:hasSkills("shensu|jisu",player) or (self:hasSkills("qiaobian",player) and not player:isKongcheng()) then return false end
+		if player:containsTrick("YanxiaoCard") or self:hasSkills("shensu|jisu",player) or (player:hasSkill("qiaobian") and not player:isKongcheng()) then return false end
 		if friend_null + friend_snatch_dismantlement > 1 then return false end
 		return true
 	end
@@ -805,7 +820,7 @@ rende_skill.getTurnUseCard=function(self)
 		self:sort(self.enemies, "defense")
 		for _, enemy in ipairs(self.enemies) do
 			if self.player:distanceTo(enemy) == 1 and (enemy:getHp() == 1 and getCardsNum("Peach", enemy) == 0 or
-					not self:hasSkill("fenyong|zhichi|fankui|neoganglie|ganglie|enyuan|nosenyuan|langgu|guixin", enemy)) then
+					not self:hasSkills("fenyong|zhichi|fankui|neoganglie|ganglie|enyuan|nosenyuan|langgu|guixin", enemy)) then
 				local slashs = self:getCards("Slash")
 				local slash_count = 0
 				for _, slash in ipairs(slashs) do
@@ -1999,7 +2014,7 @@ end
 sgs.ai_skill_cardask["@wushuang-jink-1"] = function(self, data, pattern, target)
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
 	if self:canUseJieyuanDecrease(target) then return "." end	
-	if self:hasSkill("kongcheng") then
+	if self.player:hasSkill("kongcheng") then
 		if target:hasWeapon("GudingBlade") and self.player:getHandcardNum() == 1 and self:getCardsNum("Jink") == 1 then return "." end
 		if self.player:getHandcardNum() == 1 and self:getCardsNum("Jink") == 1 then return end
 	else

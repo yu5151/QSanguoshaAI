@@ -14,9 +14,10 @@ end
 
 sgs.ai_skill_invoke.tianming = function(self, data)
 	self.tianming_discard = nil
-	if self:hasSkill("manjuan") and self.player:getPhase() == sgs.Player_NotActive then return false end
+	if self.player:hasSkill("manjuan") and self.player:getPhase() == sgs.Player_NotActive then return false end
 	if self.player:isNude() then return true end
 	if not self:canHit() and self.player:getCards("he"):length() < 3 then return false end
+	if self:canHit() then return true end
 	local unpreferedCards = {}
 	local cards = sgs.QList2Table(self.player:getHandcards())
 
@@ -102,6 +103,7 @@ sgs.ai_skill_use_func.MizhaoCard = function(card, use, self)
 	local handcardnum = self.player:getHandcardNum()
 	local trash = self:getCard("Disaster") or self:getCard("GodSalvation") or self:getCard("AmazingGrace")
 	local count = 0
+	local target
 	for _, enemy in ipairs(self.enemies) do
 		if not enemy:isKongcheng() then count = count + 1 end
 	end
@@ -109,24 +111,34 @@ sgs.ai_skill_use_func.MizhaoCard = function(card, use, self)
 		self:sort(self.enemies, "handcard")
 		for _, enemy in ipairs(self.enemies) do
 			if not (enemy:hasSkill("manjuan") and enemy:isKongcheng()) then
-				use.card = card
-				enemy:setFlags("MizhaoTarget")
-				if use.to then use.to:append(enemy) end
-				return
+				target = enemy
+				break
 			end
 		end
 	end
-	self:sort(self.friends_noself, "defense")
-	self.friends_noself = sgs.reverse(self.friends_noself)
-	if count < 1 then return end
-	for _, friend in ipairs(self.friends_noself) do
-		if not friend:hasSkill("manjuan") then
-			use.card = card
-			friend:setFlags("MizhaoTarget")
-			if use.to then use.to:append(friend) end
-			return
+	if not target then
+		self:sort(self.friends_noself, "defense")
+		self.friends_noself = sgs.reverse(self.friends_noself)
+		if count < 1 then return end
+		for _, friend in ipairs(self.friends_noself) do
+			if not friend:hasSkill("manjuan") then
+				target = friend
+				break
+			end
 		end
 	end
+	if not target then return end
+	
+	for _, acard in sgs.qlist(self.player:getHandcards()) do
+		if acard:isKindOf("Peach") and self.player:isWounded() and not self:needToLoseHp(self.player, nil, nil, true, true) then
+			use.card = acard
+			return
+		end
+	end	
+	use.card = card
+	target:setFlags("MizhaoTarget")
+	if use.to then use.to:append(target) end
+	return
 end
 
 sgs.ai_use_priority.MizhaoCard = 1.5
@@ -147,30 +159,17 @@ sgs.ai_skill_playerchosen.mizhao = function(self, targets)
 	for _, to in ipairs(self.enemies) do
 		if targets:contains(to) and self:slashIsEffective(slash, to, nil, from) and not self:getDamagedEffects(to, from, true) 
 			  and not self:needToLoseHp(to, from, true, true) and not self:needLeiji(to, from) then
-				to:setFlags("MizhaoPindianTarget")
 				return to
 		end
 	end
 	for _, to in ipairs(self.enemies) do
 		if targets:contains(to) then
-			to:setFlags("MizhaoPindianTarget")
 			return to
 		end
 	end
 end
 
 function sgs.ai_skill_pindian.mizhao(minusecard, self, requestor, maxcard)
-	local req
-	if self.player:objectName() == requestor:objectName() then
-		for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-			if p:hasFlag("MizhaoPindianTarget") then
-				req = p
-				break
-			end
-		end
-	else
-		req = requestor
-	end
 	local cards, maxcard = sgs.QList2Table(self.player:getHandcards())
 	local function compare_func1(a, b)
 		return a:getNumber() > b:getNumber()
@@ -178,7 +177,7 @@ function sgs.ai_skill_pindian.mizhao(minusecard, self, requestor, maxcard)
 	local function compare_func2(a, b)
 		return a:getNumber() < b:getNumber()
 	end
-	if self:isFriend(requestor) and self.player:getHp() > req:getHp() then
+	if self:isFriend(requestor) and self.player:getHp() > requestor:getHp() then
 		table.sort(cards, compare_func2)
 	else
 		table.sort(cards, compare_func1)

@@ -623,7 +623,10 @@ sgs.ai_use_priority.ZhibaCard = 0
 sgs.ai_skill_use_func.ZhibaCard = function(card, use, self)
 	local lords = {}
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-		if player:hasLordSkill("sunce_zhiba") and not player:isKongcheng() and not player:hasFlag("ZhibaInvoked") then table.insert(lords, player) end
+		if player:hasLordSkill("sunce_zhiba") and not player:isKongcheng() and not player:hasFlag("ZhibaInvoked")
+			and not (self:isEnemy(player) and player:getMark("hunzi") > 0) then
+				table.insert(lords, player) 
+		end
 	end
 	if #lords == 0 then return end
 	if self:needBear() then return end
@@ -657,7 +660,7 @@ sgs.ai_skill_use_func.ZhibaCard = function(card, use, self)
 		local lord_max_num = 0, lord_max_card
 		local lord_min_num = 14, lord_min_card
 		local lord_cards = lord:getHandcards()
-		local flag=string.format("%s_%s_%s","visible",global_room:getCurrent():objectName(),lord:objectName())
+		local flag = string.format("%s_%s_%s","visible",global_room:getCurrent():objectName(),lord:objectName())
 		for _, lcard in sgs.qlist(lord_cards) do			
 			if (lcard:hasFlag("visible") or lcard:hasFlag(flag)) and lcard:getNumber() > lord_max_num then
 				lord_max_card = lcard
@@ -734,7 +737,7 @@ sgs.ai_card_intention.ZhibaCard = function(self, card, from, tos, source)
 end 
 
 sgs.ai_need_damaged.hunzi = function (self, attacker, player)
-	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 then return true end
+	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 and player:getHp() > 1 then return true end
 	return false
 end
 
@@ -922,7 +925,7 @@ sgs.ai_skill_askforag.guzheng = function(self, card_ids)
 		self:sortByKeepValue(new_cards)
 		local valueless, slash
 		for _, card in ipairs (new_cards) do
-			if card:isKindOf("Lightning") and not self:hasSkill("guicai|guidao", who) then
+			if card:isKindOf("Lightning") and not self:hasSkills(sgs.wizard_harm_skill, who) then
 				return card:getEffectiveId()
 			end
 			

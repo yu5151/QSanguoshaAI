@@ -441,7 +441,7 @@ sgs.ai_skill_use["@@tianxiang"] = function(self, data)
 	cards = sgs.QList2Table(cards)
 	self:sortByUseValue(cards,true)
 	for _,card in ipairs(cards) do
-		if ((card:getSuit() == sgs.Card_Spade and self:hasSkill("hongyan")) or card:getSuit() == sgs.Card_Heart) and not card:isKindOf("Peach") then
+		if ((card:getSuit() == sgs.Card_Spade and self.player:hasSkill("hongyan")) or card:getSuit() == sgs.Card_Heart) and not card:isKindOf("Peach") then
 			card_id = card:getId()
 			break
 		end

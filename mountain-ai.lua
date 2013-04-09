@@ -41,7 +41,7 @@ local function card_for_qiaobian(self, who, return_prompt)
 
 				for _, friend in ipairs(self.friends) do
 					if not self:getSameEquip(card, friend) and friend:objectName() ~= who:objectName() 
-						and self:hasSkills(sgs.need_equip_skill, friend) then
+						and self:hasSkills(sgs.need_equip_skill .. "|" .. sgs.lose_equip_skill, friend) then
 							target = friend
 							break
 					end
@@ -551,7 +551,9 @@ sgs.ai_skill_use_func.TiaoxinCard = function(card,use,self)
 	local targets = {}
 	for _, enemy in ipairs(self.enemies) do
 		if enemy:distanceTo(self.player) <= enemy:getAttackRange() and ((getCardsNum("Slash", enemy) < 1 and self.player:getHp() > 1)
-			or not self:canHit(self.player, enemy) or self:needLeiji(self.player, enemy)) and not enemy:isNude() and not self:doNotDiscard(enemy) then
+			or not self:canHit(self.player, enemy) or self:needLeiji(self.player, enemy) 
+			or self:getDamagedEffects(self.player, enemy, true) or self:needToLoseHp(self.player, enemy, true))
+			and not self:doNotDiscard(enemy) then
 				table.insert(targets, enemy)
 		end
 	end
@@ -786,7 +788,7 @@ sgs.ai_skill_use_func.ZhijianCard = function(card, use, self)
 	local select_equip, target
 	for _, friend in ipairs(self.friends_noself) do
 		for _, equip in ipairs(equips) do
-			if not self:getSameEquip(equip, friend) and self:hasSkills(sgs.need_equip_skill, friend) then
+			if not self:getSameEquip(equip, friend) and self:hasSkills(sgs.need_equip_skill .. "|" .. sgs.lose_equip_skill, friend) then
 				target = friend
 				select_equip = equip
 				break
@@ -822,8 +824,8 @@ sgs.ai_skill_invoke.guzheng = function(self, data)
 	if self:IsLihunTarget(self.player, data:toInt() - 1) then return false end
 	local player = self.room:getCurrent()
 	local invoke = (self:isFriend(player) and not (player:hasSkill("kongcheng") and player:isKongcheng())) 
-					or data:toInt() >= 3
-					or (data:toInt() == 2 and not self:hasSkills(sgs.cardneed_skill, player))
+					or (data:toInt() >= 3 and not self.player:hasSkill("manjuan"))
+					or (data:toInt() == 2 and not self:hasSkills(sgs.cardneed_skill, player) and not self.player:hasSkill("manjuan"))
 					or (self:isEnemy(player) and player:hasSkill("kongcheng") and player:isKongcheng())
 	return invoke
 end

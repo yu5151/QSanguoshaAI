@@ -65,7 +65,7 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 		end
 
 		for _, fcard in ipairs(cards) do
-			if fcard:isKindOf(result_class) and not fcard:isKindOf("ExNihilo") then
+			if fcard:isKindOf(result_class) and not isCard("ExNihilo", fcard, self.player) then
 				table.insert(abandon_card, fcard:getId())
 				index = index + 1
 				if index == 3 then break end
@@ -96,7 +96,7 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 		elseif card:isKindOf("EquipCard") then
 			table.insert(abandon_card, card:getId())
 			index = index + 1
-		elseif card:isKindOf("Slash") and slash_num > 1 then
+		elseif card:isKindOf("Slash") then
 			table.insert(abandon_card, card:getId())
 			index = index + 1
 			slash_num = slash_num - 1
@@ -116,8 +116,9 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 	end
 
 	if self:getOverflow() > 0 then
-		local discard = self:askForDiscard("dummyreason", math.min(self:getOverflow(), 3), nil, false, true)
-		to = self:findPlayerToDraw("noself", math.min(self:getOverflow(), 3))
+		local getOverflow = math.max(self:getOverflow(), 0)
+		local discard = self:askForDiscard("dummyreason", math.min(getOverflow, 3), nil, false, true)
+		to = self:findPlayerToDraw("noself", math.min(getOverflow, 3))
 		if not to then return end
 		use.card = sgs.Card_Parse("@NosJujianCard=" .. table.concat(discard, "+"))
 		if use.to then use.to:append(to) end

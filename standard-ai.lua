@@ -18,7 +18,7 @@ sgs.ai_skill_invoke.hujia = function(self, data)
 	end
 	
 	local current = self.room:getCurrent()
-	if self:isFriend(current) and current:getKingdom() == "wei" and self:getOverflow(current) >2 then
+	if self:isFriend(current) and current:getKingdom() == "wei" and self:getOverflow(current) > 2 then
 		return true
 	end
 
@@ -339,7 +339,7 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 	end
 	
 	local lord = self.room:getLord()
-	if lord and self:isEnemy(lord) and sgs.turncount == 1 and not lord:isKongcheng() then
+	if lord and self:isEnemy(lord) and sgs.turncount <= 1 and not lord:isKongcheng() then
 		add_player(self.room:getLord())
 	end
 
@@ -625,7 +625,6 @@ sgs.ai_skill_invoke.yiji = function(self)
 end
 
 sgs.ai_skill_askforyiji.yiji = function(self, card_ids)
-
 	local cards = {}
 	for _, card_id in ipairs(card_ids) do
 		table.insert(cards, sgs.Sanguosha:getCard(card_id))
@@ -653,7 +652,7 @@ sgs.ai_skill_askforyiji.yiji = function(self, card_ids)
 				return nil, -1
 			end
 			local card, friend = self:getCardNeedPlayer(cards)
-			if card and friend and friend:getHandcardNum() >=4 then
+			if card and friend and friend:getHandcardNum() >= 4 then
 				return friend, card:getId()
 			end
 		end
@@ -809,10 +808,10 @@ sgs.qingguo_suit_value = {
 	club = 4.2
 }
 
-local rende_skill={}
-rende_skill.name="rende"
+local rende_skill = {}
+rende_skill.name = "rende"
 table.insert(sgs.ai_skills, rende_skill)
-rende_skill.getTurnUseCard=function(self)
+rende_skill.getTurnUseCard = function(self)
 	if self.player:isKongcheng() then return end
 	local mode = string.lower(global_room:getMode())
 	if self.player:usedTimes("RendeCard") > 1 and mode:find("04_1v3") then return end
@@ -1393,8 +1392,8 @@ qixi_skill.getTurnUseCard=function(self,inclusive)
 	end
 	
 	for _,card in ipairs(cards)  do
-		if card:isBlack()  and ((self:getUseValue(card)<sgs.ai_use_value.Dismantlement) or inclusive or self:getOverflow()>0) then
-			local shouldUse=true
+		if card:isBlack()  and ((self:getUseValue(card) < sgs.ai_use_value.Dismantlement) or inclusive or self:getOverflow() > 0) then
+			local shouldUse = true
 
 			if card:isKindOf("Armor") then
 				if not self.player:getArmor() then shouldUse=false 
@@ -1900,21 +1899,21 @@ sgs.ai_skill_use_func.JieyinCard=function(card,use,self)
 	local target = nil
 	
 	repeat
-		if #arr1>0 and (self:isWeak(arr1[1]) or self:isWeak() or self:getOverflow()>=1) then 
-			target=arr1[1] 
+		if #arr1 > 0 and (self:isWeak(arr1[1]) or self:isWeak() or self:getOverflow() >= 1) then 
+			target = arr1[1] 
 			break
 		end
-		if #arr2>0 and self:isWeak() then 
-			target=arr2[1] 
+		if #arr2 > 0 and self:isWeak() then 
+			target = arr2[1] 
 			break
 		end
 	until true
 
-	if not target and self:isWeak() and self:getOverflow()>=2 and (self.role=="lord" or self.role=="renegade") then
+	if not target and self:isWeak() and self:getOverflow() >= 2 and (self.role == "lord" or self.role == "renegade") then
 		local others = self.room:getOtherPlayers(self.player)
 		for _, other in sgs.qlist(others) do
 			if other:isWounded() and other:isMale() then
-				if (sgs.ai_chaofeng[other:getGeneralName()] or 0)<=2 and not self:hasSkills(sgs.masochism_skill, other) then
+				if (sgs.ai_chaofeng[other:getGeneralName()] or 0) <= 2 and not self:hasSkills(sgs.masochism_skill, other) then
 					target = other
 					self.player:setFlags("jieyin_isenemy_"..other:objectName())
 					break

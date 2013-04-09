@@ -459,7 +459,7 @@ sgs.ai_skill_invoke.tongxin = true
 local guihan_skill = {name = "guihan"}
 table.insert(sgs.ai_skills, guihan_skill)
 function guihan_skill.getTurnUseCard(self)
-	if self:getOverflow() == 0 or self.player:hasUsed("GuihanCard") then return end
+	if self:getOverflow() <= 0 or self.player:hasUsed("GuihanCard") then return end
 	if self.room:alivePlayerCount() == 2 or self.role == "renegade" then return end
 	local rene = 0
 	for _, aplayer in sgs.qlist(self.room:getAlivePlayers()) do
@@ -848,7 +848,8 @@ sgs.ai_skill_use_func.YisheCard=function(card,use,self)
 		local cards = self.player:getHandcards()
 		cards = sgs.QList2Table(cards)
 		local usecards = {}
-		local discards = self:askForDiscard("yishe", math.min(self:getOverflow(),5-#usecards), math.min(self:getOverflow(),5-#usecards))
+		local getOverflow = math.max(self:getOverflow(), 0)
+		local discards = self:askForDiscard("yishe", math.min(getOverflow, 5-#usecards), math.min(getOverflow, 5-#usecards))
 		for _,card in ipairs(discards) do
 			table.insert(usecards,card)
 		end
@@ -856,7 +857,7 @@ sgs.ai_skill_use_func.YisheCard=function(card,use,self)
 			use.card = sgs.Card_Parse("@YisheCard=" .. table.concat(usecards,"+"))
 		end
 	else
-		if not self.player:hasUsed("YisheCard") then use.card=card return end
+		if not self.player:hasUsed("YisheCard") then use.card = card return end
 	end
 end
 
@@ -888,8 +889,8 @@ sgs.ai_skill_use_func.YisheAskCard=function(card,use,self)
 	end
 end
 
-sgs.ai_event_callback[sgs.ChoiceMade].yisheask=function(self,player,data)
-	local datastr= data:toString()
+sgs.ai_event_callback[sgs.ChoiceMade].yisheask = function(self, player, data)
+	local datastr = data:toString()
 	if datastr == "skillChoice:yisheask:allow" then
 		sgs.updateIntention(self.player, self.room:getCurrent(), -70)
 	end
@@ -901,15 +902,12 @@ end
 ]]--
 sgs.ai_skill_invoke.xiliang = true
 
-sgs.ai_skill_choice.xiliang = function(self,choices)	
+sgs.ai_skill_choice.xiliang = function(self, choices)	
 	if self.player:hasSkill("manjuan") then return "put" end	
 	if not self.player:hasSkill("yishe") then return "obtain" end
-	if self.player:containsTrick("indulgence") and not self.player:containsTrick("YanxiaoCard")
-	  and self.player:getHandcardNum() > 2 then
-		return "put"
-	end
+	if self:willSkipPlayPhase() and self.player:getHandcardNum() > 2 then return "put" end
 	if self.player:getHandcardNum() < 3 or self:getCardsNum("Jink") < 1 then return "obtain" end
-	if self:getOverflow() >= 1 then return "put" end
+	if self:getOverflow() >= 0 then return "put" end
 	return "obtain"
 end
 

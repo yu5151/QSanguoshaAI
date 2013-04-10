@@ -560,6 +560,7 @@ sgs.ai_skill_use_func.TiaoxinCard = function(card,use,self)
 
 	if #targets == 0 then return end
 	
+	sgs.ai_use_priority.TiaoxinCard = 8
 	if not self.player:getArmor() and not self.player:isKongcheng() then
 		for _, card in sgs.qlist(self.player:getCards("h")) do
 			if card:isKindOf("Armor") and self:evaluateArmor(card) > 3 then
@@ -567,8 +568,6 @@ sgs.ai_skill_use_func.TiaoxinCard = function(card,use,self)
 				break
 			end
 		end
-	else
-		sgs.ai_use_priority.TiaoxinCard = 8
 	end
 
 	if use.to then

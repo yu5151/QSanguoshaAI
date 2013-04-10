@@ -1608,7 +1608,7 @@ function SmartAI:filterEvent(event, player, data)
 	if event == sgs.TargetConfirmed then	
 		local struct = data:toCardUse()
 		local from  = struct.from
-
+		local card = struct.card
 		if from and from:objectName() == player:objectName() then
 			local card = struct.card
 			local to = sgs.QList2Table(struct.to)
@@ -1642,6 +1642,23 @@ function SmartAI:filterEvent(event, player, data)
 			end
 		end
 		
+		local to = sgs.QList2Table(struct.to)
+		local who = to[1]
+		if sgs.turncount <= 1 and lord and who and from and from:objectName() == player:objectName() then
+			if sgs.evaluateRoleTrends(who) == "neutral" and (card:isKindOf("YinlingCard") or card:isKindOf("FireAttack")
+				or ((card:isKindOf("Dismantlement") or card:isKindOf("Snatch")) 
+					and not self:needToThrowArmor(who) and not who:hasSkills("tuntian+zaoxian") 
+					and not (who:getCards("j"):length() > 0 and not who:containsTrick("YanxiaoCard"))
+					and not (who:getCards("e"):length() > 0 and self:hasSkills(sgs.lose_equip_skill, who))
+					and not (self:needKongcheng(who) and who:getHandcardNum() == 1))
+				or (card:isKindOf("Slash") and not (self:getDamagedEffects(who, player, true) or self:needToLoseHp(who, player, true, true))
+					and not ((who:hasSkill("leiji") or who:hasSkills("tuntian+zaoxian")) and getCardsNum("Jink", who) > 0))
+				or (card:isKindOf("Duel") and not (self:getDamagedEffects(who, player) or self:needToLoseHp(who, player, nil, true, true)))
+				or (card:isKindOf("IronChain") and not who:isChained() and not self:hasSkills("danlao|huangen|tianxiang", who))) then
+					sgs.updateIntention(from, lord, -70)
+			end
+		end
+		
 	elseif event == sgs.CardEffect then
 		local struct = data:toCardEffect()
 		local card = struct.card
@@ -1649,7 +1666,7 @@ function SmartAI:filterEvent(event, player, data)
 		local to = struct.to
 		local card = struct.card
 		local lord = getLord(player)
-		local who = to
+		
 		if card and card:isKindOf("AOE") and to and to:isLord() and (sgs.ai_lord_in_danger_SA or sgs.ai_lord_in_danger_AA) then
 			sgs.ai_lord_in_danger_SA = nil
 			sgs.ai_lord_in_danger_AA = nil
@@ -1669,22 +1686,6 @@ function SmartAI:filterEvent(event, player, data)
 		
 		if from and to and to:hasSkills("longdan+chongzhen") and (card:isKindOf("AOE") or card:isKindOf("Slash")) then
 			sgs.chongzhen_target = from
-		end
-
-		if sgs.turncount <= 1 and lord and who then
-			if (card:isKindOf("YinlingCard") or card:isKindOf("FireAttack")
-				or ((card:isKindOf("Dismantlement") or card:isKindOf("Snatch")) 
-					and not self:needToThrowArmor(who) and not who:hasSkills("tuntian+zaoxian") 
-					and not (who:getCards("j"):length() > 0 and not who:containsTrick("YanxiaoCard"))
-					and not (who:getCards("e"):length() > 0 and self:hasSkills(sgs.lose_equip_skill, who))
-					and not (self:needKongcheng(who) and who:getHandcardNum() == 1))
-				or (card:isKindOf("Slash") and not (self:getDamagedEffects(who, player, true) or self:needToLoseHp(who, player, true, true))
-					and not ((who:hasSkill("leiji") or who:hasSkills("tuntian+zaoxian")) and getCardsNum("Jink", who) > 0))
-				or (card:isKindOf("Duel") and not (self:getDamagedEffects(who, player) or self:needToLoseHp(who, player, nil, true, true)))
-				or (card:isKindOf("IronChain") and not who:isChained() and not self:hasSkills("danlao|huangen|tianxiang", who)))
-				and sgs.evaluateRoleTrends(who) == "neutral" then
-					sgs.updateIntention(from, lord, -70)
-			end
 		end
 	
 	elseif event == sgs.PreHpReduced then

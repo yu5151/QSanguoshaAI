@@ -1406,7 +1406,9 @@ function getTrickIntention(TrickClass, target)
 			local judgelist = target:getCards("j")
 			if not judgelist or judgelist:isEmpty() then
 				local armor = target:getArmor()
-				if not armor or not (armor:isKindOf("SilverLion") and target:isWounded()) or not armor:isKindOf("GaleShell") then
+				if armor and armor:isKindOf("SilverLion") and target:isWounded() then return 0
+				elseif armor and armor:isKindOf("GaleShell") then return -10
+				else
 					return 80
 				end
 			end
@@ -1775,7 +1777,7 @@ function SmartAI:filterEvent(event, player, data)
 						if self:hasSkills(sgs.use_lion_skill, player) then
 							intention = self:willSkipPlayPhase(player) and -intention or 0
 						else
-							intention = self:isWeak(player) and  -intention  or -intention / 10 
+							intention = self:isWeak(player) and  -intention  or 0 
 						end
 					end
 					if self:hasSkills(sgs.lose_equip_skill, player) then 
@@ -1880,7 +1882,7 @@ function SmartAI:filterEvent(event, player, data)
 
 						if player:canSlash(target, card, true) and self:slashIsEffective(card, target)
 								and not has_slash_prohibit_skill and sgs.isGoodTarget(target,self.enemies, self) then
-							if is_neutral then sgs.updateIntention(player, target, -35) end
+							if is_neutral then sgs.updateIntention(player, target, -35) self:updatePlayers() end
 						end
 					end
 				end

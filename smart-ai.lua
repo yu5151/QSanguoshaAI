@@ -3406,7 +3406,7 @@ function SmartAI:getTurnUse()
 					self.predictedRange = 10000
 				elseif card:isKindOf("Weapon") then
 					self.predictedRange = sgs.weapon_range[card:getClassName()]
-					-- self.weaponUsed = true
+					self.weaponUsed = true
 				else
 					self.predictedRange = 1
 				end

@@ -507,7 +507,6 @@ function SmartAI:useCardSlash(card, use)
 						end
 						table.sort(Weapons, cmp)
 						use.card = Weapons[1]
-						self.player:speak("on:"..Weapons[1]:getClassName())
 						return
 					end
 					-- local equips = self:getCards("EquipCard", self.player, "h")
@@ -1449,6 +1448,8 @@ function sgs.ai_armor_value.SilverLion(player, self)
 end
 
 sgs.ai_use_priority.OffensiveHorse = 2.69
+
+sgs.ai_use_priority.Axe = 2.688
 sgs.ai_use_priority.Halberd = 2.685
 sgs.ai_use_priority.KylinBow = 2.68
 sgs.ai_use_priority.Blade = 2.675
@@ -1456,10 +1457,12 @@ sgs.ai_use_priority.GudingBlade = 2.67
 sgs.ai_use_priority.DoubleSword =2.665
 sgs.ai_use_priority.Spear = 2.66
 sgs.ai_use_priority.IceSword = 2.65
+-- sgs.ai_use_priority.Fan = 2.655
 sgs.ai_use_priority.QinggangSword = 2.645
-sgs.ai_use_priority.Axe = 2.64
 sgs.ai_use_priority.Crossbow = 2.63
+
 sgs.ai_use_priority.SilverLion = 1.0
+-- sgs.ai_use_priority.Vine = 0.95
 sgs.ai_use_priority.EightDiagram = 0.8
 sgs.ai_use_priority.RenwangShield = 0.85
 sgs.ai_use_priority.DefensiveHorse = 2.75

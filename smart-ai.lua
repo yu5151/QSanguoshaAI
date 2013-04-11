@@ -1649,7 +1649,7 @@ function SmartAI:filterEvent(event, player, data)
 		local to = sgs.QList2Table(struct.to)
 		local who = to[1]
 		if sgs.turncount <= 1 and lord and who and from and from:objectName() == player:objectName() then
-			if sgs.evaluateRoleTrends(who) == "neutral" and (card:isKindOf("YinlingCard") or card:isKindOf("FireAttack")
+			if card:isKindOf("YinlingCard") or card:isKindOf("FireAttack")
 				or ((card:isKindOf("Dismantlement") or card:isKindOf("Snatch")) 
 					and not self:needToThrowArmor(who) and not who:hasSkills("tuntian+zaoxian") 
 					and not (who:getCards("j"):length() > 0 and not who:containsTrick("YanxiaoCard"))
@@ -1658,8 +1658,10 @@ function SmartAI:filterEvent(event, player, data)
 				or (card:isKindOf("Slash") and not (self:getDamagedEffects(who, player, true) or self:needToLoseHp(who, player, true, true))
 					and not ((who:hasSkill("leiji") or who:hasSkills("tuntian+zaoxian")) and getCardsNum("Jink", who) > 0))
 				or (card:isKindOf("Duel") and not (self:getDamagedEffects(who, player) or self:needToLoseHp(who, player, nil, true, true)))
-				or (card:isKindOf("IronChain") and not who:isChained() and not self:hasSkills("danlao|huangen|tianxiang", who))) then
-					sgs.updateIntention(from, lord, -70)
+				or (card:isKindOf("IronChain") and not who:isChained() and not self:hasSkills("danlao|huangen|tianxiang", who)) then
+					if sgs.evaluateRoleTrends(who) == "neutral" then sgs.updateIntention(from, lord, -10) end
+					if who:isLord() and sgs.evaluateRoleTrends(from) == "neutral" then sgs.updateIntention(from, lord, 10) end
+
 			end
 		end
 		
@@ -4892,6 +4894,7 @@ function SmartAI:useEquipCard(card, use)
 		or (self.player:hasSkill("longhun") and (card:getSuit() ~= sgs.Card_Diamond or same:getSuit() ~= sgs.Card_Diamond))
 		or (self.player:hasSkill("jijiu") and (same:isRed() or (card:isRed() and self:getOverflow() <= 0)))
 		or (self.player:hasSkill("luanji") and self:getOverflow() <= 0)
+		or (self.player:hasSkill("guidao") and same:isBlack() and card:isRed())
 		then return end
 	end
 	local canUseSlash = self:getCardId("Slash") and self:slashIsAvailable(self.player)

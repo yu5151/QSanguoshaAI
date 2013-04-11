@@ -5362,38 +5362,39 @@ function SmartAI:findPlayerToDraw(prompt, n)
 end
 
 function SmartAI:DontRespondPeach(judge)
-	local peach_num = self:getCardsNum("Peach")
-	if peach_num == 0 then return false end	
-	if self:willSkipPlayPhase() and self:getCardsNum("Peach") > self:getOverflow(self.player, true) then return false end
-	
-	local card = self:getCard("Peach")
-	local dummy_use = { isDummy = true }
-	self:useBasicCard(card, dummy_use)
-	if dummy_use.card then return true end
-	
-	if peach_num <= self.player:getLostHp() then return true end
-	
-	if peach_num > self.player:getLostHp() then
-		for _, friend in ipairs(self.friends) do
-			if self:isWeak(friend) then return true end
-		end
-	end
-	
 	if judge then
-		if type(judge) ~= "userdata" then self.room:writeToConsole(debug.traceback()) end
-		--judge.reason:beige,baonue,neoganglie,ganglie,caizhaoji_hujia
-		if judge.reason == "tuntian" and judge.who:getMark("zaoxian") == 0 and judge.who:getPile("field"):length() < 2 then return true
-		elseif (judge.reason == "EightDiagram" or judge.reason == "bazhen") and
-			self:isFriend(judge.who) and not self:isWeak(judge.who) then return true
-		elseif judge.reason == "nosmiji" and judge.who:getLostHp() == 1 then return true
-		elseif judge.reason == "shaoying" and sgs.shaoying_target then
-			local target = sgs.shaoying_target
-			if target:hasArmorEffect("Vine") and target:getHp() > 3 or target:getHp() > 2 then return true end
-		elseif judge.reason == "tieji" then return true
-		elseif judge.reason == "nosqianxi" or judge.reason == "qianxi" then return true
+		if type(judge) ~= "userdata" then self.room:writeToConsole(debug.traceback())
+		else
+			local peach_num = self:getCardsNum("Peach")
+			if peach_num == 0 then return false end	
+			if self:willSkipPlayPhase() and self:getCardsNum("Peach") > self:getOverflow(self.player, true) then return false end
+			
+			local card = self:getCard("Peach")
+			local dummy_use = { isDummy = true }
+			self:useBasicCard(card, dummy_use)
+			if dummy_use.card then return true end
+			
+			if peach_num <= self.player:getLostHp() then return true end
+			
+			if peach_num > self.player:getLostHp() then
+				for _, friend in ipairs(self.friends) do
+					if self:isWeak(friend) then return true end
+				end
+			end
+			
+			--judge.reason:beige,baonue,neoganglie,ganglie,caizhaoji_hujia
+			if judge.reason == "tuntian" and judge.who:getMark("zaoxian") == 0 and judge.who:getPile("field"):length() < 2 then return true
+			elseif (judge.reason == "EightDiagram" or judge.reason == "bazhen") and 
+				self:isFriend(judge.who) and not self:isWeak(judge.who) then return true
+			elseif judge.reason == "nosmiji" and judge.who:getLostHp() == 1 then return true
+			elseif judge.reason == "shaoying" and sgs.shaoying_target then
+				local target = sgs.shaoying_target
+				if target:hasArmorEffect("Vine") and target:getHp() > 3 or target:getHp() > 2 then return true end
+			elseif judge.reason == "tieji" then return true
+			elseif judge.reason == "nosqianxi" or judge.reason == "qianxi" then return true
+			end
 		end
 	end
-	
 	return false
 end
 

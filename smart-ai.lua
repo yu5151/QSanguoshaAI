@@ -1882,7 +1882,10 @@ function SmartAI:filterEvent(event, player, data)
 
 						if player:canSlash(target, card, true) and self:slashIsEffective(card, target)
 								and not has_slash_prohibit_skill and sgs.isGoodTarget(target,self.enemies, self) then
-							if is_neutral then sgs.updateIntention(player, target, -35) self:updatePlayers() end
+							if is_neutral then
+								sgs.updateIntention(player, target, -35) 
+								self:updatePlayers() 
+							end
 						end
 					end
 				end
@@ -1891,7 +1894,10 @@ function SmartAI:filterEvent(event, player, data)
 					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
 						if not (target:containsTrick("indulgence") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
 							local aplayer = self:exclude( {target}, card, player)
-							if #aplayer ==1 and is_neutral then sgs.updateIntention(player, target, -35) end
+							if #aplayer ==1 and is_neutral then
+								sgs.updateIntention(player, target, -35)
+								self:updatePlayers()
+							end
 						end
 					end
 				end
@@ -1901,7 +1907,10 @@ function SmartAI:filterEvent(event, player, data)
 						if player:distanceTo(target) <= (player:hasSkill("duanliang") and 2 or 1) and 
 								not (target:containsTrick("supply_shortage") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
 							local aplayer = self:exclude( {target}, card, player)
-							if #aplayer ==1 and is_neutral then sgs.updateIntention(player, target, -35) end
+							if #aplayer ==1 and is_neutral then
+								sgs.updateIntention(player, target, -35)
+								self:updatePlayers()
+							end
 						end
 					end
 				end
@@ -3261,7 +3270,7 @@ function SmartAI:askForSinglePeach(dying)
 					possible_friend = possible_friend + 1
 				end
 			end
-			if possible_friend == 0 and #self:getCards("Peach") < 1 - dying:getHp() then
+			if possible_friend == 0 and self:getCardsNum("Peach") < 1 - dying:getHp() then
 				return "."
 			end
 		end
@@ -3854,9 +3863,11 @@ function SmartAI:getCardId(class_name, player, acard)
 
 	if #viewArr >0 or #cardArr > 0 then
 		local viewas, cardid
-		viewas = #viewArr >0 and viewArr[1]
-		cardid = #cardArr >0 and cardArr[1]
-		return self:hasSkills("chongzhen|jinjiu", player) and (viewas or cardid) or (cardid or viewas)
+		viewas = #viewArr > 0 and viewArr[1]
+		cardid = #cardArr > 0 and cardArr[1]
+		local viewCard
+		if viewas then viewCard = sgs.Card_Parse(viewas) end
+		return (player:hasSkill("chongzhen") and viewCard and viewCard:getSkillName() == "longdan") and (viewas or cardid) or (cardid or viewas)
 	end
 	return cardsView(class_name, player)
 end

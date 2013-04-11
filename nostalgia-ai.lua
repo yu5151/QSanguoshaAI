@@ -367,28 +367,33 @@ sgs.ai_skill_invoke.nosjiefan = function(self, data)
 	local dying = data:toDying()
 	local slashnum = 0
 	local who = dying.who
-	local currentplayer = self.room:getCurrent()
-	sgs.nosjiefancurrent = currentplayer
+	local current = self.room:getCurrent()
+	sgs.nosjiefancurrent = current
 	for _, slash in ipairs(self:getCards("Slash")) do
-		if self:slashIsEffective(slash, currentplayer) then 
+		if self:slashIsEffective(slash, current) then 
 			slashnum = slashnum + 1  
 		end 
 	end
 
 	local has_slash_prohibit_skill = false
-	for _, askill in sgs.qlist(currentplayer:getVisibleSkillList()) do
+	for _, askill in sgs.qlist(current:getVisibleSkillList()) do
 		local filter = sgs.ai_slash_prohibit[askill:objectName()]
 		if filter and type(filter) == "function" then
 			has_slash_prohibit_skill = true
 			break
 		end
 	end
-
+	if not current or current:isDead() or current:getPhase() == sgs.Player_NotActive
+		or current:objectName() == player:objectName() or (current:hasSkill("wansha") and player:objectName() ~= dying:objectName())
+		or (self:isEnemy(current) and self:needLeiji(current, self.player)) then
+			return false
+	end
 	if self:isFriend(who) and not has_slash_prohibit_skill and slashnum > 0 then return true end
 end
 
 sgs.ai_skill_cardask["jiefan-slash"] = function(self, data, pattern, target)
-	target = target or global_room:getCurrent()
+	target = global_room:getCurrent()
+	if self:isEnemy(target) and self:needLeiji(target, self.player) then return "." end
 	for _, slash in ipairs(self:getCards("Slash")) do
 		if self:slashIsEffective(slash, target) then 
 			return slash:toString()

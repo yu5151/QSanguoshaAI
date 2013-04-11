@@ -811,17 +811,7 @@ fuhun_skill.getTurnUseCard = function(self)
 	local jink_num = self:getCardsNum("Jink")
 	local null_num = self:getCardsNum("Nullification")
 	
-	local maxnumber = self.player:getMaxCards()
-	if self.player:hasSkill("yongsi") then
-		local kingdoms, kingdom_num = {}, 0
-		for _, ap in sgs.qlist(self.room:getAlivePlayers()) do
-			if not kingdoms[ap:getKingdom()] then
-				kingdoms[ap:getKingdom()] = true
-				kingdom_num = kingdom_num + 1
-			end
-		end
-		maxnumber = maxnumber - kingdom_num
-	end
+	local maxnumber = self:getoverflow(self.player, true)
 	
 	local can_dis_null = true
 	for _, friend in ipairs(self.friends_noself) do

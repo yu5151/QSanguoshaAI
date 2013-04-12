@@ -1777,7 +1777,7 @@ function SmartAI:filterEvent(event, player, data)
 					if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end
 					if card:isKindOf("YanxiaoCard") then intention = 70 end
 				elseif place == sgs.Player_PlaceEquip then
-					if self:isWeak(player) and player:getLostHp() > 0 and card:isKindOf("SilverLion") then
+					if player:getLostHp() > 0 and card:isKindOf("SilverLion") then
 						if self:hasSkills(sgs.use_lion_skill, player) then
 							intention = self:willSkipPlayPhase(player) and -intention or 0
 						else

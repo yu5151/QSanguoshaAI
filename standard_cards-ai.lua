@@ -2889,7 +2889,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		end
 		
 		if halberd then
-			if self.player:hasSkill("rende") and #self.friends_noself > 0 then return halberd end
+			if self.player:hasSkill("rende") and self:haveFriendsToDraw() then return halberd end
 			if SelfisCurrent and self:getCardsNum("Slash") == 1 and self.player:getHandcardNum() == 1 then return halberd end
 		end
 		

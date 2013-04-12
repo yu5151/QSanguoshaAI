@@ -869,7 +869,7 @@ function SmartAI:useCardPeach(card, use)
 		and self.player:getHp() < 4 and self.player:getHp() > peaches then return 
 	end
 	
-	if self.player:hasSkill("rende") and #self.friends_noself > 0 then
+	if self.player:hasSkill("rende") and self:haveFriendsToDraw() then
 		return
 	end
 	

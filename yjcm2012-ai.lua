@@ -811,7 +811,7 @@ fuhun_skill.getTurnUseCard = function(self)
 	local jink_num = self:getCardsNum("Jink")
 	local null_num = self:getCardsNum("Nullification")
 	
-	local maxnumber = self:getoverflow(self.player, true)
+	local maxnumber = self:getOverflow(self.player, true)
 	
 	local can_dis_null = true
 	for _, friend in ipairs(self.friends_noself) do

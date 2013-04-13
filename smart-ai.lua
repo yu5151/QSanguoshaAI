@@ -407,8 +407,8 @@ function SmartAI:getUseValue(card)
 		if self.player:hasSkill("wumou") and card:isNDTrick() and not card:isKindOf("AOE") then
 			if not (card:isKindOf("Duel") and self.player:hasUsed("WuqianCard")) then v = 1 end
 		end
-		local to = card:targetFixed() and self.player or self.player:getNextAlive()
-		if not self:hasTrickEffective(card, to, self.player) then v = 0 end
+		-- local to = card:targetFixed() and self.player or self.player:getNextAlive()
+		if not self:hasTrickEffective(card) then v = 0 end
 	end
 
 	if self:hasSkills(sgs.need_kongcheng) then
@@ -440,8 +440,8 @@ function SmartAI:getUsePriority(card)
 	if class_name == "LuaSkillCard" then
 		v = sgs.ai_use_priority[card:objectName()] or 0
 	end
-	local to = card:targetFixed() and self.player or self.player:getNextAlive()
-	if not self:hasTrickEffective(card, to, self.player) then v = 0 end	--还是会有问题，例如3位连清人，会导致2位反贼先杀主再顺。
+	-- local to = card:targetFixed() and self.player or self.player:getNextAlive()
+	if not self:hasTrickEffective(card) then v = 0 end
 	return self:adjustUsePriority(card, v)	
 end
 
@@ -1689,7 +1689,8 @@ function SmartAI:filterEvent(event, player, data)
 					and not ((who:hasSkill("leiji") or who:hasSkills("tuntian+zaoxian")) and getCardsNum("Jink", who) > 0))
 				or (card:isKindOf("Duel") and not (self:getDamagedEffects(who, player) or self:needToLoseHp(who, player, nil, true, true)))
 				or (card:isKindOf("IronChain") and not who:isChained() and not self:hasSkills("danlao|huangen|tianxiang", who)) then
-					if CanUpdateIntention(from) and sgs.evaluateRoleTrends(who) == "neutral" then sgs.updateIntention(from, lord, -10)
+					local exclude_lord = #self:exclude({lord}, card, from) > 0
+					if CanUpdateIntention(from) and exclude_lord and sgs.evaluateRoleTrends(who) == "neutral" then sgs.updateIntention(from, lord, -10)
 					else sgs.updateIntention(from, who, 10)
 					end
 			end
@@ -4691,6 +4692,7 @@ function SmartAI:hasTrickEffective(card, to, from)
 		end
 	end
 	
+	
 	if (from:hasSkill("wuyan") or to:hasSkill("wuyan")) and not from:hasSkill("jueqing") then
 		if card:isKindOf("TrickCard") and 
 		  (card:isKindOf("Duel") or card:isKindOf("FireAttack") or card:isKindOf("ArcheryAttack") or card:isKindOf("SavageAssault")) then
@@ -4698,7 +4700,10 @@ function SmartAI:hasTrickEffective(card, to, from)
 		end
 	end
 	
-	if self.room:isProhibited(from, to, card) then return false end
+	if self.room:isProhibited(from, to, card) and 
+		not (to:objectName() == from:objectName() and to:hasSkill("qianxun") and card:isKindOf("Snatch")) then
+		return false
+	end
 
 	if (to:hasSkill("zhichi") and self.room:getTag("Zhichi"):toString() == to:objectName()) then
 		if card and not card:isKindOf("DelayedTrick") then return false end

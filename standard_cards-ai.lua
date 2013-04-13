@@ -428,7 +428,7 @@ function SmartAI:useCardSlash(card, use)
 	for _, friend in ipairs(self.friends_noself) do
 		local slash_prohibit = false
 		slash_prohibit = self:slashProhibit(card, friend)
-		if not self:hasHeavySlashDamage(self.player, card, friend) then
+		if not self:hasHeavySlashDamage(self.player, card, friend) and card:getSkillName() ~= "lihuo" then
 			if self:needLeiji(friend, self.player)
 			  or (friend:isLord() and self.player:hasSkill("guagu") and friend:getLostHp() >= 1 and getCardsNum("Jink", friend) == 0)
 			  or (friend:hasSkill("jieming") and self.player:hasSkill("rende") and not self.player:hasSkill("jueqing") and huatuo and self:isFriend(huatuo))
@@ -469,6 +469,8 @@ function SmartAI:useCardSlash(card, use)
 			table.insert(targets, enemy) 
 		end
 	end
+	
+	if #targets == 1 and card:getSkillName() == "lihuo" and not targets[1]:hasArmorEffect("Vine") then return end
 	
 	for _, target in ipairs(targets) do
 		local canliuli = false
@@ -547,15 +549,18 @@ function SmartAI:useCardSlash(card, use)
 				end
 			end
 			use.card = use.card or usecard
-			if use.to and not use.to:contains(target) then 
-				if use.to:length() == self.slash_targets then
-					if self.player:hasSkill("duanbing") then
-						if self.player:distanceTo(target) == 1 then
-							use.to:append(target)
+			if use.to and not use.to:contains(target) then
+				if use.to:length() == self.slash_targets - 1 and self.player:hasSkill("duanbing") then
+					local has_extra = false
+					for _, tg in sgs.qlist(use.to) do
+						if self.player:distanceTo(tg, rangefix) == 1 then
+							has_extra = true
+							break
 						end
 					end
-				elseif self.slash_targets <= use.to:length() then
-					return
+					if has_extra or self.player:distanceTo(target, rangefix) == 1 then
+						use.to:append(target)
+					end
 				else
 					use.to:append(target)
 				end
@@ -566,7 +571,7 @@ function SmartAI:useCardSlash(card, use)
 	
 	for _, friend in ipairs(self.friends_noself) do
 		local slash_prohibit = self:slashProhibit(card, friend)
-		if not self:hasHeavySlashDamage(self.player, card, friend) and (not use.to or not use.to:contains(friend)) then
+		if not self:hasHeavySlashDamage(self.player, card, friend) and (not use.to or not use.to:contains(friend)) and card:getSkillName() ~= "lihuo" then
 			if (self.player:hasSkill("pojun") and friend:getHp() > 4 and getCardsNum("Jink", friend) == 0 and friend:getHandcardNum() < 3)
 				or self:getDamagedEffects(friend, self.player)
 				or self:needToLoseHp(friend, self.player, true, true) then
@@ -2489,7 +2494,8 @@ function SmartAI:useCardIndulgence(card, use)
 	if #enemies == 0 then return end
 	
 	local getvalue = function(enemy)
-		if enemy:containsTrick("indulgence") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) and self:enemiesContainsTrick() == 0 then return -100 end
+		if enemy:containsTrick("indulgence") or enemy:containsTrick("YanxiaoCard") then return -100 end
+		if enemy:hasSkill("qiaobian") and not enemy:containsTrick("supply_shortage") and not enemy:containsTrick("indulgence")) then return -100 end
 		if zhanghe_seat > 0 and (self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() <= 1  or not enemy:faceUp()) then
 			return - 100 end
 		if yanxiao and (self:playerGetRound(sb_daqiao) <= self:playerGetRound(enemy) and self:enemiesContainsTrick(true) <= 1 or not enemy:faceUp()) then
@@ -2497,7 +2503,7 @@ function SmartAI:useCardIndulgence(card, use)
 
 		local value = enemy:getHandcardNum() - enemy:getHp()
 
-		if self:hasSkills("lijian|fanjian|neofanjian|dimeng|jijiu|jieyin|anxu|yongsi|zhiheng|manjuan|rende",enemy) then value = value + 10 end		
+		if self:hasSkills("lijian|fanjian|neofanjian|dimeng|jijiu|jieyin|anxu|yongsi|zhiheng|manjuan|rende",enemy) then value = value + 10 end
 		if self:hasSkills("houyuan|qixi|qice|guose|duanliang|yanxiao|nosjujian|luoshen|jizhi|jilve|wansha|mingce|sizhan",enemy) then value = value + 5 end
 		if self:hasSkills("guzheng|luoying|xiliang|guixin|lihun|yinling|gongxin|shenfen|ganlu|duoshi|jueji|zhenggong",enemy) then value = value + 3 end
 		if self:isWeak(enemy) then value = value + 3 end

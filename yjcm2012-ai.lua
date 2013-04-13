@@ -474,7 +474,8 @@ sgs.ai_skill_invoke.lihuo = function(self, data)
 	if not sgs.ai_skill_invoke.Fan(self, data) then return false end
 	local use = data:toCardUse()
 	for _, player in sgs.qlist(use.to) do
-		if self:isEnemy(player) and self:damageIsEffective(player, sgs.DamageStruct_Fire) and sgs.isGoodTarget(player, self.enemies, self) then return true end
+		if self:isEnemy(player) and self:damageIsEffective(player, sgs.DamageStruct_Fire) and sgs.isGoodTarget(player, self.enemies, self) and
+			(player:hasArmorEffect("Vine") or player:isChained() and self:isGoodChainTarget(player)) then return true end
 	end
 	return false
 end

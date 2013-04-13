@@ -441,7 +441,7 @@ function SmartAI:getUsePriority(card)
 		v = sgs.ai_use_priority[card:objectName()] or 0
 	end
 	local to = card:targetFixed() and self.player or self.player:getNextAlive()
-	if not self:hasTrickEffective(card, to, self.player) then v = 0 end
+	if not self:hasTrickEffective(card, to, self.player) then v = 0 end	--还是会有问题，例如3位连清人，会导致2位反贼先杀主再顺。
 	return self:adjustUsePriority(card, v)	
 end
 

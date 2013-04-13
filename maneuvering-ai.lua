@@ -219,15 +219,16 @@ function SmartAI:useCardSupplyShortage(card, use)
 	local zhanghe_seat = zhanghe and zhanghe:faceUp() and not zhanghe:isKongcheng() and not self:isFriend(zhanghe) and zhanghe:getSeat() or 0
 	
 	local sb_daqiao = self.room:findPlayerBySkillName("yanxiao")
-	local yanxiao = sb_daqiao and not self:isFriend(sb_daqiao) and (getKnownCard(sb_daqiao, "diamond", nil, "he") > 0 or sb_daqiao:getHandcardNum() > 3)	
+	local yanxiao = sb_daqiao and not self:isFriend(sb_daqiao) and (getKnownCard(sb_daqiao, "diamond", nil, "he") > 0 or sb_daqiao:getHandcardNum() > 3)
 
 	if #enemies == 0 then return end
 
 	local getvalue = function(enemy)
-		if enemy:containsTrick("supply_shortage") or enemy:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", enemy) and self:enemiesContainsTrick() == 0 then return -100 end
-		if zhanghe_seat > 0 and (self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() == 0 or not enemy:faceUp()) then
+		if enemy:containsTrick("supply_shortage") or enemy:containsTrick("YanxiaoCard") then return -100 end
+		if enemy:hasSkill("qiaobian") and not enemy:containsTrick("supply_shortage") and not enemy:containsTrick("indulgence")) then return -100 end
+		if zhanghe_seat > 0 and (self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() <= 1 or not enemy:faceUp()) then
 			return - 100 end
-		if yanxiao and (self:playerGetRound(sb_daqiao) <= self:playerGetRound(enemy) and self:enemiesContainsTrick(true) == 0 or not enemy:faceUp()) then
+		if yanxiao and (self:playerGetRound(sb_daqiao) <= self:playerGetRound(enemy) and self:enemiesContainsTrick(true) <= 1 or not enemy:faceUp()) then
 			return -100 end
 
 		local value = 0 - enemy:getHandcardNum()
@@ -499,15 +500,22 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 	
 	local enemies, targets = {}, {}
 	for _, enemy in ipairs(self.enemies) do
-		if can_attack(enemy) then		
-			table.insert(enemies,enemy)			
+		if can_attack(enemy) then
+			table.insert(enemies,enemy)
 		end
 	end
 	
+	local can_FireAttack_self
+	for _, card in sgs.qlist(self.player:getHandcards()) do
+		if (not isCard("Peach", card, self.player) or self:getCardsNum("Peach") >= 3) and
+			(not isCard("Analeptic", card, self.player) or self:getCardsNum("Analeptic") >= 2) then
+			can_FireAttack_self = true
+		end
+	end
 	if self.player:isChained() and self:isGoodChainTarget(self.player) and self.player:getHandcardNum() > 1 and not self.player:hasSkill("jueqing")
-			and not self.room:isProhibited(self.player, self.player, fire_attack) 
-			and self:damageIsEffective(self.player, sgs.DamageStruct_Fire, self.player) and not self:cantbeHurt(self.player) 
-			and self:hasTrickEffective(fire_attack, self.player) 
+			and not self.room:isProhibited(self.player, self.player, fire_attack) and can_FireAttack_self
+			and self:damageIsEffective(self.player, sgs.DamageStruct_Fire, self.player) and not self:cantbeHurt(self.player)
+			and self:hasTrickEffective(fire_attack, self.player)
 			and (self.player:getHp()>1 or self:getCardsNum("Peach")>=1 or self:getCardsNum("Analeptic")>=1 or self.player:hasSkill("buqu")
 				or (self.player:hasSkill("niepan") and self.player:getMark("@nirvana") > 0)) then
 		table.insert(targets, self.player)
@@ -522,14 +530,14 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 				if not lack[suitstring] then
 					table.insert(targets, enemy)
 				end
-			end			
+			end
 		end
 	end
 	
 	if ((suitnum == 2 and lack.diamond==false) or suitnum<=1) and self:getOverflow()<=0 and #targets == 0 then return end
 
 	for _, enemy in ipairs(enemies) do
-		if self:isEquip("Vine", enemy) or enemy:getMark("@gale") > 0 then			
+		if self:isEquip("Vine", enemy) or enemy:getMark("@gale") > 0 then
 			table.insert(targets, enemy)
 		end
 	end
@@ -556,7 +564,7 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 				end
 				if use.to:length() == targets_num then return end
 			end
-		end			
+		end
 	end
 end
 
@@ -579,8 +587,13 @@ sgs.ai_cardshow.fire_attack = function(self, requestor)
 	end
 	local index = 0
 	local result
-	local cards = self.player:getHandcards()
-	for _, card in sgs.qlist(cards) do
+	local cards = sgs.QList2Table(self.player:getHandcards())
+	if requestor:objectName() == self.player:objectName() then
+		self:sortByUseValue(cards, true)
+		return cards[1]
+	end
+		
+	for _, card in ipairs(cards) do
 		if priority[card:getSuitString()] > index then
 			result = card
 			index = priority[card:getSuitString()]

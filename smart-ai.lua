@@ -3724,7 +3724,7 @@ function SmartAI:getDamagedEffects(to, from, slash)
 	if from:hasSkill("jueqing") then return false end
 	
 	if slash then
-		if from:hasSkill("nosqianxi") and from:distanceTo(player) == 1 and not self:isFriend(from, to) then
+		if from:hasSkill("nosqianxi") and from:distanceTo(to) == 1 and not self:isFriend(from, to) then
 			return false
 		end
 		if from:hasWeapon("IceSword") and to:getCards("he"):length() > 1 and not self:isFriend(from, to) then 

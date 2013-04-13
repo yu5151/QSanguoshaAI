@@ -103,6 +103,7 @@ function SmartAI:cantbeHurt(player, damageNum, from)
 	if not damageNum then damageNum = 1 end
 
 	if player:hasSkill("wuhun") then
+		if isLord(player) then return false end
 		for _, friend in ipairs(self.friends) do
 			local friendmark = friend:getMark("@nightmare")
 			if friendmark > maxfriendmark then maxfriendmark = friendmark end
@@ -111,23 +112,24 @@ function SmartAI:cantbeHurt(player, damageNum, from)
 			local enemymark = enemy:getMark("@nightmare")
 			if enemymark > maxenemymark and enemy:objectName() ~= player:objectName() then maxenemymark = enemymark end
 		end
-		if self:isEnemy(player) and not (player:isLord() and from:getRole() == "rebel") then
-			if (maxfriendmark + damageNum  >= maxenemymark) and not (#self.enemies==1 and #self.friends + #self.enemies == self.room:alivePlayerCount()) then 
+		if self:isEnemy(player) and from:getRole() ~= "rebel" then
+			if (maxfriendmark + damageNum >= maxenemymark) and not (#self.enemies==1 and #self.friends + #self.enemies == self.room:alivePlayerCount()) then 
 				if not (from:getMark("@nightmare") == maxfriendmark and from:getRole() == "loyalist") then
 					return true
 				end
 			end
-		elseif maxfriendmark + damageNum > maxenemymark then 
+		elseif self:isFriend(player) and maxfriendmark + damageNum > maxenemymark then
 			return true
 		end
 	elseif player:hasSkill("duanchang") then
+		if isLord(player) then return false end
 		if player:getHp() > 1 or #self.enemies == 1 then return false end
 		if player:getHp() <=1 then
 			if from:getMaxHp() == 3 and from:getArmor() and from:getDefensiveHorse() then return false end
 			if from:getMaxHp() <= 3 or (from:isLord() and self:isWeak()) then return true end
 			if from:getMaxHp() <= 3 or (self.room:getLord() and from:getRole() == "renegade") then return true end
 		end
-	elseif player:hasSkill("tianxiang") then		
+	elseif player:hasSkill("tianxiang") then
 		if getKnownCard(player, "diamond", false) + getKnownCard(player, "club", false) == player:getHandcardNum() then
 			return false
 		end	

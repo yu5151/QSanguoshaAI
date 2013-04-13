@@ -2157,7 +2157,10 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	
 end
 
-sgs.ai_choicemade_filter.cardChosen.snatch = sgs.ai_choicemade_filter.cardChosen.dismantlement
+sgs.ai_choicemade_filter.cardChosen.dismantlement = function(player, promptlist, self)
+	sgs.ai_choicemade_filter.cardChosen.snatch(player, promptlist, self)
+end
+
 sgs.ai_choicemade_filter.cardChosen.snatch = function(player, promptlist, self)
 	if sgs.ai_snat_dism_from and sgs.ai_snat_dism_to then
 		local from, to = sgs.ai_snat_dism_from, sgs.ai_snat_dism_to

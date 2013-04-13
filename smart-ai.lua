@@ -1679,7 +1679,7 @@ function SmartAI:filterEvent(event, player, data)
 		local to = sgs.QList2Table(struct.to)
 		local who = to[1]
 		if sgs.turncount <= 1 and lord and who and from and from:objectName() == player:objectName() then
-			if card:isKindOf("YinlingCard") or card:isKindOf("FireAttack")
+			if sgs.evaluateRoleTrends(from) == "neutral" and card:isKindOf("YinlingCard") or card:isKindOf("FireAttack")
 				or ((card:isKindOf("Dismantlement") or card:isKindOf("Snatch")) 
 					and not self:needToThrowArmor(who) and not who:hasSkills("tuntian+zaoxian") 
 					and not (who:getCards("j"):length() > 0 and not who:containsTrick("YanxiaoCard"))
@@ -1689,7 +1689,9 @@ function SmartAI:filterEvent(event, player, data)
 					and not ((who:hasSkill("leiji") or who:hasSkills("tuntian+zaoxian")) and getCardsNum("Jink", who) > 0))
 				or (card:isKindOf("Duel") and not (self:getDamagedEffects(who, player) or self:needToLoseHp(who, player, nil, true, true)))
 				or (card:isKindOf("IronChain") and not who:isChained() and not self:hasSkills("danlao|huangen|tianxiang", who)) then
-					if CanUpdateIntention(from) and exclude_lord and sgs.evaluateRoleTrends(who) == "neutral" then sgs.updateIntention(from, lord, -10) end
+					if CanUpdateIntention(from) and sgs.evaluateRoleTrends(who) == "neutral" then sgs.updateIntention(from, lord, -10)
+					else sgs.updateIntention(from, who, 10)
+					end
 			end
 		end
 		

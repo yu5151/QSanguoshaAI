@@ -1125,7 +1125,19 @@ function SmartAI:objectiveLevel(player)
 		if player:isLord() then return -2 end
 
 		if self.role == "loyalist" and loyal_num == 1 and renegade_num == 0 then return 5 end
-		if sgs.evaluatePlayerRole(player) == "neutral" then return 0 end
+		if sgs.evaluatePlayerRole(player) == "neutral" then
+			local current_friend_num = 1
+			for _, aplayer in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+				if sgs.evaluatePlayerRole(aplayer) == "loyalist" or sgs.evaluatePlayerRole(aplayer) == "renegade" then
+					current_friend_num = current_friend_num + 1
+				end
+			end
+			if current_friend_num == loyal_num + renegade_num then
+				return 5
+			else
+				return 0
+			end
+		end
 	  
 		if rebel_num == 0 then
 			if #players == 2 and self.role == "loyalist" then return 5 end
@@ -1162,17 +1174,35 @@ function SmartAI:objectiveLevel(player)
 		if renegade_num == 0 then
 			if not (sgs.evaluatePlayerRole(player) == "loyalist" or sgs.evaluateRoleTrends(player) == "loyalist") then return 5 end
 		end
-
+		
+		if loyal_num + 1 > rebel_num and renegade_num > 0 and (process == "loyalist" or process == "loyalish") and
+			sgs.ai_role[player:objectName()] == "renegade" then return 5 end
+			
 		if process == "rebel" and rebel_num > loyal_num and target_role == "renegade" then return -2 end
 
 		if sgs.evaluatePlayerRole(player) == "rebel" then return 5
-		elseif sgs.evaluatePlayerRole(player) == "loyalist" then return -2		
+		elseif sgs.evaluatePlayerRole(player) == "loyalist" then return -2
 		else return 0 end
 	elseif self.role == "rebel" then
 	
 		if loyal_num ==0 and renegade_num ==0 then return player:isLord() and 5 or -2 end
-		if sgs.evaluatePlayerRole(player) == "neutral" then return 0 end
+		if sgs.evaluatePlayerRole(player) == "neutral" then
+			local current_friend_num = 1
+			for _, aplayer in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+				if sgs.ai_role[aplayer:objectName()] == "rebel" then
+					current_friend_num = current_friend_num + 1
+				end
+			end
+			if current_friend_num == rebel_num then
+				return 5
+			else
+				return 0
+			end
+		end
 
+		if rebel_num > loyal_num + renegade_num + 1 and (process == "rebel" or process == "rebelish") and
+			sgs.ai_role[player:objectName()] == "renegade" then return 5 end
+		
 		if process == "loyalist" and renegade_num > 0 and sgs.evaluatePlayerRole(player) == "renegade" then return -2 end
 	  
 		if player:isLord() then return 5
@@ -1659,7 +1689,10 @@ function SmartAI:filterEvent(event, player, data)
 					and not ((who:hasSkill("leiji") or who:hasSkills("tuntian+zaoxian")) and getCardsNum("Jink", who) > 0))
 				or (card:isKindOf("Duel") and not (self:getDamagedEffects(who, player) or self:needToLoseHp(who, player, nil, true, true)))
 				or (card:isKindOf("IronChain") and not who:isChained() and not self:hasSkills("danlao|huangen|tianxiang", who))) then
-					sgs.updateIntention(from, lord, -70)
+						local exclude_lord = lord and #self:exclude({lord}, card, from) > 0
+						if CanUpdateIntention(player) and exclude_lord then
+							sgs.updateIntention(from, lord, -70)
+						end
 			end
 		end
 		
@@ -5396,6 +5429,25 @@ function SmartAI:DontRespondPeach(judge)
 		end
 	end
 	return false
+end
+
+function CanUpdateIntention(player)
+	if not player then global_room:writeToConsole(debug.traceback()) end
+	local rebel_num = sgs.current_mode_players["rebel"]
+	local current_rebel_num, current_loyalist_num = 0, 0
+	local loyalist_num = sgs.current_mode_players["loyalist"] + 1
+	
+	for _, aplayer in sgs.qlist(global_room:getAlivePlayers()) do
+		if sgs.ai_role[aplayer:objectName()] == "reble" then current_rebel_num = current_rebel_num + 1 end
+		if sgs.ai_role[aplayer:objectName()] == "loyalist" then current_loyalist_num = current_loyalist_num + 1 end
+	end
+	
+	if sgs.ai_role[player:objectName()] == "reble" and current_rebel_num >= rebel_num then return false
+	elseif 	sgs.ai_role[player:objectName()] == "loyalist" and current_loyalist_num == loyalist_num then return false
+	elseif 	sgs.ai_role[player:objectName()] == "neutral" and (current_loyalist_num + 1 == loyalist_num or current_rebel_num + 1 >= rebel_num) then
+		return false
+	end		
+	return true
 end
 
 dofile "lua/ai/debug-ai.lua"

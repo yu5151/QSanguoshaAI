@@ -361,7 +361,14 @@ sgs.ai_skill_use["@@lianli"] = function(self, prompt)
 	if self.player:isMale() then --双将时可以和自己连理
 		return "@LianliCard=.->"..self.player:objectName()
 	end
-	
+
+	if sgs.turncount <= 2 then
+		for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+			if player:isMale() and not self:isEnemy(player) then
+				return "@LianliCard=.->" .. player:objectName()
+			end
+		end
+	end	
 	return "."	
 end
 

@@ -1679,7 +1679,7 @@ function SmartAI:filterEvent(event, player, data)
 		local to = sgs.QList2Table(struct.to)
 		local who = to[1]
 		if sgs.turncount <= 1 and lord and who and from and from:objectName() == player:objectName() then
-			if sgs.evaluateRoleTrends(who) == "neutral" and (card:isKindOf("YinlingCard") or card:isKindOf("FireAttack")
+			if card:isKindOf("YinlingCard") or card:isKindOf("FireAttack")
 				or ((card:isKindOf("Dismantlement") or card:isKindOf("Snatch")) 
 					and not self:needToThrowArmor(who) and not who:hasSkills("tuntian+zaoxian") 
 					and not (who:getCards("j"):length() > 0 and not who:containsTrick("YanxiaoCard"))
@@ -1688,11 +1688,9 @@ function SmartAI:filterEvent(event, player, data)
 				or (card:isKindOf("Slash") and not (self:getDamagedEffects(who, player, true) or self:needToLoseHp(who, player, true, true))
 					and not ((who:hasSkill("leiji") or who:hasSkills("tuntian+zaoxian")) and getCardsNum("Jink", who) > 0))
 				or (card:isKindOf("Duel") and not (self:getDamagedEffects(who, player) or self:needToLoseHp(who, player, nil, true, true)))
-				or (card:isKindOf("IronChain") and not who:isChained() and not self:hasSkills("danlao|huangen|tianxiang", who))) then
-						local exclude_lord = lord and #self:exclude({lord}, card, from) > 0
-						if CanUpdateIntention(player) and exclude_lord then
-							sgs.updateIntention(from, lord, -70)
-						end
+				or (card:isKindOf("IronChain") and not who:isChained() and not self:hasSkills("danlao|huangen|tianxiang", who)) then
+					if CanUpdateIntention(from) and exclude_lord and sgs.evaluateRoleTrends(who) == "neutral" then sgs.updateIntention(from, lord, -10)
+					else who:isLord() and sgs.evaluateRoleTrends(from) == "neutral" then sgs.updateIntention(from, lord, 10) end
 			end
 		end
 		
@@ -1808,7 +1806,7 @@ function SmartAI:filterEvent(event, player, data)
 					if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end
 					if card:isKindOf("YanxiaoCard") then intention = 70 end
 				elseif place == sgs.Player_PlaceEquip then
-					if self:isWeak(player) and player:getLostHp() > 0 and card:isKindOf("SilverLion") then
+					if player:getLostHp() > 0 and card:isKindOf("SilverLion") then
 						if self:hasSkills(sgs.use_lion_skill, player) then
 							intention = self:willSkipPlayPhase(player) and -intention or 0
 						else
@@ -4925,6 +4923,7 @@ function SmartAI:useEquipCard(card, use)
 		or (self.player:hasSkill("longhun") and (card:getSuit() ~= sgs.Card_Diamond or same:getSuit() ~= sgs.Card_Diamond))
 		or (self.player:hasSkill("jijiu") and (same:isRed() or (card:isRed() and self:getOverflow() <= 0)))
 		or (self.player:hasSkill("luanji") and self:getOverflow() <= 0)
+		or (self.player:hasSkill("guidao") and same:isBlack() and card:isRed())
 		then return end
 	end
 	local canUseSlash = self:getCardId("Slash") and self:slashIsAvailable(self.player)
@@ -5433,19 +5432,21 @@ end
 
 function CanUpdateIntention(player)
 	if not player then global_room:writeToConsole(debug.traceback()) end
-	local rebel_num = sgs.current_mode_players["rebel"]
 	local current_rebel_num, current_loyalist_num = 0, 0
-	local loyalist_num = sgs.current_mode_players["loyalist"] + 1
+	local rebel_num = sgs.current_mode_players["rebel"]
+	local loyalist_num = sgs.current_mode_players["loyalist"] + sgs.current_mode_players["renegade"] + 1
 	
 	for _, aplayer in sgs.qlist(global_room:getAlivePlayers()) do
 		if sgs.ai_role[aplayer:objectName()] == "reble" then current_rebel_num = current_rebel_num + 1 end
-		if sgs.ai_role[aplayer:objectName()] == "loyalist" then current_loyalist_num = current_loyalist_num + 1 end
+		if (sgs.evaluatePlayerRole(aplayer) == "loyalist" or sgs.ai_role[aplayer:objectName()] == "renegade") then
+			current_loyalist_num = current_loyalist_num + 1
+		end
 	end
 	
 	if sgs.ai_role[player:objectName()] == "reble" and current_rebel_num >= rebel_num then return false
-	elseif 	sgs.ai_role[player:objectName()] == "loyalist" and current_loyalist_num == loyalist_num then return false
-	elseif 	sgs.ai_role[player:objectName()] == "neutral" and (current_loyalist_num + 1 == loyalist_num or current_rebel_num + 1 >= rebel_num) then
-		return false
+	elseif 	sgs.ai_role[player:objectName()] == "loyalist" and current_loyalist_num >= loyalist_num then return false
+	elseif 	sgs.ai_role[player:objectName()] == "neutral" and
+		(current_loyalist_num + 1 == loyalist_num or current_rebel_num + 1 >= rebel_num) then return false
 	end		
 	return true
 end

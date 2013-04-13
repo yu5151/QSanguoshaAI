@@ -384,7 +384,7 @@ sgs.ai_skill_invoke.nosjiefan = function(self, data)
 		end
 	end
 	if not current or current:isDead() or current:getPhase() == sgs.Player_NotActive
-		or current:objectName() == player:objectName() or (current:hasSkill("wansha") and player:objectName() ~= dying:objectName())
+		or current:objectName() == self.player:objectName() or (current:hasSkill("wansha") and self.player:objectName() ~= dying:objectName())
 		or (self:isEnemy(current) and self:needLeiji(current, self.player)) then
 			return false
 	end

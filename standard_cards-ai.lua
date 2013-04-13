@@ -2157,6 +2157,41 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	
 end
 
+sgs.ai_choicemade_filter.cardChosen.snatch = sgs.ai_choicemade_filter.cardChosen.dismantlement
+sgs.ai_choicemade_filter.cardChosen.snatch = function(player, promptlist, self)
+	if sgs.ai_snat_dism_from and sgs.ai_snat_dism_to then
+		local from, to = sgs.ai_snat_dism_from, sgs.ai_snat_dism_to
+		local card_id = promptlist[3]
+		local card = sgs.Sanguosha:getCard(card_id)
+		local intention = 10
+		local place = self.room:getCardPlace(card_id)
+		if place == sgs.Player_PlaceDelayedTrick then
+			if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end
+			if card:isKindOf("YanxiaoCard") then intention = 10 end
+		elseif place == sgs.Player_PlaceEquip then
+			if to:getLostHp() > 0 and card:isKindOf("SilverLion") then
+				if self:hasSkills(sgs.use_lion_skill, to) then
+					intention = self:willSkipPlayPhase(to) and -intention or 0
+				else
+					intention = self:isWeak(to) and -intention or 0 
+				end
+			end
+			if self:hasSkills(sgs.lose_equip_skill, to) then 
+				if self:isWeak(to) and (card:isKindOf("DefensiveHorse") or card:isKindOf("Armor")) then
+					intention = math.abs(intention)
+				else
+					intention = 0
+				end
+			end
+		elseif place == sgs.Player_PlaceHand then
+			if to:hasSkill("kongcheng") and to:isKongcheng() then
+				intention = 0
+			end
+		end
+		sgs.updateIntention(from, to, intention)
+	end
+end
+
 SmartAI.useCardSnatch = SmartAI.useCardSnatchOrDismantlement
 
 sgs.ai_use_value.Snatch = 9

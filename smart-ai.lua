@@ -1132,7 +1132,7 @@ function SmartAI:objectiveLevel(player)
 					current_friend_num = current_friend_num + 1
 				end
 			end
-			if current_friend_num == loyal_num + renegade_num then
+			if current_friend_num == loyal_num + renegade_num + 1 then
 				return 5
 			else
 				return 0

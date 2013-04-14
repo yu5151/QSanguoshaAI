@@ -1487,30 +1487,27 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 	if self.player:getHp() == 1 and self.player:getRole()~="lord" and self.player:getRole()~="renegade" then
 		local to_death = false
 		if self:isFriend(nextplayer) then
-			local yuejin = self.room:findPlayerBySkillName("gzxiaoguo")
-			if yuejin and not self:isFriend(yuejin) and self.player:getEquips():isEmpty() 
-				and not yuejin:isKongcheng() and self.player:getRole()=="rebel" then
-				to_death = true
+			for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+				if p:hasSkills("gzxiaoguo|xiaoguo") and not self:isFriend(p) and not p:isKongcheng() 
+					and self.role == "rebel" and self.player:getEquips():isEmpty() then
+					to_death = true
+					break
+				end
 			end
-			if not to_death and nextplayer:hasSkill("jieyin") and self.player:isMale() and (not nextplayer:containsTrick("indulgence") 
-				or nextplayer:containsTrick("YanxiaoCard")) then
-				return
-			end
-			if not to_death and nextplayer:hasSkill("qingnang") and (not nextplayer:containsTrick("indulgence") 
-				or nextplayer:containsTrick("YanxiaoCard")) then
-				return
+			if not to_death and not self:willSkipPlayPhase(nextplayer) then
+				if nextplayer:hasSkill("jieyin") and self.player:isMale() then return end
+				if nextplayer:hasSkill("qingnang") then return end
 			end
 		end
-		if self.player:getRole()=="rebel" and not self:isFriend(nextplayer) then
-			if (not nextplayer:containsTrick("indulgence") or nextplayer:containsTrick("YanxiaoCard") 
-				or nextplayer:hasSkill("shensu")) then
+		if self.player:getRole()=="rebel" and not self:isFriend(nextplayer) then 
+			if not self:willSkipPlayPhase(nextplayer) or nextplayer:hasSkill("shensu") then
 				to_death = true
 			end
 		end
+		local lord = getLord(self.player)
 		if self.player:getRole()=="loyalist" then
-			local lord = self.room:getLord()
 			if lord and lord:getCards("he"):isEmpty() then return end
-			if self:isEnemy(nextplayer) and (not nextplayer:containsTrick("indulgence") or nextplayer:containsTrick("YanxiaoCard")) then
+			if self:isEnemy(nextplayer) and not self:willSkipPlayPhase(nextplayer) then
 				if nextplayer:hasSkill("lijian") and self.player:isMale() and lord and lord:isMale() then
 					to_death = true
 				elseif nextplayer:hasSkill("quhu") and lord and lord:getHp() > nextplayer:getHp() and not lord:isKongcheng() 
@@ -1522,8 +1519,10 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 		if to_death then
 			local caopi = self.room:findPlayerBySkillName("xingshang")
 			if caopi and self:isEnemy(caopi) then
-				if self.player:getRole()=="rebel" and self.player:getHandcardNum() > 3 then to_death = false end
-				if self.player:getRole()=="loyalist" and lord and lord:getCards("he"):length() > 3 then to_death = false end
+				if self.player:getRole() == "rebel" and self.player:getHandcardNum() > 3 then to_death = false end
+				if self.player:getRole() == "loyalist" and lord and lord:getCardCount(true) + 2 <= self.player:getHandcardNum() then
+					to_death = false
+				end
 			end
 			if #self.friends == 1 and #self.enemies == 1 and self.player:aliveCount() == 2 then to_death = false end
 		end

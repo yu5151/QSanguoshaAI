@@ -395,11 +395,24 @@ function SmartAI:useCardIronChain(card, use)
 end
 
 sgs.ai_card_intention.IronChain=function(self, card, from, tos)
-	for _, to in ipairs(tos) do
-		if to:isChained() then
-			sgs.updateIntention(from, to, -80)
-		else 
-			sgs.updateIntention(from, to, 80)
+	local lord = getLord(from)
+	local updated
+	local contains_lord = lord and (#tos == 2 and (isLord(tos[1]) or isLord(tos[2]))) or (#tos == 1 and isLord(tos[1]))
+	if not contains_lord and #self:exclude({lord}, card, from) > 0 and CanUpdateIntention(from) and sgs.turncount <= 1 then
+		for _, to in ipairs(tos) do
+			if sgs.ai_role[to:objectName()] == "neutral" then
+				updated = true
+				sgs.updateIntention(from, lord, -10)
+			end
+		end
+	end
+	if not updated then
+		for _, to in ipairs(tos) do
+			if to:isChained() then
+				sgs.updateIntention(from, to, -10)
+			else 
+				sgs.updateIntention(from, to, 10)
+			end
 		end
 	end
 end

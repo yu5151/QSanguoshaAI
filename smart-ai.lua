@@ -1687,8 +1687,7 @@ function SmartAI:filterEvent(event, player, data)
 					and not (self:needKongcheng(who) and who:getHandcardNum() == 1))
 				or (card:isKindOf("Slash") and not (self:getDamagedEffects(who, player, true) or self:needToLoseHp(who, player, true, true))
 					and not ((who:hasSkill("leiji") or who:hasSkills("tuntian+zaoxian")) and getCardsNum("Jink", who) > 0))
-				or (card:isKindOf("Duel") and not (self:getDamagedEffects(who, player) or self:needToLoseHp(who, player, nil, true, true)))
-				or (card:isKindOf("IronChain") and not who:isChained() and not self:hasSkills("danlao|huangen|tianxiang", who)) then
+				or (card:isKindOf("Duel") and not (self:getDamagedEffects(who, player) or self:needToLoseHp(who, player, nil, true, true))) then
 					local exclude_lord = #self:exclude({lord}, card, from) > 0
 					if CanUpdateIntention(from) and exclude_lord and sgs.evaluateRoleTrends(who) == "neutral" then sgs.updateIntention(from, lord, -10)
 					else sgs.updateIntention(from, who, 10)
@@ -5404,17 +5403,17 @@ function CanUpdateIntention(player)
 	local loyalist_num = sgs.current_mode_players["loyalist"] + sgs.current_mode_players["renegade"] + 1
 	
 	for _, aplayer in sgs.qlist(global_room:getAlivePlayers()) do
-		if sgs.ai_role[aplayer:objectName()] == "reble" then current_rebel_num = current_rebel_num + 1 end
+		if sgs.ai_role[aplayer:objectName()] == "rebel" then current_rebel_num = current_rebel_num + 1 end
 		if (sgs.evaluatePlayerRole(aplayer) == "loyalist" or sgs.ai_role[aplayer:objectName()] == "renegade") then
 			current_loyalist_num = current_loyalist_num + 1
 		end
 	end
 	
-	if sgs.ai_role[player:objectName()] == "reble" and current_rebel_num >= rebel_num then return false
+	if sgs.ai_role[player:objectName()] == "rebel" and current_rebel_num >= rebel_num then return false
 	elseif 	sgs.ai_role[player:objectName()] == "loyalist" and current_loyalist_num >= loyalist_num then return false
 	elseif 	sgs.ai_role[player:objectName()] == "neutral" and
 		(current_loyalist_num + 1 == loyalist_num or current_rebel_num + 1 >= rebel_num) then return false
-	end		
+	end
 	return true
 end
 

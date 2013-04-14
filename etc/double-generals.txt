@@ -1923,6 +1923,7 @@ shenguanyu          xiaoqiao            0
 shenlvbu            ganning             0         
 shenlvbu            huangyueying        0         
 shenlvbu            wolong              0         
+shensimayi          zhanghe             0         
 shenzhouyu          xiaoqiao            0         
 simayi              caocao              5         
 simayi              caopi               5         
@@ -3291,6 +3292,7 @@ zhangfei            zhouyu              4
 zhangfei            zhugeliang          5         
 zhangfei            zhurong             5         
 zhanghe             zhangliao           0         
+zhanghe             shensimayi          0         
 zhangjiao           caocao              4         
 zhangjiao           caopi               3         
 zhangjiao           caoren              4         

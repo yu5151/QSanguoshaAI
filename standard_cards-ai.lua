@@ -373,12 +373,18 @@ function SmartAI:shouldUseAnaleptic(target, slash)
 			return false
 	end
 
-	local hcard = target:getHandcardNum()
-	if self.player:hasSkill("liegong") and (hcard >= self.player:getHp() or hcard <= self.player:getAttackRange()) then return true end
-
-	if self:canHit(target, self.player) then return true end
-	if self.player:hasSkill("jie") and slash:isRed() then return true end
+	if self:canLiegong(target, self.player) then return true end
+	if self.player:hasWeapon("Axe") and self.player:getCards("he"):length() > 4 then return true end
 	if self.player:hasSkill("tieji") then return true end
+	
+	for _, card in ipairs(self:getCards("Jink"), target) do
+		if card:getSuit() == sgs.Card_Heart then hasHeart = true end
+		if card:isRed() then hasRed = true end
+		if card:isBlack() then hasBlack = true end
+	end
+	if to:hasFlag("dahe") and not hasHeart then return true end
+	if to:getMark("@qianxi_red") > 0 and not hasBlack then return true end
+	if to:getMark("@qianxi_black") > 0 and not hasRed then return true end
 
 	if ((self.player:hasSkill("roulin") and target:isFemale()) or (self.player:isFemale() and target:hasSkill("roulin"))) or self.player:hasSkill("wushuang") then
 		if getKnownCard(target, "Jink", true, "he") >= 2 then return false end
@@ -386,7 +392,6 @@ function SmartAI:shouldUseAnaleptic(target, slash)
 	end
 	
 	if getKnownCard(target, "Jink", true, "he") >= 1 then return false end
-
 	return self:getCardsNum("Analeptic") > 1 or getCardsNum("Jink", target) < 1 or sgs.card_lack[target:objectName()]["Jink"] == 1
 end
 

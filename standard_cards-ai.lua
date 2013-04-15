@@ -1557,19 +1557,23 @@ function SmartAI:willUseGodSalvation(card)
 	local good, bad = 0, 0
 	local wounded_friend = 0
 	local wounded_enemy = 0
-	if self.player:hasSkill("noswuyan") and self.player:isWounded() then return true end
-	
-	if self:hasSkills("jizhi") then good = good + 6 end
-	if self:hasSkills("kongcheng|lianying") and self.player:getHandcardNum() == 1 then good = good + 15 end
 
 	local liuxie = self.room:findPlayerBySkillName("huangen")
 	if liuxie then
-		if self:isFriend(self.player, liuxie) then
+		if self:isFriend(liuxie) then
+			if self.player:hasSkill("noswuyan") and liuxie:getHp() > 0 then return true end
 			good = good + 5 * liuxie:getHp()
 		else
+			if self.player:hasSkill("noswuyan") and self:isEnemy(liuxie) and liuxie:getHp() > 1 then return false end
 			bad = bad + 5 * liuxie:getHp()
 		end
 	end
+
+	if self.player:hasSkill("noswuyan") and (self.player:isWounded() or self.player:hasSkill("jizhi")) then return true end
+	if self.player:hasSkill("noswuyan") then return false end
+	
+	if self:hasSkills("jizhi") then good = good + 6 end
+	if self:hasSkills("kongcheng|lianying") and self.player:getHandcardNum() == 1 then good = good + 15 end
 
 	for _, friend in ipairs(self.friends) do
 		good = good + 10 * getCardsNum("Nullification", friend)

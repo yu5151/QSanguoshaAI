@@ -654,10 +654,10 @@ table.insert(sgs.ai_skills, shouye_skill)
 shouye_skill.getTurnUseCard = function(self)
 	if #self.friends_noself == 0 then return end
 	if self.player:getHandcardNum() > 0 then
-		local n = self.player:getMark("jiehuo")
-		if n > 0 and self.player:hasUsed("ShouyeCard") then return end
+		if self.player:getMark("jiehuo") > 0 and self.player:hasUsed("ShouyeCard") then return end
 		local cards = self.player:getHandcards()
 		cards = sgs.QList2Table(cards)
+		self:sortByKeepValue(cards)
 		for _, hcard in ipairs(cards) do
 			if hcard:isRed() then
 				return sgs.Card_Parse("@ShouyeCard=" .. hcard:getId())
@@ -681,7 +681,7 @@ sgs.ai_skill_use_func.ShouyeCard = function(card, use, self)
 			if second then break end
 		end
 	end
-
+	
 	if self.player:hasSkill("jiehuo") and self.player:getMark("jiehuo") < 1 then
 		sgs.ai_use_priority.ShouyeCard = 9.29
 		if first and not second then
@@ -699,12 +699,13 @@ sgs.ai_skill_use_func.ShouyeCard = function(card, use, self)
 					if second then break end
 				end
 			end
-		end		
-	else 
+			if not second then sgs.ai_use_priority.ShouyeCard = 0 end
+		end
+	else
 		sgs.ai_use_priority.ShouyeCard = 0
 	end
 	
-	if not second and not (self:getOverflow() > 0) then return end
+	if not second and self:getOverflow() <= 0 then return end
 	if first then
 		if use.to then
 			use.to:append(first)
@@ -721,7 +722,7 @@ sgs.ai_skill_use_func.ShouyeCard = function(card, use, self)
 end
 
 sgs.ai_cardneed.shouye = function(to, card)
-	return to:getMark("jiehuo") < 1 and to:getHandcardNum() < 3 and card:isRed()
+	return to:hasSkill("jiehuo") and to:getMark("jiehuo") < 1 and to:getHandcardNum() < 3 and card:isRed()
 end
 
 sgs.ai_card_intention.ShouyeCard = function(self, card, from, tos)

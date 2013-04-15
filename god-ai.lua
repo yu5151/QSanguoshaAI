@@ -522,10 +522,16 @@ sgs.ai_skill_use["@@dawu"] = function(self, prompt)
 	local targets = {}
 	local lord = self.room:getLord()
 	self:sort(self.friends_noself,"defense")
-	if lord and self:isFriend(lord) and not sgs.isLordHealthy() and not self.player:isLord() and not lord:hasSkill("buqu") then table.insert(targets, lord:objectName())
+	if lord and self:isFriend(lord) and not sgs.isLordHealthy() and not self.player:isLord() and not lord:hasSkill("buqu")
+		and not (lord:hasSkill("hunzi") and lord:getMark("hunzi") == 0 and lord:getHp() > 1) then 
+			table.insert(targets, lord:objectName())
 	else
 		for _, friend in ipairs(self.friends_noself) do
-			if self:isWeak(friend) and not friend:hasSkill("buqu") then table.insert(targets, friend:objectName()) break end
+			if self:isWeak(friend) and not friend:hasSkill("buqu") 
+				and not (friend:hasSkill("hunzi") and friend:getMark("hunzi") == 0 and friend:getHp() > 1) then
+					table.insert(targets, friend:objectName())
+					break 
+			end
 		end	
 	end
 	if self.player:getPile("stars"):length() > #targets and self:isWeak() then table.insert(targets, self.player:objectName()) end

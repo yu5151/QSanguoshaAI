@@ -553,7 +553,9 @@ sgs.ai_skill_invoke.cv_caiwenji = function(self, data)
 	return lord:getKingdom() == "wei"
 end
 
-sgs.ai_skill_invoke.guixiang = sgs.ai_skill_invoke.cv_caiwenj
+sgs.ai_skill_invoke.guixiang = sgs.ai_skill_invoke.cv_caiwenji
+sgs.ai_skill_invoke.cv_jiaxu = sgs.ai_skill_invoke.cv_caiwenji
+sgs.ai_skill_invoke.cv_pangde = sgs.ai_skill_invoke.cv_caiwenji
 
 sgs.ai_chaofeng.sp_caiwenji = sgs.ai_chaofeng.caiwenji
 
@@ -570,7 +572,7 @@ sgs.ai_skill_invoke.cv_machao = function(self, data)
 	return lord:getKingdom() == "qun"
 end
 
-sgs.ai_skill_invoke.fanqu = sgs.ai_skill_invoke.cv_machao
+sgs.ai_skill_invoke.fanqun = sgs.ai_skill_invoke.cv_machao
 
 sgs.ai_chaofeng.sp_machao = sgs.ai_chaofeng.machao
 

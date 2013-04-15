@@ -382,9 +382,9 @@ function SmartAI:shouldUseAnaleptic(target, slash)
 		if card:isRed() then hasRed = true end
 		if card:isBlack() then hasBlack = true end
 	end
-	if to:hasFlag("dahe") and not hasHeart then return true end
-	if to:getMark("@qianxi_red") > 0 and not hasBlack then return true end
-	if to:getMark("@qianxi_black") > 0 and not hasRed then return true end
+	if target:hasFlag("dahe") and not hasHeart then return true end
+	if target:getMark("@qianxi_red") > 0 and not hasBlack then return true end
+	if target:getMark("@qianxi_black") > 0 and not hasRed then return true end
 
 	if ((self.player:hasSkill("roulin") and target:isFemale()) or (self.player:isFemale() and target:hasSkill("roulin"))) or self.player:hasSkill("wushuang") then
 		if getKnownCard(target, "Jink", true, "he") >= 2 then return false end

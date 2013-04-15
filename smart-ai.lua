@@ -1694,7 +1694,7 @@ function SmartAI:filterEvent(event, player, data)
 		local to = sgs.QList2Table(struct.to)
 		local who = to[1]
 		if sgs.turncount <= 1 and lord and who and from and from:objectName() == player:objectName() then
-			if sgs.evaluateRoleTrends(from) == "neutral" and card:isKindOf("YinlingCard") or card:isKindOf("FireAttack")
+			if sgs.evaluateRoleTrends(from) == "neutral" and (card:isKindOf("YinlingCard") or card:isKindOf("FireAttack")
 				or ((card:isKindOf("Dismantlement") or card:isKindOf("Snatch")) 
 					and not self:needToThrowArmor(who) and not who:hasSkills("tuntian+zaoxian") 
 					and not (who:getCards("j"):length() > 0 and not who:containsTrick("YanxiaoCard"))
@@ -1702,7 +1702,7 @@ function SmartAI:filterEvent(event, player, data)
 					and not (self:needKongcheng(who) and who:getHandcardNum() == 1))
 				or (card:isKindOf("Slash") and not (self:getDamagedEffects(who, player, true) or self:needToLoseHp(who, player, true, true))
 					and not ((who:hasSkill("leiji") or who:hasSkills("tuntian+zaoxian")) and getCardsNum("Jink", who) > 0))
-				or (card:isKindOf("Duel") and not (self:getDamagedEffects(who, player) or self:needToLoseHp(who, player, nil, true, true))) then
+				or (card:isKindOf("Duel") and not (self:getDamagedEffects(who, player) or self:needToLoseHp(who, player, nil, true, true)))) then
 					local exclude_lord = #self:exclude({lord}, card, from) > 0
 					if CanUpdateIntention(from) and exclude_lord and sgs.evaluateRoleTrends(who) == "neutral" then sgs.updateIntention(from, lord, -10)
 					else sgs.updateIntention(from, who, 10)

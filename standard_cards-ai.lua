@@ -1562,10 +1562,10 @@ function SmartAI:willUseGodSalvation(card)
 	if liuxie then
 		if self:isFriend(liuxie) then
 			if self.player:hasSkill("noswuyan") and liuxie:getHp() > 0 then return true end
-			good = good + 5 * liuxie:getHp()
+			good = good + 7 * liuxie:getHp()
 		else
-			if self.player:hasSkill("noswuyan") and self:isEnemy(liuxie) and liuxie:getHp() > 1 then return false end
-			bad = bad + 5 * liuxie:getHp()
+			if self.player:hasSkill("noswuyan") and self:isEnemy(liuxie) and liuxie:getHp() > 1 and #self.enemies > 1 then return false end
+			bad = bad + 7 * liuxie:getHp()
 		end
 	end
 

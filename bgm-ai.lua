@@ -1269,10 +1269,11 @@ sgs.ai_chaofeng.diy_liuxie = 3
 
 sgs.ai_skill_use["@@diyyicong"] = function(self, prompt)
 	local yicongcards = {}
-	local cards = self.player:getCards("he")
+	
 	if self:needToThrowArmor() then
-		table.insert(yicongcards, self.player:getArmor():getId())
+		return "@DIYYicongCard=" .. self.player:getArmor():getId() .. "->."
 	end
+	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
 	self:sortByKeepValue(cards)
 	for _, card in ipairs(cards) do

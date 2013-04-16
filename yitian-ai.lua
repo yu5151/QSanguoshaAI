@@ -298,8 +298,15 @@ end
 ]]--
 sgs.ai_skill_choice.wuling = function(self, choices)
 	if choices:match("water") then
-		self:sort(self.friends, "hp")
-		if self:isWeak(self.friends[1]) then return "water" end
+		local weak_friend, weak_enemy = 0, 0
+		for _, player in sgs.qlist(self.room:getAlivePlayers()) do
+			if player:getHp() <= 1 and player:getHandcardNum() <= 1 then
+				if self:isEnemy(player) then weak_enemy = weak_enemy + 1
+				elseif self:isFriend(player) then weak_friend = weak_friend + 1
+				end
+			end
+		end
+		if weak_friend > 0 and weak_friend >= weak_enemy then return "water" end
 	end
 	if choices:match("earth") then
 		if #(self:getChainedFriends()) > #(self:getChainedEnemies()) and

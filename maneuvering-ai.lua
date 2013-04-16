@@ -118,6 +118,7 @@ function sgs.ai_armor_value.Vine(player, self)
 	end
 	if self:hasSkills(sgs.lose_equip_skill, player) then return 3.8 end
 	if not self:damageIsEffective(player, sgs.DamageStruct_Fire) then return 6 end
+	if self.player:hasSkill("sizhan") then return 4.9 end
 	if player:hasSkill("jujian") and not player:getArmor() and #(self:getFriendsNoself(player)) > 0 and player:getPhase() == sgs.Player_Play then return 3 end
 	if player:hasSkill("diyyicong") and not player:getArmor() and player:getPhase() == sgs.Player_Play then return 3 end
 

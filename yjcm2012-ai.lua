@@ -225,17 +225,17 @@ function sgs.ai_cardneed.jiefan(to, card)
 	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0
 end
 
-anxu_skill={}
-anxu_skill.name="anxu"
-table.insert(sgs.ai_skills,anxu_skill)
-anxu_skill.getTurnUseCard=function(self)
+anxu_skill = {}
+anxu_skill.name = "anxu"
+table.insert(sgs.ai_skills, anxu_skill)
+anxu_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("AnxuCard") then return nil end
-	card=sgs.Card_Parse("@AnxuCard=.")
+	card = sgs.Card_Parse("@AnxuCard=.")
 	return card
 
 end
 
-sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
+sgs.ai_skill_use_func.AnxuCard = function(card,use,self)
 	if #self.enemies == 0 then return end
 	local intention = 50
 	local friends = {}
@@ -278,7 +278,7 @@ sgs.ai_skill_use_func.AnxuCard=function(card,use,self)
 
 	local prior_enemy, kongcheng_enemy, manjuan_enemy
 	for _, enemy in ipairs(enemies) do
-		if enemy:getHandcardNum() >= 2 and self:hasSkills("jijiu|qingnang|xinzhan|leiji|jieyin|beige|kanpo|liuli|qiaobian|zhiheng|guidao|longhun|xuanfeng|tianxiang|lijian", enemy) then
+		if enemy:getHandcardNum() >= 2 and self:hasSkills(sgs.cardneed_skill, enemy) then
 			if not prior_enemy then prior_enemy = enemy end
 		end
 		if enemy:hasSkill("kongcheng") and enemy:isKongcheng() then
@@ -601,8 +601,7 @@ qice_skill.getTurnUseCard = function(self)
 	local aoename = "savage_assault|archery_attack"
 	local aoenames = aoename:split("|")
 	local aoe
-	local i
-	local good, bad = 0, 0
+	local i	
 	local caocao = self.room:findPlayerBySkillName("jianxiong") 
 	local qicetrick = "savage_assault|archery_attack|ex_nihilo|god_salvation"
 	local qicetricks = qicetrick:split("|")
@@ -611,22 +610,7 @@ qice_skill.getTurnUseCard = function(self)
 		forbid = sgs.Sanguosha:cloneCard(forbiden, sgs.Card_NoSuit, 0)
 		if self.player:isLocked(forbid) then return end
 	end
-	if  self.player:hasUsed("QiceCard") then return end
-	for _, friend in ipairs(self.friends) do
-		if friend:isWounded() then
-			good = good + 10/(friend:getHp())
-			if friend:isLord() then good = good + 10/(friend:getHp()) end
-		end
-	end
-
-	for _, enemy in ipairs(self.enemies) do
-		if enemy:isWounded() then
-			bad = bad + 10/(enemy:getHp())
-			if enemy:isLord() then
-				bad = bad + 10/(enemy:getHp())
-			end
-		end
-	end
+	if self.player:hasUsed("QiceCard") then return end
 
 	for _,card in ipairs(cards)  do
 		table.insert(allcard, card:getId()) 

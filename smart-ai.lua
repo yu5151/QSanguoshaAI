@@ -102,7 +102,7 @@ function setInitialTables()
 	sgs.wizard_harm_skill = 	"guicai|guidao|jilve"
 	sgs.priority_skill = 		"dimeng|haoshi|qingnang|jizhi|guzheng|qixi|jieyin|guose|duanliang|jujian|fanjian|neofanjian|lijian|" ..
 						"manjuan|tuxi|qiaobian|yongsi|zhiheng|luoshen|rende|mingce|wansha|gongxin|jilve|anxu|" ..
-						"qice|yinling|qingcheng|houyuan|zhaoxin"
+						"qice|yinling|qingcheng|houyuan|zhaoxin|shuangren"
 	sgs.save_skill = 		"jijiu|buyi|nosjiefan|chunlao|longhun"
 	sgs.exclusive_skill = 		"huilei|duanchang|wuhun|buqu|dushi"
 	sgs.cardneed_skill =		"paoxiao|tianyi|xianzhen|shuangxiong|jizhi|guose|duanliang|qixi|qingnang|yinling|luoyi|guhuo|kanpo|" ..
@@ -4769,9 +4769,9 @@ function SmartAI:getAoeValue(card, player)
 		forbid_start = false
 		good = good + 3 * enemy_number
 		if not self.player:hasSkill("wumou") then
-			good = good + 5 * enemy_number
-		elseif self.player:getMark("@wrath") > 0 then
 			good = good + 3 * enemy_number
+		elseif self.player:getMark("@wrath") > 0 then
+			good = good + 1.5 * enemy_number
 		end
 	end
 	

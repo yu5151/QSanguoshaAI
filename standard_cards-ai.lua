@@ -1573,7 +1573,7 @@ function SmartAI:willUseGodSalvation(card)
 	if self.player:hasSkill("noswuyan") then return false end
 	
 	if self:hasSkills("jizhi") then good = good + 6 end
-	if self:hasSkills("kongcheng|lianying") and self.player:getHandcardNum() == 1 then good = good + 15 end
+	if (self.player:hasSkill("kongcheng") and self.player:getHandcardNum() == 1) or not self:hasLoseHandcardEffective() then good = good + 5 end
 
 	for _, friend in ipairs(self.friends) do
 		good = good + 10 * getCardsNum("Nullification", friend)
@@ -2192,7 +2192,7 @@ sgs.ai_choicemade_filter.cardChosen.snatch = function(player, promptlist, self)
 				end
 			end
 		elseif place == sgs.Player_PlaceHand then
-			if to:hasSkill("kongcheng") and to:isKongcheng() then
+			if self:needKongcheng(to, true) then
 				intention = 0
 			end
 		end

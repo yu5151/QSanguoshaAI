@@ -5432,7 +5432,7 @@ function SmartAI:findPlayerToDraw(prompt, n)
 		end
 	elseif prompt == "nos_xuanhuo" then
 		for _, player in ipairs(self.friends) do 	
-			if not player:hasFlag("nosxuanhuo_target") and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive)
+			if not player:hasFlag("AI_NosXuanhuoTarget") and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive)
 			  and not self:needKongcheng(player, true) then
 				table.insert(friends, player)
 			end
@@ -5443,7 +5443,15 @@ function SmartAI:findPlayerToDraw(prompt, n)
 
 	if #friends == 0 then return end
 	
-	self:sort(friends, "defense")	
+	self:sort(friends, "defense")
+	if prompt == "nos_xuanhuo" then
+		for _, friend in ipairs(friends) do
+			if self:hasSkills(sgs.lose_equip_skill .. "|" .. sgs.need_equip_skill, friend) and not self:willSkipPlayPhase(friend) then
+				return friend
+			end
+		end
+	end
+
 	for _, friend in ipairs(friends) do
 		if friend:getHandcardNum() < 2 and not self:needKongcheng(friend) then
 			return friend

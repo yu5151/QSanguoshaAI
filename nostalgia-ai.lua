@@ -262,7 +262,7 @@ sgs.ai_skill_use_func.NosXuanhuoCard = function(card, use, self)
 	end
 
 	if target then
-		target:setFlags("nosxuanhuo_target")
+		target:setFlags("AI_NosXuanhuoTarget")
 		if self:isFriend(target) then
 			for _, card in ipairs(cards) do
 				if card:getSuit() == sgs.Card_Heart then

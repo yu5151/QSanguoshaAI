@@ -1569,10 +1569,10 @@ sgs.ai_skill_invoke.yingzi = function(self, data)
 	return true
 end
 
-local fanjian_skill={}
-fanjian_skill.name="fanjian"
-table.insert(sgs.ai_skills,fanjian_skill)
-fanjian_skill.getTurnUseCard=function(self)
+local fanjian_skill = {}
+fanjian_skill.name = "fanjian"
+table.insert(sgs.ai_skills, fanjian_skill)
+fanjian_skill.getTurnUseCard = function(self)
 	if self.player:isKongcheng() then return nil end
 	if self.player:usedTimes("FanjianCard")>0 then return nil end
 
@@ -1594,10 +1594,10 @@ fanjian_skill.getTurnUseCard=function(self)
 end
 
 sgs.ai_skill_use_func.FanjianCard=function(card,use,self)
-	self:sort(self.enemies, "defense")
+	self:sort(self.enemies, "hp")
 			
 	for _, enemy in ipairs(self.enemies) do
-		if self:canAttack(enemy) and not self:hasSkills("qingnang|jijiu|tianxiang",enemy) then
+		if self:canAttack(enemy) and not self:hasSkills("qingnang|jijiu|tianxiang", enemy) then
 			use.card = card
 			if use.to then use.to:append(enemy) end
 			return

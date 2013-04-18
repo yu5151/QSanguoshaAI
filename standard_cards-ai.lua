@@ -2646,6 +2646,7 @@ function SmartAI:useCardLightning(card, use)
 	end
 end
 
+sgs.ai_use_priority.Lightning = 0
 sgs.dynamic_value.lucky_chance.Lightning = true
 
 sgs.ai_keep_value.Lightning = -1

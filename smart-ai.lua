@@ -961,12 +961,17 @@ sgs.ai_card_intention.general = function(from, to, level)
 	
 	
 	if sgs.evaluatePlayerRole(to) == "loyalist" then
-		sgs.role_evaluation[from:objectName()]["loyalist"] = sgs.role_evaluation[from:objectName()]["loyalist"] - level
-
-		if sgs.current_mode_players["rebel"] == 0 and sgs.current_mode_players["renegade"] > 0 
+		if not sgs.UnknownRebel or isLord(to) then
+			sgs.role_evaluation[from:objectName()]["loyalist"] = sgs.role_evaluation[from:objectName()]["loyalist"] - level
+		end
+		
+		if sgs.current_mode_players["rebel"] > 0 and sgs.current_mode_players["renegade"] == 0 and
+			sgs.current_mode_players["loyalist"] > 0 and level > 0 and sgs.UnknownRebel then
+				--反装忠
+		elseif sgs.current_mode_players["rebel"] == 0 and sgs.current_mode_players["renegade"] > 0 
 				and sgs.current_mode_players["loyalist"] > 0 and level > 0 and sgs.explicit_renegade == false then
-			-- 进入主忠内, 但是没人跳过内，这个时候忠臣之间的相互攻击，不更新内奸值				
-		elseif (sgs.ai_role[from:objectName()] == "loyalist" and level > 0) or (sgs.ai_role[from:objectName()] == "rebel" and level < 0) then 
+				-- 进入主忠内, 但是没人跳过内，这个时候忠臣之间的相互攻击，不更新内奸值	
+		elseif (sgs.ai_role[from:objectName()] == "loyalist" and level > 0) or (sgs.ai_role[from:objectName()] == "rebel" and level < 0) then
 			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level) 
 		elseif sgs.ai_role[from:objectName()] ~= "rebel" and sgs.ai_role[from:objectName()] ~= "neutral" and level > 0 and to:isLord() then
 			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level)
@@ -1276,6 +1281,21 @@ function SmartAI:objectiveLevel(player)
 		end
 		if renegade_num == 0 then
 			if not (sgs.evaluatePlayerRole(player) == "loyalist" or sgs.evaluateRoleTrends(player) == "loyalist") then return 5 end
+			
+			if rebel_num > 0 then
+				local hasRebel
+				for _, p in ipairs(players) do
+					if sgs.ai_role[p:objectName()] == "rebel" then hasRebel = true break end
+				end
+				if not hasRebel then
+					sgs.UnknownRebel = true
+					self:sort(players, "hp")
+					local maxhp = players[#players]:isLord() and players[#players - 1]:getHp() or players[#players]:getHp()
+					if maxhp > 2 then return player:getHp() == maxhp and 5 or 0 end
+					if maxhp == 2 then return self.player:isLord() and 0 or (player:getHp() == maxhp and 5 or 1) end      
+					return self.player:isLord() and 0 or 5
+				end
+			end
 		end
 		
 		if loyal_num + 1 > rebel_num and renegade_num > 0 and (process == "loyalist" or process == "loyalish") and

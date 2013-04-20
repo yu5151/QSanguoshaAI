@@ -5262,7 +5262,7 @@ function SmartAI:needToThrowArmor(player)
 	if player:objectName() ~= self.player:objectName() and self:isEnemy(player) and self.player:getPhase() == sgs.Player_Play and self:slashIsAvailable()
 		and not self:slashProhibit(FS, player, self.player) and player:hasArmorEffect("Vine") and not IgnoreArmor(self.player, player)
 		and (self:getCard("FireSlash") or (self:getCard("Slash") and (self:isEquip("Fan") or self.player:hasSkills("lihuo|zonghuo") or self:getCardsNum("Fan") >= 1)))
-		and (player:isKongcheng() or sgs.card_lack[player:objectName()]["Jink"] = 1 or getCardsNum("Jink", player) < 1) then
+		and (player:isKongcheng() or sgs.card_lack[player:objectName()]["Jink"] == 1 or getCardsNum("Jink", player) < 1) then
 		return true
 	end
 	return false

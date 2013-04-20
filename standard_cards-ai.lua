@@ -2889,8 +2889,8 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	
 	if analeptic then
 		local slashs = self:getCards("Slash")
-		local hit_num = 0
 		for _, enemy in ipairs(self.enemies) do
+			local hit_num = 0
 			for _, slash in ipairs(slashs) do
 				if self:slashIsEffective(slash, enemy) and self.player:canSlash(enemy, slash) and self:slashIsAvailable() then
 					hit_num = hit_num + 1
@@ -2905,9 +2905,9 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 					end
 				end
 			end
+			if (self.player:hasWeapon("Blade") or self:getCardsNum("Blade") > 0) and getCardsNum("Jink", enemy) <= hit_num then return analeptic end
+			if self:hasCrossbowEffect(self.player) and hit_num >= 2 then return analeptic end
 		end
-		if (self.player:hasWeapon("Blade") or self:getCardsNum("Blade") > 0) and getCardsNum("Jink", enemy) <= hit_num then return analeptic end
-		if self:hasCrossbowEffect(self.player) and hit_num >= 2 then return analeptic end
 	end
 	
 	if weapon and (self:getCardsNum("Slash") > 0 and self:slashIsAvailable() or not SelfisCurrent) then

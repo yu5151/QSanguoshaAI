@@ -639,7 +639,10 @@ function SmartAI:getDynamicUsePriority(card)
 				end
 			end
 		elseif sgs.dynamic_value.control_card[class_name] then
-			if use_card:getTypeId() == sgs.Card_TypeTrick then dynamic_value = 7 - bad_null / good_null else dynamic_value = 6.65 end
+			if use_card:getTypeId() == sgs.Card_TypeTrick then
+				dynamic_value = good_null > 1 and 7 - bad_null / good_null or 7 - bad_null
+			else dynamic_value = 6.65
+			end
 			value = value + dynamic_value
 		elseif sgs.dynamic_value.lucky_chance[class_name] then
 			value = value + (#self.enemies - #self.friends)
@@ -3372,6 +3375,12 @@ function SmartAI:askForSinglePeach(dying)
 	local forbid = sgs.Sanguosha:cloneCard("peach", sgs.Card_NoSuit, 0)
 	if self.player:isDead() then return "." end
 	if self.player:isLocked(forbid) or dying:isLocked(forbid) then return "." end
+	if self.player:objectName() == dying:objectName() and not self:needDeath(dying) then
+		local anal = sgs.Sanguosha:cloneCard("Analeptic", sgs.Card_NoSuit, 0)
+		if not self.player:isCardLimited(anal, anal:getHandlingMethod()) and self:getCardId("Analeptic") then return self:getCardId("Analeptic") end
+		if self:getCardId("Peach") then return self:getCardId("Peach") end
+	end
+	
 	if not sgs.GetConfig("EnableHegemony", false) and self.role == "renegade" and not (dying:isLord() or dying:objectName() == self.player:objectName()) and 
 			(sgs.current_mode_players["loyalist"] == sgs.current_mode_players["rebel"] or self.room:getCurrent():objectName() == self.player:objectName()) then
 		return "."
@@ -4958,7 +4967,7 @@ function SmartAI:evaluateWeapon(card)
 	end
 
 	if card:isKindOf("Crossbow") and not self.player:hasSkill("paoxiao") and deltaSelfThreat ~= 0 then
-		if self.player:hasSkill("kurou") then deltaSelfThreat = deltaSelfThreat*3 + 10 end
+		if self.player:hasSkill("kurou") then deltaSelfThreat = deltaSelfThreat + #self:getCards("Peach") + #self:getCards("Analeptic") + self.player:getHp() end
 		deltaSelfThreat = deltaSelfThreat + self:getCardsNum("Slash")*3 - 2
 	end
 	local callback = sgs.ai_weapon_value[card:objectName()]
@@ -4972,6 +4981,9 @@ function SmartAI:evaluateWeapon(card)
 			end
 		end
 	end
+	
+	if self.player:hasSkill("jijiu") and card:isRed() then deltaSelfThreat = deltaSelfThreat + 0.5 end
+	if self.player:hasSkills("qixi|guidao") and card:isBlack() then deltaSelfThreat = deltaSelfThreat + 0.5 end
 
 	return deltaSelfThreat
 end
@@ -4980,19 +4992,23 @@ sgs.ai_armor_value = {}
 
 function SmartAI:evaluateArmor(card, player)
 	player = player or self.player
+	local value = 0
 	local ecard = card or player:getArmor()
+	if self.player:hasSkill("jijiu") and ecard:isRed() then value = value + 0.5 end
+	if self.player:hasSkills("qixi|guidao") and ecard:isBlack() then value = value + 0.5 end
 	for _, askill in sgs.qlist(player:getVisibleSkillList()) do
 		local callback = sgs.ai_armor_value[askill:objectName()]
 		if type(callback) == "function" then
-			return (callback(ecard, player, self) or 0)
+			return value + (callback(ecard, player, self) or 0)
 		end
 	end
 	if not ecard then return 0 end
 	local callback = sgs.ai_armor_value[ecard:objectName()]
 	if type(callback) == "function" then
-		return (callback(player, self) or 0)
+		return value + (callback(player, self) or 0)
 	end
-	return 0.5
+
+	return value + 0.5
 end
 
 function SmartAI:getSameEquip(card, player)
@@ -5059,7 +5075,6 @@ function SmartAI:useEquipCard(card, use)
 		if not self:needKongcheng() and not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow() <= 0 and not canUseSlash then return end
 
 		-- if (not use.to) and self.weaponUsed and (not self:hasSkills(sgs.lose_equip_skill)) then return end
-		if not use.to and self.player:getWeapon() and not self:hasSkills(sgs.lose_equip_skill) then return end
 		if (self.player:hasSkill("zhiheng") or self.player:hasSkill("jilve") and self.player:getMark("@bear") > 0) and
 			not self.player:hasUsed("ZhihengCard") and self.player:getWeapon() and not card:isKindOf("Crossbow") then
 			return

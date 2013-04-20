@@ -3376,7 +3376,7 @@ function SmartAI:askForSinglePeach(dying)
 	if self.player:isDead() then return "." end
 	if self.player:isLocked(forbid) or dying:isLocked(forbid) then return "." end
 	if self.player:objectName() == dying:objectName() and not self:needDeath(dying) then
-		local anal = sgs.Sanguosha:cloneCard("Analeptic", sgs.Card_NoSuit, 0)
+		local anal = sgs.Sanguosha:cloneCard("analeptic", sgs.Card_NoSuit, 0)
 		if not self.player:isCardLimited(anal, anal:getHandlingMethod()) and self:getCardId("Analeptic") then return self:getCardId("Analeptic") end
 		if self:getCardId("Peach") then return self:getCardId("Peach") end
 	end
@@ -5257,6 +5257,13 @@ function SmartAI:needToThrowArmor(player)
 		else
 			return true
 		end
+	end
+	local FS = sgs.Sanguosha:cloneCard("fire_slash", sgs.Card_NoSuit, 0)
+	if player:objectName() ~= self.player:objectName() and self:isEnemy(player) and self.player:getPhase() == sgs.Player_Play and self:slashIsAvailable()
+		and not self:slashProhibit(FS, player, self.player) and player:hasArmorEffect("Vine") and not IgnoreArmor(self.player, player)
+		and (self:getCard("FireSlash") or (self:getCard("Slash") and (self:isEquip("Fan") or self.player:hasSkills("lihuo|zonghuo") or self:getCardsNum("Fan") >= 1)))
+		and (player:isKongcheng() or sgs.card_lack[player:objectName()]["Jink"] = 1 or getCardsNum("Jink", player) < 1) then
+		return true
 	end
 	return false
 end

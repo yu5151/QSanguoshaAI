@@ -376,12 +376,9 @@ end
 
 sgs.ai_skill_invoke.duanzhi = function(self, data)
 	local use = data:toCardUse()
-	--[[
 	if self:isEnemy(use.from) and use.card:getSubtype() == "attack_card" and self.player:getHp() == 1 and not self:getCard("Peach") and not self:getCard("Analeptic") then
 		return true
 	end
-	]]--
-	if use.from and use.from:getCardCount(true) < 2 then return end
 	return use.from and self:isEnemy(use.from) and not self:doNotDiscard(use.from, "he", true, 2) and self.player:getHp() > 2
 end
 
@@ -409,10 +406,10 @@ sgs.ai_skill_use["@@fengyin"] = function(self, data)
 	local card_id = card:getEffectiveId()
 	
 	local target = self.room:getCurrent()
-	if self:isFriend(target) and target:containsTrick("indulgence") and target:getHandcardNum() + 2 > target:getHp() then
+	if self:isFriend(target) and self:willSkipPlayPhase(target) and target:getHandcardNum() + 2 > target:getHp() and target:getHp() >= self.player:getHp() then
 		return "@FengyinCard="..card_id
 	end
-	if self:isEnemy(target) and not target:containsTrick("indulgence") and target:getHandcardNum() >= target:getHp() then
+	if self:isEnemy(target) and not self:willSkipPlayPhase(target) and target:getHandcardNum() >= target:getHp() and target:getHp() >= self.player:getHp() then
 		return "@FengyinCard="..card_id
 	end
 	return "."

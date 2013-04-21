@@ -400,10 +400,10 @@ end
 sgs.ai_skill_invoke.lianli_jink = function(self, data)
 	local tied
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-		if player:getMark("@tied")>0 then tied = player break end
+		if player:getMark("@tied") > 0 then tied = player break end
 	end
 	if self:isEquip("EightDiagram", tied) then return true end
-	return self:getCardsNum("Jink")==0
+	return self:getCardsNum("Jink") == 0
 end
 
 sgs.ai_choicemade_filter.skillInvoke["lianli-jink"] = function(player, promptlist)
@@ -426,10 +426,24 @@ sgs.ai_skill_cardask["@lianli-jink"] = function(self)
 	local players = self.room:getOtherPlayers(self.player)
 	local target
 	for _, p in sgs.qlist(players) do
-		if p:getMark("@tied")>0 then target = p break end
+		if p:getMark("@tied") > 0 then target = p break end
 	end
 	if not self:isFriend(target) then return "." end
 	return self:getCardId("Jink") or "."
+end
+
+function sgs.ai_slash_prohibit.lianli(self, to, card, from)
+	if self:isFriend(to) then return false end
+	if self:canLiegong(to, from) then return false end
+	local players = sgs.QList2Table(self.room:getOtherPlayers(to))
+	for _, player in ipairs(players) do
+		if player:getMark("@tied") > 0 and self:isFriend(player, to) then
+			if player:hasSkill("tiandu") and sgs.ai_slash_prohibit.tiandu(self, player) then return true end
+			if player:hasLordSkill("hujia") and sgs.ai_slash_prohibit.hujia(self, player) then return true end
+			if player:hasSkill("leiji") and sgs.ai_slash_prohibit.leiji(self, player) then return true end
+		end
+	end
+	return false	
 end
 
 local lianli_slash_skill={name="lianli-slash"}
@@ -471,6 +485,7 @@ sgs.ai_skill_cardask["@lianli-slash"] = function(self)
 	if not self:isFriend(target) then return "." end
 	return self:getCardId("Slash") or "."
 end
+
 --[[
 	技能：同心
 	描述：处于连理状态的两名角色，每受到一点伤害，你可以令你们两人各摸一张牌 

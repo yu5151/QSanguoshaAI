@@ -226,6 +226,7 @@ function SmartAI:useCardSupplyShortage(card, use)
 
 	local getvalue = function(enemy)
 		if enemy:containsTrick("supply_shortage") or enemy:containsTrick("YanxiaoCard") then return -100 end
+		if enemy:getMark("juao") > 0 then return -100 end
 		if enemy:hasSkill("qiaobian") and not enemy:containsTrick("supply_shortage") and not enemy:containsTrick("indulgence") then return -100 end
 		if zhanghe_seat > 0 and (self:playerGetRound(zhanghe) <= self:playerGetRound(enemy) and self:enemiesContainsTrick() <= 1 or not enemy:faceUp()) then
 			return - 100 end

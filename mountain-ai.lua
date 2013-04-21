@@ -440,6 +440,7 @@ function sgs.ai_slash_prohibit.xiangle(self, to, card, from)
 		anal_num = getCardsNum("Analpetic", from)
 		jink_num = getCardsNum("Jink", from)
 	end
+	if self:needKongcheng() and self.player:getHandcardNum() == 2 then return slash_num + anal_num + jink_num < 2 end 
 	return slash_num + anal_num + math.max(jink_num - 1, 0) < 2
 end
 
@@ -477,7 +478,7 @@ sgs.ai_skill_invoke.fangquan = function(self, data)
 				hasCrossbow = false
 				break
 			elseif not slashTo and self:slashIsAvailable() and self:slashIsEffective(slash, enemy)
-				and self.player:canSlash(enemy, slash, true, range_fix) and self:getCardsNum("Jink", enemy) < 1 then
+				and self.player:canSlash(enemy, slash, true, range_fix) and getCardsNum("Jink", enemy) < 1 then
 				shouldUse = shouldUse + 1
 				slashTo = true
 			end
@@ -1065,7 +1066,7 @@ function sgs.ai_skill_choice.huashen(self, choices)
 		"nosxuanhuo|qiangxi|lirang|longluo|nosjujian|lieren|pojun|bawang|qixi|yinling|jizhi|duoshi|zhaoxin|gongqi|neoluoyi|luoyi|wenjiu|jie|" ..
 		"jiangchi|wusheng|longdan|jueqing|xueji|yinghun|longhun|jiuchi|qingcheng|shuangren|kuangfu|nosgongqi|wushen|paoxiao|lianhuan|chouliang|" ..
 		"houyuan|jujian|shensu|jisu|luanji|chizhong|zhijian|shuangxiong|xinzhan|zhenwei|jieyuan|duanbing|fenxun|guidao|guicai|noszhenlie|wansha|" ..
-		"bifa|lianpo|yicong|nosshangshi|shangshi|lianying|tianyi|xianzhen|zongshi|keji|kuiwei|yuanhu|neojushou|jushou|huoji|roulin|fuhun|lihuo|xiaoji|" ..
+		"bifa|lianpo|yicong|nosshangshi|shangshi|lianying|tianyi|xianzhen|zongshi|keji|kuiwei|yuanhu|juao|neojushou|jushou|huoji|roulin|fuhun|lihuo|xiaoji|" ..
 		"mashu|zhengfeng|xuanfeng|nosxuanfeng|jiushi|dangxian|tannang|qicai|taichen|hongyan|kurou|lukang_weiyan|yicai|beifa|qinyin|zonghuo|" ..
 		"shouye|shaoying|xingshang|suishi|yuwen|lianli|gongmou|weiwudi_guixin|wuling|shenfen"):split("|")) do
 			if str:matchOne(askill) then return askill end
@@ -1143,7 +1144,7 @@ function sgs.ai_skill_choice.huashen(self, choices)
 		end
 	end
 	for index = #choices, 1, -1 do
-		if ("renjie|benghuai|shenjun|dongcha|yishe|juao|shiyong|wumou"):match(choices[index]) then
+		if ("renjie|benghuai|shenjun|dongcha|yishe|shiyong|wumou"):match(choices[index]) then
 			table.remove(choices,index)
 		end
 	end

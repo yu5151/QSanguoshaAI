@@ -238,8 +238,15 @@ sgs.ai_skill_use_func.JuejiCard = function(card, use, self)
 	return
 end
 
-sgs.ai_card_intention.JuejiCard = 30
 sgs.ai_use_priority.JuejiCard = 3.4
+sgs.ai_card_intention.JuejiCard = function(self, card, from, tos)
+	local intention = 10
+	local to = tos[1]
+	if self:needKongcheng(to) and to:getHandcardNum() == 1 then
+		intention = 0
+	end
+	sgs.updateIntention(from, tos[1], intention)
+end
 sgs.ai_cardneed.jueji = sgs.ai_cardneed.bignumber
 sgs.dynamic_value.control_card.JuejiCard = true
 

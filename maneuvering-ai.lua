@@ -541,7 +541,7 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 			local flag=string.format("%s_%s_%s","visible",self.player:objectName(),enemy:objectName())
 			if handcards[1]:hasFlag("visible") or handcards[1]:hasFlag(flag) then
 				local suitstring = handcards[1]:getSuitString()
-				if not lack[suitstring] then
+				if not lack[suitstring] and not table.contains(targets, enemy) then
 					table.insert(targets, enemy)
 				end
 			end

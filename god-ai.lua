@@ -673,50 +673,49 @@ function SmartAI:dangerousshenguanyu(player)
 	return good
 end
 
-local shenfen_skill={}
+local shenfen_skill = {}
 shenfen_skill.name = "shenfen"
 table.insert(sgs.ai_skills, shenfen_skill)
-shenfen_skill.getTurnUseCard=function(self)
+shenfen_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("ShenfenCard") then return end
 	if self.player:getMark("@wrath") < 6 then return end
 	return sgs.Card_Parse("@ShenfenCard=.")
 end
 
-sgs.ai_skill_use_func.ShenfenCard=function(card,use,self)
+sgs.ai_skill_use_func.ShenfenCard = function(card,use,self)
 	local friends_ZDL, enemies_ZDL = 0, 0
-	local good = (#self.enemies - #self.friends_noself)*1.5
+	local good = (#self.enemies - #self.friends_noself) * 1.5
 	
-	
-	if self:isEnemy(self.player:getNextAlive()) and self.player:getHp() >2 then good = good - 0.5 end
-	if self.player:getRole() == "rebel" then good = good +1 end	
-	if self.player:getRole() == "renegade" then good = good +0.5 end	
-	if not self.player:faceUp() then good = good +1 end
+	if self:isEnemy(self.player:getNextAlive()) and self.player:getHp() > 2 then good = good - 0.5 end
+	if self.player:getRole() == "rebel" then good = good + 1 end	
+	if self.player:getRole() == "renegade" then good = good + 0.5 end	
+	if not self.player:faceUp() then good = good + 1 end
 	if self:hasSkills("jushou|neojushou|lihun|kuiwei|jiushi") then good = good + 1 end
-	if self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow") and self:getCardsNum("Slash",self.player) > 1 then good = good +1 end
+	if self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow") and self:getCardsNum("Slash", self.player) > 1 then good = good + 1 end
 	
-	for _,p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+	for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		good = good + self:dangerousshenguanyu(p)
-		if p:hasSkill("dushi") then good = good - 1 end
+		if p:hasSkill("dushi") and p:getHp() < 2 then good = good - 1 end
 	end
 	
-	for _,friend in ipairs(self.friends_noself) do
+	for _, friend in ipairs(self.friends_noself) do
 		if (friend:hasSkill("fangzhu") and friend:getHp() > 1) or 
 		(friend:hasSkill("jilve") and friend:getMark("@waked") > 0 and friend:getMark("@bear") > 0 and friend:getHp() > 1) then
-			good = good + friend:getLostHp()*0.25 + 0.5
+			good = good + friend:getLostHp() * 0.25 + 0.5
 			break
 		end
 	end
 	
-	for _,friend in ipairs(self.friends_noself) do
+	for _, friend in ipairs(self.friends_noself) do
 		if friend:hasSkill("jujian") then
-			good = good +0.5
+			good = good + 0.5
 			break
 		end
 	end	
 	
-	for _,friend in ipairs(self.friends_noself) do
+	for _, friend in ipairs(self.friends_noself) do
 		friends_ZDL = friends_ZDL + friend:getCardCount(true) + friend:getHp()
-		if friend:getHandcardNum() > 4 then good = good + friend:getHandcardNum()*0.25 end
+		if friend:getHandcardNum() > 4 then good = good + friend:getHandcardNum() * 0.25 end
 		good = good + self:cansaveplayer(friend)
 		if friend:hasArmorEffect("SilverLion") and friend:getHp() > 1 then good = good + 0.5 end
 		if self:damageIsEffective(friend) then

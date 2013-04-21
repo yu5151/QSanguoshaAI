@@ -71,7 +71,10 @@ sgs.ai_choicemade_filter = 	{
 	skillChoice = 			{},
 	Nullification =			{},
 	playerChosen =			{},
-	cardChosen =			{}
+	cardChosen =			{},
+	Yiji = {},
+	viewCards = {},
+	pindian = {}
 }
 
 sgs.card_lack =				{}
@@ -566,24 +569,6 @@ function SmartAI:getDynamicUsePriority(card)
 					dynamic_value = dynamic_value - 1
 					if self:isEnemy(player) then dynamic_value = dynamic_value - ((player:getHandcardNum() + player:getHp()) / player:getHp()) * dynamic_value
 					else dynamic_value = dynamic_value + ((player:getHandcardNum() + player:getHp()) / player:getHp()) * dynamic_value
-					end
-				end
-			elseif use_card:isKindOf("GodSalvation") then
-				local weak_mate, weak_enemy = 0, 0
-				for _, player in sgs.qlist(self.room:getAllPlayers()) do
-					if player:getHp() <= 1 and player:getHandcardNum() <= 1 then
-						if self:isEnemy(player) then weak_enemy = weak_enemy + 1
-						elseif self:isFriend(player) then weak_mate = weak_mate + 1
-						end
-					end
-				end
-				if weak_enemy > weak_mate then
-					for _, card in sgs.qlist(self.player:getHandcards()) do
-						if card:isAvailable(self.player) and sgs.dynamic_value.damage_card[card:getClassName()] then
-							if self:getDynamicUsePriority(card) - 0.5 > self:getUsePriority(card) then
-								dynamic_value = -5
-							end
-						end
 					end
 				end
 			elseif use_card:isKindOf("Peach") then
@@ -1899,6 +1884,8 @@ function SmartAI:filterEvent(event, player, data)
 				local xunyu = self.room:findPlayerBySkillName("quhu")
 				intention = 80
 				from = xunyu
+			elseif damage.from and damage.from:hasFlag("ShenfenUsing") then
+				return
 			else
 				intention = 100 
 			end
@@ -3316,7 +3303,7 @@ function SmartAI:askForPindian(requestor, reason)
 	local passive = { "mizhao", "lieren" }
 	if self.player:objectName() == requestor:objectName() and not table.contains(passive, reason) then
 		if self[reason .. "_card"] then
-			return self[reason .. "_card"]
+			return sgs.Sanguosha:getCard(self[reason .. "_card"])
 		else
 			self.room:writeToConsole("Pindian card for " .. reason .. " not found!!")
 			return self:getMaxCard(self.player):getId()

@@ -1547,6 +1547,8 @@ function getTrickIntention(TrickClass, target)
 			end
 		end
 	end
+	if TrickClass == "Collateral" then return 0 end	--借刀仇恨复杂，待处理
+	if TrickClass == "AmazingGrace" then return -10 end
 	if sgs.dynamic_value.damage_card[TrickClass] then 
 		return 70
 	end
@@ -1568,6 +1570,8 @@ function getTrickIntention(TrickClass, target)
 	end
 	return 0
 end
+
+--[[
 --无懈可击：更新仇恨值--
 --promptlist{?, trick:className(), to:objectName(), positive<"true"or"false">}--
 --用于判断player使用的、无懈掉对to的trick的无懈可击
@@ -1637,6 +1641,29 @@ sgs.ai_choicemade_filter.Nullification.general = function(player, promptlist)
 			end
 			sgs.ai_trick_struct = {NFSource, TrickTarget, TrickClass}
 			sgs.updateIntention(player, to, -intention) --取相反的仇恨值
+		end
+	end
+end
+]]
+
+sgs.ai_choicemade_filter.Nullification.general = function(player, promptlist)
+	local TrickClass = promptlist[2]
+	local target_objectName = promptlist[3]
+	if TrickClass == "Nullification" then
+		if not sgs.Nullification_Source or not sgs.Nullification_Intention or type(sgs.Nullification_Intention) ~= "number" then
+			self.room:writeToConsole(debug.traceback()) return end
+		sgs.Nullification_Level = sgs.Nullification_Level + 1
+		if sgs.Nullification_Level % 2 == 0 then
+			sgs.updateIntention(player, sgs.Nullification_Source, sgs.Nullification_Intention)
+		elseif sgs.Nullification_Level % 2 == 1 then
+			sgs.updateIntention(player, sgs.Nullification_Source, -sgs.Nullification_Intention)
+		end
+	else
+		sgs.Nullification_Source = findPlayerByObjectName(global_room, target_objectName)
+		sgs.Nullification_Level = 1
+		sgs.Nullification_Intention = getTrickIntention(TrickClass, sgs.Nullification_Source)
+		if player:objectName() ~= target_objectName then
+			sgs.updateIntention(player, sgs.Nullification_Source, -sgs.Nullification_Intention)
 		end
 	end
 end

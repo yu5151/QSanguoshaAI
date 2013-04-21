@@ -516,7 +516,7 @@ function SmartAI:getDynamicUsePriority(card)
 				return math.max(sgs.ai_use_priority.Slash, sgs.ai_use_priority.Duel) + 0.1
 			end
 		end
-		if use_card:isKindOf("Peach") and self.player:hasSkill("kuanggu") then return 1.01 end
+		if use_card:isKindOf("Peach") and self.player:hasSkill("kuanggu") then return 0.01 end
 		if use_card:isKindOf("YanxiaoCard") and self.player:containsTrick("YanxiaoCard") then return 0.1 end
 		if use_card:isKindOf("DelayedTrick") and not use_card:isKindOf("YanxiaoCard") and #use_card:getSkillName() > 0 then
 			return sgs.ai_use_priority[use_card:getClassName()] - 0.01
@@ -586,7 +586,7 @@ function SmartAI:getDynamicUsePriority(card)
 				end
 			end
 			value = value + dynamic_value
-		elseif sgs.dynamic_value.damage_card[class_name] then
+--[[		elseif sgs.dynamic_value.damage_card[class_name] then
 			local others
 			if dummy_use.to then others = dummy_use.to else others = self.room:getOtherPlayers(self.player) end
 			dummy_use.probably_hit = {}
@@ -631,6 +631,7 @@ function SmartAI:getDynamicUsePriority(card)
 			value = value + dynamic_value
 		elseif sgs.dynamic_value.lucky_chance[class_name] then
 			value = value + (#self.enemies - #self.friends)
+]]--
 		end
 	end
 

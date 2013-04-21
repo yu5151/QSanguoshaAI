@@ -376,7 +376,9 @@ end
 
 sgs.ai_skill_invoke.duanzhi = function(self, data)
 	local use = data:toCardUse()
-	if self:isEnemy(use.from) and use.card:getSubtype() == "attack_card" and self.player:getHp() == 1 and not self:getCard("Peach") and not self:getCard("Analeptic") then
+	if self:isEnemy(use.from) and use.card:getSubtype() == "attack_card" and self.player:getHp() == 1 and not self:getCard("Peach")
+		and not self:getCard("Analeptic") and not isLord(self.player) and self:getAllPeachNum() == 0 then
+		self.player:setFlags("AI_doNotSave")
 		return true
 	end
 	return use.from and self:isEnemy(use.from) and not self:doNotDiscard(use.from, "he", true, 2) and self.player:getHp() > 2

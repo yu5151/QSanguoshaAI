@@ -167,10 +167,11 @@ function SmartAI:needDeath(player)
 end
 
 function SmartAI:doNotSave(player)
-	if (player:hasSkill("niepan") and player:getMark("@nirvana") > 0 and player:getCards("e"):length() < 2) or 
+	if (player:hasSkill("niepan") and player:getMark("@nirvana") > 0 and player:getCards("e"):length() < 2) or
 		(player:hasSkill("fuli") and player:getMark("@laoji") > 0 and player:getCards("e"):length() < 2) then
 		return true
 	end
+	if player:hasFlag("AI_doNotSave") then return true end
 	return false
 end
 

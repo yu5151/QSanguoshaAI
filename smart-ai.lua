@@ -950,7 +950,8 @@ sgs.ai_card_intention.general = function(from, to, level)
 	
 	
 	if sgs.evaluatePlayerRole(to) == "loyalist" then
-		if not sgs.UnknownRebel or isLord(to) then
+		if not isLord(to) and (sgs.UnknownRebel or sgs.current_mode_players["rebel"] == 0 and not sgs.explicit_renegade) then
+		else
 			sgs.role_evaluation[from:objectName()]["loyalist"] = sgs.role_evaluation[from:objectName()]["loyalist"] - level
 		end
 		
@@ -2005,7 +2006,7 @@ function SmartAI:filterEvent(event, player, data)
 			
 			if player:hasFlag("AI_Playing") and sgs.turncount <= 3 and player:getPhase() == sgs.Player_Discard 
 					and reason.m_reason==sgs.CardMoveReason_S_REASON_RULEDISCARD and not self:needBear(player) then
-				local is_neutral = sgs.evaluateRoleTrends(player) == "neutral"
+				local is_neutral = sgs.evaluateRoleTrends(player) == "neutral" and CanUpdateIntention(player)
 					
 				if isCard("Slash", card, player) and player:canSlashWithoutCrossbow() then
 					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do

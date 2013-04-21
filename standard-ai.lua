@@ -1375,30 +1375,30 @@ function sgs.ai_cardneed.zhiheng(to, card)
 	return not card:isKindOf("Jink")
 end
 
-local qixi_skill={}
-qixi_skill.name="qixi"
-table.insert(sgs.ai_skills,qixi_skill)
-qixi_skill.getTurnUseCard=function(self,inclusive)
+local qixi_skill = {}
+qixi_skill.name = "qixi"
+table.insert(sgs.ai_skills, qixi_skill)
+qixi_skill.getTurnUseCard = function(self,inclusive)
 	local cards = self.player:getCards("he")
-	cards=sgs.QList2Table(cards)
+	cards = sgs.QList2Table(cards)
 	
 	local black_card
 	
 	self:sortByUseValue(cards,true)
 	
-	local has_weapon=false
+	local has_weapon = false
 	
 	for _,card in ipairs(cards)  do
 		if card:isKindOf("Weapon") and card:isBlack() then has_weapon=true end
 	end
 	
 	for _,card in ipairs(cards)  do
-		if card:isBlack()  and ((self:getUseValue(card) < sgs.ai_use_value.Dismantlement) or inclusive or self:getOverflow() > 0) then
+		if card:isBlack() and ((self:getUseValue(card) < sgs.ai_use_value.Dismantlement) or inclusive or self:getOverflow() > 0) then
 			local shouldUse = true
 
 			if card:isKindOf("Armor") then
-				if not self.player:getArmor() then shouldUse=false 
-				elseif self:hasEquip(card) and not (card:isKindOf("SilverLion") and self.player:isWounded()) then shouldUse=false
+				if not self.player:getArmor() then shouldUse = false 
+				elseif self:hasEquip(card) and not not self:needToThrowArmor() then shouldUse = false
 				end
 			end
 

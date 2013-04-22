@@ -1101,12 +1101,12 @@ function sgs.ai_skill_choice.huashen(self, choices)
 			end
 		end
 		
-		if (self:getAllPeachNum() > 0 or not self:isWeak()) then
+		if (self:getAllPeachNum() > 0 or self.player:getHp() > 1 or not self:isWeak()) then
 			if str:matchOne("guixin") and self.room:alivePlayerCount() > 3 then return "guixin" end
 			if str:matchOne("yiji") then return "yiji" end
 			if self.player:getMark("@tied") > 0 and str:matchOne("tongxin") then return "tongxin" end
 			for _, askill in ipairs(("fankui|jieming|neoganglie|ganglie|enyuan|fangzhu|nosenyuan|langgu"):split("|")) do
-				if str:matchOne(askill) and (self.player:getHp() > 1 or self:getAllPeachNum() > 0) then return askill end
+				if str:matchOne(askill) then return askill end
 			end
 		end
 		

@@ -47,7 +47,7 @@ function sgs.isGoodTarget(player, targets, self)
 			elseif masochism == "xueji" and player:isWounded() then m_skill = false
 			elseif attacker and attacker:hasSkill("jueqing") then m_skill = false
 			elseif masochism == "jieming" and self and self:getJiemingChaofeng(player) > -4 then m_skill = false
-			elseif masochism == "yiji" and self and not self:haveFriendsToDraw(player) then m_skill = false
+			elseif masochism == "yiji" and self and not self:hasFriends("draw", player) then m_skill = false
 			else
 				m_skill = true
 				break
@@ -879,7 +879,7 @@ function SmartAI:useCardPeach(card, use)
 		and self.player:getHp() < 4 and self.player:getHp() > peaches then return 
 	end
 	
-	if self.player:hasSkill("rende") and self:haveFriendsToDraw() then
+	if self.player:hasSkill("rende") and self:hasFriends("draw") then
 		return
 	end
 	
@@ -2952,7 +2952,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		end
 		
 		if halberd then
-			if self.player:hasSkill("rende") and self:haveFriendsToDraw() then return halberd end
+			if self.player:hasSkill("rende") and self:hasFriends("draw") then return halberd end
 			if SelfisCurrent and self:getCardsNum("Slash") == 1 and self.player:getHandcardNum() == 1 then return halberd end
 		end
 		

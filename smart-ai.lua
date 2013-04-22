@@ -5056,7 +5056,7 @@ function SmartAI:useEquipCard(card, use)
 		if (self:hasSkills("rende|qingnang|gongqi|nosgongqi|nosjujian|jujian|shensu|mingce|beige|yuanhu|qingcheng|neoluoyi"))
 		or (self.player:hasSkill("yongsi") and self:getOverflow() <= 0)
 		or (self:hasSkills("renjie") and self:getOverflow() < 2 and not card:isKindOf("Crossbow"))
-		or (self:hasSkills("longluo") and self:getOverflow() < 2 and not card:isKindOf("Crossbow") and self:haveFriendsToDraw())
+		or (self:hasSkills("longluo") and self:getOverflow() < 2 and not card:isKindOf("Crossbow") and self:hasFriends("draw"))
 		or (self:hasSkills("qixi|duanliang|yinling") and (card:isBlack() or same:isBlack()))
 		or (self:hasSkills("guose|yanxiao") and (card:getSuit() == sgs.Card_Diamond or same:getSuit() == sgs.Card_Diamond))
 		or (self.player:hasSkill("longhun") and (card:getSuit() ~= sgs.Card_Diamond or same:getSuit() ~= sgs.Card_Diamond))
@@ -5203,12 +5203,26 @@ function getBestHp(player)
 	return player:getMaxHp()
 end
 
-function SmartAI:haveFriendsToDraw(player)
+function SmartAI:hasFriends(prompt, player)
 	player = player or self.player
 	local friends = self:getFriendsNoself(player)
 	if #friends < 1 then return false end
-	for _, friend in ipairs(friends) do
-		if not friend:hasSkill("manjuan") and not self:needKongcheng(friend, true) then return true end
+	if prompt == "draw" then
+		for _, friend in ipairs(friends) do
+			if not friend:hasSkill("manjuan") and not self:needKongcheng(friend, true) then return true end
+		end	
+	elseif prompt == "male" then
+		for _, friend in ipairs(friends) do
+			if friend:isMale() then return true end
+		end
+	elseif prompt == "wounded_male" then
+		for _, friend in ipairs(friends) do
+			if friend:isMale() and friend:isWounded() then return true end
+		end
+	elseif prompt == "friend" then
+		return true
+	else
+		global_room:writeToConsole(debug.traceback()) return
 	end
 	return false
 end
@@ -5230,8 +5244,8 @@ function SmartAI:needToLoseHp(to, from, isSlash, passive, recover)
 
 	if not passive then
 		if to:getMaxHp() > 2 then
-			if self:hasSkills("longluo|miji", to) and self:haveFriendsToDraw(to) then n = math.min(n, to:getMaxHp() - 1) end
-			if to:hasSkill("rende") and not self:willSkipPlayPhase(to) and self:haveFriendsToDraw(to) then n = math.min(n, to:getMaxHp() - 1) end
+			if self:hasSkills("longluo|miji", to) and self:hasFriends("draw", to) then n = math.min(n, to:getMaxHp() - 1) end
+			if to:hasSkill("rende") and not self:willSkipPlayPhase(to) and self:hasFriends("draw", to) then n = math.min(n, to:getMaxHp() - 1) end
 		end
 	end
 
@@ -5295,7 +5309,7 @@ function SmartAI:doNotDiscard(to, flags, conservative, n, cant_choose)
 	if to:hasSkill("tuntian") and to:hasSkill("zaoxian") and to:getPhase() == sgs.Player_NotActive and (conservative or #self.enemies > 1) then return true end
 	
 	if cant_choose then
-		if to:hasSkill("lirang") and self:haveFriendsToDraw(to) then return true end
+		if to:hasSkill("lirang") and self:hasFriends("draw", to) then return true end
 		if self:needKongcheng(to) and to:getHandcardNum() <= n then return true end
 		if to:hasSkill("shangshi") and (to:getHandcardNum() - n) < math.min(2, to:getLostHp()) then return true end
 		if to:hasSkill("nosshangshi") and (to:getHandcardNum() - n) < player:getLostHp() then return true end

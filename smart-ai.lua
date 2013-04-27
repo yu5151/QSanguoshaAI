@@ -2480,7 +2480,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 					if ag_card:isKindOf("Crossbow") then crossbow_num = crossbow_num + 1 end
 				end
 				if (peach_num == 1 and to:getHp() < getBestHp(to)) or
-					(peach_num > 0 and self:isWeak(to) or NP:getHp() < getBestHp(NP) and self:getOverflow(NP) < 1) then
+					(peach_num > 0 and (self:isWeak(to) or NP:getHp() < getBestHp(NP) and self:getOverflow(NP) < 1)) then
 					return null_card
 				end
 				if peach_num == 0 and not self:willSkipPlayPhase(NP) then

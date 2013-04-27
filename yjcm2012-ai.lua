@@ -94,7 +94,7 @@ gongqi_skill.getTurnUseCard = function(self,inclusive)
 	for _, c in ipairs(handcards) do
 		if c:isKindOf("Weapon") then
 			has_weapon = true
-			if not weapon or self:evaluateWeapon(weapon) < self:evaluateArmor(c) then weapon = c end
+			if not weapon or self:evaluateWeapon(weapon) < self:evaluateWeapon(c) then weapon = c end
 		end
 		if c:isKindOf("Armor") then
 			has_armor = true
@@ -114,6 +114,7 @@ gongqi_skill.getTurnUseCard = function(self,inclusive)
 	
 	if self:getOverflow() > 0 and self:getCardsNum("Slash") >= 1 then
 		self:sortByKeepValue(handcards)
+		self:sort(self.enemies, "defense")
 		for _, c in ipairs(handcards) do
 			if c:isKindOf("Snatch") or c:isKindOf("Dismantlement") then
 				local use = { isDummy = true }
@@ -126,6 +127,7 @@ gongqi_skill.getTurnUseCard = function(self,inclusive)
 				or (c:isKindOf("Nullification") and self:getCardsNum("Nullification") < 2)
 				or (c:isKindOf("Slash") and self:getCardsNum("Slash") == 1) then
 				-- do nothing
+			elseif not c:isKindOf("EquipCard") and self.player:inMyAttackRange(self.enemies[1]) then
 			else
 				return sgs.Card_Parse("@GongqiCard=" .. c:getEffectiveId())
 			end

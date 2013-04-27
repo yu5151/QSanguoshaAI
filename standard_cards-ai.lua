@@ -1631,6 +1631,21 @@ end
 
 sgs.ai_use_priority.GodSalvation = 1.1
 sgs.dynamic_value.benefit.GodSalvation = true
+sgs.ai_card_intention.GodSalvation = function(self, card, from, tos)
+	local can, first
+	for _, to in ipairs(tos) do
+		if to:isWounded() and not first then
+			first = to
+			can = true
+		elseif first and not self:isFriend(first, to) then
+			can = false
+			break
+		end
+	end
+	if can then
+		sgs.updateIntention(from, first, -10)
+	end
+end
 
 function SmartAI:useCardDuel(duel, use)
 	if self.player:hasSkill("wuyan") and not self.player:hasSkill("jueqing") then return end
@@ -1736,7 +1751,7 @@ function SmartAI:useCardDuel(duel, use)
 	
 end
 
-sgs.ai_card_intention.Duel=function(self, card,from,tos,source)
+sgs.ai_card_intention.Duel=function(self, card, from, tos, source)
 	if sgs.ai_lijian_effect then 
 		sgs.ai_lijian_effect = false
 		return

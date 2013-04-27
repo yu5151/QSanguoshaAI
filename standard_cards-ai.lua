@@ -872,7 +872,7 @@ function SmartAI:useCardPeach(card, use)
 
 	cards = sgs.QList2Table(cards)
 	for _,card in ipairs(cards) do
-		if card:isKindOf("Peach") then peaches = peaches + 1 end
+		if isCard("Peach", card, self.player) then peaches = peaches + 1 end
 	end
 
 	if self.player:isLord() and (self.player:hasSkill("hunzi") and self.player:getMark("hunzi") == 0)
@@ -1917,7 +1917,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 		if usecard and use.to and use.to:length() < targets_num and not table.contains(targets, player:objectName()) then
 			table.insert(targets, player:objectName())
 			use.to:append(player)
-			self.room:setCardFlag(card_or_cardid, name)
+			self.room:setCardFlag(card_or_cardid, "AI_"..name)
 			if use.to:length() == 1 then self:speak("hostile", self.player:isFemale()) end
 		end		
 	end
@@ -2475,27 +2475,30 @@ function SmartAI:enemiesContainsTrick(EnemyCount)
 	end
 	
 	for _, enemy in ipairs(self.enemies) do
-		if not enemy:containsTrick("YanxiaoCard") and not (self:hasSkills("qiaobian", enemy) and enemy:getHandcardNum() > 0) 
-		  and not self:hasSkills("keji|conghui", enemy) then
-			if enemy:containsTrick("indulgence") and (not zhanghe or self:playerGetRound(enemy) >= self:playerGetRound(zhanghe)) then
-				trick_all = trick_all + 1
-				if not temp_enemy or temp_enemy:objectName() ~= enemy:objectName() then
-					enemy_num = enemy_num + 1
-					temp_enemy = enemy
+		if not enemy:containsTrick("YanxiaoCard") then
+			if enemy:containsTrick("indulgence") then
+				if not enemy:hasSkills("keji|conghui") and	(not zhanghe or self:playerGetRound(enemy) >= self:playerGetRound(zhanghe)) then
+					trick_all = trick_all + 1
+					if not temp_enemy or temp_enemy:objectName() ~= enemy:objectName() then
+						enemy_num = enemy_num + 1
+						temp_enemy = enemy
+					end
 				end
 			else
 				possible_indul_enemy = possible_indul_enemy + 1
 			end
-		end
-		if not self:hasSkills("shensu|jisu", enemy) and (self.player:distanceTo(enemy) == 1 or self.player:hasSkill("duanliang") and self.player:distanceTo(enemy) <= 2) then
-			if enemy:containsTrick("supply_shortage") and (not zhanghe or self:playerGetRound(enemy) >= self:playerGetRound(zhanghe)) then
-				trick_all = trick_all + 1
-				if not temp_enemy or temp_enemy:objectName() ~= enemy:objectName() then
-					enemy_num = enemy_num + 1
-					temp_enemy = enemy
+			if self.player:distanceTo(enemy) == 1 or self.player:hasSkill("duanliang") and self.player:distanceTo(enemy) <= 2 then
+				if enemy:containsTrick("supply_shortage") then
+					if not self:hasSkills("shensu|jisu", enemy) and (not zhanghe or self:playerGetRound(enemy) >= self:playerGetRound(zhanghe)) then
+						trick_all = trick_all + 1
+						if not temp_enemy or temp_enemy:objectName() ~= enemy:objectName() then
+							enemy_num = enemy_num + 1
+							temp_enemy = enemy
+						end
+					end
+				else
+					possible_ss_enemy  = possible_ss_enemy + 1
 				end
-			else
-				possible_ss_enemy  = possible_ss_enemy + 1
 			end
 		end
 	end

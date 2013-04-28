@@ -1250,9 +1250,12 @@ function sgs.ai_cardsview.Spear(class_name, player)
 		cards=sgs.QList2Table(cards)
 		local newcards = {}
 		for _, card in ipairs(cards) do
-			if not card:isKindOf("Peach") and not (card:isKindOf("ExNihilo") and player:getPhase() == sgs.Player_Play) then table.insert(newcards, card) end
+			if not card:isKindOf("Peach") and not (card:isKindOf("ExNihilo") and player:getPhase() == sgs.Player_Play)
+				and not (card:isRed() and player:hasSkill("jijiu") and player:getHandcardNum() <= 3 and player:getPhase() == sgs.Player_NotActive) then
+				table.insert(newcards, card) 
+			end
 		end
-		if #newcards<2 then return nil end
+		if #newcards < 2 then return nil end
 
 		local suit1 = newcards[1]:getSuitString()
 		local card_id1 = newcards[1]:getEffectiveId()

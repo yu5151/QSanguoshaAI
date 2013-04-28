@@ -844,11 +844,11 @@ function SmartAI:ImitateResult_DrawNCards(player, skills, self, overall)
 			end
 		end
 	end
+	local count = 2 --初始摸牌数目
 	if #drawSkills > 0 then
 		local room = player:getRoom() --当前房间
 		local others = room:getOtherPlayers(player) --其他角色
 		local alives = room:getAlivePlayers() --存活角色
-		local count = 2 --初始摸牌数目
 		local lost = player:getLostHp() --已损失体力值
 		for _,skillname in pairs(drawSkills) do
 			if skillname == "tuxi" then --突袭，放弃摸牌

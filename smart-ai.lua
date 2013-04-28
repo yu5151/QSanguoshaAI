@@ -519,7 +519,7 @@ function SmartAI:getDynamicUsePriority(card)
 		if use_card:isKindOf("Peach") and self.player:hasSkill("kuanggu") then return 0.01 end
 		if use_card:isKindOf("YanxiaoCard") and self.player:containsTrick("YanxiaoCard") then return 0.1 end
 		if use_card:isKindOf("DelayedTrick") and not use_card:isKindOf("YanxiaoCard") and #use_card:getSkillName() > 0 then
-			return sgs.ai_use_priority[use_card:getClassName()] - 0.01
+			return sgs.ai_use_priority[class_name] - 0.01
 		end
 
 		if self.player:getMark("shuangxiong") > 0 and use_card:isKindOf("Duel") then 
@@ -1243,7 +1243,7 @@ function SmartAI:objectiveLevel(player)
 		end
 		
 		if loyal_num + 1 > rebel_num and renegade_num > 0 and (process == "loyalist" or process == "loyalish") and
-			sgs.ai_role[player:objectName()] == "renegade" then return 5 end
+			sgs.ai_role[player:objectName()] == "renegade" then return 1 end
 			
 		if process == "rebel" and rebel_num > loyal_num and target_role == "renegade" then return -2 end
 
@@ -1275,7 +1275,7 @@ function SmartAI:objectiveLevel(player)
 		end
 
 		if rebel_num > loyal_num + renegade_num + 1 and (process == "rebel" or process == "rebelish") and
-			sgs.ai_role[player:objectName()] == "renegade" then return 5 end
+			sgs.ai_role[player:objectName()] == "renegade" then return 1 end
 		
 		if process == "loyalist" and renegade_num > 0 and sgs.ai_role[player:objectName()] == "renegade" then return -2 end
 	  
@@ -1851,6 +1851,8 @@ function SmartAI:filterEvent(event, player, data)
 				sgs.tanlan_target = damage.from
 			elseif damage.to:hasSkill("enyuan") then
 				sgs.enyuan_damage_target = damage.from
+			elseif self.room:findPlayerBySkillName("beige") and damage.card and damage.card:isKindOf("Slash") then
+				sgs.beige_damage_from = damage.from
 			end
 		end
 	elseif event == sgs.Damaged then
@@ -1868,7 +1870,7 @@ function SmartAI:filterEvent(event, player, data)
 				intention = 80
 				from = xunyu
 			elseif damage.from and damage.from:hasFlag("ShenfenUsing") then
-				return
+				intention = 0
 			else
 				intention = 100 
 			end
@@ -1880,7 +1882,7 @@ function SmartAI:filterEvent(event, player, data)
 			
 			if damage.transfer or damage.chain then intention = 0 end
 			
-			if from and intention~=0 then sgs.updateIntention(from, to, intention) end
+			if from and intention ~= 0 then sgs.updateIntention(from, to, intention) end
 		end
 	elseif event == sgs.CardUsed then
 		local struct = data:toCardUse()
@@ -3704,8 +3706,9 @@ function SmartAI:needRetrial(judge)
 			end
 		end
 		if self:isFriend(who) then
-			if who:getHp() - who:getHandcardNum() >= 2 then return false end
-			if who:hasSkill("tuxi") and who:getHp() > 2 then return false end
+			local drawcardnum = self:ImitateResult_DrawNCards(who, who:getVisibleSkillList(), self)
+			if who:getHp() - who:getHandcardNum() >= drawcardnum and self:getOverflow() < 0 then return false end
+			if who:hasSkill("tuxi") and who:getHp() > 2 and self:getOverflow() < 0 then return false end
 			return not judge:isGood()
 		else
 			return judge:isGood()
@@ -3736,6 +3739,8 @@ function SmartAI:needRetrial(judge)
 		if not who:hasSkill("zaoxian") and who:getMark("zaoxian") == 0 then return false end
 	end
 	
+	if reason == "beige" then return true end
+	
 	if self:isFriend(who) then
 		return not judge:isGood()
 	elseif self:isEnemy(who) then
@@ -3751,28 +3756,37 @@ end
 -- @return the retrial card id or -1 if not found
 function SmartAI:getRetrialCardId(cards, judge)
 	local can_use = {}
-	
+	local reason = judge.reason
 	for _, card in ipairs(cards) do
-		if self:isFriend(judge.who) and not (card:isKindOf("Peach") and (self:getFinalRetrial() == 2 or self:DontRespondPeach(judge))) then
-			if self.player:hasSkill("hongyan") and not judge.who:hasSkill("hongyan") and sgs.Sanguosha:getEngineCard(card:getId()):getSuit() == sgs.Card_Spade then
-				if judge.reason == "indulgence" or judge.reason == "EightDiagram" then
-				elseif judge.reason == "luoshen" then
-					table.insert(can_use, card)
+		card = self.player:hasSkill("hongyan") and sgs.Sanguosha:getEngineCard(card:getId()) or card
+		if reason == "beige" and sgs.beige_damage_from and not isCard("Peach", card, self.player) then
+			if self:isFriend(sgs.beige_damage_from) then
+				local other_suit, hasSpade = {}
+				if not judge.who:hasSkill("hongyan") and not self:toTurnOver(sgs.beige_damage_from) and judge.card:getSuit() ~= sgs.Card_Spade and
+					card:getSuit() == sgs.Card_Spade then
+						table.insert(can_use, card)
+						hasSpade = true
+				elseif (self:getOverflow(sgs.beige_damage_from) >= 2 or self:getLeastHandcardNum(who) >= 2) and
+					judge.card:getSuit() ~= sgs.Card_Diamond and card:getSuit() == sgs.Card_Diamond then
+						table.insert(other_suit, card)
 				end
-			elseif judge.who:hasSkill("hongyan") and sgs.Sanguosha:getEngineCard(card:getId()):getSuit() == sgs.Card_Spade and
-				(judge.reason == "indulgence" or judge.reason == "EightDiagram") then
-				table.insert(can_use, card)
-			elseif judge:isGood(card) then
+				if not hasSpade and #other_suit > 0 then table.insertTable(can_use, other_suit) end
+			else
+				if not judge.who:hasSkill("hongyan") and not self:toTurnOver(sgs.beige_damage_from) and card:getSuit() ~= sgs.Card_Spade and
+					judge.card:getSuit() == sgs.Card_Spade then
+						table.insert(can_use, card)
+				end
+			end
+		elseif self:isFriend(judge.who) and not (isCard("Peach", card, self.player) and (self:getFinalRetrial() == 2 or self:DontRespondPeach(judge))) then
+			if judge.who:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade and
+				(reason == "indulgence" or reason == "EightDiagram") then
+					table.insert(can_use, card)	
+			elseif judge:isGood(card) and reason ~= "beige" then
 				table.insert(can_use, card)
 			end
-		elseif self:isEnemy(judge.who) and not (card:isKindOf("Peach") and (self:getFinalRetrial() == 2 or self:DontRespondPeach(judge))) then
-			if judge.who:hasSkill("hongyan") and sgs.Sanguosha:getEngineCard(card:getId()):getSuit() == sgs.Card_Spade and
-				(judge.reason == "indulgence" or judge.reason == "EightDiagram") then
-			elseif self.player:hasSkill("hongyan") and not judge.who:hasSkill("hongyan") and sgs.Sanguosha:getEngineCard(card:getId()):getSuit() == sgs.Card_Spade then
-				if (judge.reason == "indulgence" or judge.reason == "EightDiagram") then					
-					table.insert(can_use, card)
-				elseif judge.reason == "luoshen" then
-				end
+		elseif self:isEnemy(judge.who) and not (isCard("Peach", card, self.player) and (self:getFinalRetrial() == 2 or self:DontRespondPeach(judge))) then
+			if judge.who:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade and
+				(reason == "indulgence" or reason == "EightDiagram") then
 			elseif not judge:isGood(card) then
 				table.insert(can_use, card)
 			end
@@ -5541,7 +5555,7 @@ function SmartAI:DontRespondPeach(judge)
 		end
 	end
 	
-	--judge.reason:beige,baonue,neoganglie,ganglie,caizhaoji_hujia
+	--judge.reason:baonue,neoganglie,ganglie,caizhaoji_hujia
 	if judge.reason == "tuntian" and judge.who:getMark("zaoxian") == 0 and judge.who:getPile("field"):length() < 2 then return true
 	elseif (judge.reason == "EightDiagram" or judge.reason == "bazhen") and 
 		self:isFriend(judge.who) and not self:isWeak(judge.who) then return true
@@ -5551,6 +5565,7 @@ function SmartAI:DontRespondPeach(judge)
 		if target:hasArmorEffect("Vine") and target:getHp() > 3 or target:getHp() > 2 then return true end
 	elseif judge.reason == "tieji" then return true
 	elseif judge.reason == "nosqianxi" or judge.reason == "qianxi" then return true
+	elseif judge.reason == "beige" then return true
 	end
 	
 	return false

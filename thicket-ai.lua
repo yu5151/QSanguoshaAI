@@ -1,11 +1,12 @@
 sgs.ai_skill_invoke.xingshang = true
 
-function SmartAI:toTurnOver(player, n) 
-	if not player then global_room:writeToConsole(debug.traceback()) return end			
+function SmartAI:toTurnOver(player, n)
+	if not player then global_room:writeToConsole(debug.traceback()) return end
+	n = n or 0
 	if (player:hasFlag("GuixinUsing") or player:hasFlag("ShenfenUsing")) and player:faceUp() then
 		return false
 	end
-	if n > 1 and player:hasSkill("jijiu") 
+	if n > 1 and player:hasSkill("jijiu")
 	  and not (player:hasSkill("manjuan") and player:getPhase() == sgs.Player_NotActive) then
 		return false
 	end
@@ -30,11 +31,11 @@ sgs.ai_skill_use["@@fangzhu"] = function(self, prompt)
 		end
 	end
 
-	if not target then		
+	if not target then
 		if n >= 3 then
 			target = self:findPlayerToDraw("noself", n)
 			if not target then
-				for _, enemy in ipairs(self.enemies) do									
+				for _, enemy in ipairs(self.enemies) do
 					if self:toTurnOver(enemy, n) and enemy:hasSkill("manjuan") and enemy:getPhase() == sgs.Player_NotActive then
 						target = enemy
 						break
@@ -42,15 +43,15 @@ sgs.ai_skill_use["@@fangzhu"] = function(self, prompt)
 				end
 			end	
 		else
-			self:sort(self.enemies, "chaofeng")		
-			for _, enemy in ipairs(self.enemies) do									
+			self:sort(self.enemies, "chaofeng")
+			for _, enemy in ipairs(self.enemies) do
 				if self:toTurnOver(enemy, n) and enemy:hasSkill("manjuan") and enemy:getPhase() == sgs.Player_NotActive then
 					target = enemy
 					break
 				end
 			end
 			if not target then
-				for _, enemy in ipairs(self.enemies) do									
+				for _, enemy in ipairs(self.enemies) do
 					if self:toTurnOver(enemy, n) and self:hasSkills(sgs.priority_skill, enemy) then
 						target = enemy
 						break
@@ -58,8 +59,8 @@ sgs.ai_skill_use["@@fangzhu"] = function(self, prompt)
 				end
 			end
 			if not target then
-				for _, enemy in ipairs(self.enemies) do		
-					if self:toTurnOver(enemy, n) then					
+				for _, enemy in ipairs(self.enemies) do
+					if self:toTurnOver(enemy, n) then
 						target = enemy
 						break
 					end

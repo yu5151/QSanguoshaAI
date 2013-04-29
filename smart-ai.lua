@@ -3706,7 +3706,7 @@ function SmartAI:needRetrial(judge)
 			end
 		end
 		if self:isFriend(who) then
-			local drawcardnum = self:ImitateResult_DrawNCards(who, who:getVisibleSkillList(), self)
+			local drawcardnum = self:ImitateResult_DrawNCards(who, who:getVisibleSkillList())
 			if who:getHp() - who:getHandcardNum() >= drawcardnum and self:getOverflow() < 0 then return false end
 			if who:hasSkill("tuxi") and who:getHp() > 2 and self:getOverflow() < 0 then return false end
 			return not judge:isGood()

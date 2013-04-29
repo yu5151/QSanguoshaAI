@@ -1548,7 +1548,7 @@ sgs.ai_skill_invoke.yingzi = function(self, data)
 	if self.player:hasSkill("haoshi") then
 		local num = self.player:getHandcardNum()
 		local skills = self.player:getVisibleSkillList()
-		local count = self:ImitateResult_DrawNCards(self.player, skills, self, false)
+		local count = self:ImitateResult_DrawNCards(self.player, skills)
 		if num + count > 5 then
 			local others = self.room:getOtherPlayers(self.player)
 			local least = 999

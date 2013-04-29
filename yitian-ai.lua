@@ -878,24 +878,34 @@ end
 	描述：出牌阶段，你可将任意数量手牌正面朝上移出游戏称为“米”（至多存在五张）或收回；其他角色在其出牌阶段可选择一张“米”询问你，若你同意，该角色获得这张牌，每阶段限两次 
 ]]--
 local yishe_skill = {name = "yishe"}
-table.insert(sgs.ai_skills,yishe_skill)
+table.insert(sgs.ai_skills, yishe_skill)
 yishe_skill.getTurnUseCard = function(self)
 	if self:needBear() then return end
 	return sgs.Card_Parse("@YisheCard=.")
 end
 
-sgs.ai_skill_use_func.YisheCard=function(card,use,self)
+sgs.ai_skill_use_func.YisheCard = function(card, use, self)
+	sgs.ai_use_priority.YisheCard = 10
 	if self.player:getPile("rice"):isEmpty() then
+		sgs.ai_use_priority.YisheCard = 0
+		local n = self.player:getHandcardNum()
+		if n < 1 then return end
 		local cards = self.player:getHandcards()
 		cards = sgs.QList2Table(cards)
 		local usecards = {}
 		local getOverflow = math.max(self:getOverflow(), 0)
-		local discards = self:askForDiscard("yishe", math.min(getOverflow, 5-#usecards), math.min(getOverflow, 5-#usecards))
-		for _,card in ipairs(discards) do
-			table.insert(usecards,card)
+		local discards = self:askForDiscard("dummyreason", math.min(getOverflow, 5), math.min(getOverflow, 5))
+		if self:needKongcheng() and n < 6 then
+			for _, card in ipairs(cards) do
+				table.insert(usecards, card:getId())
+			end
+		else
+			for _, card in ipairs(discards) do
+				table.insert(usecards, card)
+			end
 		end
 		if #usecards > 0 then
-			use.card = sgs.Card_Parse("@YisheCard=" .. table.concat(usecards,"+"))
+			use.card = sgs.Card_Parse("@YisheCard=" .. table.concat(usecards, "+"))
 		end
 	else
 		if not self.player:hasUsed("YisheCard") then use.card = card return end
@@ -907,15 +917,15 @@ sgs.ai_skill_choice.yisheask = function(self,choices)
 	if self:isFriend(self.room:getCurrent()) then return "allow" else return "disallow" end
 end
 
-local yisheask_skill={name="yisheask"}
-table.insert(sgs.ai_skills,yisheask_skill)
+local yisheask_skill = {name = "yisheask"}
+table.insert(sgs.ai_skills, yisheask_skill)
 yisheask_skill.getTurnUseCard = function(self)
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if player:hasSkill("yishe") and not player:getPile("rice"):isEmpty() then return sgs.Card_Parse("@YisheAskCard=.") end
 	end
 end
 
-sgs.ai_skill_use_func.YisheAskCard=function(card,use,self)
+sgs.ai_skill_use_func.YisheAskCard = function(card, use, self)
 	if self.player:usedTimes("YisheAskCard")>1 then return end
 	local zhanglu
 	local cards

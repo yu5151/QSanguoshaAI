@@ -935,6 +935,21 @@ function sgs.ai_slash_prohibit.fenyong(self, to, card, from)
 	return to:getMark("@fenyong") > 0 and to:hasSkill("fenyong")
 end
 
+sgs.ai_need_damaged.fenyong = function (self, attacker, player)
+	if not player:hasSkill("fenyong") then return false end
+	if not player:hasSkill("xuehen") then return false end
+	for _, enemy in ipairs(self.enemies) do
+		local def = sgs.getDefense(enemy)
+		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+		local eff = self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
+
+		if self.player:canSlash(enemy, nil, false) and not self:slashProhibit(nil, enemy) and eff and def < 6 then
+			return true
+		end
+	end
+	return false
+end
+
 sgs.ai_skill_choice.xuehen = function(self, choices)
 	if self.fenyong_choice then return self.fenyong_choice end
 	local current = self.room:getCurrent()

@@ -550,6 +550,19 @@ end
 
 sgs.ai_playerchosen_intention.fangquan = - 100
 
+function SmartAI:isTiaoxinTarget(enemy)
+	if not enemy then self.room:writeToConsole(debug.traceback()) return end
+	if getCardsNum("Slash", enemy) < 1 and self.player:getHp() > 1 and not self:canHit(self.player, enemy)
+		and not (enemy:hasWeapon("DoubleSword") and self.player:getGender() ~= enemy:getGender())
+		then return true end
+	if sgs.card_lack[enemy:objectName()]["Slash"] == 1
+		or self:needLeiji(self.player, enemy) 
+		or self:getDamagedEffects(self.player, enemy, true)
+		or self:needToLoseHp(self.player, enemy, true)
+		then return true end
+	return false
+end
+
 local tiaoxin_skill = {}
 tiaoxin_skill.name = "tiaoxin"
 table.insert(sgs.ai_skills, tiaoxin_skill)
@@ -561,11 +574,8 @@ end
 sgs.ai_skill_use_func.TiaoxinCard = function(card,use,self)
 	local targets = {}
 	for _, enemy in ipairs(self.enemies) do
-		if enemy:distanceTo(self.player) <= enemy:getAttackRange() and ((getCardsNum("Slash", enemy) < 1 and self.player:getHp() > 1)
-			or not self:canHit(self.player, enemy) or self:needLeiji(self.player, enemy) 
-			or self:getDamagedEffects(self.player, enemy, true) or self:needToLoseHp(self.player, enemy, true))
-			and not self:doNotDiscard(enemy) then
-				table.insert(targets, enemy)
+		if self.player:inMyAttackRange(enemy) and not self:doNotDiscard(enemy) and self:isTiaoxinTarget(enemy) then
+			table.insert(targets, enemy)
 		end
 	end
 
@@ -587,8 +597,6 @@ sgs.ai_skill_use_func.TiaoxinCard = function(card,use,self)
 	end
 	use.card = sgs.Card_Parse("@TiaoxinCard=.")
 end
-
-sgs.ai_skill_choice.tiaoxin = sgs.ai_skill_choice.collateral
 
 sgs.ai_skill_cardask["@tiaoxin-slash"] = function(self, data, pattern, target)
 	if target then
@@ -747,8 +755,9 @@ sgs.ai_card_intention.ZhibaCard = function(self, card, from, tos, source)
 	elseif number > 8 then sgs.updateIntention(from, tos[1], 60) end
 end 
 
-sgs.ai_need_damaged.hunzi = function (self, attacker, player)
-	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 and player:getHp() > 1 then return true end
+sgs.ai_need_damaged.hunzi = function(self, attacker, player)
+	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 and
+		(player:getHp() > 2 or player:getHp() == 2 and (player:faceUp() or player:hasSkills("guixin|toudu"))) then return true end
 	return false
 end
 

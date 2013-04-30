@@ -827,27 +827,35 @@ end
 	技能：争功
 	描述：其他角色的回合开始前，若你的武将牌正面向上，你可以将你的武将牌翻面并立即进入你的回合，你的回合结束后，进入该角色的回合 
 ]]--
-sgs.ai_skill_invoke.zhenggong  = true
+sgs.ai_skill_invoke.zhenggong = function(self, data)
+	if sgs.turncount <= 1 and #self.enemies == 0 then return false end
+	return true
+end
+
 --[[
 	技能：偷渡
 	描述：当你的武将牌背面向上时若受到伤害，你可以弃置一张手牌并将你的武将牌翻面，视为对一名其他角色使用了一张【杀】
 ]]--
-sgs.ai_skill_invoke.toudu = function(self, data)
-	if #self.enemies > 0 then
-		return true
+sgs.ai_skill_cardask['@toudu'] = function(self, data, pattern, target, target2)
+	self.toudu_target = nil
+	local targets = sgs.SPlayerList()
+	for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+		if self.player:canSlash(p, nil, false) then targets:append(p) end
 	end
-	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-	for _,p in pairs(self.friends_noself) do --实在没办法了，如果杀无效，也可以对自己的队友发动
-		if not self:slashProhibit(slash, p) then
-			if not self:slashIsEffective(slash, target) then
-				return true
-			end
-		end
+	if targets:length() == 0 then return "." end
+	self.toudu_target = sgs.ai_skill_playerchosen.zero_card_as_slash(self, targets)
+	if not self.toudu_target then return "." end
+	local cards = sgs.QList2Table(self.player:getHandcards())
+	self:sortByKeepValue(cards)
+	for _, card in ipairs(cards) do
+		if not (isCard("Peach", card, self.player) and self:isFriend(self.toudu_target)) then return card:getEffectiveId() end
 	end
-	return false
+	return "."
 end
 
 sgs.ai_skill_playerchosen.toudu = function(self, targets)
+	if self.toudu_target then return self.toudu_target end
+	
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	local targetlist = {}
 	for _,p in sgs.qlist(targets) do
@@ -873,6 +881,23 @@ sgs.ai_skill_playerchosen.toudu = function(self, targets)
 	end
 	return targetlist[#targetlist]
 end
+
+sgs.ai_need_damaged.toudu = function(self, attacker, player)
+	if not player:hasSkill("toudu") then return false end
+	local peaches = getCardsNum("Peach", player)
+	if peaches >= player:getLostHp() and peaches > 0 then return true end
+	if self.player:objectName() == player:objectName() and player:getHp() > 1 then
+		local targets = sgs.SPlayerList()
+		for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
+			if self.player:canSlash(p, nil, false) then targets:append(p) end
+		end
+		if targets:length() == 0 then return false end
+		local target = sgs.ai_skill_playerchosen.zero_card_as_slash(self, targets)
+		if target and (target:getHp() == 1 or self:hasHeavySlashDamage(player, nil, tareget) and target:getHp() == 2) then return true end
+	end
+	return false
+end
+	
 --[[
 	技能：义舍
 	描述：出牌阶段，你可将任意数量手牌正面朝上移出游戏称为“米”（至多存在五张）或收回；其他角色在其出牌阶段可选择一张“米”询问你，若你同意，该角色获得这张牌，每阶段限两次 

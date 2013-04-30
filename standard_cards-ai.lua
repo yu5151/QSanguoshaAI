@@ -760,8 +760,10 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 	if (not target or self:isFriend(target)) and effect.slash:hasFlag("nosjiefan-slash") then return "." end
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
 	if effect.nature == sgs.DamageStruct_Fire and self.player:hasSkill("ayshuiyong") then return "." end
-
+	if self:getDamagedEffects(self.player, target, effect.slash) then return "." end
+	
 	if not target then return end
+	
 	if self:isFriend(target) then
 		if self:needLeiji(self.player, target) then return end
 		if target:hasSkill("jieyin") and not self.player:isWounded() and self.player:isMale() then return "." end

@@ -469,13 +469,16 @@ sgs.ai_skill_invoke.zhuiyi = function(self, data)
 end
 
 sgs.ai_skill_playerchosen.zhuiyi = function(self, targets)
+	local target
 	targets = sgs.QList2Table(targets)
 	self:sort(targets,"defense")
 	for _, friend in ipairs(targets) do
-		if self:isFriend(friend) and friend:isAlive() then
-			if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive and friend:getLostHp() == 0) then return friend end
+		if self:isFriend(friend) and friend:isAlive() and not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive and friend:getLostHp() == 0) then
+			if isLord(friend) and self:isWeak(friend) then return friend end
+			if not target then target = friend end
 		end
 	end
+	if target then return target end
 end
 
 

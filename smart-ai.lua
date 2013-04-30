@@ -1134,7 +1134,7 @@ function SmartAI:objectiveLevel(player)
 					return 5
 				end
 			end	
-		elseif process == "neutral" or (sgs.turncount <= 1 and sgs.isLordHealthy()) then			
+		elseif process == "neutral" or (sgs.turncount <= 1 and sgs.isLordHealthy()) then
 			if sgs.turncount <= 1 and sgs.isLordHealthy() then
 				if self:getOverflow() <= 0 then return 0 end
 				local rebelish = (loyal_num + 1 < rebel_num)
@@ -1148,7 +1148,7 @@ function SmartAI:objectiveLevel(player)
 
 			local renegade_attack_skill = string.format("buqu|%s|%s|%s|%s",sgs.priority_skill,sgs.save_skill,sgs.recover_skill,sgs.drawpeach_skill)
 			for i=1, #players, 1 do
-				if not players[i]:isLord() and self:hasSkills(renegade_attack_skill,players[i]) then return 5 end
+				if not players[i]:isLord() and players[i]:hasSkills(renegade_attack_skill) then return 5 end
 				if not players[i]:isLord() and math.abs(sgs.ai_chaofeng[players[i]:getGeneralName()] or 0) >3 then return 5 end
 			end
 			return 3
@@ -1243,7 +1243,7 @@ function SmartAI:objectiveLevel(player)
 		end
 		
 		if loyal_num + 1 > rebel_num and renegade_num > 0 and (process == "loyalist" or process == "loyalish") and
-			sgs.ai_role[player:objectName()] == "renegade" then return 1 end
+			sgs.ai_role[player:objectName()] == "renegade" then return 4 end
 			
 		if process == "rebel" and rebel_num > loyal_num and target_role == "renegade" then return -2 end
 
@@ -1275,7 +1275,7 @@ function SmartAI:objectiveLevel(player)
 		end
 
 		if rebel_num > loyal_num + renegade_num + 1 and (process == "rebel" or process == "rebelish") and
-			sgs.ai_role[player:objectName()] == "renegade" then return 1 end
+			sgs.ai_role[player:objectName()] == "renegade" then return 4 end
 		
 		if process == "loyalist" and renegade_num > 0 and sgs.ai_role[player:objectName()] == "renegade" then return -2 end
 	  

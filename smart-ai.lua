@@ -486,7 +486,7 @@ function SmartAI:getDynamicUsePriority(card)
 
 	local type = card:getTypeId()
 	local dummy_use = { isDummy = true }
-	if card:isKindOf("Snatch") or card:isKindOf("Dismantlement") then dummy_use = { isDymmy = true, to = sgs.SPlayerList() } end
+	if card:isKindOf("Snatch") or card:isKindOf("Dismantlement") then dummy_use = { isDummy = true, to = sgs.SPlayerList() } end
 	if type == sgs.Card_TypeTrick then
 		self:useTrickCard(card, dummy_use)
 	elseif type == sgs.Card_TypeBasic then
@@ -562,7 +562,7 @@ function SmartAI:getDynamicUsePriority(card)
 		
 		if self.player:hasSkill("rende") and self.player:getPhase() == sgs.Player_Play
 			and (use_card:isKindOf("Indulgence") or use_card:isKindOf("SupplyShortage") or use_card:isKindOf("Slash") or use_card:isKindOf("Snatch") or use_card:isKindOf("Dismantlement"))
-			and not (self:isWeak() and self:needRende() and self.player:getHandcardNum() + self.player:hasUsed("RendeCard") == 2) then
+			and not (self:isWeak() and self:needRende() and self.player:getHandcardNum() + self.player:usedTimes("RendeCard") == 2) then
 			local cards = sgs.QList2Table(self.player:getHandcards())
 			self:sortByUseValue(cards, true)
 			local acard, friend = self:getCardNeedPlayer(cards)

@@ -970,12 +970,13 @@ sgs.ai_skill_use_func.JijiangCard = function(card,use,self)
 	for _, enemy in ipairs(self.enemies) do
 		if (self.player:canSlash(enemy, nil, not no_distance) or
 			(use.isDummy and self.player:distanceTo(enemy) <= (self.predictedRange or self.player:getAttackRange())))
-			and self:objectiveLevel(enemy) > 3 and self:slashIsEffective(card, enemy) and sgs.isGoodTarget(enemy,self.enemies, self) then
+			and self:objectiveLevel(enemy) > 3 and self:slashIsEffective(card, enemy) and sgs.isGoodTarget(enemy,self.enemies, self)
+			and not self:canLiuli(enemy, self.friends_noself) then
 			use.card = card
 			if use.to then
 				use.to:append(enemy)
 			end
-			target_count = target_count + 1			
+			target_count = target_count + 1
 			if target_count == 1 then 
 				local flag = string.format("jijiang_%s_%s", self.player:objectName(), enemy:objectName())
 				self.room:setPlayerFlag(self.player, flag)

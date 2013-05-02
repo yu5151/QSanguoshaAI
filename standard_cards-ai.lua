@@ -283,6 +283,12 @@ end
 
 function SmartAI:canLiuli(other, another)
 	if not other:hasSkill("liuli") then return false end
+	if type(another) == "table" then
+		for _, target in ipairs(another) do
+			if self:canLiuli(other, target) then return true end
+		end
+		return false
+	end
 	local n = other:getHandcardNum()
 	if n > 0 and (other:distanceTo(another) <= other:getAttackRange()) then return true
 	elseif other:getWeapon() and other:getOffensiveHorse() and (other:distanceTo(another) <= other:getAttackRange()) then return true
@@ -391,7 +397,8 @@ function SmartAI:shouldUseAnaleptic(target, slash)
 		return getCardsNum("Jink", target) < 2
 	end
 	
-	if getKnownCard(target, "Jink", true, "he") >= 1 then return false end
+	if getKnownCard(target, "Jink", true, "he") >= 1 and not (self:getOverflow() > 0 and self:getCardsNum("Analeptic") > 1) then return false end
+	
 	return self:getCardsNum("Analeptic") > 1 or getCardsNum("Jink", target) < 1 or sgs.card_lack[target:objectName()]["Jink"] == 1
 end
 

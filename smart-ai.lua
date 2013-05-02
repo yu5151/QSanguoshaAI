@@ -212,8 +212,6 @@ function sgs.getDefense(player)
 	if not player then return 0 end
 	local defense = math.min(sgs.getValue(player), player:getHp() * 3)
 	local attacker = global_room:getCurrent()
-	local knownJink = getKnownCard(player, "Jink", true)
-	local hcard = player:getHandcardNum()
 	local hasEightDiagram = false
 	if (player:hasArmorEffect("EightDiagram") or (player:hasSkill("bazhen") and not player:getArmor())) then
 		hasEightDiagram = true
@@ -231,17 +229,20 @@ function sgs.getDefense(player)
 		if player:hasSkill("hongyan") then defense = defense + 0.2 end
 	end
 
-	if player:hasSkills("tuntian+zaoxian") then defense = defense + hcard * 0.5 end
-	if player:getMark("@tied") > 0 and not attacker:hasSkill("jueqing") then defense = defense + 1 end
-	
-	local m = sgs.masochism_skill:split("|")
-	for _, masochism in ipairs(m) do
-		if player:hasSkill(masochism) and sgs.isGoodHp(player) and not attacker:hasSkill("jueqing") then
-			defense = defense + 1
+	if player:hasSkills("tuntian+zaoxian") then defense = defense + player:getHandcardNum() * 0.5 end
+	if attacker and not attacker:hasSkill("jueqing") then
+		if player:getMark("@tied") > 0 then defense = defense + 1 end
+		if sgs.isGoodHp(player) then
+			local m = sgs.masochism_skill:split("|")
+			for _, masochism in ipairs(m) do
+				if player:hasSkill(masochism) then
+					defense = defense + 1
+				end
+			end
 		end
-	end
-	if (player:hasSkill("jieming") or player:hasSkill("yiji") or player:hasSkill("guixin")) and not attacker:hasSkill("jueqing") then
-		defense = defense + 4
+		if player:hasSkill("jieming") or player:hasSkill("yiji") or player:hasSkill("guixin") then
+			defense = defense + 4
+		end
 	end
 
 	if not sgs.isGoodTarget(player) then defense = defense + 10 end
@@ -277,12 +278,12 @@ function sgs.getDefense(player)
 	if not hasEightDiagram then
 		if player:hasSkill("jijiu") then defense = defense - 3 end
 		if player:hasSkill("dimeng") then defense = defense - 2.5 end
-		if player:hasSkill("guzheng") and knownJink == 0 then defense = defense - 2.5 end
+		if player:hasSkill("guzheng") and getKnownCard(player, "Jink", true) == 0 then defense = defense - 2.5 end
 		if player:hasSkill("qiaobian") then defense = defense - 2.4 end
 		if player:hasSkill("jieyin") then defense = defense - 2.3 end
 		if player:hasSkill("lijian") then defense = defense - 2.2 end
 		if player:hasSkill("nosmiji") and player:isWounded() then defense = defense - 1.5 end
-		if player:hasSkill("xiliang") and knownJink == 0 then defense = defense - 2 end
+		if player:hasSkill("xiliang") and getKnownCard(player, "Jink", true) == 0 then defense = defense - 2 end
 		if player:hasSkill("shouye") then defense = defense - 2 end
 	end
 	return defense

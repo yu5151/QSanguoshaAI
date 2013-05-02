@@ -739,7 +739,8 @@ sgs.ai_skill_use_func.XianzhenCard = function(card, use, self)
 		self:useBasicCard(slash, dummy_use)
 
 		for _, enemy in ipairs(self.enemies) do
-			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and self:canAttack(enemy, self.player) then
+			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and self:canAttack(enemy, self.player)
+				and not self:canLiuli(enemy, self.friends_noself) and not self:needLeiji(enemy, self.player) then
 				local enemy_max_card = self:getMaxCard(enemy)
 				local enemy_max_point =enemy_max_card and enemy_max_card:getNumber() or 100
 				if max_point > enemy_max_point then
@@ -750,7 +751,8 @@ sgs.ai_skill_use_func.XianzhenCard = function(card, use, self)
 			end
 		end
 		for _, enemy in ipairs(self.enemies) do
-			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and self:canAttack(enemy, self.player) then
+			if not (enemy:hasSkill("kongcheng") and enemy:getHandcardNum() == 1) and not enemy:isKongcheng() and self:canAttack(enemy, self.player)
+				and not self:canLiuli(enemy, self.friends_noself) and not self:needLeiji(enemy, self.player) then
 				if max_point >= 10 then
 					use.card = sgs.Card_Parse("@XianzhenCard=" .. max_card:getId())
 					if use.to then use.to:append(enemy) end

@@ -1650,7 +1650,7 @@ sgs.ai_card_intention.GodSalvation = function(self, card, from, tos)
 		if to:isWounded() and not first then
 			first = to
 			can = true
-		elseif first and not self:isFriend(first, to) then
+		elseif first and to:isWounded() and not self:isFriend(first, to) then
 			can = false
 			break
 		end

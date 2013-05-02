@@ -5248,7 +5248,7 @@ function IgnoreArmor(from, to)
 	return false
 end
 
-function SmartAI:needToThrowArmor(player)
+function SmartAI:needToThrowArmor(player, moukui)
 	player = player or self.player
 	if not player:getArmor() or not player:hasArmorEffect(player:getArmor():objectName()) then return false end
 	if self:hasSkills("bazhen|yizhong") and not player:getArmor():isKindOf("EightDiagram") then return true end
@@ -5264,6 +5264,7 @@ function SmartAI:needToThrowArmor(player)
 			return true
 		end
 	end
+	if moukui then return true end
 	local FS = sgs.Sanguosha:cloneCard("fire_slash", sgs.Card_NoSuit, 0)
 	if player:objectName() ~= self.player:objectName() and self:isEnemy(player) and self.player:getPhase() == sgs.Player_Play and self:slashIsAvailable()
 		and not self:slashProhibit(FS, player, self.player) and player:hasArmorEffect("Vine") and not IgnoreArmor(self.player, player)

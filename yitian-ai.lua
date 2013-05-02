@@ -611,7 +611,11 @@ function sgs.ai_skill_choice.shenjun(self, choices)
 		end
 		gender = (male < #self.enemies - male)
 	else
-		gender = (sgs.Sanguosha:getSkill("shenjun"):getDefaultChoice(self.player) == "male")	
+		local males = 0
+		for _, player in sgs.qlist(self.room:getAlivePlayers()) do
+			if player:isMale() then males = males + 1 end
+		end
+		gender = (males <= self.player:aliveCount() - males)
 	end
 	if self.player:getSeat() < self.room:alivePlayerCount()/2 then gender = not gender end
 	if gender then return "male" else return "female" end

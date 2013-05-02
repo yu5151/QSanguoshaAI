@@ -284,8 +284,9 @@ end
 function SmartAI:canLiuli(other, another)
 	if not other:hasSkill("liuli") then return false end
 	if type(another) == "table" then
+		if #another == 0 then return false end
 		for _, target in ipairs(another) do
-			if self:canLiuli(other, target) then return true end
+			if target:getHp() < 3 and self:canLiuli(other, target) then return true end
 		end
 		return false
 	end
@@ -1659,6 +1660,20 @@ sgs.ai_card_intention.GodSalvation = function(self, card, from, tos)
 	end
 end
 
+function SmartAI:JijiangSlash(player)
+	if not player then self.room:writeToConsole(debug.traceback()) return 0 end
+	if not player:hasLordSkill("jijiang") then return 0 end
+	local slashs = 0
+	for _, p in sgs.qlist(self.room:getOtherPlayers(player)) do
+		local slash_num = getCardsNum("Slash", p)
+		if p:getKingdom() == "shu" and slash_num >= 1 and sgs.card_lack[p:objectName()]["Slash"] ~= 1 and
+			(sgs.turncount <= 1 and sgs.ai_role[p:objectName()] == "neutral" or self:isFriend(player, p)) then
+				slashs = slashs + slash_num
+		end
+	end
+	return slashs
+end
+
 function SmartAI:useCardDuel(duel, use)
 	if self.player:hasSkill("wuyan") and not self.player:hasSkill("jueqing") then return end
 	if self.player:hasSkill("noswuyan") then return end
@@ -1686,9 +1701,9 @@ function SmartAI:useCardDuel(duel, use)
 	end
 	
 	local cmp = function(a, b)
-		local v1 = getCardsNum("Slash", a)
-		local v2 = getCardsNum("Slash", b)
-
+		local v1 = getCardsNum("Slash", a) + a:getHp()
+		local v2 = getCardsNum("Slash", b) + b:getHp()
+		
 		if self:getDamagedEffects(a, self.player) then v1 = v1 + 20 end
 		if self:getDamagedEffects(b, self.player) then v2 = v2 + 20 end
 
@@ -1699,13 +1714,13 @@ function SmartAI:useCardDuel(duel, use)
 		if self:needToLoseHp(b) then v2 = v2 + 5 end
 
 		if self:hasSkills(sgs.masochism_skill, a) then v1 = v1 + 5 end
-		if self:hasSkills(sgs.masochism_skill, b) then v2 = v2 + 5 end		
+		if self:hasSkills(sgs.masochism_skill, b) then v2 = v2 + 5 end
 
 		if not self:isWeak(a) and a:hasSkill("jiang") then v1 = v1 + 5 end
 		if not self:isWeak(b) and b:hasSkill("jiang") then v2 = v2 + 5 end
 
-		if a:hasLordSkill("jijiang") then v1 = v1 + 10 end
-		if b:hasLordSkill("jijiang") then v2 = v2 + 10 end
+		if a:hasLordSkill("jijiang") then v1 = v1 + self:JijiangSlash(a) * 2 end
+		if b:hasLordSkill("jijiang") then v2 = v2 + self:JijiangSlash(b) * 2 end
 
 		if v1 == v2 then return sgs.getDefenseSlash(a) < sgs.getDefenseSlash(b) end
 

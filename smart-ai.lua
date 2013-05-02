@@ -486,6 +486,7 @@ function SmartAI:getDynamicUsePriority(card)
 
 	local type = card:getTypeId()
 	local dummy_use = { isDummy = true }
+	if card:isKindOf("Snatch") or card:isKindOf("Dismantlement") then dummy_use = { isDymmy = true, to = sgs.SPlayerList() } end
 	if type == sgs.Card_TypeTrick then
 		self:useTrickCard(card, dummy_use)
 	elseif type == sgs.Card_TypeBasic then
@@ -558,7 +559,35 @@ function SmartAI:getDynamicUsePriority(card)
 			) then
 			return sgs.ai_use_priority.Slash - 0.1
 		end
-
+		
+		if self.player:hasSkill("rende") and self.player:getPhase() == sgs.Player_Play
+			and (use_card:isKindOf("Indulgence") or use_card:isKindOf("SupplyShortage") or use_card:isKindOf("Slash") or use_card:isKindOf("Snatch") or use_card:isKindOf("Dismantlement"))
+			and not (self:isWeak() and self:needRende() and self.player:getHandcardNum() + self.player:hasUsed("RendeCard") == 2) then
+			local cards = sgs.QList2Table(self.player:getHandcards())
+			self:sortByUseValue(cards, true)
+			local acard, friend = self:getCardNeedPlayer(cards)
+			if acard and acard:getClassName() == class_name and self:getEnemyNumBySeat(self.player, friend) > 0 then
+				if use_card:isKindOf("Indulgence") or use_card:isKindOf("SupplyShortage") then
+					return sgs.ai_use_priority.RendeCard + 9.1
+				elseif use_card:isKindOf("Slash") then
+					for _, enemy in ipairs(self.enemies) do
+						if self.player:canSlash(enemy) and not self:slashProhibit(use_card, enemy) and self:slashIsAvailable(player)
+							and (enemy:getHp() == 1 or enemy:getHp() == 2 and self:hasHeavySlashDamage(self.player, use_card, enemy)) then
+							return sgs.ai_use_priority.RendeCard + 9.1
+						end
+					end
+				elseif use_card:isKindOf("Snatch") or use_card:isKindOf("Dismantlement") and dummy_use.to then
+					for _, p in sgs.qlist(dummy_use.to) do
+						if self:isFriend(p) and (p:containsTrick("indulgence") or p:containsTrick("supply_shortage")) then
+							for _, trick in sgs.qlist(p:getJudgingArea()) do
+								if trick:hasFlag("AI_"..use_card:objectName()) then return sgs.ai_use_priority.RendeCard + 9.1 end
+							end
+						end
+					end
+				end
+			end
+		end
+		
 		if use_card:getTypeId() == sgs.Card_TypeEquip then
 			if self:hasSkills(sgs.lose_equip_skill) then value = value + 12 end
 		end

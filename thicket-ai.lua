@@ -760,7 +760,7 @@ sgs.ai_skill_choice.benghuai = function(self, choices, data)
 			return "hp"
 		end
 	end
-	if self.player:getMaxHp() >= self.player:getHp() + 2 then
+	if self.player:getMaxHp() >= self.player:getHp() + 2 and (not ((self.player:hasSkill("nosmiji") or (self.player:hasSkill("miji") and #self.friends > 1)) and (self.player:getHp() > 1 or (self:getCardsNum("Peach") + self:getCardsNum("Analeptic") > 0)) and self.player:getMaxHp() > 5)) then
 		return "maxhp"
 	else
 		return "hp"

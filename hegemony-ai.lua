@@ -271,21 +271,24 @@ end
 sgs.ai_skill_use_func.FenxunCard = function(card, use, self)
 	if self.player:hasUsed("FenxunCard") then return end
 	self:sort(self.enemies, "defense")
-	local target_num, target, hastarget = 0
-	for _, enemy in ipairs(self.enemies) do
-		for _, slash in ipairs(self:getCards("Slash")) do
-			if not self:slashProhibit(slash, enemy) and self.player:canSlash(enemy, slash, false) and sgs.isGoodTarget(enemy, self.enemies, self) then
-				if self.player:distanceTo(enemy) > 1 and not target then target = enemy
-				elseif self.player:distanceTo(enemy) == 1 then
-					hastarget = true
-				end
-				if self.player:inMyAttackRange(enemy) then
-					target_num = target_num + 1
+	local target
+	for _, slash in ipairs(self:getCards("Slash")) do
+		if not card:getSubcards() or slash:getEffectiveId() ~= card:getSubcards():at(0) then
+			local target_num, hastarget = 0
+			for _, enemy in ipairs(self.enemies) do
+				if not self:slashProhibit(slash, enemy) and self.player:canSlash(enemy, slash, false) and sgs.isGoodTarget(enemy, self.enemies, self) then
+					if self.player:distanceTo(enemy) > 1 and not target then target = enemy
+					elseif self.player:distanceTo(enemy) == 1 then
+						hastarget = true
+					end
+					if self.player:inMyAttackRange(enemy) then
+						target_num = target_num + 1
+					end
 				end
 			end
+			if hastarget and target_num >= 2 then return end
 		end
 	end
-	if hastarget and target_num >= 2 then return end
 	if target and self:getCardsNum("Slash") > 0 then
 		use.card = card
 		if use.to then

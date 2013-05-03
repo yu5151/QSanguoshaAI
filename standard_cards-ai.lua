@@ -1967,7 +1967,6 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			table.insert(targets, player:objectName())
 			use.to:append(player)
 			self.room:setCardFlag(card_or_cardid, "AI_"..name)
-			if use.to:length() == 1 then self:speak("hostile", self.player:isFemale()) end
 		end		
 	end
 

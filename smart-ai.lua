@@ -2585,6 +2585,7 @@ function SmartAI:askForCardChosen(who, flags, reason)
 	end
 	
 	if ("snatch|dismantlement"):match(reason) then
+		self:speak("hostile", self.player:isFemale())
 		for _, card in sgs.qlist(who:getCards(flags)) do
 			if card:hasFlag("AI_"..reason) then
 				self.room:setCardFlag(card, "-AI_" .. reason)

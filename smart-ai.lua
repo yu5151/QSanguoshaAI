@@ -208,7 +208,7 @@ function sgs.getValue(player)
 	return player:getHp() * 2 + player:getHandcardNum()
 end
 
-function sgs.getDefense(player)
+function sgs.getDefense(player, gameProcess)
 	if not player then return 0 end
 	local defense = math.min(sgs.getValue(player), player:getHp() * 3)
 	local attacker = global_room:getCurrent()
@@ -220,8 +220,8 @@ function sgs.getDefense(player)
 	if player:getArmor() and not player:getArmor():isKindOf("GaleShell") then efense = defense + 2 end
 	if not player:getArmor() and player:hasSkill("yizhong") then defense = defense + 2 end
 	
-	if hasEightDiagram then 
-		defense = defense + 1.3 
+	if hasEightDiagram then
+		defense = defense + 1.3
 		if player:hasSkill("tiandu") then defense = defense + 0.6 end
 		if player:hasSkill("gushou") then defense = defense + 0.4 end
 		if player:hasSkill("leiji") then defense = defense + 0.4 end
@@ -229,7 +229,7 @@ function sgs.getDefense(player)
 		if player:hasSkill("hongyan") then defense = defense + 0.2 end
 	end
 
-	if player:hasSkills("tuntian+zaoxian") then defense = defense + player:getHandcardNum() * 0.5 end
+	if player:hasSkills("tuntian+zaoxian") then defense = defense + player:getHandcardNum() * 0.4 end
 	if attacker and not attacker:hasSkill("jueqing") then
 		if player:getMark("@tied") > 0 then defense = defense + 1 end
 		if sgs.isGoodHp(player) then
@@ -245,7 +245,7 @@ function sgs.getDefense(player)
 		end
 	end
 
-	if not sgs.isGoodTarget(player) then defense = defense + 10 end
+	if not gameProcess and not sgs.isGoodTarget(player) then defense = defense + 10 end
 	if player:hasSkill("rende") and player:getHp() > 2 then defense = defense + 1 end
 	if player:hasSkill("kuanggu") and player:getHp() > 1 then defense = defense + 0.2 end
 	if player:hasSkill("zaiqi") and player:getHp() > 1 then defense = defense + 0.35 end
@@ -262,7 +262,7 @@ function sgs.getDefense(player)
 		if not hasEightDiagram then defense = defense - 2 end
 	end
 
-	if isLord(player) then 
+	if not gameProcess and isLord(player) then 
 		defense = defense - 0.4
 		if sgs.isLordInDanger() then defense = defense - 0.7 end
 	end
@@ -275,7 +275,7 @@ function sgs.getDefense(player)
 	if player:containsTrick("indulgence") and not player:containsTrick("YanxiaoCard") then defense = defense - 0.15 end
 	if player:containsTrick("supply_shortage") and not player:containsTrick("YanxiaoCard") then defense = defense - 0.15 end
 	
-	if not hasEightDiagram then
+	if not gameProcess and not hasEightDiagram then
 		if player:hasSkill("jijiu") then defense = defense - 3 end
 		if player:hasSkill("dimeng") then defense = defense - 2.5 end
 		if player:hasSkill("guzheng") and getKnownCard(player, "Jink", true) == 0 then defense = defense - 2.5 end
@@ -1045,7 +1045,7 @@ function sgs.gameProcess(room,arg1)
 			if aplayer:hasSkill("benghuai") and aplayer:getHp() > 4 then rebel_hp = 4
 			else rebel_hp = aplayer:getHp() end
 			if aplayer:getMaxHp() == 3 then rebel_value = rebel_value + 0.5 end
-			rebel_value = rebel_value + rebel_hp + math.max(sgs.getDefense(aplayer) - rebel_hp * 2, 0) * 0.7
+			rebel_value = rebel_value + rebel_hp + math.max(sgs.getDefense(aplayer, true) - rebel_hp * 2, 0) * 0.7
 			if aplayer:getDefensiveHorse() then
 				rebel_value = rebel_value + 0.5
 			end
@@ -1055,12 +1055,12 @@ function sgs.gameProcess(room,arg1)
 			if aplayer:hasSkill("benghuai") and aplayer:getHp() > 4 then loyal_hp = 4
 			else loyal_hp = aplayer:getHp() end
 			if aplayer:getMaxHp() == 3 then loyal_value = loyal_value + 0.5 end
-			loyal_value = loyal_value + (loyal_hp + math.max(sgs.getDefense(aplayer) - loyal_hp * 2, 0) * 0.7)
+			loyal_value = loyal_value + (loyal_hp + math.max(sgs.getDefense(aplayer, true) - loyal_hp * 2, 0) * 0.7)
 			if aplayer:getDefensiveHorse() then
 				loyal_value = loyal_value + 0.5
 			end
 			if aplayer:getMark("@duanchang")==1 and aplayer:getMaxHp() <=3 then loyal_value = loyal_value - 1 end
-		end		
+		end
 	end
 	local diff = loyal_value - rebel_value + (loyal_num + 1 - rebel_num) * 2
 	if arg1==1 then return diff end
@@ -2881,7 +2881,7 @@ function SmartAI:getFriendNumBySeat(from, to)
 	local to_seat = (to:getSeat() - from:getSeat()) % #players
 	local friendnum = 0
 	for _, p in ipairs(players) do
-		if self:isFriend(from, p) and ((p:getSeat() - from:getSeat()) % #players) < to_seat then			 
+		if self:isFriend(from, p) and ((p:getSeat() - from:getSeat()) % #players) < to_seat then
 			friendnum = friendnum + 1 
 		end
 	end
@@ -2893,7 +2893,10 @@ function SmartAI:hasHeavySlashDamage(from, slash, to, getValue)
 	slash = slash or self:getCard("Slash", from)
 	to = to or self.player
 	if not from or not to then self.room:writeToConsole(debug.traceback()) return false end
-	if not from:hasSkill("jueqing") and (to:hasArmorEffect("SilverLion") and not IgnoreArmor(from, to)) then return false end
+	if not from:hasSkill("jueqing") and (to:hasArmorEffect("SilverLion") and not IgnoreArmor(from, to)) then
+		if getValue then return 1
+		else return false end
+	end
 	local dmg = 1
 	local fireSlash = slash and (slash:isKindOf("FireSlash") or 
 		(slash:objectName() == "slash" and (from:hasWeapon("Fan") or (from:hasSkill("lihuo") and not self:isWeak(from))))) 
@@ -2907,19 +2910,19 @@ function SmartAI:hasHeavySlashDamage(from, slash, to, getValue)
 
 	if (slash and slash:hasFlag("drank")) or from:hasFlag("drank") then dmg = dmg + 1 end
 	if from:hasFlag("luoyi") then dmg = dmg + 1 end
-	if from:hasFlag("neoluoyi") then dmg = dmg + 1 end	
+	if from:hasFlag("neoluoyi") then dmg = dmg + 1 end
 	if slash and from:hasSkill("jie") and slash:isRed() then dmg = dmg + 1 end
 	if slash and from:hasSkill("wenjiu") and slash:isBlack() then dmg = dmg + 1 end
 	if slash and from:hasFlag("shenli") and from:getMark("@struggle") > 0 then dmg = dmg + math.min(3, from:getMark("@struggle")) end
 	
-	if not from:hasSkill("jueqing") then		
+	if not from:hasSkill("jueqing") then
 		if to:hasArmorEffect("Vine") and not IgnoreArmor(from, to) and fireSlash then dmg = dmg + 1 end
 		if to:getMark("@gale") > 0 and fireSlash then dmg = dmg + 1 end
 		if fireSlash and jinxuandi and jinxuandi:getMark("@wind") > 0 then dmg = dmg + 1 end
 		if thunderSlash and jinxuandi and jinxuandi:getMark("@thunder") > 0 then dmg = dmg + 1 end
-		if from:hasWeapon("GudingBlade") and slash and to:isKongcheng() then dmg = dmg + 1 end	
-		if from:hasSkill("jieyuan") and to:getHp() >= from:getHp() and from:getHandcardNum() >= 3 then dmg = dmg + 1 end	
-		if to:hasSkill("jieyuan") and from:getHp() >= to:getHp()	
+		if from:hasWeapon("GudingBlade") and slash and to:isKongcheng() then dmg = dmg + 1 end
+		if from:hasSkill("jieyuan") and to:getHp() >= from:getHp() and from:getHandcardNum() >= 3 then dmg = dmg + 1 end
+		if to:hasSkill("jieyuan") and from:getHp() >= to:getHp()
 			and (to:getHandcardNum() > 3 or (getKnownCard(to, "heart") + getKnownCard(to, "diamond")) > 0)
 		then
 			dmg = dmg - 1
@@ -4769,12 +4772,21 @@ function SmartAI:getAoeValue(card, player)
 		attacker = menghuo or attacker
 	end	
 	
+	local isEffective_F, isEffective_E
 	for _, friend in ipairs(self.friends_noself) do
 		good = good + self:getAoeValueTo(card, friend, attacker)
+		if self:aoeIsEffective(card, friend, attacker) then isEffective_F = true end
 	end
 	
 	for _, enemy in ipairs(self.enemies) do
 		bad = bad + self:getAoeValueTo(card, enemy, attacker)
+		if self:aoeIsEffective(card, enemy, attacker) then isEffective_E = true end
+	end
+	
+	if not isEffective_F and #self.friends_noself > 0 and not isEffective_E then
+		return self.player:hasSkill("jizhi") and 10 or -100
+	elseif not isEffective_E then
+		return -100
 	end
 	
 	if not sgs.GetConfig("EnableHegemony", false) then
@@ -5274,7 +5286,7 @@ function IgnoreArmor(from, to)
 	return false
 end
 
-function SmartAI:needToThrowArmor(player, moukui)
+function SmartAI:needToThrowArmor(player)
 	player = player or self.player
 	if not player:getArmor() or not player:hasArmorEffect(player:getArmor():objectName()) then return false end
 	if self:hasSkills("bazhen|yizhong") and not player:getArmor():isKindOf("EightDiagram") then return true end
@@ -5284,16 +5296,16 @@ function SmartAI:needToThrowArmor(player, moukui)
 			if player:objectName() == self.player:objectName() then
 				return true
 			else
-				return self:isWeak(player) and not self:hasSkills(sgs.use_lion_skill, player)
+				return self:isWeak(player) and not player:hasSkills(sgs.use_lion_skill)
 			end
 		else
 			return true
 		end
 	end
-	if moukui then return true end
+	if self.player:hasSkill("moukui") then return true end
 	local FS = sgs.Sanguosha:cloneCard("fire_slash", sgs.Card_NoSuit, 0)
-	if player:objectName() ~= self.player:objectName() and self:isEnemy(player) and self.player:getPhase() == sgs.Player_Play and self:slashIsAvailable()
-		and not self:slashProhibit(FS, player, self.player) and player:hasArmorEffect("Vine") and not IgnoreArmor(self.player, player)
+	if player:hasArmorEffect("Vine") and player:objectName() ~= self.player:objectName() and self:isEnemy(player) and self.player:getPhase() == sgs.Player_Play 
+		and self:slashIsAvailable() and not self:slashProhibit(FS, player, self.player) and not IgnoreArmor(self.player, player)
 		and (self:getCard("FireSlash") or (self:getCard("Slash") and (self:isEquip("Fan") or self.player:hasSkills("lihuo|zonghuo") or self:getCardsNum("Fan") >= 1)))
 		and (player:isKongcheng() or sgs.card_lack[player:objectName()]["Jink"] == 1 or getCardsNum("Jink", player) < 1) then
 		return true

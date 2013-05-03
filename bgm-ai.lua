@@ -955,7 +955,7 @@ sgs.ai_skill_choice.xuehen = function(self, choices)
 	local current = self.room:getCurrent()
 	local n = self.player:getLostHp()
 	if self:isEnemy(current) then
-		if n >= 3 and current:getCardCount(true) >= 3 and not (self:needKongcheng(current) and player:getCards("e"):length() < 3)
+		if n >= 3 and current:getCardCount(true) >= 3 and not (self:needKongcheng(current) and current:getCards("e"):length() < 3)
 			and not (self:hasSkills(sgs.lose_equip_skill, current) and current:getHandcardNum() < n) then
 			return "discard"
 		end

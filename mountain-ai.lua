@@ -574,7 +574,7 @@ end
 sgs.ai_skill_use_func.TiaoxinCard = function(card,use,self)
 	local targets = {}
 	for _, enemy in ipairs(self.enemies) do
-		if self.player:inMyAttackRange(enemy) and not self:doNotDiscard(enemy) and self:isTiaoxinTarget(enemy) then
+		if enemy:inMyAttackRange(self.player) and not self:doNotDiscard(enemy) and self:isTiaoxinTarget(enemy) then
 			table.insert(targets, enemy)
 		end
 	end

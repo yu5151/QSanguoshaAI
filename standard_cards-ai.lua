@@ -272,8 +272,8 @@ function SmartAI:slashProhibit(card, enemy, from)
 		if enemy:isLord() and self:isWeak(enemy) and self:slashIsEffective(card, enemy, nil, from) then return true end
 		if self:isEquip("GudingBlade") and enemy:isKongcheng() then return true end
 	else
-		if enemy:isChained() and not self:isGoodChainTarget(enemy) and not from:hasSkill("jueqing") and self:slashIsEffective(card, enemy, nil, from) 
-			and (card:isKindOf("NatureSlash") or from:hasSkill("zonghuo")) then
+		if (card:isKindOf("NatureSlash") or from:hasSkill("zonghuo")) and not from:hasSkill("jueqing") and enemy:isChained() and not self:isGoodChainTarget(enemy) 
+			and self:slashIsEffective(card, enemy, nil, from) then
 			return true
 		end
 	end
@@ -775,7 +775,6 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 	if (not target or self:isFriend(target)) and effect.slash:hasFlag("nosjiefan-slash") then return "." end
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
 	if effect.nature == sgs.DamageStruct_Fire and self.player:hasSkill("ayshuiyong") then return "." end
-	if self:getDamagedEffects(self.player, target, effect.slash) then return "." end
 	
 	if not target then return end
 	

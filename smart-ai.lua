@@ -2365,15 +2365,14 @@ function SmartAI:askForNullification(trick, from, to, positive)
 	if self:isFriend(to) and to:hasFlag("will_wake") then return end
 	
 	if from and not from:hasSkill("jueqing") then
-		if (to:hasSkill("wuyan") or (self:getDamagedEffects(to, from) and self:isFriend(to)))
-			and (trick:isKindOf("Duel") or trick:isKindOf("FireAttack") or trick:isKindOf("AOE")) then
-		return nil
-	end --“绝情”“无言”、决斗、火攻、AOE
-		if not self:damageIsEffective(to, sgs.DamageStruct_Normal) and (trick:isKindOf("Duel") or trick:isKindOf("AOE")) then return nil end --决斗、AOE
-		if not self:damageIsEffective(to, sgs.DamageStruct_Fire) and trick:isKindOf("FireAttack") then return nil end --火攻
+		if (trick:isKindOf("Duel") or trick:isKindOf("FireAttack") or trick:isKindOf("AOE")) and
+			(to:hasSkill("wuyan") or (self:getDamagedEffects(to, from) and self:isFriend(to))) then
+			return nil
+		end --“绝情”“无言”、决斗、火攻、AOE
+		if (trick:isKindOf("Duel") or trick:isKindOf("AOE")) and not self:damageIsEffective(to, sgs.DamageStruct_Normal) then return nil end --决斗、AOE
+		if trick:isKindOf("FireAttack") and not self:damageIsEffective(to, sgs.DamageStruct_Fire) then return nil end --火攻
 	end 
-	if self:needToLoseHp(to, from) and self:isFriend(to)
-		and (trick:isKindOf("Duel") or trick:isKindOf("FireAttack") or trick:isKindOf("AOE")) then
+	if (trick:isKindOf("Duel") or trick:isKindOf("FireAttack") or trick:isKindOf("AOE")) and self:needToLoseHp(to, from) and self:isFriend(to) then
 		return nil --扣减体力有利
 	end
 	--准备使用无懈可击--
@@ -2741,7 +2740,7 @@ function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	if not self:damageIsEffective(nil, damage_nature, target) then return "." end
 	if target and target:hasSkill("guagu") and self.player:isLord() then return "." end
 	if effect and target and target:hasWeapon("IceSword") and self.player:getCards("he"):length() > 1 then return end	
-	if self:getDamagedEffects() or self:needToLoseHp() then return "." end
+	if self:getDamagedEffects(self.player, target) or self:needToLoseHp() then return "." end
 
 	if self:needBear() and self.player:getHp() > 2 then return "." end
 	if self.player:hasSkill("zili") and not self.player:hasSkill("paiyi") and self.player:getLostHp() < 2 then return "." end
@@ -3002,9 +3001,23 @@ function SmartAI:getCardNeedPlayer(cards)
 			table.insert(friends, player)
 		end
 	end
-
+	
+	local renegade_num = sgs.current_mode_players["renegade"]
+	if renegade_num > 0 and #friends > renegade_num then
+		local k = 0
+		for i, p in ipairs(friends) do
+			if sgs.ai_role[p:objectName()] == "renegade" 
+				or sgs.ai_role[p:objectName()] == "neutral" and sgs.role_evaluation[p:objectName()]["renegade"] >= 10
+				or sgs.ai_role[p:objectName()] == "loyalist" and sgs.role_evaluation[p:objectName()]["renegade"] >= 10 then
+				table.remove(friends, i)
+				k = k + 1
+				if k == renegade_num then break end
+			end
+		end
+	end
+	
 	-- special move between liubei and xunyu and huatuo
-	for _,player in ipairs(friends) do		
+	for _,player in ipairs(friends) do
 		if player:hasSkill("jieming") or player:hasSkill("jijiu") then
 			specialnum = specialnum + 1
 		end
@@ -3050,7 +3063,7 @@ function SmartAI:getCardNeedPlayer(cards)
 
 	-- weak
 	self:sort(friends, "defense")
-	for _, friend in ipairs(friends) do		
+	for _, friend in ipairs(friends) do
 		if self:isWeak(friend) and friend:getHandcardNum() < 3  then
 			for _, hcard in ipairs(cards) do
 				if isCard("Peach",hcard,friend) or (isCard("Jink",hcard,friend) and self:getEnemyNumBySeat(self.player,friend)>0) or isCard("Analeptic",hcard,friend) then
@@ -3077,7 +3090,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	end
 
 	-- Armor,DefensiveHorse
-	for _, friend in ipairs(friends) do		
+	for _, friend in ipairs(friends) do
 		if friend:getHp()<=2 and friend:faceUp() then
 			for _, hcard in ipairs(cards) do
 				if (hcard:isKindOf("Armor") and not friend:getArmor() and not self:hasSkills("yizhong|bazhen",friend)) 

@@ -887,17 +887,17 @@ sgs.ai_skill_playerchosen.toudu = function(self, targets)
 end
 
 sgs.ai_need_damaged.toudu = function(self, attacker, player)
-	if not player:hasSkill("toudu") then return false end
+	if not player:hasSkill("toudu") or player:faceUp() then return false end
 	local peaches = getCardsNum("Peach", player)
 	if peaches >= player:getLostHp() and peaches > 0 then return true end
 	if self.player:objectName() == player:objectName() and player:getHp() > 1 then
-		local targets = sgs.SPlayerList()
-		for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-			if self.player:canSlash(p, nil, false) then targets:append(p) end
+		local slash = sgs.Sanguosha:cloneCard("Slash")
+		for _, target in ipairs(self.enemies) do
+			if self:isEnemy(target) and self:slashIsEffective(slash, target) and not self:getDamagedEffects(target, self.player, true)
+				and getCardsNum("Jink", target) < 1 and (target:getHp() == 1 or self:hasHeavySlashDamage(player, nil, tareget) and target:getHp() == 2) then
+				return true
+			end
 		end
-		if targets:length() == 0 then return false end
-		local target = sgs.ai_skill_playerchosen.zero_card_as_slash(self, targets)
-		if target and (target:getHp() == 1 or self:hasHeavySlashDamage(player, nil, tareget) and target:getHp() == 2) then return true end
 	end
 	return false
 end

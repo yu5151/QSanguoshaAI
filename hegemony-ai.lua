@@ -410,6 +410,7 @@ sgs.ai_skill_choice.suishi2 = function(self, choices)
 end
 
 sgs.ai_skill_use["@@shuangren"] = function(self, prompt)
+	if self.player:isKongcheng() then return "." end
 	self:sort(self.enemies, "handcard")
 	local max_card = self:getMaxCard()
 	local max_point = max_card:getNumber()

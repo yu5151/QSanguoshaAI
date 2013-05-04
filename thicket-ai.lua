@@ -393,9 +393,10 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 end
 
 sgs.ai_card_intention.YinghunCard = function(self, card, from, tos, source)
-	local intention = -80
-	if from:hasFlag("yinghun_to_enemy") then intention = -intention end
-	if tos[1]:hasSkill("manjuan") then intention = -intention end
+	local intention = -10
+	if from:getState() ~= "robot" and from:getLostHp() > 1 then intention = 0 end
+	if from:hasFlag("yinghun_to_enemy") then intention = 10 end
+	if tos[1]:hasSkill("manjuan") then intention = 10 end
 	sgs.updateIntention(from, tos[1], intention)
 end
 

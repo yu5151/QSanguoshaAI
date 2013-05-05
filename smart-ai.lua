@@ -1645,6 +1645,11 @@ sgs.ai_choicemade_filter.Nullification.general = function(player, promptlist)
 		sgs.Nullification_Source = findPlayerByObjectName(global_room, target_objectName)
 		sgs.Nullification_Level = 1
 		sgs.Nullification_Intention = getTrickIntention(TrickClass, sgs.Nullification_Source)
+		if sgs.ai_role[sgs.Nullification_Source:objectName()] == "neutral" and sgs.TrickUsefrom and sgs.ai_role[sgs.TrickUsefrom:objectName()] ~= "neutral" and
+			sgs.Nullification_Intention ~= 0 and (TrickClass == ("Snatch") or TrickClass == ("Dismantlement") or TrickClass == ("FireAttack") or TrickClass == ("Duel")) then
+			sgs.Nullification_Source = sgs.TrickUsefrom
+			sgs.Nullification_Intention = -sgs.Nullification_Intention
+		end
 		if player:objectName() ~= target_objectName then
 			sgs.updateIntention(player, sgs.Nullification_Source, -sgs.Nullification_Intention)
 		end
@@ -1775,6 +1780,7 @@ function SmartAI:filterEvent(event, player, data)
 		local from  = struct.from
 		local card = struct.card
 		if from and from:objectName() == player:objectName() then
+			if card:isKindOf("SingleTargetTrick") then sgs.TrickUsefrom = from end
 			local to = sgs.QList2Table(struct.to)
 			local callback = sgs.ai_card_intention[card:getClassName()]
 			if callback then

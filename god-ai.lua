@@ -800,7 +800,8 @@ longhun_skill.getTurnUseCard = function(self)
 	local cards = sgs.QList2Table(self.player:getCards("he"))
 	self:sortByUseValue(cards,true)
 	for _, card in ipairs(cards) do
-		if card:getSuit() == sgs.Card_Diamond and self:slashIsAvailable() then
+		if card:getSuit() == sgs.Card_Diamond and self:slashIsAvailable()
+			and not (self.player:hasWeapon("Crossbow") and card:getEffectiveId() == self.player:getWeapon():getEffectiveId() and not self.player:canSlashWithoutCrossbow()) then
 			return sgs.Card_Parse(("fire_slash:longhun[%s:%s]=%d"):format(card:getSuitString(),card:getNumberString(),card:getId()))
 		end
 	end
@@ -811,7 +812,8 @@ sgs.ai_view_as.longhun = function(card, player, card_place)
 	local number = card:getNumberString()
 	local card_id = card:getEffectiveId()
 	if player:getHp() > 1 then return end
-	if card:getSuit() == sgs.Card_Diamond then
+	if card:getSuit() == sgs.Card_Diamond
+		and not (player:hasWeapon("Crossbow") and card_id == player:getWeapon():getEffectiveId() and not player:canSlashWithoutCrossbow()) then
 		return ("fire_slash:longhun[%s:%s]=%d"):format(suit, number, card_id)
 	elseif card:getSuit() == sgs.Card_Club then
 		return ("jink:longhun[%s:%s]=%d"):format(suit, number, card_id)

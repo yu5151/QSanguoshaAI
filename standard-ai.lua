@@ -1074,7 +1074,8 @@ sgs.ai_view_as.wusheng = function(card, player, card_place)
 	local suit = card:getSuitString()
 	local number = card:getNumberString()
 	local card_id = card:getEffectiveId()
-	if card:isRed() and not card:isKindOf("Peach") and not card:hasFlag("using") then
+	if card:isRed() and not card:isKindOf("Peach") and not card:hasFlag("using")
+		and not (player:hasWeapon("Crossbow") and card_id == player:getWeapon():getEffectiveId() and not player:canSlashWithoutCrossbow()) then
 		return ("slash:wusheng[%s:%s]=%d"):format(suit, number, card_id)
 	end
 end
@@ -1095,13 +1096,15 @@ wusheng_skill.getTurnUseCard=function(self,inclusive)
 	
 	for _,card in ipairs(cards) do
 		if card:isRed() and not card:isKindOf("Slash") and not card:isKindOf("Peach") 				--not peach
-			and ((self:getUseValue(card)<sgs.ai_use_value.Slash) or inclusive or slashAvail > 1) then
+			and ((self:getUseValue(card)<sgs.ai_use_value.Slash) or inclusive or slashAvail > 1)
+			and not (self.player:hasWeapon("Crossbow") and card:getEffectiveId() == self.player:getWeapon():getEffectiveId() and not self.player:canSlashWithoutCrossbow())
+			then
 			red_card = card
 			break
 		end
 	end
 
-	if red_card then		
+	if red_card then
 		local suit = red_card:getSuitString()
 		local number = red_card:getNumberString()
 		local card_id = red_card:getEffectiveId()

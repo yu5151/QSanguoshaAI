@@ -548,7 +548,10 @@ sgs.ai_skill_playerchosen.fangquan = function(self, targets)
 	end
 end
 
-sgs.ai_playerchosen_intention.fangquan = - 100
+sgs.ai_playerchosen_intention.fangquan = function(from, to)
+	local intention = to:hasSkill("benghuai") and 0 or -10
+	sgs.updateIntention(from, to, intention)
+end
 
 function SmartAI:isTiaoxinTarget(enemy)
 	if not enemy then self.room:writeToConsole(debug.traceback()) return end

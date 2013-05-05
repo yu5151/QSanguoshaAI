@@ -5344,7 +5344,7 @@ function SmartAI:doNotDiscard(to, flags, conservative, n, cant_choose)
 		if to:hasSkill("lirang") and self:hasFriends("draw", to) then return true end
 		if self:needKongcheng(to) and to:getHandcardNum() <= n then return true end
 		if to:hasSkill("shangshi") and (to:getHandcardNum() - n) < math.min(2, to:getLostHp()) then return true end
-		if to:hasSkill("nosshangshi") and (to:getHandcardNum() - n) < player:getLostHp() then return true end
+		if to:hasSkill("nosshangshi") and (to:getHandcardNum() - n) < to:getLostHp() then return true end
 		if self:hasSkills(sgs.lose_equip_skill, to) and to:hasEquip() then return true end
 		if self:needToThrowArmor(to) then return true end
 	else
@@ -5359,7 +5359,7 @@ function SmartAI:doNotDiscard(to, flags, conservative, n, cant_choose)
 			if #self.friends > 1 and to:getHandcardNum() == 1 and to:hasSkill("sijian") then return false end
 		elseif flags == "e" or (flags == "he" and to:isKongcheng()) then
 			if not to:hasEquip() then return true end
-			if self:hasSkills(sgs.lose_equip_skill, to) then return true end	
+			if self:hasSkills(sgs.lose_equip_skill, to) then return true end
 			if to:getCardCount(true) == 1 and self:needToThrowArmor(to) then return true end
 		end
 		if flags == "he" and n == 2 then

@@ -891,7 +891,7 @@ sgs.ai_need_damaged.toudu = function(self, attacker, player)
 	local peaches = getCardsNum("Peach", player)
 	if peaches >= player:getLostHp() and peaches > 0 then return true end
 	if self.player:objectName() == player:objectName() and player:getHp() > 1 then
-		local slash = sgs.Sanguosha:cloneCard("Slash")
+		local slash = sgs.Sanguosha:cloneCard("Slash", sgs.Card_NoSuit, 0)
 		for _, target in ipairs(self.enemies) do
 			if self:isEnemy(target) and self:slashIsEffective(slash, target) and not self:getDamagedEffects(target, self.player, true)
 				and getCardsNum("Jink", target) < 1 and (target:getHp() == 1 or self:hasHeavySlashDamage(player, nil, tareget) and target:getHp() == 2) then

@@ -392,12 +392,38 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 	end
 end
 
-sgs.ai_card_intention.YinghunCard = function(self, card, from, tos, source)
-	local intention = -10
-	if from:getState() ~= "robot" and from:getLostHp() > 1 then intention = 0 end
-	if from:hasFlag("yinghun_to_enemy") then intention = 10 end
-	if tos[1]:hasSkill("manjuan") then intention = 10 end
-	sgs.updateIntention(from, tos[1], intention)
+sgs.ai_card_intention.YinghunCard = function(self, card, from, tos)
+	if from:getState() == "robot" or from:getHp() == 1 then
+		local intention = -10
+		if from:hasFlag("yinghun_to_enemy") or tos[1]:hasSkill("manjuan") then
+			intention = 10
+		end
+		sgs.updateIntention(from, tos[1], intention)
+	else
+		sgs.yinghun_target = tos[1]
+	end
+end
+
+sgs.ai_choicemade_filter.skillChoice.yinghun = function(player, promptlist, self)
+	if sgs.yinghun_target then
+		local target = sgs.yinghun_target
+		local intention = 10
+		if promptlist[3] == "d1tx" then
+			if (target:hasSkills(sgs.lose_equip_skill) and target:getCards("e"):length() > 0)
+				or (target:hasArmorEffect("SilverLion") and target:isWounded() and self:isWeak(target))
+				or (target:hasSkill("tuntian") and target:hasSkill("zaoxian") and player:getLostHp() < 3 and target:getCards("he"):length() < 2)
+				or self:doNotDiscard(target, "he", true, player:getLostHp(), true)
+				then
+				intention = -10
+			end
+			if target:hasSkill("manjuan") then intention = 10 end
+			sgs.updateIntention(player, sgs.yinghun_target, intention)
+		else
+			if target:hasSkill("manjuan") then intention = 10 end
+			sgs.updateIntention(player, sgs.yinghun_target, -intention)
+		end
+	end
+	sgs.yinghun_target = nil
 end
 
 local function getLowerBoundOfHandcard(self)

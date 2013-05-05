@@ -370,6 +370,9 @@ end
 sgs.ai_skill_use["@@lianli"] = function(self, prompt)
 	self:sort(self.friends, "defense")
 	
+	local AssistTarget = self:AssistTarget()
+	if AssistTarget and AssistTarget:isMale() then return "@LianliCard=.->" .. AssistTarget:objectName() end
+	
 	for _, friend in ipairs(self.friends_noself) do --优先考虑与队友连理
 		if friend:isMale() then
 			return "@LianliCard=.->" .. friend:objectName()

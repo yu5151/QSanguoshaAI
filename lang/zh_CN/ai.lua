@@ -12,4 +12,9 @@ return {
 		["#renegade_value_inc"] = "%from <font color='blue'>的内奸度增加了 %arg 点</font>",
 		["#show_intention_loyalist"] ="%from 的忠值为 %arg, 内值为 %arg2",
 		["#show_intention_rebel"] ="%from 的忠值为 <font color='yellow'>-</font>%arg, 内值为 %arg2",
+		
+		["ai_AssistMode"] = "优先辅助玩家",
+		["#ai_AssistMode"] = "让AI优先对你使用辅助技能？",
+		["#ai_AssistMode_on"] = "<font color = 'blue'><b>已启用</b></font>",
+		["#ai_AssistMode_off"] = "<font color = 'red'><b>未启用</b></font>",
 }

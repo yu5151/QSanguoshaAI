@@ -1685,8 +1685,9 @@ end
 function SmartAI:filterEvent(event, player, data)
 	if not sgs.recorder then
 		sgs.recorder = self
+		askForAssistMode()
 	end
-	if player:objectName()==self.player:objectName() then		
+	if player:objectName()==self.player:objectName() then
 		if sgs.debugmode and type(sgs.ai_debug_func[event])=="table" then
 			for _,callback in pairs(sgs.ai_debug_func[event]) do
 				if type(callback)=="function" then callback(self,player,data) end
@@ -3017,6 +3018,9 @@ function SmartAI:getCardNeedPlayer(cards)
 			end
 		end
 	end
+	
+	local AssistTarget = self:AssistTarget()
+	if AssistTarget then friends = { AssistTarget } end
 	
 	-- special move between liubei and xunyu and huatuo
 	for _,player in ipairs(friends) do
@@ -5646,6 +5650,40 @@ function CanUpdateIntention(player)
 		(current_loyalist_num + 1 >= loyalist_num or current_rebel_num + 1 >= rebel_num) then return false
 	end
 	return true
+end
+
+function askForAssistMode()
+	local human_count, player = 0
+	for _, p in sgs.qlist(global_room:getAlivePlayers()) do
+		if p:getState() ~= "robot" then
+			human_count = human_count + 1
+			player = p
+		end
+	end
+	if human_count == 1 and player then
+		local log = sgs.LogMessage()
+		if global_room:askForChoice(player, "ai_AssistMode", "#ai_AssistMode+yes+no") == "yes" then
+			global_room:setTag("ai_AssistMode", sgs.QVariant(true))
+			sgs.ai_AssistTarget = player
+			log.type = "#ai_AssistMode_on"
+			global_room:sendLog(log)
+			global_room:sendLog(log)
+			global_room:sendLog(log)
+		else
+			log.type = "#ai_AssistMode_off"
+			global_room:sendLog(log)
+			global_room:sendLog(log)
+			global_room:sendLog(log)
+		end
+	end
+end
+
+function SmartAI:AssistTarget()
+	if self.room:getTag("ai_AssistMode") then
+		local player = sgs.ai_AssistTarget
+		if player and player:isAlive() and player:objectName() ~= self.player:objectName() then return player end
+	end
+	return
 end
 
 dofile "lua/ai/debug-ai.lua"

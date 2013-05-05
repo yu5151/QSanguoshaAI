@@ -73,7 +73,7 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 		end
 
 		if index == 3 then
-			to = self:findPlayerToDraw("noself", 3)
+			to = self:AssistTarget() or self:findPlayerToDraw("noself", 3)
 			if not to then return end
 			if use.to then use.to:append(to) end
 			use.card = sgs.Card_Parse("@NosJujianCard=" .. table.concat(abandon_card, "+"))
@@ -108,7 +108,7 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 	end
 	
 	if index == 3 then
-		to = self:findPlayerToDraw("noself", 3)
+		to = self:AssistTarget() or self:findPlayerToDraw("noself", 3)
 		if not to then return end
 		if use.to then use.to:append(to) end
 		use.card = sgs.Card_Parse("@NosJujianCard=" .. table.concat(abandon_card, "+"))
@@ -118,7 +118,7 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 	if self:getOverflow() > 0 then
 		local getOverflow = math.max(self:getOverflow(), 0)
 		local discard = self:askForDiscard("dummyreason", math.min(getOverflow, 3), nil, false, true)
-		to = self:findPlayerToDraw("noself", math.min(getOverflow, 3))
+		to = self:AssistTarget() or self:findPlayerToDraw("noself", math.min(getOverflow, 3))
 		if not to then return end
 		use.card = sgs.Card_Parse("@NosJujianCard=" .. table.concat(discard, "+"))
 		if use.to then use.to:append(to) end
@@ -126,7 +126,7 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 	end
 
 	if index > 0 then
-		to = self:findPlayerToDraw("noself", index)
+		to = self:AssistTarget() or self:findPlayerToDraw("noself", index)
 		if not to then return end
 		use.card = sgs.Card_Parse("@NosJujianCard=" .. table.concat(abandon_card, "+"))
 		if use.to then use.to:append(to) end

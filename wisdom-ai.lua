@@ -266,7 +266,7 @@ end
 sgs.ai_skill_use_func.HouyuanCard = function(card, use, self)
 	if #self.friends == 1 then return end
 	local target
-	target = self:findPlayerToDraw("noself", 2)
+	target = self:AssistTarget() or self:findPlayerToDraw("noself", 2)
 	local cards = self.player:getCards("h")
 	cards = sgs.QList2Table(cards)
 	self:sortByUseValue(cards, true)
@@ -514,6 +514,8 @@ sgs.ai_skill_invoke.jincui = function(self, data)
 end
 
 sgs.ai_skill_playerchosen.jincui = function(self, targets)
+	local AssistTarget = self:AssistTarget()
+	if AssistTarget then return AssistTarget end
 	local wf
 	for _, friend in ipairs(self.friends_noself) do
 		if self:isWeak(friend) then
@@ -668,14 +670,14 @@ end
 
 sgs.ai_skill_use_func.ShouyeCard = function(card, use, self)
 	self:sort(self.friends_noself, "defense")
-	local first
+	local first = self:AssistTarget()
 	local second
 
 	for _, friend in ipairs(self.friends_noself) do
 		if not friend:hasSkill("manjuan") and not self:needKongcheng(friend, true) then
 			if not first then
 				first = friend
-			else
+			elseif first:objectName() ~= friend:objectName() then
 				second = friend
 			end
 			if second then break end

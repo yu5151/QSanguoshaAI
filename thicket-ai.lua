@@ -220,7 +220,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 	if x == 1 and #self.friends == 1 then
 		for _, enemy in ipairs(self.enemies) do
 			if enemy:hasSkill("manjuan") then
-				self.player:setFlags("yinghun_to_enemy")
+				self.player:setFlags("AI_yinghun_to_enemy")
 				return "@YinghunCard=.->" .. enemy:objectName()
 			end
 		end
@@ -258,7 +258,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 		if not self.yinghun then
 			for _, enemy in ipairs(self.enemies) do
 				if enemy:hasSkill("manjuan") then
-					self.player:setFlags("yinghun_to_enemy")
+					self.player:setFlags("AI_yinghun_to_enemy")
 					return "@YinghunCard=.->" .. enemy:objectName()
 				end
 			end
@@ -327,7 +327,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 					if enemy:getCards("he"):length() == n
 					  and not self:doNotDiscard(enemy, "he", true, n, true) then
 						self.yinghunchoice = "d1tx"
-						self.player:setFlags("yinghun_to_enemy")
+						self.player:setFlags("AI_yinghun_to_enemy")
 						return "@YinghunCard=.->" .. enemy:objectName()
 					end
 				end
@@ -336,7 +336,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 					  and not self:doNotDiscard(enemy, "he", true, n, true)
 					  and self:hasSkills(sgs.cardneed_skill, enemy) then
 						self.yinghunchoice = "d1tx"
-						self.player:setFlags("yinghun_to_enemy")
+						self.player:setFlags("AI_yinghun_to_enemy")
 						return "@YinghunCard=.->" .. enemy:objectName()
 					end
 				end
@@ -361,7 +361,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 			if enemy:getCards("he"):length() >= n 
 			  and not self:doNotDiscard(enemy, "he", true, n, true) then
 				self.yinghunchoice = "d1tx"
-				self.player:setFlags("yinghun_to_enemy")
+				self.player:setFlags("AI_yinghun_to_enemy")
 				return "@YinghunCard=.->" .. enemy:objectName()
 			end
 		end
@@ -372,7 +372,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 			  and not (enemy:hasArmorEffect("SilverLion") and enemy:isWounded() and self:isWeak(enemy))
 			  and not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian")) then
 				self.yinghunchoice = "d1tx"
-				self.player:setFlags("yinghun_to_enemy")
+				self.player:setFlags("AI_yinghun_to_enemy")
 				return "@YinghunCard=.->" .. enemy:objectName()
 			end
 		end
@@ -382,7 +382,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 			  and not (enemy:hasArmorEffect("SilverLion") and enemy:isWounded() and self:isWeak(enemy))
 			  and not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian") and x < 3 and enemy:getCards("he"):length() < 2) then
 				self.yinghunchoice = "d1tx"
-				self.player:setFlags("yinghun_to_enemy")
+				self.player:setFlags("AI_yinghun_to_enemy")
 				return "@YinghunCard=.->" .. enemy:objectName()
 			end
 		end
@@ -396,9 +396,9 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 end
 
 sgs.ai_card_intention.YinghunCard = function(self, card, from, tos)
-	if from:getState() == "robot" or from:getHp() == 1 then
+	if from:getState() == "robot" or from:getLostHp() == 1 then
 		local intention = -10
-		if from:hasFlag("yinghun_to_enemy") or tos[1]:hasSkill("manjuan") then
+		if from:hasFlag("AI_yinghun_to_enemy") or tos[1]:hasSkill("manjuan") then
 			intention = 10
 		end
 		sgs.updateIntention(from, tos[1], intention)
@@ -412,9 +412,7 @@ sgs.ai_choicemade_filter.skillChoice.yinghun = function(player, promptlist, self
 		local target = sgs.yinghun_target
 		local intention = 10
 		if promptlist[3] == "d1tx" then
-			if (target:hasSkills(sgs.lose_equip_skill) and target:getCards("e"):length() > 0)
-				or (target:hasArmorEffect("SilverLion") and target:isWounded() and self:isWeak(target))
-				or (target:hasSkill("tuntian") and target:hasSkill("zaoxian") and player:getLostHp() < 3 and target:getCards("he"):length() < 2)
+			if (target:hasSkills(sgs.lose_equip_skill) and target:getCards("e"):length() > 1)
 				or self:doNotDiscard(target, "he", true, player:getLostHp(), true)
 				then
 				intention = -10

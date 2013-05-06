@@ -411,9 +411,11 @@ sgs.ai_choicemade_filter.skillChoice.yinghun = function(player, promptlist, self
 	if sgs.yinghun_target then
 		local target = sgs.yinghun_target
 		local intention = 10
+		local n = player:getLostHp()
 		if promptlist[3] == "d1tx" then
 			if (target:hasSkills(sgs.lose_equip_skill) and target:getCards("e"):length() > 1)
-				or self:doNotDiscard(target, "he", true, player:getLostHp(), true)
+				or ((target:hasSkill("kongcheng") or (target:hasSkill("zhiji") and target:getMark("zhiji") == 0))
+					and target:getHandcardNum() > 0 and target:getHandcardNum() < n)	
 				then
 				intention = -10
 			end

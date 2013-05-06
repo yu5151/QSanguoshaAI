@@ -552,7 +552,12 @@ sgs.ai_skill_playerchosen.fangquan = function(self, targets)
 end
 
 sgs.ai_playerchosen_intention.fangquan = function(from, to)
-	local intention = to:hasSkill("benghuai") and 0 or -10
+	sgs.fangquan_effect = false
+	local intention = -10
+	if to:hasSkill("benghuai") then
+		sgs.fangquan_effect = true
+		intention = 0
+	end
 	sgs.updateIntention(from, to, intention)
 end
 

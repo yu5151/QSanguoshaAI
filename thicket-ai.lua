@@ -791,11 +791,18 @@ sgs.ai_skill_choice.benghuai = function(self, choices, data)
 		end
 	end
 	if self.player:getMaxHp() >= self.player:getHp() + 2 then
-		local enemy_num = self:getEnemyNumBySeat(self.room:getCurrent(), self.player, self.player)
-		local least_hp = isLord(self.player) and 1 + enemy_num or 1
-		if self.player:getMaxHp() > 5 and (self.player:hasSkill("nosmiji") or self.player:hasSkill("miji") and self:findPlayerToDraw("noself"))
-			and (self:getCardsNum("Peach") + self:getCardsNum("Analeptic") + self.player:getHp() > least_hp) then
-			return "hp"
+		if self.player:getMaxHp() > 5 and (self.player:hasSkill("nosmiji") or self.player:hasSkill("miji") and self:findPlayerToDraw("noself")) then
+			local enemy_num = 0
+			for _, p in ipairs(self.enemies) do
+				if p:inMyAttackRange(self.player) and not self:willSkipPlayPhase(p) then enemy_num = enemy_num + 1 end
+			end
+			local ls = sgs.fangquan_effect and self.room:findPlayerBySkillName("fangquan")
+			if ls then
+				sgs.fangquan_effect = false
+				enemy_num = self:getEnemyNumBySeat(ls, self.player, self.player)
+			end
+			local least_hp = isLord(self.player) and math.max(2, enemy_num - 1) or 1
+			if (self:getCardsNum("Peach") + self:getCardsNum("Analeptic") + self.player:getHp() > least_hp) then return "hp" end
 		end
 		return "maxhp"
 	else

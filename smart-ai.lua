@@ -5687,7 +5687,7 @@ end
 function SmartAI:AssistTarget()
 	if self.room:getTag("ai_AssistMode") then
 		local player = sgs.ai_AssistTarget
-		if player and player:isAlive() and player:objectName() ~= self.player:objectName() then return player end
+		if player and player:isAlive() and self:isFriend(player) and player:objectName() ~= self.player:objectName() then return player end
 	end
 	return
 end

@@ -374,6 +374,7 @@ function SmartAI:shouldUseAnaleptic(target, slash)
 	if sgs.turncount <= 1 and self.role == "renegade" and sgs.isLordHealthy() and self:getOverflow() < 2 then return false end
 	if self:isEquip("SilverLion", target) and not IgnoreArmor(self.player, target) and not self.player:hasSkill("jueqing") then return false end
 	if target:hasSkill("zhenlie") then return false end
+	if self.player:hasWeapon("Spear") and slash:getSkillName() == "Spear" and self.player:getHandcardNum() <= 2 and then return false end
 	if target:hasSkill("xiangle") then
 		local basicnum = 0
 		for _, acard in sgs.qlist(self.player:getHandcards()) do
@@ -508,8 +509,8 @@ function SmartAI:useCardSlash(card, use)
 			local usecard = card
 			if not use.to or use.to:isEmpty() then
 				
-				if self:isEquip("Spear") and card:getSkillName() == "Spear" and #self:getCards("Slash") == 0 then 
-				elseif self:isEquip("Crossbow", self.player, true) and self:getCardsNum("Slash") > 1 then
+				if self.player:hasWeapon("Spear") and card:getSkillName() == "Spear" and #self:getCards("Slash") == 0 then 
+				elseif self.player:hasWeapon("Crossbow") and self:getCardsNum("Slash") > 1 then
 				else
 				
 					local Weapons = {}

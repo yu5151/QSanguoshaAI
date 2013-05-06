@@ -803,6 +803,11 @@ sgs.ai_cardneed.xianzhen = function(to, card, self)
 end
 
 function sgs.ai_skill_pindian.xianzhen(minusecard, self, requestor)
+	if requestor:getHandcardNum() == 1 then
+		local cards = sgs.QList2Table(self.player:getHandcards())
+		self:sortByKeepValue(cards)
+		return cards[1]
+	end
 	local maxcard = self:getMaxCard()
 	if requestor:getHandcardNum() <= 2 then return minusecard end
 	return self:isFriend(requestor) and minusecard or ( maxcard:getNumber() < 6 and  minusecard or maxcard )

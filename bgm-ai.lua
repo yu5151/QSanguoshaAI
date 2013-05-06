@@ -402,6 +402,11 @@ sgs.dynamic_value.control_card.TanhuCard = true
 sgs.ai_use_priority.TanhuCard = 8
 
 function sgs.ai_skill_pindian.tanhu(minusecard, self, requestor)
+	if requestor:getHandcardNum() == 1 then
+		local cards = sgs.QList2Table(self.player:getHandcards())
+		self:sortByKeepValue(cards)
+		return cards[1]
+	end
 	if self.player:objectName() == requestor:objectName() then
 		if self.tanhu_card then
 			return self.tanhu_card

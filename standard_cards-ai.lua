@@ -1426,6 +1426,10 @@ sgs.ai_skill_invoke.EightDiagram = function(self, data)
 		if sgs.lianlisource and not self:isFriend(sgs.lianlisource) and (sgs.lianlisource:hasFlag("dahe") or self.player:hasFlag("dahe")) then return true end
 		if self.player:hasFlag("dahe") and handang and self:isFriend(handang) and dying > 0 then return true end
 	end
+	if self.player:getHandcardNum() == 1 and self:getCardsNum("Jink") == 1 and self.player:hasSkills("zhiji|beifa") and self:needKongcheng() then
+		local enemy_num = self:getEnemyNumBySeat(self.room:getCurrent(), self.player, self.player)
+		if self.player:getHp() > enemy_num and enemy_num <= 1 then return false end
+	end
 	if handang and self:isFriend(handang) and dying > 0 then return false end
 	if self.player:hasFlag("dahe") then return false end
 	if sgs.hujiasource and (not self:isFriend(sgs.hujiasource) or sgs.hujiasource:hasFlag("dahe")) then return false end

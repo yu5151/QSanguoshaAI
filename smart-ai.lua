@@ -2874,12 +2874,13 @@ function sgs.ai_cardneed.weapon(to, card, self)
 	end
 end
 
-function SmartAI:getEnemyNumBySeat(from, to)
+function SmartAI:getEnemyNumBySeat(from, to, target)
+	target = target or from
 	local players = sgs.QList2Table(self.room:getAlivePlayers())
 	local to_seat = (to:getSeat() - from:getSeat()) % #players
 	local enemynum = 0
 	for _, p in ipairs(players) do
-		if self:isEnemy(from, p) and ((p:getSeat() - from:getSeat()) % #players) < to_seat then			 
+		if self:isEnemy(target, p) and ((p:getSeat() - from:getSeat()) % #players) < to_seat then			 
 			enemynum = enemynum + 1 
 		end
 	end
@@ -3421,7 +3422,7 @@ function SmartAI:askForSinglePeach(dying)
 			(sgs.current_mode_players["loyalist"] == sgs.current_mode_players["rebel"] or self.room:getCurrent():objectName() == self.player:objectName()) then
 		return "."
 	end
-	if isLord(self.player) and dying:objectName() ~= self.player:objectName() and self:getEnemyNumBySeat(self.room:getCurrent(), self.player) > 0 and
+	if isLord(self.player) and dying:objectName() ~= self.player:objectName() and self:getEnemyNumBySeat(self.room:getCurrent(), self.player, self.player) > 0 and
 		self:getCardsNum("Peach") == 1 and self:isWeak() and self.player:getHp() == 1 then return "." end
 		
 	if sgs.ai_role[dying:objectName()] == "renegade" and dying:objectName() ~= self.player:objectName() then
@@ -3468,7 +3469,7 @@ function SmartAI:askForSinglePeach(dying)
 		if dying:objectName() ~= lord:objectName() and dying:objectName() ~= self.player:objectName() and lord:getHp() == 1 and
 			self:isFriend(lord) and self:isEnemy(CP) and CP:canSlash(lord, nil, true) and getCardsNum("Peach", lord) == 0 and
 			getCardsNum("Analeptic",lord) == 0 and #self.friends_noself <= 2 and self:slashIsAvailable(CP) and
-			self:damageIsEffective(CP, nil, lord) and self:getCardsNum("Peach") <= self:getEnemyNumBySeat(CP, lord) + 1 then
+			self:damageIsEffective(CP, nil, lord) and self:getCardsNum("Peach") <= self:getEnemyNumBySeat(CP, lord, self.player) + 1 then
 			return "."
 		end
 		

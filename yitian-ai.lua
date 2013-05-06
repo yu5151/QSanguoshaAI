@@ -986,7 +986,7 @@ end
 sgs.ai_skill_invoke.xiliang = true
 
 sgs.ai_skill_choice.xiliang = function(self, choices)	
-	if self.player:hasSkill("manjuan") then return "put" end	
+	if self.player:hasSkill("manjuan") or self:needKongcheng(self.player) then return "put" end	
 	if not self.player:hasSkill("yishe") then return "obtain" end
 	if self:willSkipPlayPhase() and self.player:getHandcardNum() > 2 then return "put" end
 	if self.player:getHandcardNum() < 3 or self:getCardsNum("Jink") < 1 then return "obtain" end

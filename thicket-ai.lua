@@ -214,9 +214,6 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 	local x = self.player:getLostHp()
 	local n = x - 1
 	
-	local player = self:AssistTarget()
-	if player and (x > 1 or player:getCardCount(true) > 0) then return "@YinghunCard=.->" .. player:objectName() end
-	
 	if x == 1 and #self.friends == 1 then
 		for _, enemy in ipairs(self.enemies) do
 			if enemy:hasSkill("manjuan") then
@@ -228,6 +225,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 	end
 	
 	self.yinghun = nil
+	local player = self:AssistTarget()
 
 	if x == 1 then
 		self:sort(self.friends_noself, "handcard")
@@ -263,6 +261,11 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 				end
 			end
 		end
+
+		if not self.yinghun and player and not player:hasSkill("manjuan") and player:getCardCount(true) > 0 and not self:needKongcheng(player, true) then
+			self.yinghun = player
+		end
+
 		if not self.yinghun then
 			for _, friend in ipairs(self.friends_noself) do
 				if friend:getCards("he"):length() > 0 and not friend:hasSkill("manjuan") then
@@ -342,6 +345,11 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 				end
 			end
 		end
+
+		if not self.yinghun and player and not player:hasSkill("manjuan") and not self:needKongcheng(player, true) then
+			self.yinghun = player
+		end
+
 		if not self.yinghun then
 			self.yinghun = self:findPlayerToDraw("noself", n)
 		end

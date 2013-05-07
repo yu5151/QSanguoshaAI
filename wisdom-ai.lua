@@ -566,8 +566,8 @@ sgs.ai_slash_prohibit.wenjiu = function(self, to, card)
 	local has_black_slash, has_red_slash
 	local slashes = self:getCards("Slash")
 	for _, slash in ipairs(slashes) do
-		if slash:isBlack() then has_black_slash = true end
-		if slash:isRed() then has_red_slash = true end
+		if slash:isBlack() and self:slashIsEffective(slash, to) then has_black_slash = true end
+		if slash:isRed() and self:slashIsEffective(slash, to) then has_red_slash = true end
 	end
 
 	if self:isFriend(to) then
@@ -614,8 +614,8 @@ sgs.ai_slash_prohibit.badao = function(self, to, card)
 	local has_black_slash, has_red_slash
 	local slashes = self:getCards("Slash")
 	for _, slash in ipairs(slashes) do
-		if slash:isBlack() then has_black_slash = true end
-		if slash:isRed() then has_red_slash = true end
+		if slash:isBlack() and self:slashIsEffective(slash, to) then has_black_slash = true end
+		if slash:isRed() and self:slashIsEffective(slash, to) then has_red_slash = true end
 	end
 	if self:isFriend(to) then 
 		return card:isRed() and (has_black_slash or self:isWeak(to)) 

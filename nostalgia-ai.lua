@@ -46,6 +46,7 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 	local index = 0
 	local hasPeach = (self:getCardsNum("Peach") > 0)
 	local to
+	local AssistTarget = self:AssistTarget()
 
 	local trick_num, basic_num, equip_num = 0, 0, 0
 	if not hasPeach and self.player:isWounded() and self.player:getCards("he"):length() >=3 then
@@ -73,7 +74,11 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 		end
 
 		if index == 3 then
-			to = self:AssistTarget() or self:findPlayerToDraw("noself", 3)
+			if AssistTarget and not AssistTarget:hasSkill("manjuan") then
+				to = AssistTarget
+			else
+				to = self:findPlayerToDraw("noself", 3)
+			end
 			if not to then return end
 			if use.to then use.to:append(to) end
 			use.card = sgs.Card_Parse("@NosJujianCard=" .. table.concat(abandon_card, "+"))
@@ -108,7 +113,11 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 	end
 	
 	if index == 3 then
-		to = self:AssistTarget() or self:findPlayerToDraw("noself", 3)
+		if AssistTarget and not AssistTarget:hasSkill("manjuan") then
+			to = AssistTarget
+		else
+			to = self:findPlayerToDraw("noself", 3)
+		end
 		if not to then return end
 		if use.to then use.to:append(to) end
 		use.card = sgs.Card_Parse("@NosJujianCard=" .. table.concat(abandon_card, "+"))
@@ -118,7 +127,11 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 	if self:getOverflow() > 0 then
 		local getOverflow = math.max(self:getOverflow(), 0)
 		local discard = self:askForDiscard("dummyreason", math.min(getOverflow, 3), nil, false, true)
-		to = self:AssistTarget() or self:findPlayerToDraw("noself", math.min(getOverflow, 3))
+		if AssistTarget and not AssistTarget:hasSkill("manjuan") and not self:needKongcheng(AssistTarget, true) then
+			to = AssistTarget
+		else
+			to = self:findPlayerToDraw("noself", math.min(getOverflow, 3))
+		end 
 		if not to then return end
 		use.card = sgs.Card_Parse("@NosJujianCard=" .. table.concat(discard, "+"))
 		if use.to then use.to:append(to) end
@@ -126,7 +139,11 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 	end
 
 	if index > 0 then
-		to = self:AssistTarget() or self:findPlayerToDraw("noself", index)
+		if AssistTarget and not AssistTarget:hasSkill("manjuan") and not self:needKongcheng(AssistTarget, true) then
+			to = AssistTarget
+		else
+			to = self:findPlayerToDraw("noself", index)
+		end  
 		if not to then return end
 		use.card = sgs.Card_Parse("@NosJujianCard=" .. table.concat(abandon_card, "+"))
 		if use.to then use.to:append(to) end

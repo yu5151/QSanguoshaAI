@@ -524,18 +524,25 @@ sgs.ai_skill_playerchosen.fangquan = function(self, targets)
 	self.friends_noself = sgs.reverse(self.friends_noself)
 	
 	local AssistTarget = self:AssistTarget()
-	if AssistTarget then return AssistTarget end
 	
 	for _, target in ipairs(self.friends_noself) do
 		if not target:hasSkill("dawu") and self:hasSkills("yongsi",target) and not self:willSkipPlayPhase(target) and not self:willSkipDrawPhase(target) then
 			return target
 		end
 	end
+	
+	if AssistTarget and not AssistTarget:hasSkill("dawu") and not self:willSkipPlayPhase(AssistTarget) and not self:willSkipDrawPhase(AssistTarget) then
+		return AssistTarget
+	end
 
 	for _, target in ipairs(self.friends_noself) do
 		if not target:hasSkill("dawu") and self:hasSkills("zhiheng|shensu|"..sgs.priority_skill, target) and not self:willSkipPlayPhase(target) and not self:willSkipDrawPhase(target) then
 			return target
 		end
+	end
+	
+	if AssistTarget and not AssistTarget:hasSkill("dawu") then
+		return AssistTarget
 	end
 
 	for _, target in ipairs(self.friends_noself) do

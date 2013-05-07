@@ -5589,6 +5589,9 @@ function SmartAI:findPlayerToDraw(prompt, n)
 		end
 	end
 
+	local AssistTarget = self:AssistTarget()
+	if AssistTarget and table.contains(friends, AssistTarget) and not self:willSkipPlayPhase(AssistTarget) then return AssistTarget end
+
 	for _, friend in ipairs(friends) do
 		if self:hasSkills(sgs.cardneed_skill, friend) and not self:willSkipPlayPhase(friend) then
 			return friend

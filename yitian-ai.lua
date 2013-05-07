@@ -371,9 +371,15 @@ sgs.ai_skill_use["@@lianli"] = function(self, prompt)
 	self:sort(self.friends, "defense")
 	
 	local AssistTarget = self:AssistTarget()
-	if AssistTarget and AssistTarget:isMale() then return "@LianliCard=.->" .. AssistTarget:objectName() end
+	if AssistTarget and AssistTarget:isMale() and not AssistTarget:hasSkill("manjuan") then return "@LianliCard=.->" .. AssistTarget:objectName() end
 	
 	for _, friend in ipairs(self.friends_noself) do --优先考虑与队友连理
+		if friend:isMale() and not friend:hasSkill("manjuan") then
+			return "@LianliCard=.->" .. friend:objectName()
+		end
+	end
+
+	for _, friend in ipairs(self.friends_noself) do
 		if friend:isMale() then
 			return "@LianliCard=.->" .. friend:objectName()
 		end

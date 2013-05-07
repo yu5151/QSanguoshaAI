@@ -50,7 +50,16 @@ sgs.ai_skill_use["@@jujian"] = function(self, prompt)
 			return "@JujianCard="..nobasiccard.."->"..friend:objectName()
 		end
 	end
-	local friend = self:AssistTarget() or self.friends_noself[1]
+
+	local AssistTarget = self:AssistTarget()
+	local friend 
+	if AssistTarget and AssistTarget:isWounded() and not self:needToLoseHp(AssistTarget, nil, nil, nil, true) then
+		friend = AssistTarget
+	elseif AssistTarget and not AssistTarget:hasSkill("manjuan") and not self:needKongcheng(AssistTarget, true) then
+		friend = AssistTarget
+	else
+		friend = self.friends_noself[1]
+	end
 	return "@JujianCard="..nobasiccard.."->"..friend:objectName()
 end
 
@@ -572,7 +581,7 @@ mingce_skill.getTurnUseCard = function(self)
 	return nil
 end
 
-sgs.ai_skill_use_func.MingceCard=function(card,use,self)
+sgs.ai_skill_use_func.MingceCard = function(card, use, self)
 	local target
 	local friends = self.friends_noself
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
@@ -590,7 +599,7 @@ sgs.ai_skill_use_func.MingceCard=function(card,use,self)
 						and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
 						and enemy:objectName() ~= self.player:objectName() then
 					target = friend
-					enemy:setFlags("AI_mingceTarget")
+					enemy:setFlags("AI_MingceTarget")
 					break
 				end
 			end
@@ -609,7 +618,7 @@ sgs.ai_skill_use_func.MingceCard=function(card,use,self)
 	end
 
 	if target then
-		use.card=card
+		use.card = card
 		if use.to then
 			use.to:append(target)
 		end
@@ -621,8 +630,8 @@ sgs.ai_event_callback[sgs.ChoiceMade].mingce = function(self, player, data)
 	local choices= data:toString():split(":")
 	if choices[1] == "playerChosen"  and  choices[2] == "mingce" and choices[3] then
 		for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-			if p:objectName() == choices[3] and not p:hasFlag("AI_mingceTarget") then 
-				 p:setFlags("AI_mingceTarget")
+			if p:objectName() == choices[3] and not p:hasFlag("AI_MingceTarget") then 
+				 p:setFlags("AI_MingceTarget")
 			end
 		end		
 	end	
@@ -633,8 +642,8 @@ sgs.ai_skill_choice.mingce = function(self, choices)
 	local chengong = self.room:getCurrent()
 	if not self:isFriend(chengong) then return "draw" end
 	for _, player in sgs.qlist(self.room:getAlivePlayers()) do
-		if player:hasFlag("AI_mingceTarget") then 
-			self.room:setPlayerFlag(player, "-AI_mingceTarget")
+		if player:hasFlag("AI_MingceTarget") then 
+			player:setFlags("-AI_MingceTarget")
 			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 			if not self:slashProhibit(slash, player) then return "use" end
 		end
@@ -644,7 +653,7 @@ end
 
 sgs.ai_skill_playerchosen.mingce = function(self, targets)
 	for _, player in sgs.qlist(targets) do
-		if player:hasFlag("AI_mingceTarget") then return player end
+		if player:hasFlag("AI_MingceTarget") then return player end
 	end
 	return sgs.ai_skill_playerchosen.zero_card_as_slash(self, targets)
 end

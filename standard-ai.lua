@@ -381,13 +381,13 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 	end
 	
 	if zhijiangwei and self:isFriend(zhijiangwei) and zhijiangwei:getHandcardNum()== 1 and
-		self:getEnemyNumBySeat(self.player,zhijiangwei) <= (zhijiangwei:getHp() >= 3 and 1 or 0) then
+		self:getEnemyNumBySeat(self.player, zhijiangwei) <= (zhijiangwei:getHp() >= 3 and 1 or 0) then
 		local isGood
 		for _, enemy in ipairs(self.enemies) do
 			local def = sgs.getDefenseSlash(enemy)
 			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 			local eff = self:slashIsEffective(slash, enemy, zhijiangwei) and sgs.isGoodTarget(enemy, self.enemies, self)
-			if zhijiangwei:canSlash(enemy, nil, false) and not self:slashProhibit(nil, enemy, zhijiangwei) and eff and def < 4 then
+			if zhijiangwei:canSlash(enemy, slash) and not self:slashProhibit(slash, enemy, zhijiangwei) and eff and def < 4 then
 				isGood = true
 			end
 		end

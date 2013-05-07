@@ -618,9 +618,20 @@ sgs.ai_slash_prohibit.badao = function(self, to, card)
 		if slash:isRed() then has_red_slash = true end
 	end
 	if self:isFriend(to) then 
-		return card:isRed() and has_black_slash 
+		return card:isRed() and (has_black_slash or self:isWeak(to)) 
 	else
-		return card:isBlack() and (has_red_slash or getCardsNum("Slash", to) > 1)
+		if has_red_slash then return card:isBlack() end
+		if getCardsNum("Slash", to) > 1 then
+			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+			for _, target in ipairs(self:getEnemies(to)) do
+				if to:canSlash(target, slash) and not self:slashProhibit(slash, target)
+					and self:slashIsEffective(slash, target) and not self:getDamagedEffects(target, to, true) 
+					and not self:needToLoseHp(target, to, true, true) 
+					and self:canHit(target, to) and self:isWeak(target) then
+						return card:isBlack()
+				end
+			end
+		end
 	end
 end
 

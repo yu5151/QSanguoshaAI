@@ -531,10 +531,10 @@ sgs.ai_choicemade_filter.cardChosen.buyi = function(player, promptlist, self)
 	end
 end
 
-mingce_skill={}
-mingce_skill.name="mingce"
-table.insert(sgs.ai_skills,mingce_skill)
-mingce_skill.getTurnUseCard=function(self)
+mingce_skill = {}
+mingce_skill.name = "mingce"
+table.insert(sgs.ai_skills, mingce_skill)
+mingce_skill.getTurnUseCard = function(self)
 	if self.player:hasUsed("MingceCard") then return end
 
 	local card
@@ -576,16 +576,9 @@ sgs.ai_skill_use_func.MingceCard=function(card,use,self)
 	local target
 	local friends = self.friends_noself
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-	
-	local AssistTarget = self:AssistTarget()
-	if AssistTarget then
-		use.card = card
-		if use.to then use.to:append(AssistTarget) end
-		return
-	end
 
 	local canMingceTo = function(player)
-		local canGive = not (player:hasSkill("kongcheng") and player:isKongcheng())
+		local canGive = not self:needKongcheng(player, true)
 		return canGive or (not canGive and self:getEnemyNumBySeat(self.player,player) == 0)
 	end
 

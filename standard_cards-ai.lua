@@ -370,12 +370,20 @@ function SmartAI:slashIsAvailable(player)
 	return slash:isAvailable(player)
 end
 
-function SmartAI:shouldUseAnaleptic(target, slash)
+function SmartAI:shouldUseAnaleptic(target, slash, anal)
 	if sgs.turncount <= 1 and self.role == "renegade" and sgs.isLordHealthy() and self:getOverflow() < 2 then return false end
 	if self:isEquip("SilverLion", target) and not IgnoreArmor(self.player, target) and not self.player:hasSkill("jueqing") then return false end
 	if target:hasSkill("zhenlie") then return false end
-	if self.player:hasWeapon("Spear") and slash:getSkillName() == "Spear" and self.player:getHandcardNum() <= 2 then return false end
-	if target:hasSkill("xiangle") then
+	
+	if self:hasSkills(sgs.masochism_skill .. "|longhun|buqu|" .. sgs.recover_skill .. "|" .. sgs.exclusive_skill ,target) and 
+		self.player:hasSkill("nosqianxi") and self.player:distanceTo(enemy) == 1 then
+			return false
+	end
+	
+	local no_cost
+	if anal:isVirtualCard() and anal:subcardsLength() == 0 then no_cost = true end	
+	if not no_cost and self.player:hasWeapon("Spear") and slash:getSkillName() == "Spear" and self.player:getHandcardNum() <= 2 then return false end
+	if not no_cost and target:hasSkill("xiangle") then
 		local basicnum = 0
 		for _, acard in sgs.qlist(self.player:getHandcards()) do
 			if acard:getTypeId() == sgs.Card_Basic and not acard:isKindOf("Peach") then basicnum = basicnum + 1 end
@@ -383,11 +391,6 @@ function SmartAI:shouldUseAnaleptic(target, slash)
 		if basicnum < 3 then return false end
 	end
 	
-	if self:hasSkills(sgs.masochism_skill .. "|longhun|buqu|" .. sgs.recover_skill .. "|" .. sgs.exclusive_skill ,target) and 
-		self.player:hasSkill("nosqianxi") and self.player:distanceTo(enemy) == 1 then
-			return false
-	end
-
 	if self:canLiegong(target, self.player) then return true end
 	if self.player:hasWeapon("Axe") and self.player:getCards("he"):length() > 4 then return true end
 	if self.player:hasSkill("tieji") then return true end
@@ -565,7 +568,7 @@ function SmartAI:useCardSlash(card, use)
 				end
 
 				local anal = self:searchForAnaleptic(use, target, card)
-				if anal and self:shouldUseAnaleptic(target, card) then
+				if anal and self:shouldUseAnaleptic(target, card, anal) then
 					if anal:getEffectiveId() ~= card:getEffectiveId() then use.card = anal return end
 				end
 			end

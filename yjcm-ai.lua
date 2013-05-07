@@ -616,13 +616,13 @@ sgs.ai_skill_use_func.MingceCard=function(card,use,self)
 	end
 end
 
-sgs.ai_event_callback[sgs.ChoiceMade].mingce=function(self, player, data)
+sgs.ai_event_callback[sgs.ChoiceMade].mingce = function(self, player, data)
 	if self.player:getState() ~= "online" then return end
 	local choices= data:toString():split(":")
-	if choices[1]=="playerChosen"  and  choices[2]=="mingce" and choices[3] then
+	if choices[1] == "playerChosen"  and  choices[2] == "mingce" and choices[3] then
 		for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 			if p:objectName() == choices[3] and not p:hasFlag("AI_mingceTarget") then 
-				 p:setFlags(p, "AI_mingceTarget")
+				 p:setFlags("AI_mingceTarget")
 			end
 		end		
 	end	
@@ -636,7 +636,7 @@ sgs.ai_skill_choice.mingce = function(self, choices)
 		if player:hasFlag("AI_mingceTarget") then 
 			self.room:setPlayerFlag(player, "-AI_mingceTarget")
 			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-			if not self:slashProhibit(slash ,player) then return "use" end
+			if not self:slashProhibit(slash, player) then return "use" end
 		end
 	end
 	return "draw"

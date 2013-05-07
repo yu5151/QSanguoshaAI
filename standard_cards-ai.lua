@@ -2229,19 +2229,26 @@ sgs.ai_choicemade_filter.cardChosen.snatch = function(player, promptlist, self)
 		local intention = 10
 		local place = self.room:getCardPlace(card_id)
 		if place == sgs.Player_PlaceDelayedTrick then
-			if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end
+			if not card:isKindOf("Disaster") then intention = -10 else intention = 0 end
 			if card:isKindOf("YanxiaoCard") then intention = 10 end
 		elseif place == sgs.Player_PlaceEquip then
 			if to:getLostHp() > 0 and card:isKindOf("SilverLion") then
-				if self:hasSkills(sgs.use_lion_skill, to) then
-					intention = self:willSkipPlayPhase(to) and -intention or 0
+				if to:hasSkills(sgs.use_lion_skill) then
+					intention = self:willSkipPlayPhase(to) and -10 or 0
 				else
-					intention = self:isWeak(to) and -intention or 0 
+					intention = self:isWeak(to) and -10 or 0 
 				end
 			end
-			if self:hasSkills(sgs.lose_equip_skill, to) then 
+			if card:isKindOf("OffensiveHorse") and promptlist[2] == "snatch" then
+				local can
+				for _, p in sgs.qlist(self.room:getAlivePlayers()) do
+					if self:isEnemy(p, to) and to:distanceTo(p) == 1 then can = true break end
+				end
+				intention = can and 10 or 0
+			end
+			if to:hasSkills(sgs.lose_equip_skill) then
 				if self:isWeak(to) and (card:isKindOf("DefensiveHorse") or card:isKindOf("Armor")) then
-					intention = math.abs(intention)
+					intention = 10
 				else
 					intention = 0
 				end

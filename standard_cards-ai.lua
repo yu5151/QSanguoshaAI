@@ -2136,18 +2136,18 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 	local jiangwei = self.room:findPlayerBySkillName("zhiji")
 	local zhijiangwei = self.room:findPlayerBySkillName("beifa")
 
-	if jiangwei and self:isFriend(jiangwei) and jiangwei:getMark("zhiji") == 0 and jiangwei:getHandcardNum()== 1 
+	if jiangwei and self:isFriend(jiangwei) and jiangwei:objectName() ~= self.player:objectName() and jiangwei:getMark("zhiji") == 0 and jiangwei:getHandcardNum()== 1 
 			and self:getEnemyNumBySeat(self.player, jiangwei) <= (jiangwei:getHp() >= 3 and 1 or 0) then
 		addTarget(jiangwei, self:getCardRandomly(jiangwei, "h"))
 	end
 
-	if dengai and self:isFriend(dengai) and (not self:isWeak(dengai) or self:getEnemyNumBySeat(self.player,dengai) == 0 ) 
+	if dengai and self:isFriend(dengai) and dengai:objectName() ~= self.player:objectName() and (not self:isWeak(dengai) or self:getEnemyNumBySeat(self.player,dengai) == 0 ) 
 			and dengai:hasSkill("zaoxian") and dengai:getMark("zaoxian") == 0 and dengai:getPile("field"):length() == 2
 			and dengai:getCardCount(true) > 0 then
 		addTarget(dengai, self:getCardRandomly(dengai, "h"))
 	end
 
-	if zhijiangwei and self:isFriend(zhijiangwei) and zhijiangwei:getHandcardNum()== 1 and
+	if zhijiangwei and self:isFriend(zhijiangwei) and zhijiangwei:objectName() ~= self.player:objectName() and zhijiangwei:getHandcardNum()== 1 and
 		self:getEnemyNumBySeat(self.player, zhijiangwei) <= (zhijiangwei:getHp() >= 3 and 1 or 0) then
 		local isGood
 		for _, enemy in ipairs(self.enemies) do

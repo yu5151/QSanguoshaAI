@@ -440,7 +440,13 @@ end
 
 sgs.ai_skill_playerchosen.nosmiji = function(self, targets)
 	if self:needBear() then return self.player end
-	local to = self:findPlayerToDraw("all", self.player:getLostHp())
+	local n = self.player:getLostHp()
+	if self.player:getPhase() == sgs.Player_Start then
+		if self.player:getHandcardNum() - n < 2 and not self:needKongcheng() and not self:willSkipPlayPhase() then return self.player end
+	elseif self.player:getPhase() == sgs.Player_Finish then
+		if self.player:getHandcardNum() - n < 2 and not self:needKongcheng() then return self.player end
+	end
+	local to = self:findPlayerToDraw("all", n)
 	if to then return to end
 	return self.player
 end

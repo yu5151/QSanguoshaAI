@@ -2016,8 +2016,19 @@ function SmartAI:filterEvent(event, player, data)
 					 		local s_name = askill:objectName()
 							local filter = sgs.ai_slash_prohibit[s_name]
 							if filter and type(filter) == "function" and not (s_name == "tiandu" or s_name == "hujia" or s_name == "huilei" or s_name == "weidi") then
-								has_slash_prohibit_skill = true
-								break
+								if s_name == "xiangle" then
+									local basic_num = 0
+									for _, c_id in sgs.qlist(move.card_ids) do
+										local c = sgs.Sanguosha:getCard(c_id)
+										if c:isKindOf("BasicCard") then
+											basic_num = basic_num + 1
+										end
+									end
+									if basic_num < 2 then has_slash_prohibit_skill = true break end
+								else
+									has_slash_prohibit_skill = true
+									break
+								end
 							end
 						end
 						

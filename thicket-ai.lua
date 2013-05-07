@@ -215,7 +215,7 @@ sgs.ai_skill_use["@@yinghun"] = function(self, prompt)
 	local n = x - 1
 	
 	local player = self:AssistTarget()
-	if player and (x > 1 or player:getCardCount(true) > 0) then return player end
+	if player and (x > 1 or player:getCardCount(true) > 0) then return return "@YinghunCard=.->" .. player:objectName() end
 	
 	if x == 1 and #self.friends == 1 then
 		for _, enemy in ipairs(self.enemies) do

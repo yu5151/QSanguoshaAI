@@ -1274,10 +1274,11 @@ sgs.ai_skill_use_func.ZhihengCard = function(card, use, self)
 	if self.player:getHp() < 3 then
 		local zcards = self.player:getCards("he")
 		local use_slash, keep_jink, keep_anal = false, false, false
+		local keep_slash = self.player:getTag("JilveWansha"):toBool()
 		for _, zcard in sgs.qlist(zcards) do
 			if not isCard("Peach", zcard, self.player) and not isCard("ExNihilo", zcard, self.player) then
 				local shouldUse = true
-				if not self:isWeak() and isCard("Slash", zcard, self.player) and not use_slash then
+				if (not self:isWeak() or keep_slash) and isCard("Slash", zcard, self.player) and not use_slash then
 					local dummy_use = { isDummy = true }
 					self:useBasicCard(zcard, dummy_use)
 					if dummy_use.card then

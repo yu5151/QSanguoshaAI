@@ -585,7 +585,8 @@ sgs.ai_skill_use_func.MingceCard = function(card, use, self)
 	local target
 	local friends = self.friends_noself
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-
+	self.MingceTarget = nil
+	
 	local canMingceTo = function(player)
 		local canGive = not self:needKongcheng(player, true)
 		return canGive or (not canGive and self:getEnemyNumBySeat(self.player,player) == 0)
@@ -599,7 +600,7 @@ sgs.ai_skill_use_func.MingceCard = function(card, use, self)
 						and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
 						and enemy:objectName() ~= self.player:objectName() then
 					target = friend
-					enemy:setFlags("AI_MingceTarget")
+					self.MingceTarget = enemy
 					break
 				end
 			end
@@ -625,25 +626,11 @@ sgs.ai_skill_use_func.MingceCard = function(card, use, self)
 	end
 end
 
-sgs.ai_event_callback[sgs.ChoiceMade].mingce = function(self, player, data)
-	if self.player:getState() ~= "online" then return end
-	local choices= data:toString():split(":")
-	if choices[1] == "playerChosen"  and  choices[2] == "mingce" and choices[3] then
-		for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-			if p:objectName() == choices[3] and not p:hasFlag("AI_MingceTarget") then 
-				 p:setFlags("AI_MingceTarget")
-			end
-		end		
-	end	
-end
-
-
 sgs.ai_skill_choice.mingce = function(self, choices)
 	local chengong = self.room:getCurrent()
 	if not self:isFriend(chengong) then return "draw" end
 	for _, player in sgs.qlist(self.room:getAlivePlayers()) do
-		if player:hasFlag("AI_MingceTarget") then 
-			player:setFlags("-AI_MingceTarget")
+		if player:hasFlag("MingceTarget") then
 			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 			if not self:slashProhibit(slash, player) then return "use" end
 		end
@@ -652,9 +639,7 @@ sgs.ai_skill_choice.mingce = function(self, choices)
 end
 
 sgs.ai_skill_playerchosen.mingce = function(self, targets)
-	for _, player in sgs.qlist(targets) do
-		if player:hasFlag("AI_MingceTarget") then return player end
-	end
+	if self.MingceTarget then return self.MingceTarget end
 	return sgs.ai_skill_playerchosen.zero_card_as_slash(self, targets)
 end
 

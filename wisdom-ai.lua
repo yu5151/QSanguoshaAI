@@ -689,7 +689,7 @@ sgs.ai_skill_use_func.ShouyeCard = function(card, use, self)
 	local first
 	local second
 	local AssistTarget = self:AssistTarget()
-	if not AssistTarget:hasSkill("manjuan") and not self:needKongcheng(AssistTarget, true) then first = AssistTarget end
+	if AssistTarget and not AssistTarget:hasSkill("manjuan") and not self:needKongcheng(AssistTarget, true) then first = AssistTarget end
 
 	for _, friend in ipairs(self.friends_noself) do
 		if not friend:hasSkill("manjuan") and not self:needKongcheng(friend, true) then

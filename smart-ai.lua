@@ -4668,9 +4668,11 @@ function SmartAI:getAoeValueTo(card, to , from)
 		if self:needToLoseHp(to, from, nil, true) then value = value + 10 end
 		
 		if card:isKindOf("ArcheryAttack") then
-			if to:hasSkill("leiji") and (sj_num >= 1 or self:isEquip("EightDiagram", to)) then
-				value = value + 50
-				if self:hasSuit("spade", true, to) or to:getHandcardNum() >= 3 then value = value + 50 end
+			if to:hasSkill("leiji") and (sj_num >= 1 or self:isEquip("EightDiagram", to)) and self:findLeijiTarget(to, 51) then
+				value = value + 100
+				if self:hasSuit("spade", true, to) then value = value + 150
+				else value = value + to:getHandcardNum()*35
+				end
 			elseif self:isEquip("EightDiagram", to) then
 				value = value + 20
 				if self:getFinalRetrial(to) == 2 then

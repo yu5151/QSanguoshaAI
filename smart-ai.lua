@@ -3430,9 +3430,13 @@ function SmartAI:askForSinglePeach(dying)
 	end
 	
 	if not sgs.GetConfig("EnableHegemony", false) and self.role == "renegade" and not (dying:isLord() or dying:objectName() == self.player:objectName()) and 
-			(sgs.current_mode_players["loyalist"] == sgs.current_mode_players["rebel"] or self.room:getCurrent():objectName() == self.player:objectName()) then
+			(sgs.current_mode_players["loyalist"] + 1 == sgs.current_mode_players["rebel"]
+				or sgs.current_mode_players["loyalist"] == sgs.current_mode_players["rebel"]
+				or self.room:getCurrent():objectName() == self.player:objectName())
+			then
 		return "."
 	end
+	
 	if isLord(self.player) and dying:objectName() ~= self.player:objectName() and self:getEnemyNumBySeat(self.room:getCurrent(), self.player, self.player) > 0 and
 		self:getCardsNum("Peach") == 1 and self:isWeak() and self.player:getHp() == 1 then return "." end
 		

@@ -391,6 +391,7 @@ function SmartAI:shouldUseAnaleptic(target, slash, anal)
 		if basicnum < 3 then return false end
 	end
 	
+	if anal:getSkillName() == "jiushi" and (target:hasSkill("fangzhu") or target:hasSkill("jilve") and target:getMark("@bear") > 0) then return true end
 	if self:canLiegong(target, self.player) then return true end
 	if self.player:hasWeapon("Axe") and self.player:getCards("he"):length() > 4 then return true end
 	if self.player:hasSkill("tieji") then return true end

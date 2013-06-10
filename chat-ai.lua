@@ -45,7 +45,7 @@ sgs.ai_chat_func[sgs.SlashEffected].blindness=function(self, player, data)
 		table.insert(chat, "杀死我也没牌拿，真2")
 	end
 
-	if effect.from:hasFlag("drank") then
+	if effect.from:getMark("drank") > 0 then
 		table.insert(chat, "喝醉了吧，乱砍人？")		
 	end
 
@@ -63,7 +63,7 @@ sgs.ai_chat_func[sgs.SlashEffected].blindness=function(self, player, data)
 end
 
 sgs.ai_chat_func[sgs.Death].stupid_lord=function(self, player, data)
-	local damage=data:toDamageStar()
+	local damage=data:toDeath().damage
 	local chat ={"2B了吧，老子这么忠还杀我",
 				"主要臣死，臣不得不死",
 				"房主下盘T了这个主，拉黑不解释",

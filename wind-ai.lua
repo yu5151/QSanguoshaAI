@@ -768,6 +768,12 @@ function SmartAI:getGuhuoViewCard(class_name)
 		if class_name == "Peach" or (class_name == "Analeptic" and not sgs.GetConfig("BanPackages", ""):match("maneuvering")) or class_name == "Jink" then
 			index = #card_use
 		end
+--[[Error Message:(开局出现)
+	lua/ai/wind-ai.lua:771: attempt to concatenate field '?' (a nil value)
+	activate
+	stack traceback:
+		lua/ai/smart-ai.lua:166: in function <lua/ai/smart-ai.lua:146>
+]]--
 		return "@GuhuoCard=" .. card_use[index]:getEffectiveId() .. ":" .. classname2objectname[class_name]
 	end
 end

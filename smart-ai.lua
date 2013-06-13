@@ -823,8 +823,13 @@ function SmartAI:sortByUsePriority(cards, player)
 			return a:getNumber() > b:getNumber()
 		end
 	end
-
-	table.sort(cards, compare_func)
+--[[Error Message:(忠赵云/颜良文丑用[杀]杀死反姜维/刘禅后出现) 
+	lua/ai/smart-ai.lua:827: stack overflow ()
+	filterEvent
+	stack traceback:
+		lua/ai/smart-ai.lua:166: in function <lua/ai/smart-ai.lua:146>
+]]--
+	table.sort(cards, compare_func) 
 end
 
 function SmartAI:sortByDynamicUsePriority(cards)

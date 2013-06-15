@@ -134,6 +134,7 @@ local duoshi_skill = {}
 duoshi_skill.name = "duoshi"
 table.insert(sgs.ai_skills, duoshi_skill)
 duoshi_skill.getTurnUseCard = function(self, inclusive)
+	if sgs.turncount <= 1 and #self.friends_noself == 0 and not self:isWeak() then return end
 	local cards = self.player:getCards("h")
 	cards = sgs.QList2Table(cards)
 

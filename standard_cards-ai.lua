@@ -995,8 +995,11 @@ function SmartAI:useCardPeach(card, use)
 				(self:hasSkills(sgs.drawpeach_skill,enemy) or getCardsNum("Dismantlement", enemy) >= 1 or
 				enemy:hasSkill("jixi") and enemy:getPile("field"):length() >0 and enemy:distanceTo(self.player) == 1 or
 				enemy:hasSkill("qixi") and getKnownCard(enemy, "black", nil, "he") >= 1 or
-				getCardsNum("Snatch",enemy) >= 1 and enemy:distanceTo(self.player) == 1) then
+				getCardsNum("Snatch",enemy) >= 1 and enemy:distanceTo(self.player) == 1 or
+				enemy:hasSkill("tiaoxin") and enemy:inMyAttackRange(self.player) and self:getCardsNum("Slash") < 1)
+				then
 			mustusepeach = true
+			break
 		end
 	end
 
@@ -2340,6 +2343,7 @@ sgs.ai_choicemade_filter.cardChosen.snatch = function(player, promptlist, self)
 		local place = self.room:getCardPlace(id)
 		local card = sgs.Sanguosha:getCard(id)
 		local intention = 70
+		if to:hasSkills("tundian+zaoxian") and to:getPile("field") == 2 and to:getMark("zaoxian") == 0 then intention = 0 end
 		if place == sgs.Player_PlaceDelayedTrick then
 			if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end
 			if card:isKindOf("YanxiaoCard") then intention = -intention end

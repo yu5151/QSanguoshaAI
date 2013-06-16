@@ -4000,8 +4000,8 @@ function SmartAI:damageIsEffective(to, nature, from)
 		if self:isFriend(to, from) then return false
 		else
 			if (getKnownCard(to, "TrickCard", false, "h") + getKnownCard(to, "EquipCard", false, "h") < to:getHandcardNum()
-				and self:getCardsNum(from, "TrickCard", false, "h") + self:getCardsNum(from, "EquipCard", false, "h") < 1)
-				or self:getCardsNum(from, "BasicCard", false, "h") < 2 then
+				and self:getCardsNum("TrickCard", from, false, "h") + self:getCardsNum("EquipCard",from , false, "h") < 1)
+				or self:getCardsNum("BasicCard", from, false, "h") < 2 then
 				return false
 			end
 		end

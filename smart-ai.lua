@@ -188,7 +188,10 @@ function SmartAI:initialize(player)
 		setInitialTables()
 		if sgs.isRolePredictable() then
 			for _, aplayer in sgs.qlist(global_room:getAllPlayers()) do
-				if aplayer:getRole() ~= "lord" then sgs.role_evaluation[aplayer:objectName()][aplayer:getRole()] = 65535 end
+				if aplayer:getRole() ~= "lord" then
+					sgs.role_evaluation[aplayer:objectName()][aplayer:getRole()] = 65535
+					sgs.ai_role[aplayer:objectName()] = aplayer:getRole()
+				end
 			end
 		end
 	end
@@ -3557,7 +3560,7 @@ function SmartAI:willUsePeachTo(dying)
 		
 		if self:getCardsNum("Peach") + self:getCardsNum("Analeptic") <= sgs.ai_NeedPeach[self.player:objectName()] and not isLord(dying) then return "." end
 		
-		if sgs.turncount > 1 and not dying:isLord() and dying:objectName() ~= self.player:objectName() then
+		if not dying:isLord() and dying:objectName() ~= self.player:objectName() then
 			local possible_friend = 0
 			for _, friend in ipairs(self.friends_noself) do
 				if (self:getKnownNum(friend) == friend:getHandcardNum() and getCardsNum("Peach", friend) == 0)
@@ -3631,7 +3634,7 @@ function SmartAI:willUsePeachTo(dying)
 				end
 				if should then --可能有救的必要
 					local willKillLord = false
-					local revengeTargets = getRevengeTargets(self.room) --武魂复仇目标
+					local revengeTargets = self:getWuhunRevengeTargets() --武魂复仇目标
 					if #revengeTargets > 0 then
 						local lord = getLord(self.player)
 						if lord then
@@ -5077,7 +5080,11 @@ function SmartAI:getAoeValue(card, player)
 	
 	if not sgs.GetConfig("EnableHegemony", false) then
 		if forbid_start and sgs.turncount < 2 and self.player:getSeat() <= 3 and card:isKindOf("SavageAssault") and enemy_number > 0 then
-			if self.role ~= "rebel" then good = good + 50 else bad = bad + 50 end
+			if self.role ~= "rebel" then
+				good = good + (isEffective_E and 50 or 0)
+			else
+				bad = bad + (isEffective_F and 50 or 0)
+			end
 		end
 
 		if sgs.current_mode_players["rebel"] == 0 and self.role ~= "lord" and sgs.current_mode_players["loyalist"] > 0 and self:isWeak(lord) then

@@ -2130,7 +2130,7 @@ function SmartAI:filterEvent(event, player, data)
 			
 			if player:hasFlag("AI_Playing") and sgs.turncount <= 3 and player:getPhase() == sgs.Player_Discard 
 				and reason.m_reason == sgs.CardMoveReason_S_REASON_RULEDISCARD 
-				and not (player:hasSkills("renjie+baiyin") and not player:hasSkill("jilve")) then
+				and not (player:hasSkills("renjie+baiyin") and not player:hasSkill("jilve")) and not player:hasFlag("ShuangrenSkipPlay") then
 				
 				local is_neutral = sgs.evaluatePlayerRole(player) == "neutral" and CanUpdateIntention(player)
 					

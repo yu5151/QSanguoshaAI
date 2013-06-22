@@ -1813,7 +1813,7 @@ function SmartAI:filterEvent(event, player, data)
 			if callbacktable and type(callbacktable) == "table" then
 				local index = 2 
 				if promptlist[1] == "cardResponded" then
-					if (promptlist[2] == "@guicai" or promptlist[2] == "@guidao") and promptlist[4] ~= "_nil_" then
+					if (promptlist[3] == "@guicai-card" or promptlist[3] == "@guidao-card") and promptlist[#promptlist] ~= "_nil_" then
 						sgs.RetrialPlayer = player
 					end
 					index = 3 
@@ -4002,10 +4002,14 @@ function SmartAI:damageIsEffective(to, nature, from)
 	if to:hasSkill("yuce") and not to:isKongcheng() and to:getHp() > 1 then
 		if self:isFriend(to, from) then return false
 		else
-			if (getKnownCard(to, "TrickCard", false, "h") + getKnownCard(to, "EquipCard", false, "h") < to:getHandcardNum()
-				and self:getCardsNum("TrickCard", from, false, "h") + self:getCardsNum("EquipCard",from , false, "h") < 1)
-				or self:getCardsNum("BasicCard", from, false, "h") < 2 then
-				return false
+			if from:objectName() ~= self.player:objectName() then
+				if from:getHandcardNum() <= 2 then return false end
+			else
+				if (getKnownCard(to, "TrickCard", false, "h") + getKnownCard(to, "EquipCard", false, "h") < to:getHandcardNum()
+					and self:getCardsNum("TrickCard", from, false, "h") + self:getCardsNum("EquipCard",from , false, "h") < 1)
+					or self:getCardsNum("BasicCard", from, false, "h") < 2 then
+					return false
+				end
 			end
 		end
 	end

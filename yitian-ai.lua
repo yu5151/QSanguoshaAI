@@ -109,7 +109,7 @@ end
 ]]--
 sgs.ai_skill_use["@@ytchengxiang"]=function(self,prompt)
 	local prompts=prompt:split(":")
-	assert(prompts[1]=="@ytchengxiang-card")
+	-- assert(prompts[1]=="@ytchengxiang-card")
 	local point=tonumber(prompts[4])
 	local targets=self.friends
 	if not targets then return end

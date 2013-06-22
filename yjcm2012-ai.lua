@@ -645,30 +645,21 @@ sgs.ai_card_intention.AnxuCard = 0
 sgs.ai_use_priority.AnxuCard = 9.6
 sgs.ai_chaofeng.bulianshi = 4
 
-sgs.ai_skill_invoke.zhuiyi = function(self, data)
-	local damage = data:toDamageStar()
-	local exclude = self.player
-	if damage and damage.from then exclude = damage.from end
-
-	for _, friend in ipairs(self.friends_noself) do
-		if friend:isAlive() and friend:objectName() ~= exclude:objectName() then
-			if not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive and friend:getLostHp() == 0) then return true end
-		end
-	end
-	return false
-end
-
 sgs.ai_skill_playerchosen.zhuiyi = function(self, targets)
-	local target
+	local first, second
 	targets = sgs.QList2Table(targets)
 	self:sort(targets,"defense")
 	for _, friend in ipairs(targets) do
 		if self:isFriend(friend) and friend:isAlive() and not (friend:hasSkill("manjuan") and friend:getPhase() == sgs.Player_NotActive and friend:getLostHp() == 0) then
 			if isLord(friend) and self:isWeak(friend) then return friend end
-			if not target then target = friend end
+			if not (friend:hasSkill("zhiji") and friend:getMark("zhiji") == 0 and not self:isWeak(friend) and friend:getPhase() == sgs.Player_NotActive) then
+				if sgs.evaluatePlayerRole(friend) == "renegade" then second = friend
+				elseif sgs.evaluatePlayerRole(friend) ~= "renegade" and not first then first = friend
+				end
+			end
 		end
 	end
-	if target then return target end
+	return first or second
 end
 
 

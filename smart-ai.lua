@@ -136,6 +136,7 @@ function setInitialTables()
 		else
 			sgs.role_evaluation[aplayer:objectName()] = {rebel = 0, loyalist = 0, renegade = 0}
 			sgs.ai_role[aplayer:objectName()] = "neutral"
+			sgs.explicit_renegade = true
 		end
 	end
 	
@@ -1032,7 +1033,7 @@ sgs.ai_card_intention.general = function(from, to, level)
 		}
 
 		local value_changed = false
-		--[[
+		
 		for msgtype,diffvalue in pairs(diffarr) do
 			if diffvalue ~= 0 then
 				value_changed = true
@@ -1050,8 +1051,8 @@ sgs.ai_card_intention.general = function(from, to, level)
 			log.from = from
 			log.arg  = string.format("%d", math.abs(math.ceil(sgs.role_evaluation[from:objectName()]["loyalist"])))
 			log.arg2 = string.format("%d", sgs.role_evaluation[from:objectName()]["renegade"])
-			global_room:sendLog(log)			
-		end]]
+			global_room:sendLog(log)
+		end
 	end
 	sgs.outputRoleValues(from, level)
 end
@@ -1626,81 +1627,6 @@ function getTrickIntention(TrickClass, target)
 	return 0
 end
 
---[[
---无懈可击：更新仇恨值--
---promptlist{?, trick:className(), to:objectName(), positive<"true"or"false">}--
---用于判断player使用的、无懈掉对to的trick的无懈可击
---positive=true为维护性无懈可击
-sgs.ai_nullification_level = {} --无懈可击层级记录
-sgs.ai_trick_struct = {"source", "target", "trick"} --被无懈可击的一般锦囊
-sgs.ai_choicemade_filter.Nullification.general = function(player, promptlist)
-	local room = player:getRoom() --当前房间
-	local NFSource = player:objectName() --使用当前无懈可击的角色 --from
-	local TrickClass = promptlist[2] --被无懈可击的锦囊 --card
-	local TrickTarget = promptlist[3] --被无懈可击的锦囊的使用目标 --to,始终是第一层级
-	local positive = true --无懈可击的作用是否是用于维护此被无懈可击的锦囊
-	if promptlist[4] == "false" then 
-		positive = false 
-	end
-	local level = #sgs.ai_nullification_level --已有层数
-	if TrickClass == "Nullification" then --无懈某人的无懈可击
-		table.insert(sgs.ai_nullification_level, NFSource)
-		local target = sgs.ai_nullification_level[1]
-		if NFSource ~= target then --并非是无懈 对 以自己为目标的原锦囊 的无懈可击
-			local count = 0
-			for _,name in pairs(sgs.ai_nullification_level) do
-				if name == NFSource then
-					count = count + 1
-				end
-			end
-			local pos = math.mod(level, 2) --注意这个level是更新前的，比当前的level少1
-			local to = findPlayerByObjectName(room, target)
-			local intention = count * 25
-			if pos == 0 then --现有奇数级，当前级为友方
-				sgs.updateIntention(player, to, -intention)
-			else --现有偶数级，当前级为敌方
-				sgs.updateIntention(player, to, intention)
-			end
-		end
-	else
-		if NFSource == TrickTarget then --（自己）无懈对自己使用的一般锦囊
-			local me = findPlayerByObjectName(room, TrickTarget)
-			local intention = getTrickIntention(TrickClass, me)
-			if level > 0 and sgs.ai_nullification_level[1] == TrickTarget then
-				if sgs.ai_trick_struct[3] == TrickClass then
-					table.insert(sgs.ai_nullification_level, NFSource)
-				else
-					if intention > 0 then
-						sgs.ai_nullification_level = {TrickTarget, TrickTarget, NFSource}
-					else
-						sgs.ai_nullification_level = {TrickTarget, NFSource}
-					end
-					sgs.ai_trick_struct = {NFSource, TrickTarget, TrickClass}
-				end
-			else
-				if intention > 0 then --无懈对自己的不利锦囊，属于友方行为，再无懈视为敌方
-					sgs.ai_nullification_level = {TrickTarget, TrickTarget, NFSource}
-				else --无懈对自己的有利锦囊，属于敌方行为，再无懈视为友方
-					sgs.ai_nullification_level = {TrickTarget, NFSource}
-				end
-				sgs.ai_trick_struct = {NFSource, TrickTarget, TrickClass}
-			end 
-		else --无懈对他人的一般锦囊
-			sgs.lastclass = TrickClass
-			local to = findPlayerByObjectName(room, TrickTarget, false, player) --被无懈可击的锦囊的使用目标
-			local intention = getTrickIntention(TrickClass, to)
-			if intention > 0 then --无懈不利锦囊，属于友方行为，再无懈视为敌方
-				sgs.ai_nullification_level = {TrickTarget, TrickTarget, NFSource}
-			else --无懈有利锦囊，属于敌方行为，再无懈属于友方
-				sgs.ai_nullification_level = {TrickTarget, NFSource}
-			end
-			sgs.ai_trick_struct = {NFSource, TrickTarget, TrickClass}
-			sgs.updateIntention(player, to, -intention) --取相反的仇恨值
-		end
-	end
-end
-]]
-
 sgs.ai_choicemade_filter.Nullification.general = function(player, promptlist)
 	local TrickClass = promptlist[2]
 	local target_objectName = promptlist[3]
@@ -1772,7 +1698,6 @@ end
 function SmartAI:filterEvent(event, player, data)
 	if not sgs.recorder then
 		sgs.recorder = self
-		askForAssistMode()
 	end
 	if player:objectName()==self.player:objectName() then
 		if sgs.debugmode and type(sgs.ai_debug_func[event])=="table" then
@@ -2045,8 +1970,8 @@ function SmartAI:filterEvent(event, player, data)
 		local who
 		if not struct.to:isEmpty() then who = struct.to:first() end
 		
-		if card and lord and card:isKindOf("Duel") and lord:hasFlag("will_wake") then
-			lord:setFlags("-will_wake")
+		if card and lord and card:isKindOf("Duel") and lord:hasFlag("AIGlobal_NeedToWake") then
+			lord:setFlags("-AIGlobal_NeedToWake")
 		end
 		
 		if sgs.chongzhen_target then sgs.chongzhen_target = nil end
@@ -2246,16 +2171,16 @@ function SmartAI:filterEvent(event, player, data)
 			self.room:setTag("humanCount",sgs.QVariant(humanCount))
 
 			if humanCount == 1 and not sgs.isRolePredictable() and not sgs.GetConfig("EnableHegemony", false) then 
-				--global_room:writeToConsole(msg)
+				global_room:writeToConsole(msg)
 			end
 		end
 
-	elseif event == sgs.GameStart then		
+	elseif event == sgs.GameStart then
 		sgs.debugmode = io.open("lua/ai/debug")
 		if sgs.debugmode then sgs.debugmode:close() end
 		--self.room:acquireSkill(self.room:getOwner(),"shenwei")
 		--self.room:acquireSkill(self.room:getOwner(),"qianxun")
-		if player:isLord() then			
+		if player:isLord() then
 			if sgs.debugmode then logmsg("ai.html","<meta charset='utf-8'/>") end
 		end
 		
@@ -2506,7 +2431,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 	if trick:isKindOf("FireAttack") and (to:isKongcheng() or from:isKongcheng()) then return nil end
 	if ("snatch|dismantlement"):match(trick:objectName()) and to:isAllNude() then return nil end
 	
-	if self:isFriend(to) and to:hasFlag("will_wake") then return end
+	if self:isFriend(to) and to:hasFlag("AIGlobal_NeedToWake") then return end
 	
 	if from and not from:hasSkill("jueqing") then
 		if (trick:isKindOf("Duel") or trick:isKindOf("FireAttack") or trick:isKindOf("AOE")) and
@@ -3180,7 +3105,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	end
 	
 	local AssistTarget = self:AssistTarget()
-	if AssistTarget then friends = { AssistTarget } end
+	if AssistTarget and not self:willSkipPlayPhase(AssistTarget) then friends = { AssistTarget } end
 	
 	-- special move between liubei and xunyu and huatuo
 	for _,player in ipairs(friends) do
@@ -5814,39 +5739,24 @@ function CanUpdateIntention(player)
 	return true
 end
 
-function askForAssistMode()
-	local human_count, player = 0
-	for _, p in sgs.qlist(global_room:getAlivePlayers()) do
-		if p:getState() ~= "robot" then
-			human_count = human_count + 1
-			player = p
-		end
-	end
-	if human_count == 1 and player then
-		local log = sgs.LogMessage()
-		--[[
-		if global_room:askForChoice(player, "ai_AssistMode", "#ai_AssistMode+yes+no") == "yes" then
-			global_room:setTag("ai_AssistMode", sgs.QVariant(true))
-			sgs.ai_AssistTarget = player
-			log.type = "#ai_AssistMode_on"
-			global_room:sendLog(log)
-			global_room:sendLog(log)
-			global_room:sendLog(log)
-		else
-			log.type = "#ai_AssistMode_off"
-			global_room:sendLog(log)
-			global_room:sendLog(log)
-			global_room:sendLog(log)
-		end
-		]]
-	end
-end
-
 function SmartAI:AssistTarget()
-	if self.room:getTag("ai_AssistMode") then
-		local player = sgs.ai_AssistTarget
-		if player and player:isAlive() and self:isFriend(player) and player:objectName() ~= self.player:objectName() then return player end
+	if sgs.ai_AssistTarget_off then return end
+	local human_count, player = 0
+	if not sgs.ai_AssistTarget then
+		for _, p in sgs.qlist(self.room:getAlivePlayers()) do
+			if p:getState() ~= "robot" then
+				human_count = human_count + 1
+				player = p
+			end
+		end
+		if human_count == 1 and player then
+			sgs.ai_AssistTarget = player
+		else
+			sgs.ai_AssistTarget_off = true
+		end
 	end
+	player = sgs.ai_AssistTarget
+	if player and player:isAlive() and self:isFriend(player) and player:objectName() ~= self.player:objectName() then return player end
 	return
 end
 

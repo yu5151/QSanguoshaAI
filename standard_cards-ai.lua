@@ -1941,9 +1941,12 @@ sgs.dynamic_value.benefit.ExNihilo = true
 function SmartAI:getDangerousCard(who)
 	local weapon = who:getWeapon()
 	local armor = who:getArmor()
-	if weapon and weapon:isKindOf("Crossbow") then 
+	if weapon and (weapon:isKindOf("Crossbow") or weapon:isKindOf("GudingBlade")) then
 		for _, friend in ipairs(self.friends) do
-			if who:distanceTo(friend) <= 1 and getCardsNum("Slash", who) > 0 then
+			if weapon:isKindOf("Crossbow") and who:distanceTo(friend) <= 1 and getCardsNum("Slash", who) > 0 then
+				return weapon:getEffectiveId()
+			end
+			if weapon:isKindOf("GudingBlade") and who:inMyAttackRange(friend) and friend:isKongcheng() and not friend:hasSkills("kongcheng|tianming") and getCardsNum("Slash", who) > 0 then
 				return weapon:getEffectiveId()
 			end
 		end

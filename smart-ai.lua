@@ -3089,6 +3089,11 @@ function SmartAI:getCardNeedPlayer(cards)
 			table.insert(friends, player)
 		end
 	end
+
+	local AssistTarget = self:AssistTarget()
+	if AssistTarget and (self:needKongcheng(AssistTarget, true) or self:willSkipPlayPhase(AssistTarget) or AssistTarget:hasSkill("manjuan")) then
+		AssistTarget = nil
+	end
 	
 	local renegade_num = sgs.current_mode_players["renegade"]
 	if renegade_num > 0 and #friends > renegade_num then
@@ -3099,13 +3104,11 @@ function SmartAI:getCardNeedPlayer(cards)
 				or sgs.ai_role[p:objectName()] == "loyalist" and sgs.role_evaluation[p:objectName()]["renegade"] >= 10 then
 				table.remove(friends, i)
 				k = k + 1
+				if AssistTarget and p:objectName() == AssistTarget:objectName() then AssistTarget = nil end
 				if k == renegade_num then break end
 			end
 		end
 	end
-	
-	local AssistTarget = self:AssistTarget()
-	if AssistTarget and not self:willSkipPlayPhase(AssistTarget) then friends = { AssistTarget } end
 	
 	-- special move between liubei and xunyu and huatuo
 	for _,player in ipairs(friends) do
@@ -3166,8 +3169,7 @@ function SmartAI:getCardNeedPlayer(cards)
 
 	if (self.player:hasSkill("nosrende") and self.player:isWounded() and self.player:getMark("nosrende") < 2) then
 		if (self.player:getHandcardNum() < 2 and self.player:getMark("nosrende") == 0) then return end
-			return
-		end
+	end
 	if (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard") and self.player:isWounded() and self.player:getMark("rende") < 2) then
 		if (self.player:getHandcardNum() < 2 and self.player:getMark("rende") == 0) then return end
 
@@ -3179,9 +3181,7 @@ function SmartAI:getCardNeedPlayer(cards)
 				(enemy:canSlash(self.player) or enemy:hasSkill("shensu") or enemy:hasSkill("wushen") or enemy:hasSkill("jiangchi")) then return end
 				if enemy:canSlash(self.player, nil, true) and enemy:hasSkill("nosqianxi") and enemy:distanceTo(self.player) == 1 then return end
 			end
-						
 		end
-
 	end
 
 	-- Armor,DefensiveHorse
@@ -3309,7 +3309,13 @@ function SmartAI:getCardNeedPlayer(cards)
 			end
 		end
 	end
-
+	
+	if AssistTarget then
+		for _, hcard in ipairs(cardtogive) do
+			return hcard, AssistTarget
+		end
+	end
+	
 	self:sort(friends, "defense")
 	for _, hcard in ipairs(cardtogive) do
 		for _, friend in ipairs(self.friends_noself) do

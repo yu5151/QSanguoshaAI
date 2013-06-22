@@ -7,7 +7,9 @@ table.insert(sgs.ai_global_flags, "hujiasource")
 sgs.ai_skill_invoke.hujia = function(self, data)
 	local asked = data:toStringList()
 	local prompt = asked[2]
-	if self:askForCard("jink", prompt, 1) == "." then return false end
+	if not self.player:hasFlag("ai_hantong") then
+		if self:askForCard("jink", prompt, 1) == "." then return false end
+	end
 
 	local cards = self.player:getHandcards()
 	if sgs.hujiasource then return false end
@@ -980,7 +982,10 @@ sgs.ai_skill_invoke.jijiang = function(self, data)
 	if sgs.jijiangsource then return false end
 	local asked = data:toStringList()
 	local prompt = asked[2]
-	if self:askForCard("slash", prompt, 1) == "." then return false end
+	
+	if not self.player:hasFlag("ai_hantong") then
+		if self:askForCard("slash", prompt, 1) == "." then return false end
+	end
 	
 	local current = self.room:getCurrent()
 	if self:isFriend(current) and current:getKingdom() == "shu" and self:getOverflow(current) > 2 and not self:isEquip("Crossbow", current) then

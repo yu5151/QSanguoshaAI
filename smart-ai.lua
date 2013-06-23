@@ -136,7 +136,6 @@ function setInitialTables()
 		else
 			sgs.role_evaluation[aplayer:objectName()] = {rebel = 0, loyalist = 0, renegade = 0}
 			sgs.ai_role[aplayer:objectName()] = "neutral"
-			sgs.explicit_renegade = true
 		end
 	end
 	
@@ -188,6 +187,7 @@ function SmartAI:initialize(player)
 				
 		setInitialTables()
 		if sgs.isRolePredictable() then
+			sgs.explicit_renegade = true
 			for _, aplayer in sgs.qlist(global_room:getAllPlayers()) do
 				if aplayer:getRole() ~= "lord" then
 					sgs.role_evaluation[aplayer:objectName()][aplayer:getRole()] = 65535

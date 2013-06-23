@@ -181,6 +181,7 @@ sgs.ai_skill_cardask["@guidao-card"]=function(self, data)
 	local card_id = self:getRetrialCardId(cards, judge)
 	if card_id == -1 then
 		if self:needRetrial(judge) and judge.reason ~= "beige" then
+			if self:needToThrowArmor() then return "$" .. self.player:getArmor():getEffectiveId() end
 			self:sortByUseValue(cards, true)
 			if self:getUseValue(judge.card) > self:getUseValue(cards[1]) then
 				return "$" .. cards[1]:getId()

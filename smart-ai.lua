@@ -3874,6 +3874,11 @@ function SmartAI:getRetrialCardId(cards, judge)
 		end
 	end
 	if next(can_use) then
+		if self:needToThrowArmor() then
+			for _, c in ipairs(can_use) do
+				if c:getEffectiveId() == self.player:getArmor():getEffectiveId() then return c:getEffectiveId() end
+			end
+		end
 		self:sortByKeepValue(can_use)
 		return can_use[1]:getEffectiveId()
 	else

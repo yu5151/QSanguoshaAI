@@ -103,11 +103,12 @@ sgs.ai_skill_invoke.fankui = function(self, data)
 end
 
 sgs.ai_choicemade_filter.cardChosen.fankui = function(player, promptlist, self)
-	if sgs.fankui_target then
+	local damage = self.room:getTag("CurrentDamageStruct"):toDamage()
+	if damage.from then
 		local intention = 10
 		local id = promptlist[3]
 		local card = sgs.Sanguosha:getCard(id)
-		local target = sgs.fankui_target
+		local target = damage.from
 		if self:needToThrowArmor(target) and self.room:getCardPlace(id) == sgs.Player_PlaceEquip and card:isKindOf("Armor") then
 			intention = -intention
 		elseif self:doNotDiscard(target) then intention = -intention
@@ -118,7 +119,6 @@ sgs.ai_choicemade_filter.cardChosen.fankui = function(player, promptlist, self)
 		elseif self:getOverflow(target) > 2 then intention = 0
 		end
 		sgs.updateIntention(player, target, intention)
-		sgs.fankui_target = nil
 	end
 end
 

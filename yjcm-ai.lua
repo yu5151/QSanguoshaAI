@@ -155,29 +155,35 @@ end
 sgs.ai_choicemade_filter.skillInvoke.enyuan = function(player, promptlist, self)
 	local invoked = (promptlist[3] == "yes")
 	local intention = 0
-
-	if sgs.enyuan_damage_target then
-		if not invoked then
-			intention = -10
-		elseif self:needToLoseHp(sgs.enyuan_damage_target, player, nil, true) then
-			intention = 0
-		elseif not self:hasLoseHandcardEffective(sgs.enyuan_damage_target) and not sgs.enyuan_damage_target:isKongcheng() then
-			intention = 0
-		elseif self:getOverflow(sgs.enyuan_damage_target) <= 2 then
-			intention = 10
-		end
-		sgs.updateIntention(player, sgs.enyuan_damage_target, intention)
-	elseif sgs.enyuan_drawcard_target then
-		if not invoked and not self:needKongcheng(sgs.enyuan_drawcard_target, true) then
+	
+	local EnyuanDrawTarget
+	for _, p in sgs.qlist(self.room:getOtherPlayers(player)) do
+		if p:hasFlag("EnyuanDrawTarget") then EnyuanDrawTarget = p break end
+	end
+	
+	if EnyuanDrawTarget then
+		if not invoked and not self:needKongcheng(EnyuanDrawTarget, true) then
 			intention = 10
 		elseif not self:needKongcheng(from, true) then
 			intention = -10
 		end
-		sgs.updateIntention(player, sgs.enyuan_drawcard_target, intention)
+		sgs.updateIntention(player, EnyuanDrawTarget, intention)
+	else
+		local damage = self.room:getTag("CurrentDamageStruct"):toDamage()
+		if damage.from then
+			if not invoked then
+				intention = -10
+			elseif self:needToLoseHp(damage.from, player, nil, true) then
+				intention = 0
+			elseif not self:hasLoseHandcardEffective(damage.from) and not damage.from:isKongcheng() then
+				intention = 0
+			elseif self:getOverflow(damage.from) <= 2 then
+				intention = 10
+			end
+			sgs.updateIntention(player, damage.from, intention)
+		end
 	end
 
-	sgs.enyuan_damage_target = nil
-	sgs.enyuan_drawcard_target = nil
 end
 
 sgs.ai_skill_discard.enyuan = function(self, discard_num, min_num, optional, include_equip)

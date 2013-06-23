@@ -1911,23 +1911,6 @@ function SmartAI:filterEvent(event, player, data)
 				sgs.ai_NeedPeach[p:objectName()] = 0
 			end
 		end	
-	elseif event == sgs.Damage then
-		local damage = data:toDamage()
-		if damage.from and damage.to and damage.from:objectName() ~= damage.to:objectName() then
-			if damage.to:hasSkill("fankui") then
-				sgs.fankui_target = damage.from
-			elseif damage.to:hasSkills("ganglie|neoganglie") then
-				sgs.ganglie_target = damage.from
-			elseif damage.to:hasSkill("langgu") then
-				sgs.langgu_target = damage.from
-			elseif damage.to:hasSkill("tanlan") then
-				sgs.tanlan_target = damage.from
-			elseif damage.to:hasSkill("enyuan") then
-				sgs.enyuan_damage_target = damage.from
-			elseif self.room:findPlayerBySkillName("beige") and damage.card and damage.card:isKindOf("Slash") then
-				sgs.beige_damage_from = damage.from
-			end
-		end
 	elseif event == sgs.Damaged then
 		local damage = data:toDamage()
 		local card = damage.card
@@ -1947,11 +1930,6 @@ function SmartAI:filterEvent(event, player, data)
 			else
 				intention = 100 
 			end
-
-			-- if sgs.ai_ganglie_effect and sgs.ai_ganglie_effect ==string.format("%s_%s_%d",from:objectName(), to:objectName(), sgs.turncount)  then
-				-- sgs.ai_ganglie_effect = nil
-				-- intention = -30
-			-- end
 			
 			if damage.transfer or damage.chain then intention = 0 end
 			
@@ -2115,11 +2093,6 @@ function SmartAI:filterEvent(event, player, data)
 					end
 				end
 			end
-		end
-		
-		if from and to and from:objectName() ~= to:objectName() and from:isAlive() and to:hasSkill("enyuan") and 
-			move.card_ids:length() > 1 and move.reason.m_reason ~= sgs.CardMoveReason_S_REASON_PREVIEWGIVE then
-			sgs.enyuan_drawcard_target = from
 		end
 		
 	elseif event == sgs.StartJudge then
@@ -3860,20 +3833,21 @@ function SmartAI:getRetrialCardId(cards, judge)
 	local reason = judge.reason
 	for _, card in ipairs(cards) do
 		card = self.player:hasSkill("hongyan") and sgs.Sanguosha:getEngineCard(card:getId()) or card
-		if reason == "beige" and sgs.beige_damage_from and not isCard("Peach", card, self.player) then
-			if self:isFriend(sgs.beige_damage_from) then
+		if reason == "beige" and not isCard("Peach", card, self.player) then
+			local damage = self.room:getTag("CurrentDamageStruct"):toDamage()
+			if damage.from and self:isFriend(damage.from) then
 				local other_suit, hasSpade = {}
-				if not judge.who:hasSkill("hongyan") and not self:toTurnOver(sgs.beige_damage_from) and judge.card:getSuit() ~= sgs.Card_Spade and
+				if not judge.who:hasSkill("hongyan") and not self:toTurnOver(damage.from) and judge.card:getSuit() ~= sgs.Card_Spade and
 					card:getSuit() == sgs.Card_Spade then
 						table.insert(can_use, card)
 						hasSpade = true
-				elseif (self:getOverflow(sgs.beige_damage_from) >= 2 or self:getLeastHandcardNum(who) >= 2) and
+				elseif (self:getOverflow(damage.from) >= 2 or self:getLeastHandcardNum(who) >= 2) and
 					judge.card:getSuit() ~= sgs.Card_Diamond and card:getSuit() == sgs.Card_Diamond then
 						table.insert(other_suit, card)
 				end
 				if not hasSpade and #other_suit > 0 then table.insertTable(can_use, other_suit) end
 			else
-				if not judge.who:hasSkill("hongyan") and not self:toTurnOver(sgs.beige_damage_from) and card:getSuit() ~= sgs.Card_Spade and
+				if not judge.who:hasSkill("hongyan") and not self:toTurnOver(damage.from) and card:getSuit() ~= sgs.Card_Spade and
 					judge.card:getSuit() == sgs.Card_Spade then
 						table.insert(can_use, card)
 				end

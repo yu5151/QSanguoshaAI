@@ -1010,10 +1010,10 @@ sgs.ai_skill_invoke.langgu = function(self, data)
 end
 
 sgs.ai_choicemade_filter.skillInvoke.langgu = function(player, promptlist, self)
-	if sgs.langgu_target and promptlist[3] == "yes" then
-		sgs.updateIntention(player, sgs.langgu_target, 10)
+	local damage = self.room:getTag("CurrentDamageStruct"):toDamage()
+	if damage.from and promptlist[3] == "yes" then
+		sgs.updateIntention(player, damage.from, 10)
 	end
-	sgs.langgu_target = nil
 end
 
 sgs.ai_skill_askforag.langgu = function(self, card_ids)

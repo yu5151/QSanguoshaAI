@@ -4920,11 +4920,16 @@ function SmartAI:getAoeValue(card, player)
 	end
 	
 	if not sgs.GetConfig("EnableHegemony", false) then
-		if self.role ~= "lord" and sgs.isLordInDanger() and self:aoeIsEffective(card, lord, attacker) and not canHelpLord() then
+		if self.role ~= "lord" and sgs.isLordInDanger() and self:aoeIsEffective(card, lord, attacker) and not canHelpLord()
+			and (not lord:hasSkill("buqu") or lord:getPile("buqu"):length() > 4) then
 			if self:isEnemy(lord) then
 				good = good + (lord:getHp() == 1 and 200 or 150)
+				if lord:getHp() <= 2 then
+					if #self.enemies == 1 then good = good + 150 - lord:getHp() * 50 end
+					if lord:isKongcheng() then good = good + 150 - lord:getHp() * 50 end
+				end
 			else
-				good = good - (lord:getHp() == 1 and 2013 or 250)
+				bad = bad + (lord:getHp() == 1 and 2013 or 250)
 			end
 		end
 	end

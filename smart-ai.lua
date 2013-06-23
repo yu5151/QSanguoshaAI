@@ -3831,40 +3831,46 @@ end
 function SmartAI:getRetrialCardId(cards, judge)
 	local can_use = {}
 	local reason = judge.reason
-	for _, card in ipairs(cards) do
-		card = self.player:hasSkill("hongyan") and sgs.Sanguosha:getEngineCard(card:getId()) or card
+	local who = judge.who
+	for _, c in ipairs(cards) do
+		local card = sgs.Sanguosha:getEngineCard(c:getId())
+		if who:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade then
+			card = sgs.Sanguosha:clone(card:objectName(), sgs.Card_Heart, card:getNumber())
+		end
 		if reason == "beige" and not isCard("Peach", card, self.player) then
 			local damage = self.room:getTag("CurrentDamageStruct"):toDamage()
 			if damage.from and self:isFriend(damage.from) then
 				local other_suit, hasSpade = {}
-				if not judge.who:hasSkill("hongyan") and not self:toTurnOver(damage.from) and judge.card:getSuit() ~= sgs.Card_Spade and
-					card:getSuit() == sgs.Card_Spade then
-						table.insert(can_use, card)
-						hasSpade = true
-				elseif (self:getOverflow(damage.from) >= 2 or self:getLeastHandcardNum(who) >= 2) and
-					judge.card:getSuit() ~= sgs.Card_Diamond and card:getSuit() == sgs.Card_Diamond then
-						table.insert(other_suit, card)
-				end
+				if not self:toTurnOver(damage.from) and judge.card:getSuit() ~= sgs.Card_Spade and card:getSuit() == sgs.Card_Spade then
+					table.insert(can_use, c)
+					hasSpade = true
+				elseif self:getOverflow() > 0 and judge.card:getSuit() ~= card:getSuit() then
+						local retr = true
+						if (judge.card:getSuit() == sgs.Card_Heart and who:isWounded() and self:isFriend(who))
+							or (judge.card:getSuit() == sgs.Card_Diamond and self:isEnemy(who) and who:hasSkill("manjuan") and who:getPhase() == sgs.Player_NotActive)
+							or (judge.card:getSuit() == sgs.Card_Club and self:needToThrowArmor(damage.from)) then
+							retr = false
+						end
+						if retr
+							and ((self:isFriend(who) and card:getSuit() == sgs.Card_Heart and who:isWounded())
+								or (card:getSuit() == sgs.Card_Diamond and self:isEnemy(who) and who:hasSkill("manjuan") and who:getPhase() == sgs.Player_NotActive)
+								or (card:getSuit() == sgs.Card_Diamond and self:isFriend(who) and not (who:hasSkill("manjuan") and who:getPhase() == sgs.Player_NotActive))
+								or (card:getSuit() == sgs.Card_Club and (self:needToThrowArmor(damage.from) or damage.from:isNude())))
+								or (judge.card:getSuit() == sgs.Card_Spade and self:toTurnOver(damage.from, 0)) then
+							table.insert(other_suit, c)
+						end
+					end
+
 				if not hasSpade and #other_suit > 0 then table.insertTable(can_use, other_suit) end
 			else
-				if not judge.who:hasSkill("hongyan") and not self:toTurnOver(damage.from) and card:getSuit() ~= sgs.Card_Spade and
-					judge.card:getSuit() == sgs.Card_Spade then
-						table.insert(can_use, card)
+				if not self:toTurnOver(damage.from) and card:getSuit() ~= sgs.Card_Spade and judge.card:getSuit() == sgs.Card_Spade then
+					table.insert(can_use, c)
 				end
 			end
-		elseif self:isFriend(judge.who) and not (isCard("Peach", card, self.player) and (self:getFinalRetrial() == 2 or self:DontRespondPeach(judge))) then
-			if judge.who:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade and
-				(reason == "indulgence" or reason == "EightDiagram") then
-					table.insert(can_use, card)	
-			elseif judge:isGood(card) and reason ~= "beige" then
-				table.insert(can_use, card)
-			end
-		elseif self:isEnemy(judge.who) and not (isCard("Peach", card, self.player) and (self:getFinalRetrial() == 2 or self:DontRespondPeach(judge))) then
-			if judge.who:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade and
-				(reason == "indulgence" or reason == "EightDiagram") then
-			elseif not judge:isGood(card) then
-				table.insert(can_use, card)
-			end
+		elseif self:isFriend(judge.who) and judge:isGood(card) and not (isCard("Peach", card, self.player) and (self:getFinalRetrial() == 2 or self:DontRespondPeach(judge))) then
+			table.insert(can_use, c)
+		elseif self:isEnemy(judge.who) and not judge:isGood(card) and not (isCard("Peach", card, self.player) and (self:getFinalRetrial() == 2 or self:DontRespondPeach(judge))) then
+			table.insert(can_use, c)
 		end
 	end
 	if next(can_use) then

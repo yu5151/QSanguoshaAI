@@ -831,12 +831,6 @@ function SmartAI:sortByUsePriority(cards, player)
 			return a:getNumber() > b:getNumber()
 		end
 	end
---[[Error Message:(忠赵云/颜良文丑用[杀]杀死反姜维/刘禅后出现) 
-	lua/ai/smart-ai.lua:827: stack overflow ()
-	filterEvent
-	stack traceback:
-		lua/ai/smart-ai.lua:166: in function <lua/ai/smart-ai.lua:146>
-]]--
 	table.sort(cards, compare_func) 
 end
 
@@ -1291,7 +1285,7 @@ function SmartAI:objectiveLevel(player)
 		if rebel_num == 0 then
 			if #players == 2 and self.role == "loyalist" then return 5 end
 
-			if self.player:isLord() and self:hasHeavySlashDamage(self.player, nil, player) and player:getHp() <= 2 then
+			if self.player:isLord() and not self.player:hasFlag("stack_overflow") and player:getHp() <= 2 and self:hasHeavySlashDamage(self.player, nil, player) then
 				return 0
 			end
 
@@ -4155,6 +4149,7 @@ end
 
 
 function getKnownCard(player, class_name, viewas, flags)
+	if not player then global_room:writeToConsole(debug.traceback()) return 0 end
 	flags = flags or "h"
 	player = findPlayerByObjectName(global_room, player:objectName())
 	local cards = player:getCards(flags)

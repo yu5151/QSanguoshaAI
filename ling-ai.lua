@@ -95,7 +95,7 @@ neofanjian_skill.name = "neofanjian"
 table.insert(sgs.ai_skills, neofanjian_skill)
 neofanjian_skill.getTurnUseCard = function(self)
 	if self.player:isKongcheng() then return nil end
-	if self.player:usedTimes("NeoFanjianCard") > 0 then return nil end
+	if self.player:hasUsed("NeoFanjianCard") then return nil end
 	return sgs.Card_Parse("@NeoFanjianCard=.")
 end
 
@@ -113,7 +113,7 @@ sgs.ai_skill_use_func.NeoFanjianCard = function(card, use, self)
 			handcards = sgs.QList2Table(handcards)
 			self:sortByKeepValue(handcards)
 			for _,cd in ipairs(handcards) do
-				local flag = not (cd:isKindOf("Peach") or card:isKindOf("Analeptic"))
+				local flag = not (cd:isKindOf("Peach") or cd:isKindOf("Analeptic"))
 				local suit = cd:getSuit()
 				if flag and care then
 					flag = cd:isKindOf("BasicCard")
@@ -136,7 +136,7 @@ sgs.ai_skill_use_func.NeoFanjianCard = function(card, use, self)
 				local keep_value = self:getKeepValue(ucard)
 				if ucard:getSuit() == sgs.Card_Diamond then keep_value = keep_value + 0.5 end
 				if keep_value < 6 then
-					use.card = sgs.Card_Parse("@NeoFanjianCard=" .. ucard:getId() .. "->" .. target:objectName())
+					use.card = sgs.Card_Parse("@NeoFanjianCard=" .. ucard:getEffectiveId())
 					if use.to then use.to:append(target) end
 					return
 				end

@@ -89,7 +89,8 @@ function sgs.ai_armor_value.Vine(player, self)
 	if self.player:hasSkill("sizhan") then return 4.9 end
 	if player:hasSkill("jujian") and not player:getArmor() and #(self:getFriendsNoself(player)) > 0 and player:getPhase() == sgs.Player_Play then return 3 end
 	if player:hasSkill("diyyicong") and not player:getArmor() and player:getPhase() == sgs.Player_Play then return 3 end
-
+	
+	if player:isChained() and not self:isGoodChainTarget(player) then return -2 end
 	for _, enemy in ipairs(self:getEnemies(player)) do
 		if (enemy:canSlash(player) and self:isEquip("Fan",enemy)) or self:hasSkills("huoji|longhun|shaoying|zonghuo|wuling", enemy)
 		  or (enemy:hasSkill("yeyan") and enemy:getMark("@flame") > 0) then return -2 end

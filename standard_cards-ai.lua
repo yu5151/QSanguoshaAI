@@ -1251,8 +1251,10 @@ sgs.ai_skill_cardask["@Axe"] = function(self, data, pattern, target)
 		local discard = self.yongsi_discard
 		if discard then return "$"..table.concat(discard, "+") end
 
-		local hcards = self.player:getCards("h")
-		hcards = sgs.QList2Table(hcards)
+		local hcards = {}
+		for _, c in sgs.qlist(self.player:getHandcards()) do
+			if not (isCard("Slash", c, self.player) and self:hasCrossbowEffect()) then table.insert(hcards, c) end
+		end
 		self:sortByKeepValue(hcards)
 		local cards = {}
 		local hand, armor, def, off = 0, 0, 0, 0

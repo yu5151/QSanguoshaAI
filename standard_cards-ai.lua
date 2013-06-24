@@ -2540,7 +2540,10 @@ end
 
 sgs.dynamic_value.control_card.Collateral = true
 
-sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target, target2)
+sgs.ai_skill_cardask["collateral-slash"] = function(self, data, pattern, target2, target, prompt)
+	-- self.player = killer
+	-- target = user
+	-- target2 = victim
 	local current = self.room:getCurrent()
 	if self:isFriend(current) and (current:hasFlag("needCrossbow") or 
 			(self:getCardsNum("Slash", current) >= 2 and self.player:getWeapon():isKindOf("Crossbow"))) then

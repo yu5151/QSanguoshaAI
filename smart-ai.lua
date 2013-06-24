@@ -3003,17 +3003,20 @@ function SmartAI:needKongcheng(player, keep)
 	if keep then
 		return player:isKongcheng() and (player:hasSkill("kongcheng") or (player:hasSkill("zhiji") and player:getMark("zhiji") == 0))
 	end
-
-	if player:hasSkill("beifa") and not player:isKongcheng() then
-		local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
-		for _, to in ipairs(self:getEnemies(player)) do
-			if player:canSlash(to, slash) and not self:slashProhibit(slash, to)
-			  and self:slashIsEffective(slash, to) and not self:getDamagedEffects(to, player, true) 
-			  and not self:needToLoseHp(to, player, true, true) then
-				return true
+	
+	if not self.player:hasFlag("stack_overflow") then
+		if player:hasSkill("beifa") and not player:isKongcheng() then
+			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+			for _, to in ipairs(self:getEnemies(player)) do
+				if player:canSlash(to, slash) and not self:slashProhibit(slash, to)
+				  and self:slashIsEffective(slash, to) and not self:getDamagedEffects(to, player, true) 
+				  and not self:needToLoseHp(to, player, true, true) then
+					return true
+				end
 			end
 		end
 	end
+	
 	if not self:hasLoseHandcardEffective() and not player:isKongcheng() then return true end
 	if player:hasSkill("zhiji") and player:getMark("zhiji") == 0 then return true end
 	if player:hasSkill("shude") and player:getPhase() == sgs.Player_Play then return true end
@@ -3246,6 +3249,12 @@ function SmartAI:getCardNeedPlayer(cards)
 	
 	table.sort(cardtogive, cmpByNumber)
 
+	if AssistTarget then
+		for _, hcard in ipairs(cardtogive) do
+			return hcard, AssistTarget
+		end
+	end	
+	
 	for _, friend in ipairs(friends) do
 		if not self:needKongcheng(friend, true) and friend:faceUp() then
 			for _, hcard in ipairs(cardtogive) do
@@ -3283,12 +3292,6 @@ function SmartAI:getCardNeedPlayer(cards)
 				or acard:isKindOf("OffensiveHorse") or acard:isKindOf("Weapon") or acard:isKindOf("AmazingGrace") then
 				return acard, self.enemies[1]
 			end
-		end
-	end
-	
-	if AssistTarget then
-		for _, hcard in ipairs(cardtogive) do
-			return hcard, AssistTarget
 		end
 	end
 	

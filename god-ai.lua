@@ -133,6 +133,12 @@ function SmartAI:cantbeHurt(player, damageNum, from)
 			return true
 		end
 	end
+	if from:objectName() ~= player:objectName() then
+		if player:hasSkill("enyuan") and (player:getHp() > 1 or self:getAllPeachNum(player) >= 1) and (from:getHp() == 1 and getCardsNum("Peach", from))
+			and from:getHandcardNum() <= 1 then return true end
+		if player:hasSkill("nosenyuan") and (player:getHp() > 1 or self:getAllPeachNum(player) >= 1) and (from:getHp() == 1 and getCardsNum("Peach", from))
+			and not self:hasSuit("heart", false, from) then return true end
+	end
 	return false
 end
 

@@ -1257,6 +1257,8 @@ function SmartAI:objectiveLevel(player)
 	
 	if self.player:isLord() or self.role == "loyalist" then
 		if player:isLord() then return -2 end
+		
+		if loyal_num == 0 and renegade_num == 0 then return 5 end
 
 		if self.role == "loyalist" and loyal_num == 1 and renegade_num == 0 then return 5 end
 		
@@ -4478,7 +4480,8 @@ function SmartAI:getAllPeachNum(player)
 	player = player or self.player
 	local n = 0
 	for _, friend in ipairs(self:getFriends(player)) do
-		n = n + getCardsNum("Peach", friend)
+		local num = self.player:objectName() == friend:objectName() and self:getCardsNum("Peach") or getCardsNum("Peach", friend)
+		n = n + num
 	end
 	return n
 end
@@ -4530,17 +4533,15 @@ end
 function SmartAI:getSuitNum(suit_strings, include_equip, player)
 	player = player or self.player
 	local n = 0
-	local flag = "h"
-	if include_equip then flag = "he" end
+	local flag = include_equip and "he" or "h"
 	local allcards
-	local current= self.room:getCurrent()
-	if player:objectName() == current:objectName() then
+	if player:objectName() == self.player:objectName() then
 		allcards = sgs.QList2Table(player:getCards(flag))
 	else
 		allcards = include_equip and sgs.QList2Table(player:getEquips()) or {}
 		local handcards = sgs.QList2Table(player:getHandcards())
-		local flag=string.format("%s_%s_%s","visible",current:objectName(),player:objectName())
-		for i= 1, #handcards, 1 do
+		local flag = string.format("%s_%s_%s","visible", self.player:objectName(), player:objectName())
+		for i = 1, #handcards, 1 do
 			if handcards[i]:hasFlag("visible") or handcards[i]:hasFlag(flag) then
 				table.insert(allcards,handcards[i])
 			end

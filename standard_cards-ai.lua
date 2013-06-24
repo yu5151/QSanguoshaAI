@@ -660,7 +660,7 @@ sgs.ai_skill_use.slash = function(self, prompt)
 			end
 		end
 		if not target then return "." end
-		local ret = callback(self, nil, nil, target, target2)
+		local ret = callback(self, nil, nil, target, target2, prompt)
 		if ret == nil or ret == "." then return "." end
 		slash = sgs.Card_Parse(ret)
 		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, slash) > 50 or self.player:hasFlag("slashNoDistanceLimit")

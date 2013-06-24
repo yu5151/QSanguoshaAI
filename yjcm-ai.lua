@@ -309,7 +309,14 @@ end
 sgs.ai_skill_playerchosen.xuanhuo_slash = sgs.ai_skill_playerchosen.zero_card_as_slash
 sgs.ai_playerchosen_intention.xuanhuo_slash = 80
 
-sgs.ai_skill_cardask["xuanhuo-slash"] = function(self, data, pattern, target, target2)
+sgs.ai_skill_cardask["xuanhuo-slash"] = function(self, data, pattern, t1, t2, prompt)
+	local parsedPrompt = prompt:split(":")
+	local target, target2
+	for _, p in sgs.qlist(self.room:getAlivePlayers()) do
+		if p:objectName() == parsedPrompt[2] then target = p end 
+		if p:objectName() == parsedPrompt[3] then target2 = p end
+	end
+	if not target or not target2 then self.room:writeToConsole(debug.traceback()) return "." end
 	local fazheng = self.player:getRoom():getCurrent()
 	if target and target2 then
 		for _, slash in ipairs(self:getCards("Slash")) do

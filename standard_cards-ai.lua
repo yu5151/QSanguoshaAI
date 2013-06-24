@@ -102,6 +102,7 @@ function sgs.getDefenseSlash(player)
 	if not player then return 0 end
 	local attacker = global_room:getCurrent()
 	local defense = getCardsNum("Jink", player)
+	defense = defense + math.min(player:getHp() * 0.45, 10)
 
 	local knownJink = getKnownCard(player, "Jink", true)
 
@@ -520,7 +521,7 @@ function SmartAI:useCardSlash(card, use)
 			-- fill the card use struct
 			local usecard = card
 			if not use.to or use.to:isEmpty() then
-				if self.player:hasWeapon("spear") and card:getSkillName() == "spear" and self:getCardsNum("Slash") == 0 then
+				if self.player:hasWeapon("spear") and card:getSkillName() == "spear" then
 				elseif self.player:hasWeapon("crossbow") and self:getCardsNum("Slash") > 1 then
 				elseif not use.isDummy then
 					local Weapons = {}
@@ -1602,9 +1603,19 @@ sgs.ai_skill_cardask.aoe = function(self, data, pattern, target, name)
 	if attacker:hasSkill("wuyan") and not attacker:hasSkill("jueqing") then return "." end
 	if self.player:hasSkill("fenyong") and self.player:getMark("@fenyong") > 0 and not attacker:hasSkill("jueqing") then return "." end
 
-	if not attacker:hasSkill("jueqing") and self.player:hasSkill("jianxiong") and self:getAoeValue(aoe) > -10
-		and (self.player:getHp() > 1 or self:getAllPeachNum() > 0) and not self.player:containsTrick("indulgence") then return "." end
-
+	if not attacker:hasSkill("jueqing") and self.player:hasSkill("jianxiong") and (self.player:getHp() > 1 or self:getAllPeachNum() > 0)
+		and not self.player:containsTrick("indulgence") then
+		if not self:needKongcheng(self.player, true) and self:getAoeValue(aoe) > -10 then return "." end
+		if sgs.ai_qice_data then
+			local damagecard = sgs.ai_qice_data:toCardUse().card
+			if damagecard:subcardsLength() > 2 then self.jianxiong = true return "." end
+			for _, id in sgs.qlist(damagecard:getSubcards()) do
+				local card = sgs.Sanguosha:getCard(id)
+				if not self:needKongcheng(self.player, true) and isCard("Peach", card, self.player) then return "." end
+			end
+		end
+	end
+	
 	local current = self.room:getCurrent()
 	if current and current:hasSkill("juece") and self:isEnemy(current) and self.player:getHp() > 0 then
 		local classname = (name == "savage_assault" and "Slash" or "Jink")

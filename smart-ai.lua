@@ -1844,6 +1844,9 @@ function SmartAI:filterEvent(event, player, data)
 			end
 		end
 		
+		if card:getSkillName() == "qice" and (card:isKindOf("SavageAssault") or card:isKindOf("ArcheryAttack") or card:isKindOf("Duel") or card:isKindOf("FireAttack")) then
+			sgs.ai_qice_data = data
+		end
 		
 	elseif event == sgs.CardEffect then
 		local struct = data:toCardEffect()
@@ -1954,6 +1957,10 @@ function SmartAI:filterEvent(event, player, data)
 					self.room:setCardFlag(c, "-AI_"..card:objectName())
 				end
 			end
+		end
+		
+		if card:getSkillName() == "qice" and sgs.ai_qice_data then
+			sgs.ai_qice_data = nil
 		end
 		
 	elseif event == sgs.CardsMoveOneTime then

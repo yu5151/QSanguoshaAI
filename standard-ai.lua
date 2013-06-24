@@ -1,4 +1,5 @@
 sgs.ai_skill_invoke.jianxiong = function(self, data)
+	if self.jianxiong then self.jianxiong = nil return true end
 	return not self:needKongcheng(self.player, true)
 end
 

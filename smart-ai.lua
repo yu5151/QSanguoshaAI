@@ -2392,13 +2392,8 @@ function SmartAI:askForNullification(trick, from, to, positive)
 	self:sortByUseValue(cards, true)
 	local null_card
 	null_card = self:getCardId("Nullification") --无懈可击
-	local null_num = 0
+	local null_num = self:getCardsNum("Nullification")
 	local menghuo = self.room:findPlayerBySkillName("huoshou") --“祸首”
-	for _, acard in ipairs(cards) do
-		if acard:isKindOf("Nullification") then
-			null_num = null_num + 1
-		end
-	end
 	if null_card then null_card = sgs.Card_Parse(null_card) else return nil end --没有无懈可击
 	if self.player:isLocked(null_card) then return nil end
 	if (from and from:isDead()) or (to and to:isDead()) then return nil end --已死
@@ -2425,6 +2420,11 @@ function SmartAI:askForNullification(trick, from, to, positive)
 		if ("snatch|dismantlement"):match(trick:objectName()) and not to:containsTrick("YanxiaoCard") and (to:containsTrick("indulgence") or to:containsTrick("supply_shortage")) then
 			if self:isEnemy(from) then return null_card end
 			if self:isFriend(to) and to:isNude() then return nil end
+		end
+		
+		if trick:getSkillName() == "lijian" and trick:isKindOf("Duel") then
+			if self:isFriend(to) and (self:isWeak(to) or null_num > 1 or self:getOverflow() or not self:isWeak()) then return null_card end
+			return
 		end
 		
 		if from and self:isEnemy(from) and (sgs.evaluatePlayerRole(from) ~= "neutral" or sgs.isRolePredictable()) then
@@ -2582,6 +2582,10 @@ function SmartAI:askForNullification(trick, from, to, positive)
 		
 	else
 		if from then
+			if trick:getSkillName() == "lijian" and trick:isKindOf("Duel") then
+				if self:isEnemy(to) and (self:isWeak(to) or null_num > 1 or self:getOverflow() or not self:isWeak()) then return null_card end
+				return
+			end
 			if from:objectName() == to:objectName() then
 				if self:isFriend(from) then return null_card else return end
 			end

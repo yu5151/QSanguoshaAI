@@ -917,7 +917,7 @@ function sgs.modifiedRoleEvaluation()
 		if #loyalist > 1 and #loyalist >= loyalist_num + renegade_num then
 			table.sort(loyalist, sort_func["renegade"])
 			if sgs.role_evaluation[loyalist[1]:objectName()]["renegade"] > 0 and sgs.role_evaluation[loyalist[2]:objectName()]["renegade"] == 0 then
-				sgs.role_evaluation[loyalist[1]:objectName()]["renegade"] = sgs.role_evaluation[loyalist[1]:objectName()]["renegade"] + 10
+				sgs.role_evaluation[loyalist[1]:objectName()]["renegade"] = sgs.role_evaluation[loyalist[1]:objectName()]["renegade"] + 5
 				sgs.ai_role[loyalist[1]:objectName()] = "renegade"
 				global_room:writeToConsole("renegade:" .. loyalist[1]:getGeneralName() .." Modified Success!")
 			end
@@ -1308,12 +1308,12 @@ function SmartAI:objectiveLevel(player)
 					-- return sgs.ai_role[player:objectName()] == "renegade" and 5 or 0
 				-- end
 				if self.player:isLord() then
-					if sgs.ai_role[player:objectName()] == "renegade" then return player:getHp() > 1 and 5 or 0
+					if sgs.ai_role[player:objectName()] == "loyalist" then return -2
 					else
-						return -2
+						return player:getHp() > 1 and 4 or 0
 					end
 				else
-					return sgs.ai_role[player:objectName()] == "renegade" and 5 or -2
+					return sgs.ai_role[player:objectName()] == "loyalist" and -2 or 4
 				end
 			end	
 		end
@@ -1540,7 +1540,7 @@ function SmartAI:updatePlayers(clear_flags)
 	
 	for i =1, #players, 1 do
 		local p = players[i]
-		local renegade_val = sgs.current_mode_players["rebel"] == 0 and 10 or 20
+		local renegade_val = sgs.current_mode_players["rebel"] == 0 and 10 or 15
 		if i <= sgs.current_mode_players["renegade"] and sgs.role_evaluation[p:objectName()]["renegade"] >= renegade_val then
 			sgs.ai_role[p:objectName()] = "renegade"
 			sgs.explicit_renegade = true

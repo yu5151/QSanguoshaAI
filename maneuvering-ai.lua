@@ -154,7 +154,7 @@ function SmartAI:searchForAnaleptic(use, enemy, slash)
 			end
 		end
 
-		if self.player:hasLordSkill("weidai") and not self.player:hasFlag("weidai_failed") then
+		if self.player:hasLordSkill("weidai") and not self.player:hasFlag("Global_WeidaiFailed") then
 			return sgs.Card_Parse("@WeidaiCard=.")
 		end
 	end

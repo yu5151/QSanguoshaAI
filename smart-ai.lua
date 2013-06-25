@@ -4613,16 +4613,21 @@ function SmartAI:useSkillCard(card,use)
 	else
 		name = card:getClassName()
 	end
-	if not sgs.ai_skill_use_func[name] then return end
-	sgs.ai_skill_use_func[name](card, use, self)
-	if use.to then
-		if not use.to:isEmpty() and sgs.dynamic_value.damage_card[name] then
-			for _, target in sgs.qlist(use.to) do
-				if self:damageIsEffective(target) then return end
+	if sgs.ai_skill_use_func[name] then
+		sgs.ai_skill_use_func[name](card, use, self)
+		if use.to then
+			if not use.to:isEmpty() and sgs.dynamic_value.damage_card[name] then
+				for _, target in sgs.qlist(use.to) do
+					if self:damageIsEffective(target) then return end
+				end
+				use.card = nil
 			end
-			use.card = nil
 		end
+		return
 	end
+	if self["useCard"..name] then
+		self["useCard"..name](self, card, use)
+	end	
 end
 
 function SmartAI:useBasicCard(card, use)

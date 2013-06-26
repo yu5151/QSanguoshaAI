@@ -2359,7 +2359,7 @@ sgs.ai_choicemade_filter.cardChosen.snatch = function(player, promptlist, self)
 		local place = self.room:getCardPlace(id)
 		local card = sgs.Sanguosha:getCard(id)
 		local intention = 70
-		if to:hasSkills("tundian+zaoxian") and to:getPile("field") == 2 and to:getMark("zaoxian") == 0 then intention = 0 end
+		if to:hasSkills("tuntian+zaoxian") and to:getPile("field") == 2 and to:getMark("zaoxian") == 0 then intention = 0 end
 		if place == sgs.Player_PlaceDelayedTrick then
 			if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end
 			if card:isKindOf("YanxiaoCard") then intention = -intention end

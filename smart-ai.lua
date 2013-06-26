@@ -1019,7 +1019,7 @@ sgs.ai_card_intention.general = function(from, to, level)
 			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level) 
 		end
 	end
-			
+	--[[		
 	if global_room:getTag("humanCount") and global_room:getTag("humanCount"):toInt() ==1 then
 		local diffarr = {
 			loyalist_value	= sgs.role_evaluation[from:objectName()]["loyalist"] - loyalist_value ,
@@ -1048,6 +1048,7 @@ sgs.ai_card_intention.general = function(from, to, level)
 			global_room:sendLog(log)
 		end
 	end
+	]]
 	sgs.outputRoleValues(from, level)
 end
 
@@ -2134,7 +2135,8 @@ function SmartAI:filterEvent(event, player, data)
 
 		sgs.debugmode = io.open("lua/ai/debug")
 		if sgs.debugmode then sgs.debugmode:close() end
-
+		
+		
 		if sgs.turncount == 1 and player:isLord() then
 			local msg = ""
 			local humanCount = 0
@@ -2147,7 +2149,7 @@ function SmartAI:filterEvent(event, player, data)
 			self.room:setTag("humanCount",sgs.QVariant(humanCount))
 
 			if humanCount == 1 and not sgs.isRolePredictable() and not sgs.GetConfig("EnableHegemony", false) then 
-				global_room:writeToConsole(msg)
+				-- global_room:writeToConsole(msg)
 			end
 		end
 
@@ -3774,7 +3776,7 @@ function SmartAI:needRetrial(judge)
 			return self:damageIsEffective(lord, sgs.DamageStruct_Thunder) and not judge:isGood()
 		end
 		
-		if who:hasArmorEffect("SilverLion") then who:getHp() > 1 then return false end
+		if who:hasArmorEffect("SilverLion") and who:getHp() > 1 then return false end
 
 		if self:isFriend(who) then
 			if who:isChained() and self:isGoodChainTarget(who) then return false end

@@ -682,7 +682,7 @@ sgs.ai_view_as.lihuo = function(card, player, card_place)
 	local suit = card:getSuitString()
 	local number = card:getNumberString()
 	local card_id = card:getEffectiveId()
-	if card:isKindOf("Slash") and not (card:isKindOf("FireSlash") or card:isKindOf("ThunderSlash")) then
+		if card_place == sgs.Player_PlaceHand and card:isKindOf("Slash") and not (card:isKindOf("FireSlash") or card:isKindOf("ThunderSlash")) then
 		return ("fire_slash:lihuo[%s:%s]=%d"):format(suit, number, card_id)
 	end
 end

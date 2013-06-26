@@ -3984,7 +3984,7 @@ local function prohibitUseDirectly(card, player)
 end
 
 local function cardsViewValuable(self, class_name, player)
-	for _, skill in ipairs(sgs.QList2Table(player:getVisibleSkillList())) do
+	for _, skill in ipairs(sgs.QList2Table(player:getVisibleSkillList(true))) do
 		local askill = skill:objectName()
 		if player:hasSkill(askill) then
 			local callback = sgs.ai_cardsview_valuable[askill]
@@ -3997,7 +3997,7 @@ local function cardsViewValuable(self, class_name, player)
 end
 
 local function cardsView(self, class_name, player)
-	for _, skill in ipairs(sgs.QList2Table(player:getVisibleSkillList())) do
+	for _, skill in ipairs(sgs.QList2Table(player:getVisibleSkillList(true))) do
 		local askill = skill:objectName()
 		if player:hasSkill(askill) then
 			local callback = sgs.ai_cardsview_valuable[askill]
@@ -4007,7 +4007,7 @@ local function cardsView(self, class_name, player)
 			end
 		end
 	end
-	for _, skill in ipairs(sgs.QList2Table(player:getVisibleSkillList())) do
+	for _, skill in ipairs(sgs.QList2Table(player:getVisibleSkillList(true))) do
 		local askill = skill:objectName()
 		if player:hasSkill(askill) then
 			local callback = sgs.ai_cardsview[askill]
@@ -4021,7 +4021,7 @@ end
 
 
 local function getSkillViewCard(card, class_name, player, card_place)
-	for _, askill in sgs.qlist(player:getVisibleSkillList()) do
+	for _, askill in sgs.qlist(player:getVisibleSkillList(true)) do
 		local skillname = askill:objectName()
 		local callback = sgs.ai_view_as[skillname]
 		if type(callback) == "function" then
@@ -4037,7 +4037,7 @@ local function getSkillViewCard(card, class_name, player, card_place)
 end
 
 local function getFilterSkillViewCard(card, player, card_place)
-	for _, askill in sgs.qlist(player:getVisibleSkillList()) do
+	for _, askill in sgs.qlist(player:getVisibleSkillList(true)) do
 		local skillname = askill:objectName()
 		local callback = sgs.ai_filterskill_filter[skillname]
 		if type(callback) == "function" then

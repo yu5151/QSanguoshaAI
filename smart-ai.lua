@@ -5384,7 +5384,7 @@ end
 function getBestHp(player)
 	local arr = {ganlu = 1, yinghun = 2, nosmiji = 1, xueji = 1, baobian = math.max(0, player:getMaxHp() - 3)}
 	if player:hasSkill("longhun") and player:getCards("he"):length() > 2 then return 1 end
-	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 then return 1 end
+	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 then return 2 end
 	for skill,dec in pairs(arr) do
 		if player:hasSkill(skill) then 
 			return math.max( (player:isLord() and 3 or 2) ,player:getMaxHp() - dec)

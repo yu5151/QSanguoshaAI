@@ -570,7 +570,7 @@ function SmartAI:useCardSlash(card, use)
 					end
 				end
 				local godsalvation = self:getCard("GodSalvation")
-				if not use.isDummy and godsalvation and godsalvation:getId() ~= card:getId() and self:willUseGodSalvation(godsalvation) then
+				if not use.isDummy and godsalvation and godsalvation:getId() ~= card:getId() and not target:isWounded() and self:willUseGodSalvation(godsalvation) then
 					use.card = godsalvation
 					return
 				end

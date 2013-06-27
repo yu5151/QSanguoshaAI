@@ -620,12 +620,12 @@ sgs.ai_skill_playerchosen.xingwu = function(self, targets)
 	local getCmpValue = function(enemy)
 		local value = 0
 		if self:damageIsEffective(enemy) then
-			local dmg = enemy:hasArmorEffect("silver_lion") and 1 or 2
+			local dmg = enemy:hasArmorEffect("SilverLion") and 1 or 2
 			if enemy:getHp() <= dmg then value = 5 else value = value + enemy:getHp() / (enemy:getHp() - dmg) end
 			if not sgs.isGoodTarget(enemy, self.enemies, self) then value = value - 2 end
 			if self:cantbeHurt(enemy, dmg, self.player) then value = value - 5 end
 			if enemy:isLord() then value = value + 2 end
-			if enemy:hasArmorEffect("silver_lion") then value = value - 1.5 end
+			if enemy:hasArmorEffect("SilverLion") then value = value - 1.5 end
 			if self:hasSkills(sgs.exclusive_skill, enemy) then value = value - 1 end
 			if self:hasSkills(sgs.masochism_skill, enemy) then value = value - 0.5 end
 		end
@@ -633,7 +633,7 @@ sgs.ai_skill_playerchosen.xingwu = function(self, targets)
 			local len = enemy:getEquips():length()
 			if enemy:hasSkills(sgs.lose_equip_skill) then value = value - 0.6 * len end
 			if enemy:getArmor() and self:needToThrowArmor() then value = value - 1.5 end
-			if enemy:hasArmorEffect("silver_lion") then value = value - 0.5 end
+			if enemy:hasArmorEffect("SilverLion") then value = value - 0.5 end
 
 			if enemy:getWeapon() then value = value + 0.8 end
 			if enemy:getArmor() then value = value + 1 end

@@ -1877,7 +1877,7 @@ function SmartAI:filterEvent(event, player, data)
 
 		if card:isKindOf("Slash") then
 			if to:hasSkill("leiji") and (getCardsNum("Jink", to) > 0 or to:hasArmorEffect("EightDiagram")) then
-				if to:isLord() and not hasExplicitRebel(self.room) and not sgs.explicit_renegade not then sgs.updateIntention(from, to, 50) end
+				if to:isLord() and not hasExplicitRebel(self.room) and not sgs.explicit_renegade then sgs.updateIntention(from, to, 50) end
 				sgs.ai_leiji_effect = true
 			end
 		end
@@ -2226,7 +2226,7 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 	min_num = min_num or discard_num
 	local exchange = self.player:hasFlag("Global_AIDiscardExchanging")
 	local callback = sgs.ai_skill_discard[reason]
-	self:assignKeep(self.player:getHp(), true)
+	self:assignKeep(self:assignKeepNum(), true)
 	if type(callback) == "function" then
 		local cb = callback(self, discard_num, min_num, optional, include_equip)
 		if cb then
@@ -3653,10 +3653,18 @@ function SmartAI:getTurnUse()
 	return turnUse
 end
 
+function SmartAI:assignKeepNum()
+	local num = self.player:getMaxCards()
+	if self.player:hasSkill("qiaobian") then num = math.max(self.player:getHandcardNum() - 1, num) end
+	if self.player:hasSkill("keji") then num = self.player:getHandcardNum() end
+	if self.player:hasSkill("zaoyao") then num = self.player:getHandcardNum() end
+	return num
+end
+
 function SmartAI:activate(use)
 	self:updatePlayers()
-	self:assignKeep(self.player:getHp(),true)
-	self.toUse  = self:getTurnUse()
+	self:assignKeep(self:assignKeepNum(), true)
+	self.toUse = self:getTurnUse()
 	self:sortByDynamicUsePriority(self.toUse)
 	for _, card in ipairs(self.toUse) do
 		if not self.player:isCardLimited(card, card:getHandlingMethod())

@@ -383,6 +383,7 @@ function SmartAI:shouldUseAnaleptic(target, slash, anal)
 	if sgs.turncount <= 1 and self.role == "renegade" and sgs.isLordHealthy() and self:getOverflow() < 2 then return false end
 	if self:isEquip("SilverLion", target) and not IgnoreArmor(self.player, target) and not self.player:hasSkill("jueqing") then return false end
 	if target:hasSkill("zhenlie") then return false end
+	if target:hasSkill("anxian") and target:getHandcardNum() > 0 then return false end
 	
 	if self:hasSkills(sgs.masochism_skill .. "|longhun|buqu|" .. sgs.recover_skill .. "|" .. sgs.exclusive_skill ,target) and 
 		self.player:hasSkill("nosqianxi") and self.player:distanceTo(enemy) == 1 then
@@ -570,7 +571,8 @@ function SmartAI:useCardSlash(card, use)
 					end
 				end
 				local godsalvation = self:getCard("GodSalvation")
-				if not use.isDummy and godsalvation and godsalvation:getId() ~= card:getId() and not target:isWounded() and self:willUseGodSalvation(godsalvation) then
+				if not use.isDummy and godsalvation and godsalvation:getId() ~= card:getId() and self:willUseGodSalvation(godsalvation) and
+					(not target:isWounded() or not self:hasTrickEffective(godsalvation, target, self.player)) then
 					use.card = godsalvation
 					return
 				end
@@ -1858,8 +1860,16 @@ function SmartAI:useCardDuel(duel, use)
 	if #targets > 0 then
 
 		local godsalvation = self:getCard("GodSalvation")
-		if godsalvation and godsalvation:getId()~= duel:getId() and self:willUseGodSalvation(godsalvation) then
-			use.card = godsalvation return
+		if godsalvation and godsalvation:getId() ~= duel:getId() and self:willUseGodSalvation(godsalvation) then
+			local use_gs = true
+			for _, p in ipairs(targets) do
+				if not p:isWounded() or not self:hasTrickEffective(fire_attack, p, self.player) then break end
+				use_gs = false
+			end
+			if use_gs then
+				use.card = godsalvation
+				return
+			end
 		end
 
 		local targets_num = 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_ExtraTarget, self.player, duel)

@@ -1962,7 +1962,7 @@ function SmartAI:filterEvent(event, player, data)
 		if card:isKindOf("Snatch") or card:isKindOf("Dismantlement") then
 			for _, p in sgs.qlist(struct.to) do
 				for _, c in sgs.qlist(p:getCards("hej")) do
-					self.room:setCardFlag(c, "-AI_"..card:objectName())
+					self.room:setCardFlag(c, "-AIGlobal_SDCardChosen_"..card:objectName())
 				end
 			end
 		end
@@ -2650,7 +2650,7 @@ function SmartAI:askForCardChosen(who, flags, reason, method)
 	end
 
 	if ("snatch|dismantlement|yinling"):match(reason) then
-		local flag = "AI_" .. reason
+		local flag = "AIGlobal_SDCardChosen_" .. reason
 		local to_choose
 		for _, card in sgs.qlist(who:getCards(flags)) do
 			if card:hasFlag(flag) then

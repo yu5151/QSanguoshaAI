@@ -1919,7 +1919,7 @@ sgs.ai_skill_cardask["duel-slash"] = function(self, data, pattern, target)
 	if self.player:getPhase()==sgs.Player_Play then return self:getCardId("Slash") end
 
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
-	if self.player:hasFlag("will_wake") then return "." end
+	if self.player:hasFlag("AIGlobal_NeedToWake") and self.player:getHp() > 1 then return "." end
 	if (target:hasSkill("wuyan") or self.player:hasSkill("wuyan")) and not target:hasSkill("jueqing") then return "." end
 	if self.player:getMark("@fenyong") >0 and self.player:hasSkill("fenyong") and not target:hasSkill("jueqing") then return "." end
 	
@@ -2374,14 +2374,18 @@ sgs.ai_choicemade_filter.cardChosen.snatch = function(player, promptlist, self)
 			if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end
 			if card:isKindOf("YanxiaoCard") then intention = -intention end
 		elseif place == sgs.Player_PlaceEquip then
-			if to:getLostHp() > 1 and card:isKindOf("SilverLion") then
-				if to:hasSkills(sgs.use_lion_skill) then
-					intention = self:willSkipPlayPhase(to) and -intention / 2 or 0
+			if card:isKindOf("SilverLion") then
+				if to:getLostHp() > 1 then
+					if to:hasSkills(sgs.use_lion_skill) then
+						intention = self:willSkipPlayPhase(to) and -intention or 0
+					else
+						intention = self:isWeak(to) and -intention or 0
+					end
 				else
-					intention = self:isWeak(to) and -intention / 2 or -intention / 10
+					intention = 0
 				end
 			end
-			if to:hasSkills(sgs.lose_equip_skill) then
+			if not card:isKindOf("SilverLion") and to:hasSkills(sgs.lose_equip_skill) then
 				if self:isWeak(to) and (card:isKindOf("DefensiveHorse") or card:isKindOf("Armor")) then
 					intention = math.abs(intention)
 				else

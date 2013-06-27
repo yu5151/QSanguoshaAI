@@ -117,7 +117,7 @@ function setInitialTables()
 						"yinling|jilve|qingcheng|neoluoyi|diyyicong"								  
 	sgs.need_equip_skill = 		"shensu|mingce|jujian|beige|yuanhu|gongqi|nosgongqi|yanzheng|qingcheng|neoluoyi|longhun|shuijian"
 	sgs.judge_reason =		"bazhen|EightDiagram|wuhun|supply_shortage|tuntian|nosqianxi|nosmiji|indulgence|lightning|baonue$"..
-									"|leiji|caizhaoji_hujia|caizhaoji_hujia|tieji|luoshen|ganglie|neoganglie"
+									"|leiji|caizhaoji_hujia|tieji|luoshen|ganglie|neoganglie|vsganglie"
 	
 	sgs.Friend_All = 0
 	sgs.Friend_Draw = 1
@@ -879,9 +879,9 @@ function sgs.modifiedRoleEvaluation()
 	if players:length() == 1 then return false end
 	
 	local rebel, loyalist, renegade = {}, {}, {}
-	local rebel_num = sgs.current_mode_players["rebel"]
-	local loyalist_num = sgs.current_mode_players["loyalist"]
-	local renegade_num = sgs.current_mode_players["renegade"]
+	local rebel_num = sgs.current_mode_players["rebel"] or 0
+	local loyalist_num = sgs.current_mode_players["loyalist"] or 0
+	local renegade_num = sgs.current_mode_players["renegade"] or 0
 	
 	for _, player in sgs.qlist(players) do
 		if sgs.ai_role[player:objectName()] == "rebel" then table.insert(rebel, player)
@@ -923,6 +923,8 @@ function sgs.modifiedRoleEvaluation()
 			end
 		end
 	end
+	
+	if not sgs.explicit_renegade and rebel_num == 0 and #rebel_num > 0 and loyalist_num == #loyalist then sgs.explicit_renegade = true end
 	
 end
 
@@ -1019,7 +1021,7 @@ sgs.ai_card_intention.general = function(from, to, level)
 			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level) 
 		end
 	end
-	--[[		
+	--[[
 	if global_room:getTag("humanCount") and global_room:getTag("humanCount"):toInt() ==1 then
 		local diffarr = {
 			loyalist_value	= sgs.role_evaluation[from:objectName()]["loyalist"] - loyalist_value ,
@@ -1293,6 +1295,7 @@ function SmartAI:objectiveLevel(player)
 			end
 
 			if not sgs.explicit_renegade then
+				if sgs.ai_role[player:objectName()] == "rebel" then return player:getHp() > 1 and 5 or 1 end
 				self:sort(players, "hp")
 				local maxhp = players[#players]:isLord() and players[#players - 1]:getHp() or players[#players]:getHp()
 				if maxhp > 2 then return player:getHp() == maxhp and 5 or 0 end
@@ -2077,31 +2080,35 @@ function SmartAI:filterEvent(event, player, data)
 						end
 					end
 				end
+				
+				local zhanghe = self.room:findPlayerBySkillName("qiaobian")
+				if not zhanghe or (getLord(player) and self:playerGetRound(zhanghe) > self:playerGetRound(getLord(player))) or self:isEnemy(zhanghe) then
+					if isCard("Indulgence", card, player) and getLord(player) and not getLord(player):hasSkill("qiaobian") then
+						for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
+							if not (target:containsTrick("indulgence") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
+								local aplayer = self:exclude( {target}, card, player)
+								if #aplayer ==1 and is_neutral then
+									sgs.updateIntention(player, target, -35)
+									self:updatePlayers()
+								end
+							end
+						end
+					end
 
-				if isCard("Indulgence", card, player) and getLord(player) and not getLord(player):hasSkill("qiaobian") then
-					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
-						if not (target:containsTrick("indulgence") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
-							local aplayer = self:exclude( {target}, card, player)
-							if #aplayer ==1 and is_neutral then
-								sgs.updateIntention(player, target, -35)
-								self:updatePlayers()
+					if isCard("SupplyShortage", card, player) and getLord(player) and not getLord(player):hasSkill("qiaobian") then
+						for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
+							if player:distanceTo(target) <= (player:hasSkill("duanliang") and 2 or 1) and 
+									not (target:containsTrick("supply_shortage") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
+								local aplayer = self:exclude( {target}, card, player)
+								if #aplayer ==1 and is_neutral then
+									sgs.updateIntention(player, target, -35)
+									self:updatePlayers()
+								end
 							end
 						end
 					end
 				end
-
-				if isCard("SupplyShortage", card, player) and getLord(player) and not getLord(player):hasSkill("qiaobian") then
-					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
-						if player:distanceTo(target) <= (player:hasSkill("duanliang") and 2 or 1) and 
-								not (target:containsTrick("supply_shortage") or target:containsTrick("YanxiaoCard") or self:hasSkills("qiaobian", target)) then
-							local aplayer = self:exclude( {target}, card, player)
-							if #aplayer ==1 and is_neutral then
-								sgs.updateIntention(player, target, -35)
-								self:updatePlayers()
-							end
-						end
-					end
-				end
+				
 			end
 		end
 		
@@ -3855,7 +3862,7 @@ function SmartAI:getRetrialCardId(cards, judge)
 	for _, c in ipairs(cards) do
 		local card = sgs.Sanguosha:getEngineCard(c:getId())
 		if who:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade then
-			card = sgs.Sanguosha:clone(card:objectName(), sgs.Card_Heart, card:getNumber())
+			card = sgs.Sanguosha:cloneCard(card:objectName(), sgs.Card_Heart, card:getNumber())
 		end
 		if reason == "beige" and not isCard("Peach", card, self.player) then
 			local damage = self.room:getTag("CurrentDamageStruct"):toDamage()

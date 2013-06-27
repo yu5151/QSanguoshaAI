@@ -744,7 +744,7 @@ sgs.ai_view_as.qingguo = function(card, player, card_place)
 	local suit = card:getSuitString()
 	local number = card:getNumberString()
 	local card_id = card:getEffectiveId()
-	if card:isBlack() and card_place ~= sgs.Player_PlaceEquip then
+	if card:isBlack() and card_place == sgs.Player_PlaceHand then
 		return ("jink:qingguo[%s:%s]=%d"):format(suit, number, card_id)
 	end
 end
@@ -1268,7 +1268,7 @@ sgs.ai_view_as.longdan = function(card, player, card_place)
 	local suit = card:getSuitString()
 	local number = card:getNumberString()
 	local card_id = card:getEffectiveId()
-	if card_place ~= sgs.Player_PlaceEquip then
+	if card_place == sgs.Player_PlaceHand then
 		if card:isKindOf("Jink") then
 			return ("slash:longdan[%s:%s]=%d"):format(suit, number, card_id)
 		elseif card:isKindOf("Slash") then

@@ -989,7 +989,7 @@ sgs.ai_card_intention.general = function(from, to, level)
 	if not to then global_room:writeToConsole(debug.traceback()) return end
 	if from:isLord() or level == 0 then return end
 
-	-- ½«level¹Ì¶¨Îª 10»òÕß-10£¬Ä¿µÄÊÇÓÉÔ­À´µÄÖÒ·´ÖµµÄ±ä»¯ ¸ü¸ÄÎª Í³¼ÆAIÌøÉí·ÝµÄÐÐÎª´ÎÊý£¬ÒòÎª¸Ð¾õ¾ßÌåµÄlevelÖµ²»Ì«ºÃ°ÑÎÕ£¬ÈÝÒ×³öÏÖÖÒ·´Öµ²»ºÏÀíì­ÕÇµÄÇé¿ö
+	-- å°†levelå›ºå®šä¸º 10æˆ–è€…-10ï¼Œç›®çš„æ˜¯ç”±åŽŸæ¥çš„å¿ åå€¼çš„å˜åŒ– æ›´æ”¹ä¸º ç»Ÿè®¡AIè·³èº«ä»½çš„è¡Œä¸ºæ¬¡æ•°ï¼Œå› ä¸ºæ„Ÿè§‰å…·ä½“çš„levelå€¼ä¸å¤ªå¥½æŠŠæ¡ï¼Œå®¹æ˜“å‡ºçŽ°å¿ åå€¼ä¸åˆç†é£™æ¶¨çš„æƒ…å†µ
 	level = level > 0 and 10 or -10
 
 	sgs.outputRoleValues(from, level)
@@ -1006,10 +1006,10 @@ sgs.ai_card_intention.general = function(from, to, level)
 		
 		if sgs.current_mode_players["rebel"] > 0 and sgs.current_mode_players["renegade"] == 0 and
 			sgs.current_mode_players["loyalist"] > 0 and level > 0 and sgs.UnknownRebel then
-				--·´×°ÖÒ
+				--åè£…å¿ 
 		elseif sgs.current_mode_players["rebel"] == 0 and sgs.current_mode_players["renegade"] > 0 and not to:isLord()
 				and sgs.current_mode_players["loyalist"] > 0 and level > 0 and sgs.explicit_renegade == false then
-				-- ½øÈëÖ÷ÖÒÄÚ, µ«ÊÇÃ»ÈËÌø¹ýÄÚ£¬Õâ¸öÊ±ºòÖÒ³¼Ö®¼äµÄÏà»¥¹¥»÷£¬²»¸üÐÂÄÚ¼éÖµ	
+				-- è¿›å…¥ä¸»å¿ å†…, ä½†æ˜¯æ²¡äººè·³è¿‡å†…ï¼Œè¿™ä¸ªæ—¶å€™å¿ è‡£ä¹‹é—´çš„ç›¸äº’æ”»å‡»ï¼Œä¸æ›´æ–°å†…å¥¸å€¼
 		elseif (sgs.ai_role[from:objectName()] == "loyalist" and level > 0) or (sgs.ai_role[from:objectName()] == "rebel" and level < 0) then
 			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level) 
 		elseif sgs.ai_role[from:objectName()] ~= "rebel" and sgs.ai_role[from:objectName()] ~= "neutral" and level > 0 and to:isLord() then
@@ -1571,7 +1571,7 @@ function SmartAI:updatePlayers(clear_flags)
 
 
 end
---²éÕÒroomÄÚÖ¸¶¨objectNameµÄplayer
+---æŸ¥æ‰¾roomå†…æŒ‡å®šobjectNameçš„player
 function findPlayerByObjectName(room, name, include_death, except)
 	if not room then
 		return
@@ -1591,13 +1591,13 @@ function findPlayerByObjectName(room, name, include_death, except)
 		end
 	end
 end
---»ñÈ¡¶ÔtargetÊ¹ÓÃµÄ½õÄÒTrickClassµÄÒ»°ã³ðºÞÖµ--
+---èŽ·å–å¯¹targetä½¿ç”¨çš„é”¦å›ŠTrickClassçš„ä¸€èˆ¬ä»‡æ¨å€¼
 function getTrickIntention(TrickClass, target)
 	local Intention = sgs.ai_card_intention[TrickClass]
 	if type(Intention) == "number" then
 		return Intention 
 	elseif type(Intention == "function") then
-		if TrickClass == "IronChain" then --Õâ¸öÌúË÷Á¬»·ÕæÈÃÈËÍ·ÌÛ¡­¡­²»Öª»¹ÓÐÃ»ÓÐ±ðµÄ³ðºÞÖµÊÇº¯ÊýµÄ½õÄÒ¡­¡­
+		if TrickClass == "IronChain" then --è¿™ä¸ªé“ç´¢è¿žçŽ¯çœŸè®©äººå¤´ç–¼â€¦â€¦ä¸çŸ¥è¿˜æœ‰æ²¡æœ‰åˆ«çš„ä»‡æ¨å€¼æ˜¯å‡½æ•°çš„é”¦å›Š
 			if target:isChained() then
 				return -80
 			else
@@ -1605,12 +1605,12 @@ function getTrickIntention(TrickClass, target)
 			end
 		end
 	end
-	if TrickClass == "Collateral" then return 0 end	--½èµ¶³ðºÞ¸´ÔÓ£¬´ý´¦Àí
+	if TrickClass == "Collateral" then return 0 end --å€Ÿåˆ€ä»‡æ¨å¤æ‚ï¼Œå¾…å¤„ç†
 	if TrickClass == "AmazingGrace" then return -10 end
 	if sgs.dynamic_value.damage_card[TrickClass] then 
 		return 70
 	end
-	if sgs.dynamic_value.benefit[TrickClass] then --Ã»Ïëµ½ÌúË÷Á¬»·»áÊÇÓÐÒæ½õÄÒ¡­¡­
+	if sgs.dynamic_value.benefit[TrickClass] then --æ²¡æƒ³åˆ°é“ç´¢è¿žçŽ¯ä¼šæ˜¯æœ‰ç›Šé”¦å›Šâ€¦â€¦
 		return -40
 	end
 	if target then
@@ -2043,7 +2043,7 @@ function SmartAI:filterEvent(event, player, data)
 				end	
 			end
 			
-			-- ÕÅ½ÇÓÃ
+			-- å¼ è§’ç”¨
 			if player:hasFlag("AI_Playing") and player:hasSkill("leiji") and player:getPhase() == sgs.Player_Discard and isCard("Jink", card, player)
 			and player:getHandcardNum() >= 2 and reason.m_reason == sgs.CardMoveReason_S_REASON_RULEDISCARD then sgs.card_lack[player:objectName()]["Jink"] = 2 end
 			
@@ -2402,19 +2402,19 @@ sgs.ai_skill_discard.gamerule = function(self, discard_num, min_num)
 end
 
 
---Ñ¯ÎÊÎÞÐ¸¿É»÷--
+---è¯¢é—®æ— æ‡ˆå¯å‡»--
 function SmartAI:askForNullification(trick, from, to, positive)
 	if self.player:isDead() then return nil end
 	local cards = self.player:getCards("he")
 	cards = sgs.QList2Table(cards)
 	self:sortByUseValue(cards, true)
 	local null_card
-	null_card = self:getCardId("Nullification") --ÎÞÐ¸¿É»÷
+	null_card = self:getCardId("Nullification") --æ— æ‡ˆå¯å‡»
 	local null_num = self:getCardsNum("Nullification")
-	local menghuo = self.room:findPlayerBySkillName("huoshou") --¡°»öÊ×¡±
-	if null_card then null_card = sgs.Card_Parse(null_card) else return nil end --Ã»ÓÐÎÞÐ¸¿É»÷
+	local menghuo = self.room:findPlayerBySkillName("huoshou") --ç¥¸é¦–
+	if null_card then null_card = sgs.Card_Parse(null_card) else return nil end --æ²¡æœ‰æ— æ‡ˆå¯å‡» 
 	if self.player:isLocked(null_card) then return nil end
-	if (from and from:isDead()) or (to and to:isDead()) then return nil end --ÒÑËÀ
+	if (from and from:isDead()) or (to and to:isDead()) then return nil end --å·²æ­»
 	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") == 0 and (self:isWeak() or self.player:isLord()) then return nil end
 
 	if trick:isKindOf("FireAttack") and (to:isKongcheng() or from:isKongcheng()) then return nil end
@@ -2426,14 +2426,14 @@ function SmartAI:askForNullification(trick, from, to, positive)
 		if (trick:isKindOf("Duel") or trick:isKindOf("FireAttack") or trick:isKindOf("AOE")) and
 			(to:hasSkill("wuyan") or (self:getDamagedEffects(to, from) and self:isFriend(to))) then
 			return nil
-		end --¡°¾øÇé¡±¡°ÎÞÑÔ¡±¡¢¾ö¶·¡¢»ð¹¥¡¢AOE
-		if (trick:isKindOf("Duel") or trick:isKindOf("AOE")) and not self:damageIsEffective(to, sgs.DamageStruct_Normal) then return nil end --¾ö¶·¡¢AOE
-		if trick:isKindOf("FireAttack") and not self:damageIsEffective(to, sgs.DamageStruct_Fire) then return nil end --»ð¹¥
+		end --â€œç»æƒ…â€â€œæ— è¨€â€ã€å†³æ–—ã€ç«æ”»ã€AOE 
+		if (trick:isKindOf("Duel") or trick:isKindOf("AOE")) and not self:damageIsEffective(to, sgs.DamageStruct_Normal) then return nil end --å†³æ–—ã€AOE 
+		if trick:isKindOf("FireAttack") and not self:damageIsEffective(to, sgs.DamageStruct_Fire) then return nil end --ç«æ”»
 	end 
 	if (trick:isKindOf("Duel") or trick:isKindOf("FireAttack") or trick:isKindOf("AOE")) and self:needToLoseHp(to, from) and self:isFriend(to) then
-		return nil --¿Û¼õÌåÁ¦ÓÐÀû
+		return nil --æ‰£å‡ä½“åŠ›æœ‰åˆ©
 	end
-	--×¼±¸Ê¹ÓÃÎÞÐ¸¿É»÷--
+	--å‡†å¤‡ä½¿ç”¨æ— æ‡ˆå¯å‡»--
 	if positive then
 		if ("snatch|dismantlement"):match(trick:objectName()) and not to:containsTrick("YanxiaoCard") and (to:containsTrick("indulgence") or to:containsTrick("supply_shortage")) then
 			if self:isEnemy(from) then return null_card end
@@ -2446,17 +2446,17 @@ function SmartAI:askForNullification(trick, from, to, positive)
 		end
 		
 		if from and self:isEnemy(from) and (sgs.evaluatePlayerRole(from) ~= "neutral" or sgs.isRolePredictable()) then
-			--Ê¹ÓÃÕßÊÇµÐ·½£¬×Ô¼ºÓÐ¼¼ÄÜ¡°¿Õ³Ç¡±ÇÒÎÞÐ¸¿É»÷Îª×îºóÒ»ÕÅÊÖÅÆ->ÃüÖÐ
+			--ä½¿ç”¨è€…æ˜¯æ•Œæ–¹ï¼Œè‡ªå·±æœ‰æŠ€èƒ½â€œç©ºåŸŽâ€ä¸”æ— æ‡ˆå¯å‡»ä¸ºæœ€åŽä¸€å¼ æ‰‹ç‰Œ->å‘½ä¸­
 			if self.player:hasSkill("kongcheng") and self.player:getHandcardNum() == 1 and self.player:isLastHandCard(null_card) and trick:isKindOf("SingleTargetTrick") then
 				return null_card
 			end
-			--µÐ·½ÔÚÐéÈõ¡¢ÐèÅÆ¼¼¡¢Âþ¾íÖÐÊ¹ÓÃÎÞÖÐÉúÓÐ->ÃüÖÐ
+			 --æ•Œæ–¹åœ¨è™šå¼±ã€éœ€ç‰ŒæŠ€ã€æ¼«å·ä¸­ä½¿ç”¨æ— ä¸­ç”Ÿæœ‰->å‘½ä¸­
 			if trick:isKindOf("ExNihilo") and (self:isWeak(from) or self:hasSkills(sgs.cardneed_skill, from) or from:hasSkill("manjuan")) then return null_card end
-			--ÌúË÷Á¬»·µÄÄ¿±êÃ»ÓÐÌÙ¼×->²»¹Ü
+			--é“ç´¢è¿žçŽ¯çš„ç›®æ ‡æ²¡æœ‰è—¤ç”²->ä¸ç®¡
 			if trick:isKindOf("IronChain") and not self:isEquip("Vine", to) then return nil end
 			if self:isFriend(to) then
 				if trick:isKindOf("Dismantlement") then 
-					--µÐ·½²ðÓÑ·½ÍþÐ²ÅÆ¡¢¼ÛÖµÅÆ¡¢×îºóÒ»ÕÅÊÖÅÆ->ÃüÖÐ
+					--æ•Œæ–¹æ‹†å‹æ–¹å¨èƒç‰Œã€ä»·å€¼ç‰Œã€æœ€åŽä¸€å¼ æ‰‹ç‰Œ->å‘½ä¸­
 					if self:getDangerousCard(to) or self:getValuableCard(to) then return null_card end
 					if to:getHandcardNum() == 1 and not self:needKongcheng(to) then
 						if (getKnownCard(to, "TrickCard", false) == 1 or getKnownCard(to, "EquipCard", false) == 1 or getKnownCard(to, "Slash", false) == 1) then
@@ -2465,23 +2465,23 @@ function SmartAI:askForNullification(trick, from, to, positive)
 						return null_card
 					end
 				else
-					--µÐ·½Ê¹ÓÃË³ÊÖÇ£Ñò->ÃüÖÐ
+					--æ•Œæ–¹ä½¿ç”¨é¡ºæ‰‹ç‰µç¾Š->å‘½ä¸­
 					if trick:isKindOf("Snatch") then return null_card end
-					--·ÇÎÞÑÔµÐ·½»ð¹¥ÌÙ¼×¡¢¿ñ·ç¡¢ÌúË÷Á¬»·ÓÑ·½->ÃüÖÐ
+					--éžæ— è¨€æ•Œæ–¹ç«æ”»è—¤ç”²ã€ç‹‚é£Žã€é“ç´¢è¿žçŽ¯å‹æ–¹->å‘½ä¸­
 					if trick:isKindOf("FireAttack") and (self:isEquip("Vine", to) or to:getMark("@gale") > 0 or (to:isChained() and not self:isGoodChainTarget(to))) 
 						and from:objectName() ~= to:objectName() and not from:hasSkill("wuyan") then return null_card end
 					if self:isWeak(to)  then
-						--·ÇÎÞÑÔµÐ·½¾ö¶·ÐéÈõÓÑ·½->ÃüÖÐ
+						--éžæ— è¨€æ•Œæ–¹å†³æ–—è™šå¼±å‹æ–¹->å‘½ä¸­
 						if trick:isKindOf("Duel") and not from:hasSkill("wuyan") then
 							return null_card
-						--·ÇÎÞÑÔ¶àÊÖÅÆµÐ·½»ð¹¥ÐéÈõÓÑ·½->ÃüÖÐ
+						--éžæ— è¨€å¤šæ‰‹ç‰Œæ•Œæ–¹ç«æ”»è™šå¼±å‹æ–¹->å‘½ä¸­
 						elseif trick:isKindOf("FireAttack") and not from:hasSkill("wuyan") then
 							if from:getHandcardNum() > 2  and from:objectName() ~= to:objectName() then return null_card end
 						end
 					end
 				end
 			elseif self:isEnemy(to) then
-				--µÐ·½Ë³ÊÖÇ£Ñò¡¢¹ýºÓ²ðÇÅµÐ·½ÅÐ¶¨ÇøÑÓÊ±ÐÔ½õÄÒ->ÃüÖÐ
+				 --æ•Œæ–¹é¡ºæ‰‹ç‰µç¾Šã€è¿‡æ²³æ‹†æ¡¥æ•Œæ–¹åˆ¤å®šåŒºå»¶æ—¶æ€§é”¦å›Š->å‘½ä¸­
 				if (trick:isKindOf("Snatch") or trick:isKindOf("Dismantlement")) and to:getCards("j"):length() > 0 then
 					return null_card
 				end
@@ -2490,14 +2490,14 @@ function SmartAI:askForNullification(trick, from, to, positive)
 
 		if self:isFriend(to) then
 			if not (to:hasSkill("guanxing") and global_room:alivePlayerCount() > 4) then 
-				--ÎÞ¹ÛÐÇÓÑ·½ÅÐ¶¨ÇøÓÐÀÖ²»Ë¼Êñ->ÊÓ¡°Í»Ï®¡±¡¢¡°ÇÉ±ä¡±ÇéÐÎ¶ø¶¨
+				--æ— è§‚æ˜Ÿå‹æ–¹åˆ¤å®šåŒºæœ‰ä¹ä¸æ€èœ€->è§†â€œçªè¢­â€ã€â€œå·§å˜â€æƒ…å½¢è€Œå®š
 				if trick:isKindOf("Indulgence") then
 					if to:getHp() - to:getHandcardNum() >= 2 then return nil end
 					if to:hasSkill("tuxi") and to:getHp() > 2 then return nil end
 					if to:hasSkill("qiaobian") and not to:isKongcheng() then return nil end
 					return null_card
 				end
-				--ÎÞ¹ÛÐÇÓÑ·½ÅÐ¶¨ÇøÓÐ±øÁ¸´ç¶Ï->ÊÓ¡°¹íµÀ¡±¡¢¡°Ìì¶Ê¡±¡¢¡°À£Î§¡±¡¢¡°ÇÉ±ä¡±ÇéÐÎ¶ø¶¨
+				--æ— è§‚æ˜Ÿå‹æ–¹åˆ¤å®šåŒºæœ‰å…µç²®å¯¸æ–­->è§†â€œé¬¼é“â€ã€â€œå¤©å¦’â€ã€â€œæºƒå›´â€ã€â€œå·§å˜â€æƒ…å½¢è€Œå®š
 				if trick:isKindOf("SupplyShortage") then
 					if self:hasSkills("guidao|tiandu",to) then return nil end
 					if to:getMark("@kuiwei") == 0 then return nil end
@@ -2505,18 +2505,18 @@ function SmartAI:askForNullification(trick, from, to, positive)
 					return null_card
 				end
 			end 
-			--·ÇÎÞÑÔÀ´Ô´Ê¹ÓÃ¶àÄ¿±ê¹¥»÷ÐÔ·ÇÑÓÊ±½õÄÒ
+			--éžæ— è¨€æ¥æºä½¿ç”¨å¤šç›®æ ‡æ”»å‡»æ€§éžå»¶æ—¶é”¦å›Š
 			if trick:isKindOf("AOE") and not (from:hasSkill("wuyan") and not (menghuo and trick:isKindOf("SavageAssault"))) then
 				local lord = getLord(self.player)
 				local currentplayer = self.room:getCurrent()
-				--Ö÷¹«
+				--ä¸»å…¬
 				if lord and self:isFriend(lord) and self:isWeak(lord) and self:aoeIsEffective(trick, lord) and 
 					((lord:getSeat() - currentplayer:getSeat()) % (self.room:alivePlayerCount())) >
 					((to:getSeat() - currentplayer:getSeat()) % (self.room:alivePlayerCount()))	and not
 					(self.player:objectName() == to:objectName() and self.player:getHp() == 1 and not self:canAvoidAOE(trick)) then
 					return nil
 				end
-				--×Ô¼º
+				--è‡ªå·±
 				if self.player:objectName() == to:objectName() then
 					if self:hasSkills("jieming|yiji|guixin", self.player) and 
 						(self.player:getHp() > 1 or self:getCardsNum("Peach") > 0 or self:getCardsNum("Analeptic") > 0) then
@@ -2525,7 +2525,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 						return null_card
 					end
 				end
-				--¶ÓÓÑ
+				--é˜Ÿå‹
 				if self:isWeak(to) and self:aoeIsEffective(trick, to) then
 					if ((to:getSeat() - currentplayer:getSeat()) % (self.room:alivePlayerCount())) >
 					((self.player:getSeat() - currentplayer:getSeat()) % (self.room:alivePlayerCount())) or null_num > 1 then
@@ -2535,7 +2535,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 					end
 				end
 			end
-			--·ÇÎÞÑÔÀ´Ô´¶Ô×Ô¼ºÊ¹ÓÃ¾ö¶·
+			--éžæ— è¨€æ¥æºå¯¹è‡ªå·±ä½¿ç”¨å†³æ–—
 			if trick:isKindOf("Duel") and not from:hasSkill("wuyan") then
 				if self.player:objectName() == to:objectName() then
 					if self:hasSkills(sgs.masochism_skill, self.player) and 
@@ -2547,7 +2547,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 				end
 			end
 		end
-		--ÐéÈõµÐ·½Óöµ½ÌÒÔ°½áÒå->ÃüÖÐ
+		--è™šå¼±æ•Œæ–¹é‡åˆ°æ¡ƒå›­ç»“ä¹‰->å‘½ä¸­
 		if from then
 			if self:isEnemy(to) then
 				if trick:isKindOf("GodSalvation") and self:isWeak(to) then
@@ -2556,7 +2556,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 			end
 		end
 		
-		--Îå¹È£ºÄ¿Ç°Ö»ÎÞÐ°ÌÒ×ÓºÍÎÞÖÐ£¬ÆäËûÇé¿ö´ý²¹³ä
+		--äº”è°·ï¼šç›®å‰åªæ— é‚ªæ¡ƒå­å’Œæ— ä¸­ï¼Œå…¶ä»–æƒ…å†µå¾…è¡¥å……
 		if trick:isKindOf("AmazingGrace") and self:isEnemy(to) then
 			local NP = to:getNextAlive()
 			if self:isFriend(NP) then
@@ -3341,7 +3341,7 @@ function SmartAI:getCardNeedPlayer(cards)
 		end
 	end
 	
-	-- Èç¹ûËùÓÐ¶ÓÓÑ¶¼ÓÐ3ÅÆÒÔÉÏ£¬Áõ±¸ÇéÔ¸ÆúÅÆÒ²²»ÈÊµÂ
+	-- å¦‚æžœæ‰€æœ‰é˜Ÿå‹éƒ½æœ‰3ç‰Œä»¥ä¸Šï¼Œåˆ˜å¤‡æƒ…æ„¿å¼ƒç‰Œä¹Ÿä¸ä»å¾·
 	for _, hcard in ipairs(cardtogive) do
 		for _, friend in ipairs(self.friends_noself) do
 			if not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") then
@@ -3555,18 +3555,18 @@ function SmartAI:willUsePeachTo(dying)
 				card_str = self:getCardId("Peach") 
 			end
 		end
-	else --¾È¶Ô·½µÄÇéÐÎ
-		if dying:hasSkill("wuhun") then --±ôËÀÕßÓÐ¼¼ÄÜ¡°Îä»ê¡±
+	else --æ•‘å¯¹æ–¹çš„æƒ…å½¢ 
+		if dying:hasSkill("wuhun") then --æ¿’æ­»è€…æœ‰æŠ€èƒ½â€œæ­¦é­‚â€
 			if not sgs.GetConfig("EnableHegemony", false) then
 				local should = true
-				if self.role == "rebel" then --·´Ôô
+				if self.role == "rebel" then --åè´¼
 					should = false
-				elseif self.role == "renegade" then --ÄÚ¼é
+				elseif self.role == "renegade" then --å†…å¥¸
 					should = self.room:alivePlayerCount() > 2
 				end
-				if should then --¿ÉÄÜÓÐ¾ÈµÄ±ØÒª
+				if should then --å¯èƒ½æœ‰æ•‘çš„å¿…è¦
 					local willKillLord = false
-					local revengeTargets = self:getWuhunRevengeTargets() --Îä»ê¸´³ðÄ¿±ê
+					local revengeTargets = self:getWuhunRevengeTargets() --æ­¦é­‚å¤ä»‡ç›®æ ‡
 					if #revengeTargets > 0 then
 						local lord = getLord(self.player)
 						if lord then
@@ -3578,13 +3578,13 @@ function SmartAI:willUsePeachTo(dying)
 							end
 						end
 					end
-					if willKillLord then --Ö÷¹«»á±»Îä»ê´ø×ß£¬ÕæµÄÓÐ±ØÒª¡­¡­
+					if willKillLord then --ä¸»å…¬ä¼šè¢«æ­¦é­‚å¸¦èµ°ï¼ŒçœŸçš„æœ‰å¿…è¦â€¦â€¦
 						local finalRetrial = self:getFinalRetrial()
-						if finalRetrial == 0 then --Ã»ÓÐÅÐ¹Ù£¬ÐèÒª¿¼ÂÇ¹ÛÐÇ¡¢ÐÄÕ½¡¢¹¥ÐÄµÄ½á¹û£¨ÒÑºöÂÔ£©
+						if finalRetrial == 0 then --æ²¡æœ‰åˆ¤å®˜ï¼Œéœ€è¦è€ƒè™‘è§‚æ˜Ÿã€å¿ƒæˆ˜ã€æ”»å¿ƒçš„ç»“æžœï¼ˆå·²å¿½ç•¥ï¼‰
 							card_str = self:getCardId("Peach")
-						elseif finalRetrial == 1 then --¼º·½ºóÅÐ£¬ÐèÒª¿¼ÂÇ×îºóµÄÅÐ¹ÙÊÇ·ñÓÐÌÒ»òÌÒÔ°½áÒå¸ÄÅÐ£¨ÒÑºöÂÔ£©
+						elseif finalRetrial == 1 then --å·±æ–¹åŽåˆ¤ï¼Œéœ€è¦è€ƒè™‘æœ€åŽçš„åˆ¤å®˜æ˜¯å¦æœ‰æ¡ƒæˆ–æ¡ƒå›­ç»“ä¹‰æ”¹åˆ¤ï¼ˆå·²å¿½ç•¥ï¼‰
 							card_str = self:getCardId("Peach")
-						elseif finalRetrial == 2 then --¶Ô·½ºóÅÐ£¬Õâ¸öÒ»¶¨Òª¾ÈÁË¡­¡­
+						elseif finalRetrial == 2 then --å¯¹æ–¹åŽåˆ¤ï¼Œè¿™ä¸ªä¸€å®šè¦æ•‘äº†â€¦â€¦
 							card_str = self:getCardId("Peach")
 						end
 					end
@@ -3636,6 +3636,7 @@ function SmartAI:getTurnUse()
 					slashAvail = slashAvail - 1
 					table.insert(turnUse, dummy_use.card)
 				end
+				if dummy_use.card:hasFlag("AIGlobal_killoff") then return 15 end
 			else
 				if self.player:hasFlag("InfinityAttackRange") or self.player:getMark("InfinityAttackRange") > 0 then
 					self.predictedRange = 10000
@@ -3796,16 +3797,16 @@ function SmartAI:needRetrial(judge)
 		if who:hasSkills("wuyan|hongyan") then return false end
 
 		if lord and (who:isLord() or (who:isChained() and lord:isChained())) and self:objectiveLevel(lord) <= 3 then
-			if lord:hasArmorEffect("SilverLion") and lord:getHp() >= 2 and self:isGoodChainTarget(lord, self.player, sgs.DamageStruct_Thunder) then return false end
+			if lord:hasArmorEffect("SilverLion") and lord:getHp() >= 2 and self:isGoodChainTarget(lord, self.player, sgs.DamageStruct_Thunder, 3) then return false end
 			return self:damageIsEffective(lord, sgs.DamageStruct_Thunder) and not judge:isGood()
 		end
 		
 		if who:hasArmorEffect("SilverLion") and who:getHp() > 1 then return false end
 
 		if self:isFriend(who) then
-			if who:isChained() and self:isGoodChainTarget(who, self.player, sgs.DamageStruct_Thunder) then return false end
+			if who:isChained() and self:isGoodChainTarget(who, self.player, sgs.DamageStruct_Thunder, 3) then return false end
 		else
-			if who:isChained() and not self:isGoodChainTarget(who, self.player, sgs.DamageStruct_Thunder) then return judge:isGood() end
+			if who:isChained() and not self:isGoodChainTarget(who, self.player, sgs.DamageStruct_Thunder, 3) then return judge:isGood() end
 		end		
 	end
 

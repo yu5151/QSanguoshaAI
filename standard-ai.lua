@@ -731,7 +731,7 @@ sgs.ai_need_damaged.yiji = function (self, attacker, player)
 	end
 	self:sort(friends, "hp")
 
-	if friends[1]:objectName() == player:objectName() and self:isWeak(player) and self:getCardsNum("Peach", player) == 0 then return false end
+	if #friends > 0 and friends[1]:objectName() == player:objectName() and self:isWeak(player) and self:getCardsNum("Peach", player) == 0 then return false end
 	if #friends > 1 and self:isWeak(friends[2]) then return true end	
 	
 	return player:getHp() > 2 and sgs.turncount > 2 and #friends > 1

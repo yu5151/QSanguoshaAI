@@ -310,9 +310,13 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 		elseif not slash and jxd:getMark("@wind") > 0 and nature == sgs.DamageStruct_Fire then damagecount = damagecount + 1 end
 	end
 	if not self:damageIsEffective(who, nature, source) then return end
-	if nature == sgs.DamageStruct_Normal then return true end
+	
+	if who:hasArmorEffect("SilverLion") then damagecount = 1 end
+	if nature == sgs.DamageStruct_Normal then return not self:cantbeHurt(target, damagecount, source) end
+	
 	local kills, killlord = 0
-
+	local good, bad = 0, 0
+	
 	local function getChainedPlayerValue(target, dmg)
 		local newvalue = 0
 		if self:isGoodChainPartner(target) then source:speak("good") newvalue = newvalue + 1 end
@@ -342,10 +346,12 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 				if can then newvalue = newvalue - 2 end
 			end
 		end
+		
+		if target:hasArmorEffect("SilverLion") then return newvalue - 1 end
 		return newvalue - damagecount - (dmg or 0)
 	end	
 	
-	local good, bad = 0, 0
+
 	local value = getChainedPlayerValue(who)
 	if self:isFriend(who) then good = value
 	elseif self:isEnemy(who) then bad = value end

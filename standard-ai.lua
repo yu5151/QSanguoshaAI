@@ -455,7 +455,7 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 	return "."
 end
 
-sgs.ai_card_intention.TuxiCard = function(self,card, from, tos, source)
+sgs.ai_card_intention.TuxiCard = function(self, card, from, tos)
 	local lord = getLord(self.player)
 	local tuxi_lord = false
 	if sgs.evaluatePlayerRole(from) == "neutral" and sgs.evaluatePlayerRole(tos[1]) == "neutral" and
@@ -469,7 +469,6 @@ sgs.ai_card_intention.TuxiCard = function(self,card, from, tos, source)
 		for _, to in ipairs(tos) do
 			if to:hasSkill("kongcheng") or to:hasSkill("lianying") or to:hasSkill("zhiji") 
 				or (to:hasSkill("tuntian") and to:hasSkill("zaoxian")) then
-				sgs.updateIntention(from, to, 0)
 			else
 				sgs.updateIntention(from, to, 80)
 			end
@@ -2239,11 +2238,9 @@ function SmartAI:findLijianTarget(card_name, use)
 		return nil
 	end
 	
-	local lord = self.room:getLord()
-
 	if self.role == "rebel" or (self.role == "renegade" and sgs.current_mode_players["loyalist"] + 1 > sgs.current_mode_players["rebel"]) then		
 		
-		if lord and lord:isMale() and not lord:isNude() then		-- 优先离间1血忠和主
+		if lord and lord:isMale() and not lord:isNude() and lord:objectName() ~= self.player:objectName() then		-- 优先离间1血忠和主
 			self:sort(self.enemies, "handcard")
 			local e_peaches = 0
 			local loyalist
@@ -2297,7 +2294,7 @@ function SmartAI:findLijianTarget(card_name, use)
 		end
 	end
 	
-	if lord and self:isFriend(lord) and lord:hasSkill("hunzi") and lord:getHp() == 2 and lord:getMark("hunzi") == 0 then
+	if lord and self:isFriend(lord) and lord:hasSkill("hunzi") and lord:getHp() == 2 and lord:getMark("hunzi") == 0	and lord:objectName() ~= self.player:objectName() then
 		local enemycount = self:getEnemyNumBySeat(self.player, lord)
 		local peaches = self:getAllPeachNum()
 		if peaches >= enemycount then
@@ -2331,7 +2328,7 @@ function SmartAI:findLijianTarget(card_name, use)
 
 	local shenguanyu = self.room:findPlayerBySkillName("wuhun")
 	if shenguanyu and shenguanyu:isMale() and shenguanyu:objectName() ~= self.player:objectName() then
-		if self.role == "rebel" and lord and lord:isMale() and not lord:hasSkill("jueqing") and self:hasTrickEffective(duel, shenguanyu, lord) then
+		if self.role == "rebel" and lord and lord:isMale() and lord:objectName() ~= self.player:objectName() and not lord:hasSkill("jueqing") and self:hasTrickEffective(duel, shenguanyu, lord) then
 			return shenguanyu, lord
 		elseif self:isEnemy(shenguanyu) and #self.enemies >= 2 then
 			for _, enemy in ipairs(self.enemies) do
@@ -2379,7 +2376,8 @@ function SmartAI:findLijianTarget(card_name, use)
 		end
 		
 		if #males >= 1 and sgs.ai_role[males[1]:objectName()] == "rebel" and males[1]:getHp() == 1 then
-			if lord and self:isFriend(lord) and lord:isMale() and lord:objectName() ~= males[1]:objectName() and self:hasTrickEffective(duel, males[1], lord) and not lord:isLocked(duel)
+			if lord and self:isFriend(lord) and lord:isMale() and lord:objectName() ~= males[1]:objectName() and self:hasTrickEffective(duel, males[1], lord)
+				and not lord:isLocked(duel) and lord:objectName() ~= self.player:objectName() and lord:isAlive()
 				and (getCardsNum("Slash", males[1]) < 1
 					or getCardsNum("Slash", males[1]) < getCardsNum("Slash", lord)
 					or self:getKnownNum(males[1]) == males[1]:getHandcardNum() and getKnownCard(males[1], "Slash", true, "he") == 0)
@@ -2431,13 +2429,13 @@ function SmartAI:findLijianTarget(card_name, use)
 			end
 		end
 		
-		if #males == 1 and #self.friends_noself>0 then
+		if #males == 1 and #self.friends_noself > 0 then
 			self:log("Only 1")
 			first = males[1]
 			if zhugeliang_kongcheng and self:hasTrickEffective(duel, first, zhugeliang_kongcheng) then
 				table.insert(males, zhugeliang_kongcheng)
 			else
-				local friend_maxSlash = findFriend_maxSlash(self,first)
+				local friend_maxSlash = findFriend_maxSlash(self, first)
 				if friend_maxSlash then table.insert(males, friend_maxSlash) end
 			end
 		end
@@ -2445,11 +2443,10 @@ function SmartAI:findLijianTarget(card_name, use)
 		if #males >= 2 then
 			first = males[1]
 			second = males[2]
-			local lord = self.room:getLord()
 			if lord and first:getHp() <= 1 then
 				if self.player:isLord() or sgs.isRolePredictable() then 
-					local friend_maxSlash = findFriend_maxSlash(self,first)
-					if friend_maxSlash then second=friend_maxSlash end
+					local friend_maxSlash = findFriend_maxSlash(self, first)
+					if friend_maxSlash then second = friend_maxSlash end
 				elseif lord:isMale() and not self:hasSkills("wuyan|noswuyan", lord) then
 					if self.role=="rebel" and not first:isLord() and self:hasTrickEffective(duel, first, lord) then
 						second = lord

@@ -3635,8 +3635,7 @@ function SmartAI:getTurnUse()
 				if slashAvail > 0 then
 					slashAvail = slashAvail - 1
 					table.insert(turnUse, dummy_use.card)
-				end
-				if dummy_use.card:hasFlag("AIGlobal_killoff") then return 15 end
+				elseif dummy_use.card:hasFlag("AIGlobal_killoff") then return 15 end
 			else
 				if self.player:hasFlag("InfinityAttackRange") or self.player:getMark("InfinityAttackRange") > 0 then
 					self.predictedRange = 10000

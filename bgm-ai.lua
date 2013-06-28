@@ -179,9 +179,12 @@ sgs.ai_card_intention.LihunCard = 80
 
 function sgs.ai_skill_invoke.kuiwei(self, data)
 	local weapon = 0
+	local sbdiaochan = self.room:findPlayerBySkillName("lihun")
+	if sbdiaochan and sbdiaochan:faceUp() and not self:willSkipPlayPhase(sbdiaochan)
+		and (self:isEnemy(sbdiaochan) or sgs.turncount <= 1 and sgs.evaluatePlayerRole(sbdiaochan) == "neutral") then return false end
 	if not self.player:faceUp() then return true end
 	for _, friend in ipairs(self.friends) do
-		if self:hasSkills("fangzhu|jilve", friend) then return true end
+		if friend:hasSkills("fangzhu|jilve") then return true end
 		if friend:hasSkill("junxing") and friend:faceUp() and not self:willSkipPlayPhase(friend)
 			and not (friend:isKongcheng() and self:willSkipDrawPhase(friend)) then
 			return true
@@ -190,7 +193,7 @@ function sgs.ai_skill_invoke.kuiwei(self, data)
 	for _, aplayer in sgs.qlist(self.room:getAlivePlayers()) do
 		if aplayer:getWeapon() then weapon = weapon + 1 end
 	end
-	if weapon >1 then return true end
+	if weapon > 1 then return true end
 	return self:isWeak()
 end
 

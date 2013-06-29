@@ -3796,7 +3796,7 @@ function SmartAI:needRetrial(judge)
 		if who:hasSkills("wuyan|hongyan") then return false end
 
 		if lord and (who:isLord() or (who:isChained() and lord:isChained())) and self:objectiveLevel(lord) <= 3 then
-			if lord:hasArmorEffect("SilverLion") and lord:getHp() >= 2 and self:isGoodChainTarget(lord, self.player, sgs.DamageStruct_Thunder, 3) then return false end
+			if lord:hasArmorEffect("SilverLion") and lord:getHp() >= 2 and self:isGoodChainTarget(lord, self.player, sgs.DamageStruct_Thunder) then return false end
 			return self:damageIsEffective(lord, sgs.DamageStruct_Thunder) and not judge:isGood()
 		end
 		

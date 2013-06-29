@@ -150,29 +150,41 @@ sgs.ai_skill_discard.qiaobian = function(self, discard_num, min_num, optional, i
 	if card == nil then return {} end
 	table.insert(to_discard, card:getEffectiveId())
 	current_phase = self.player:getMark("qiaobianPhase")
-	if current_phase == sgs.Player_Judge then
+	if current_phase == sgs.Player_Judge and not self.player:isSkipped(sgs.Player_Judge) then
 		if not self.player:containsTrick("YanxiaoCard") then
-			if (self.player:containsTrick("supply_shortage") and self.player:getHp() > self.player:getHandcardNum()) or
-				(self.player:containsTrick("indulgence") and self.player:getHandcardNum() > self.player:getHp()-1) or
-				(self.player:containsTrick("lightning") and not self:hasWizard(self.friends) and self:hasWizard(self.enemies)) or
-				(self.player:containsTrick("lightning") and #self.friends > #self.enemies) then
+			if (self.player:containsTrick("lightning") and not self:hasWizard(self.friends) and self:hasWizard(self.enemies))
+				or (self.player:containsTrick("lightning") and #self.friends > #self.enemies) then
 				return to_discard
+			elseif self.player:containsTrick("supply_shortage") then
+				if self.player:getHp() > self.player:getHandcardNum() then return to_discard end
+				local cardstr = sgs.ai_skill_use["@@tuxi"](self, "@tuxi")
+				if cardstr:match("->") then
+					local targetstr = cardstr:split("->")[2]
+					local targets = targetstr:split("+")
+					if #targets == 2 then
+						return to_discard
+					end
+				end
+			elseif self.player:containsTrick("indulgence") then 
+				if self.player:getHandcardNum() > 3 or self.player:getHandcardNum() > self.player:getHp() - 1 then return to_discard end
+				for _, frined in ipairs(self.friends_noself) do
+					if not friend:containsTrick("YanxiaoCard") and (friend:containsTrick("indulgence") or friend:containsTrick("supply_shortage")) then
+						return to_discard
+					end
+				end
 			end
 		end
-	elseif current_phase == sgs.Player_Draw and not self.player:hasSkill("tuxi") then
+	elseif current_phase == sgs.Player_Draw and not self.player:isSkipped(sgs.Player_Draw) and not self.player:hasSkill("tuxi") then
 		local cardstr = sgs.ai_skill_use["@@tuxi"](self, "@tuxi")
 		if cardstr:match("->") then
 			local targetstr = cardstr:split("->")[2]
 			local targets = targetstr:split("+")
 			if #targets == 2 then
 				return to_discard
-			else
-				return {}
 			end
-		else
-			return {}
 		end
-	elseif current_phase == sgs.Player_Play then
+		return {}
+	elseif current_phase == sgs.Player_Play and not self.player:isSkipped(sgs.Player_Play) then
 		self:sortByKeepValue(cards)
 		table.remove(to_discard)
 		table.insert(to_discard, cards[1]:getEffectiveId())
@@ -220,7 +232,7 @@ sgs.ai_skill_discard.qiaobian = function(self, discard_num, min_num, optional, i
 			-- return "@QiaobianCard=" .. card:getEffectiveId() .."->".. targets[#targets]:objectName()
 			return to_discard
 		end
-	elseif current_phase == sgs.Player_Discard then
+	elseif current_phase == sgs.Player_Discard and not self.player:isSkipped(sgs.Player_Discard) then
 		self:sortByKeepValue(cards)
 		table.remove(to_discard)
 		table.insert(to_discard, cards[1]:getEffectiveId())

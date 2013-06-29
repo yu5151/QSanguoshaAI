@@ -848,6 +848,17 @@ sgs.ai_card_intention.Slash = function(self, card, from, tos)
 end
 
 sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
+	local function getJink()
+		if target and target:hasSkill("dahe") and self.player:hasFlag("dahe") then
+			for _, card in ipairs(self:getCards("Jink")) do
+				if card:getSuit() == sgs.Card_Heart then
+					return card:getId()
+				end
+			end
+		end
+		return nil
+	end
+
 	local slash
 	if type(data) == "userdata" then
 		local effect = data:toSlashEffect()
@@ -858,21 +869,19 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 	local cards = sgs.QList2Table(self.player:getHandcards())
 	if (not target or self:isFriend(target)) and slash:hasFlag("nosjiefan-slash") then return "." end
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
-	if effect and effect.nature == sgs.DamageStruct_Fire and self.player:hasSkill("ayshuiyong") then return "." end
-	
-	if not target then return end
-	
+	if not target then return getJink() end
+	if not self:hasHeavySlashDamage(target, slash, self.player) and self:getDamagedEffects(self.player, target, slash) then return "." end
 	if self:isFriend(target) then
-		if self:needLeiji(self.player, target) then return end
-		if target:hasSkill("jieyin") and not self.player:isWounded() and self.player:isMale() then return "." end
+		if self:findLeijiTarget(self.player, 50, target) then return getJink() end
+		if target:hasSkill("jieyin") and not self.player:isWounded() and self.player:isMale() and not self.player:hasSkill("leiji") then return "." end
 		if not target:hasSkill("jueqing") then
 			if (target:hasSkill("nosrende") or (target:hasSkill("rende") and not target:hasUsed("RendeCard"))) and self.player:hasSkill("jieming") then return "." end
 			if target:hasSkill("pojun") and not self.player:faceUp() then return "." end
 			if self.player:isChained() and self:isGoodChainTarget(self.player, nil, nil, nil, slash) then return "." end
 		end
-		return
 	else
-		if self:hasHeavySlashDamage(target, slash) then return end
+		if self:hasHeavySlashDamage(target, slash) then return getJink() end
+
 		local current = self.room:getCurrent()
 		if current and current:hasSkill("juece") and self.player:getHp() > 0 then
 			local use = false
@@ -884,42 +893,33 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 			end
 			if not use then return "." end
 		end
-		if target:hasSkill("nosqianxi") and not target:hasSkill("jueqing") and target:distanceTo(self.player) == 1 then return end
-		if self:needLeiji(self.player, target) then return end
-		if target:hasSkill("mengjin") then
-			if self:doNotDiscard(self.player, "he", true) then
-			elseif self.player:getCards("he"):length() == 1 and not self.player:getArmor() then
-			elseif self:hasSkills("jijiu|qingnang") and self.player:getCards("he"):length() > 1 then return "."
-			elseif self:canUseJieyuanDecrease(target) then return "."
-			elseif self:willSkipPlayPhase() then
-			elseif (self:getCardsNum("Peach") > 0 or self:getCardsNum("Analeptic") > 0) then return "."
-			end
-			if not self:isWeak() and self.player:getArmor() and not self:needToThrowArmor() then return "." end
-			if not self:isWeak() and self.player:getDefensiveHorse() then return "." end
-		end
-	
-		if self:isEquip("Axe", target) then
-			if self:hasSkills(sgs.lose_equip_skill, target) and target:getEquips():length() > 1
-				and target:getCards("he"):length() > 2 then
-					return "."
-			end
-		elseif self.player:getHandcardNum() == 1 and self:needKongcheng() then
-		elseif not self:hasLoseHandcardEffective() and not self.player:isKongcheng() then
-		elseif self:isEquip("Axe", target) and target:getHandcardNum() - target:getHp() > 2 then return "."
-		elseif self:isEquip("Blade", target) then
-			if self:hasHeavySlashDamage(target, slash, self.player) then
-			elseif self:getCardsNum("Jink") <= self:getCardsNum("Slash", target) or self:hasSkills("jijiu|qingnang") or self:canUseJieyuanDecrease(target) then
+		if self.player:getHandcardNum() == 1 and self:needKongcheng() then return getJink() end
+		if not self:hasLoseHandcardEffective() and not self.player:isKongcheng() then return getJink() end
+		if target:hasSkill("mengjin") and not (target:hasSkill("nosqianxi") and target:distanceTo(self.player) == 1) then
+			if self:doNotDiscard(self.player, "he", true) then return getJink() end
+			if self.player:getCards("he"):length() == 1 and not self.player:getArmor() then return getJink() end
+			if self.player:hasSkills("jijiu|qingnang") and self.player:getCards("he"):length() > 1 then return "." end
+			if self:canUseJieyuanDecrease(target) then return "." end
+			if (self:getCardsNum("Peach") > 0 or (self:getCardsNum("Analeptic") > 0 and self:isWeak()))
+				and not self.player:hasSkills("tuntian+zaoxian") and not self:willSkipPlayPhase() then
 				return "."
 			end
 		end
-	end
-	if target:hasSkill("dahe") and self.player:hasFlag("dahe") then
-		for _, card in ipairs(self:getCards("Jink")) do
-			if card:getSuit() == sgs.Card_Heart then
-				return card:getId()
+		if not (target:hasSkill("nosqianxi") and target:distanceTo(self.player) == 1) then
+			if target:hasWeapon("Axe") then
+				if target:hasSkills(sgs.lose_equip_skill) and target:getEquips():length() > 1 and target:getCards("he"):length() > 2 then return "." end
+				if target:getHandcardNum() - target:getHp() > 2 then return "." end
+			elseif target:hasWeapon("Blade") then
+				if (slash:isKindOf("FireSlash")
+					and not target:hasSkill("jueqing")
+					and (self.player:hasArmorEffect("Vine") or self.player:getMark("@gale") > 0))
+					or self:hasHeavySlashDamage(target, slash)
+					or (self.player:getHp() == 1 and #self.friends_noself == 0) then
+				elseif self:getCardsNum("Jink") <= getCardsNum("Slash", target) or self.player:hasSkills("jijiu|qingnang") or self:canUseJieyuanDecrease(target) then
+					return "."
+				end
 			end
 		end
-		return "."
 	end
 end
 

@@ -302,7 +302,7 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 					or sgs.DamageStruct_Normal
 	end
 	if slash then damagecount = self:hasHeavySlashDamage(source, slash, who, true) end	
-		
+	
 	local jxd = self.room:findPlayerBySkillName("wuling")
 	if jxd then
 		if jxd:getMark("@fire") then nature = sgs.DamageStruct_Fire
@@ -312,14 +312,14 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 	if not self:damageIsEffective(who, nature, source) then return end
 	
 	if who:hasArmorEffect("SilverLion") then damagecount = 1 end
-	if nature == sgs.DamageStruct_Normal then return not self:cantbeHurt(target, damagecount, source) end
+	if nature == sgs.DamageStruct_Normal then return not self:cantbeHurt(who, damagecount, source) end
 	
 	local kills, killlord = 0
 	local good, bad = 0, 0
 	
 	local function getChainedPlayerValue(target, dmg)
 		local newvalue = 0
-		if self:isGoodChainPartner(target) then source:speak("good") newvalue = newvalue + 1 end
+		if self:isGoodChainPartner(target) then newvalue = newvalue + 1 end
 		if self:isWeak(target) then newvalue = newvalue - 1 end
 		if nature == sgs.DamageStruct_Fire and target:hasArmorEffect("Vine") then
 			if dmg then dmg = dmg + 1 end
@@ -330,16 +330,19 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 		if self:cantbeHurt(target, damagecount, source) then newvalue = newvalue - 100 end
 		if damagecount + (dmg or 0) >= target:getHp() then
 			newvalue = newvalue - 2
-			if target:isLord() then kill_lord = true end
+			if target:isLord() and not self:isEnemy(target, source) then kill_lord = true end
 			if self:isEnemy(target, source) then kills = kills + 1 end
 		else
 			if self:isEnemy(target, source) and source:getHandcardNum() < 2 and target:hasSkills("ganglie|neoganglie") and source:getHp() == 1
 				and self:damageIsEffective(source, nil, target) and peach_num < 1 then newvalue = newvalue - 100 end
 			if target:hasSkill("vsganglie") then
 				local can
-				for _, target in ipairs(self:getFriends(source)) do
-					if target:getHp() == 1 and target:getHandcardNum() < 2 and self:damageIsEffective(target, nil, target) and peach_num < 1 then
-						if target:isLord() then newvalue = newvalue - 100 end
+				for _, t in ipairs(self:getFriends(source)) do
+					if t:getHp() == 1 and t:getHandcardNum() < 2 and self:damageIsEffective(t, nil, t) and peach_num < 1 then
+						if t:isLord() then
+							newvalue = newvalue - 100
+							if not self:isEnemy(t, source) then killlord = true end
+						end
 						can = true
 					end
 				end

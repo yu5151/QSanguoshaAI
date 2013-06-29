@@ -436,6 +436,7 @@ function SmartAI:isPriorityFriend(friend, card)
 		if self:needLeiji(friend, self.player)
 			or (friend:isLord() and self.player:hasSkill("guagu") and friend:getLostHp() >= 1 and getCardsNum("Jink", friend) == 0)
 			or (friend:hasSkill("jieming") and self.player:hasSkill("rende") and not self.player:hasSkill("jueqing") and huatuo and self:isFriend(huatuo))
+			or (friend:hasSkill("hunzi") and friend:getHp() == 2 and self:getDamagedEffects(friend, self.player))
 			then
 			return true
 		end

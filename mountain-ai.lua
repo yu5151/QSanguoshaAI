@@ -530,9 +530,8 @@ sgs.ai_skill_playerchosen.fangquan = function(self, targets)
 		end
 	end
 	
-	if AssistTarget and not AssistTarget:hasSkill("dawu") and not self:willSkipPlayPhase(AssistTarget) and not self:willSkipDrawPhase(AssistTarget) then
-		return AssistTarget
-	end
+	if AssistTarget and not AssistTarget:hasSkill("dawu") and not self:willSkipPlayPhase(AssistTarget) and not self:willSkipDrawPhase(AssistTarget) 
+		and AssistTarget:getVisibleSkillList():length() > 0 then return AssistTarget end
 
 	for _, target in ipairs(self.friends_noself) do
 		if not target:hasSkill("dawu") and self:hasSkills("zhiheng|shensu|"..sgs.priority_skill, target) and not self:willSkipPlayPhase(target) and not self:willSkipDrawPhase(target) then
@@ -540,9 +539,7 @@ sgs.ai_skill_playerchosen.fangquan = function(self, targets)
 		end
 	end
 	
-	if AssistTarget and not AssistTarget:hasSkill("dawu") then
-		return AssistTarget
-	end
+	if AssistTarget and not AssistTarget:hasSkill("dawu") and AssistTarget:getVisibleSkillList():length() > 0 then return AssistTarget end
 
 	for _, target in ipairs(self.friends_noself) do
 		if not target:hasSkill("dawu") then

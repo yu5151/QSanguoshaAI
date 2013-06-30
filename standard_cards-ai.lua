@@ -3233,7 +3233,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		
 	end
 		
-	local snatch, dismantlement, indulgence, supplyshortage, collateral, duel, aoe, godsalvation, fireattack
+	local snatch, dismantlement, indulgence, supplyshortage, collateral, duel, aoe, godsalvation, fireattack, lightning
 	local new_enemies = {}
 	if #self.enemies > 0 then new_enemies = self.enemies
 	else
@@ -3287,19 +3287,21 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 					for k, hassuit in pairs(suits) do
 						if hassuit then suitnum = suitnum + 1 end
 					end
-					if suitnum >=3 or (suitnum >= 2 and enemy:getHandcardNum() == 1 ) then
+					if suitnum >= 3 or (suitnum >= 2 and enemy:getHandcardNum() == 1 ) then
 						fireattack = card:getEffectiveId()
 					end
 				end
 			elseif card:isKindOf("GodSalvation") and self:willUseGodSalvation(card) then
 				godsalvation = card:getEffectiveId()
+			elseif card:isKindOf("Lightning") and self:getFinalRetrial() == 1 then
+				lightning = card:getEffectiveId()
 			end
 		end
 		
 		for _, friend in ipairs(self.friends_noself) do
 			if (self:hasTrickEffective(card, friend) and (self:willSkipPlayPhase(friend, true) or self:willSkipDrawPhase(friend, true))) or
 				self:needToThrowArmor(friend) then
-				if isCard("Snatch", card, self.player) and self.player:distanceTo(friend) == 1 then				
+				if isCard("Snatch", card, self.player) and self.player:distanceTo(friend) == 1 then
 					snatch = card:getEffectiveId()
 				elseif isCard("Dismantlement", card, self.player) then
 					dismantlement = card:getEffectiveId()
@@ -3308,12 +3310,12 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		end
 	end
 	
-	if snatch or dismantlement or indulgence or supplyshortage or collateral or duel or aoe or godsalvation or fireattack then 
+	if snatch or dismantlement or indulgence or supplyshortage or collateral or duel or aoe or godsalvation or fireattack or lightning then 
 		if not self:willSkipPlayPhase() or not NextPlayerCanUse then
-			return snatch or dismantlement or indulgence or supplyshortage or collateral or duel or aoe or godsalvation or fireattack
+			return snatch or dismantlement or indulgence or supplyshortage or collateral or duel or aoe or godsalvation or fireattack or lightning
 		end
 		if #trickcard > nextfriend_num + 1 and NextPlayerCanUse then
-			return fireattack or godsalvation or aoe or duel or collateral or supplyshortage or indulgence or dismantlement or snatch
+			return lightning or fireattack or godsalvation or aoe or duel or collateral or supplyshortage or indulgence or dismantlement or snatch
 		end
 	end
 	

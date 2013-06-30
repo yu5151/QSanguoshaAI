@@ -555,7 +555,11 @@ function SmartAI:getDynamicUsePriority(card)
 				or sgs.dynamic_value.damage_card[use_card:getClassName()]) then
 			return 0
 		end
-
+		
+		if use_card:isKindOf("SilverLion") and sgs.ai_armor_value.SilverLion(self.player, self) == 1 then
+			value = value - 0.3
+		end
+		
 		if self.player:getMark("shuangxiong") > 0 and use_card:isKindOf("Duel") then 
 			value = sgs.ai_use_priority.ExNihilo - 0.1
 		end

@@ -1394,9 +1394,9 @@ sgs.ai_skill_use_func.ZhihengCard = function(card, use, self)
 						if keep_slash then shouldUse = false end
 						if dummy_use.to then
 							for _, p in sgs.qlist(dummy_use.to) do
-								if P:getHp() <= 1 then
+								if p:getHp() <= 1 then
 									shouldUse = false
-									if self.player:distanceTo(p) > 1 then keep_weapon = player:getWeapon() then end
+									if self.player:distanceTo(p) > 1 then keep_weapon = self.player:getWeapon() then end
 									break
 								end
 							end

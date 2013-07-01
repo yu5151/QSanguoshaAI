@@ -300,8 +300,12 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 		nature = slash:isKindOf("FireSlash") and sgs.DamageStruct_Fire
 					or slash:isKindOf("ThunderSlash") and sgs.DamageStruct_Thunder
 					or sgs.DamageStruct_Normal
+		damagecount = self:hasHeavySlashDamage(source, slash, who, true)
+	elseif nature == sgs.DamageStruct_Fire then
+		if who:hasArmorEffect("Vine") then damagecount = damagecount + 1 end
+		if who:getMark("@gale") > 0 and self.room:findPlayerBySkillName("kuangfeng") then damagecount = damagecount + 1 end
 	end
-	if slash then damagecount = self:hasHeavySlashDamage(source, slash, who, true) end	
+
 	
 	local jxd = self.room:findPlayerBySkillName("wuling")
 	if jxd then
@@ -309,9 +313,8 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 		elseif not slash and jxd:getMark("@thunder") > 0 and nature == sgs.DamageStruct_Thunder then damagecount = damagecount + 1
 		elseif not slash and jxd:getMark("@wind") > 0 and nature == sgs.DamageStruct_Fire then damagecount = damagecount + 1 end
 	end
-	if not self:damageIsEffective(who, nature, source) then return end
-	
-	if not slash and nature == sgs.DamageStruct_Fire and who:hasArmorEffect("Vine") then damagecount = damagecount + 1 end
+	if not self:damageIsEffective(who, nature, source) then return end	
+
 	if who:hasArmorEffect("SilverLion") then damagecount = 1 end
 	if nature == sgs.DamageStruct_Normal then return not self:cantbeHurt(who, damagecount, source) end
 	

@@ -594,7 +594,7 @@ function SmartAI:getDynamicUsePriority(card)
 			if self:hasCrossbowEffect(self.player)
 				or self.player:hasFlag("XianzhenSuccess")
 				or self.player:canSlashWithoutCrossbow()
-				or sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, sgs.Sanguosha:cloneCard("Slash")) > 0
+				or sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, sgs.Sanguosha:cloneCard("slash")) > 0
 				or self.player:hasUsed("FenxunCard")
 				or self.player:hasSkill("shenli") and self.player:getMark("@struggle") > 0
 				then

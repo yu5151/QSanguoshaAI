@@ -1431,7 +1431,8 @@ function turnUse_spear(self, inclusive, skill_name)
 	for _, card in ipairs(cards) do
 		if not isCard("Slash", card, self.player) and not isCard("Peach", card, self.player) and not (isCard("ExNihilo", card, self.player) and self.player:getPhase() == sgs.Player_Play) then table.insert(newcards, card) end
 	end
-	if #newcards <= self.player:getHp() - 1 and not self:hasHeavySlashDamage(self.player) and not self:hasSkills("kongcheng|lianying|paoxiao") then return end
+	if #cards <= self.player:getHp() - 1 and self.player:getHp() <= 4 and not self:hasHeavySlashDamage(self.player)
+		and not self:hasSkills("kongcheng|lianying|paoxiao|shangshi|noshangshi|zhiji|benghuai") then return end
 	if #newcards < 2 then return end
 
 	local card_id1 = newcards[1]:getEffectiveId()
@@ -1474,7 +1475,7 @@ end
 
 local Spear_skill = {}
 Spear_skill.name = "Spear"
-table.insert(sgs.ai_skills, spear_skill)
+table.insert(sgs.ai_skills, Spear_skill)
 Spear_skill.getTurnUseCard = function(self, inclusive)
 	return turnUse_spear(self, inclusive, "Spear")
 end

@@ -1704,33 +1704,29 @@ fanjian_skill.name = "fanjian"
 table.insert(sgs.ai_skills, fanjian_skill)
 fanjian_skill.getTurnUseCard = function(self)
 	if self.player:isKongcheng() then return nil end
-	if self.player:usedTimes("FanjianCard")>0 then return nil end
-
-	local cards = self.player:getHandcards()
-
-	for _, card in sgs.qlist(cards) do
-		if card:getSuit() == sgs.Card_Diamond and self.player:getHandcardNum() == 1 then
-			return nil
-		elseif cards:length() <= 4 and (card:isKindOf("Peach") or card:isKindOf("Analeptic")) then
-			return nil
-		end
-	end
-
-	local card_str = "@FanjianCard=."
-	local fanjianCard = sgs.Card_Parse(card_str)
-	assert(fanjianCard)
-
-	return fanjianCard		
+	if self.player:hasUsed("FanjianCard") then return nil end
+	return sgs.Card_Parse("@FanjianCard=.")
 end
 
 sgs.ai_skill_use_func.FanjianCard=function(card,use,self)
+	
+	local cards = sgs.QList2Table(self.player:getHandcards())
+	self:sortByUseValue(cards, true)
 	self:sort(self.enemies, "hp")
-			
-	for _, enemy in ipairs(self.enemies) do
-		if self:canAttack(enemy) and not self:hasSkills("qingnang|jijiu|tianxiang", enemy) then
-			use.card = card
-			if use.to then use.to:append(enemy) end
-			return
+	
+	local wgt = self.room:findPlayerBySkillName("buyi")
+	if wgt and self:isFriend(wgt) then wgt = nil end
+	for _, card in ipairs(cards) do
+		if not (card:getSuit() == sgs.Card_Diamond and self.player:getHandcardNum() == 1)
+			and not (cards:length() <= 4 and (card:isKindOf("Peach") or card:isKindOf("Analeptic"))) then
+			for _, enemy in ipairs(self.enemies) do
+				if self:canAttack(enemy) and not self:hasSkills("qingnang|jijiu|tianxiang", enemy)
+					and not (wgt and card:getTypeId() ~= sgs.Card_Basic and (enemy:isKongcheng() or enemy:objectName() == wgt:objectName())) then
+					use.card = sgs.Card_Parse("@FanjianCard=".. card:getEffectiveId())
+					if use.to then use.to:append(enemy) end
+					return
+				end
+			end
 		end
 	end
 end

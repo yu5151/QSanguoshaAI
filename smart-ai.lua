@@ -1869,6 +1869,12 @@ function SmartAI:filterEvent(event, player, data)
 			end
 		end
 		
+		if card:isKindOf("AOE") and self.player:objectName() == player:objectName() then
+			for _, t in sgs.qlist(struct.to) do
+				if t:hasSkill("fangzhu") then sgs.ai_AOE_data = data break end
+			end
+		end
+		
 		if card:getSkillName() == "qice" and (card:isKindOf("SavageAssault") or card:isKindOf("ArcheryAttack") or card:isKindOf("Duel") or card:isKindOf("FireAttack")) then
 			sgs.ai_qice_data = data
 		end
@@ -1977,6 +1983,10 @@ function SmartAI:filterEvent(event, player, data)
 					self.room:setCardFlag(c, "-AIGlobal_SDCardChosen_"..card:objectName())
 				end
 			end
+		end
+		
+		if card:isKindOf("AOE") and sgs.ai_AOE_data then
+			sgs.ai_AOE_data = nil
 		end
 		
 		if card:getSkillName() == "qice" and sgs.ai_qice_data then

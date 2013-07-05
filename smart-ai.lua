@@ -936,7 +936,7 @@ function sgs.modifiedRoleEvaluation()
 		end
 	end
 	
-	if not sgs.explicit_renegade and rebel_num == 0 and #rebel_num > 0 and loyalist_num == #loyalist then sgs.explicit_renegade = true end
+	if not sgs.explicit_renegade and rebel_num == 0 and #rebel > 0 and loyalist_num == #loyalist then sgs.explicit_renegade = true end
 	
 end
 

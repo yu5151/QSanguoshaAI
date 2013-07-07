@@ -60,8 +60,7 @@ sgs.ai_skill_discard.yongsi = function(self, discard_num, min_num, optional, inc
 	local aux_func = function(card)
 		local place = self.room:getCardPlace(card:getEffectiveId())
 		if place == sgs.Player_PlaceEquip then
-			if card:isKindOf("GaleShell") then return -2
-			elseif card:isKindOf("SilverLion") then
+			if card:isKindOf("SilverLion") then
 				local players = self.room:getOtherPlayers(self.player) 
 				for _,p in sgs.qlist(players) do
 					local blade = p:getWeapon()

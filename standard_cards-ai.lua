@@ -1490,8 +1490,7 @@ function sgs.ai_weapon_value.Spear(self, enemy)
 end
 
 function sgs.ai_slash_weaponfilter.Fan(to)
-	local armor = to:getArmor()
-	return armor and (armor:isKindOf("Vine") or armor:isKindOf("GaleShell"))
+	return to:hasArmorEffect("Vine")
 end
 
 sgs.ai_skill_invoke.KylinBow = function(self, data)

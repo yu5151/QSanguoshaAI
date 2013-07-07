@@ -245,7 +245,7 @@ function sgs.getDefense(player, gameProcess)
 		hasEightDiagram = true
 	end
 	
-	if player:getArmor() and not player:getArmor():isKindOf("GaleShell") then efense = defense + 2 end
+	if player:getArmor() then defense = defense + 2 end
 	if not player:getArmor() and player:hasSkill("yizhong") then defense = defense + 2 end
 	
 	if hasEightDiagram then
@@ -1629,7 +1629,6 @@ function getTrickIntention(TrickClass, target)
 			if not judgelist or judgelist:isEmpty() then
 				local armor = target:getArmor()
 				if armor and armor:isKindOf("SilverLion") and target:isWounded() then return 0
-				elseif armor and armor:isKindOf("GaleShell") then return -10
 				else
 					return 80
 				end

@@ -141,7 +141,7 @@ function sgs.getDefenseSlash(player)
 	if player:hasSkill("aocai") and player:getPhase() == sgs.Player_NotActive then defense = defense + 0.5 end
 	local hujiaJink = 0
 	if player:hasLordSkill("hujia") then
-		local lieges = global_room:getLieges("wei", player)			
+		local lieges = global_room:getLieges("wei", player)
 		for _, liege in sgs.qlist(lieges) do
 			if sgs.compareRoleEvaluation(liege,"rebel","loyalist") == sgs.compareRoleEvaluation(player,"rebel","loyalist") then
 				hujiaJink = hujiaJink + getCardsNum("Jink",liege)
@@ -153,10 +153,11 @@ function sgs.getDefenseSlash(player)
 
 	if player:getMark("@tied") > 0 and not attacker:hasSkill("jueqing") then defense = defense + 1 end
 
-	local hcard = player:getHandcardNum()
-	if attacker:hasSkill("liegong") and attacker:canSlashWithoutCrossbow() and (hcard >= attacker:getHp() or hcard <= attacker:getAttackRange()) then
-		defense = 0
-	end
+	if attacker:canSlashWithoutCrossbow() and attacker:getPhase() == sgs.Player_Play then
+		local hcard = player:getHandcardNum()
+		if attacker:hasSkill("liegong") and (hcard >= attacker:getHp() or hcard <= attacker:getAttackRange()) then defense = 0 end
+		if attacker:hasSkill("kofliegong") and hcard >= attacker:getHp() then defense = 0 end
+	end	
 
 	if player:hasFlag("QianxiTarget") then
 		local red = player:getMark("@qianxi_red") > 0
@@ -174,15 +175,17 @@ function sgs.getDefenseSlash(player)
 		end
 	end
 	
-	local m = sgs.masochism_skill:split("|")
-	for _, masochism in ipairs(m) do
-		if player:hasSkill(masochism) and sgs.isGoodHp(player) and not attacker:hasSkill("jueqing") then
-			defense = defense + 1
+	if attacker and not attacker:hasSkill("jueqing") then
+		local m = sgs.masochism_skill:split("|")
+		for _, masochism in ipairs(m) do
+			if player:hasSkill(masochism) and sgs.isGoodHp(player) then
+				defense = defense + 1
+			end
 		end
-	end
-	
-	if (player:hasSkill("jieming") or player:hasSkill("yiji") or player:hasSkill("guixin")) and not attacker:hasSkill("jueqing") then
-		defense = defense + 4
+		if player:hasSkill("jieming") then defense = defense + 4 end
+		if player:hasSkill("yiji") then defense = defense + 4 end
+		if player:hasSkill("guixin") then defense = defense + 4 end
+		if player:hasSkill("yuce") then defense = defense + 2 end
 	end
 
 	if not sgs.isGoodTarget(player) then defense = defense + 10 end
@@ -214,7 +217,7 @@ function sgs.getDefenseSlash(player)
 
 	local has_fire_slash
 	local cards = sgs.QList2Table(attacker:getHandcards())
-	for i = 1, #cards, 1 do		
+	for i = 1, #cards, 1 do
 		if (attacker:hasWeapon("Fan") and cards[i]:isKindOf("Slash") and not cards[i]:isKindOf("ThunderSlash")) or cards[i]:isKindOf("FireSlash")  then
 			has_fire_slash = true
 			break

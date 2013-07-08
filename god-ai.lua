@@ -865,6 +865,11 @@ sgs.ai_skill_use_func.ShenfenCard = function(card,use,self)
 		end
 	end	
 	
+	if self.role == "renegade" then
+		local lord = getLord(self.player)
+		if lord and not self:isFriend(lord) and lord:getHp() == 1 and self:damageIsEffective(lord) and self:getCardsNum("Peach") == 0 then return end
+	end
+	
 	for _, friend in ipairs(self.friends_noself) do
 		friends_ZDL = friends_ZDL + friend:getCardCount(true) + friend:getHp()
 		if friend:getHandcardNum() > 4 then good = good + friend:getHandcardNum() * 0.25 end

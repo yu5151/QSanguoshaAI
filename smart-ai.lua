@@ -5297,8 +5297,8 @@ function SmartAI:useEquipCard(card, use)
 	local same = self:getSameEquip(card)
 	if same then
 		if (self:hasSkill("nosgongqi") and self:slashIsAvailable())
-			or (self.player:hasSkills("nosrende") and self:hasFriends("draw"))
-			or (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard") and self:hasFriends("draw"))
+			or (self.player:hasSkills("nosrende") and self:shouldUseRende() and self:hasFriends("draw"))
+			or (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard") and self:shouldUseRende() and self:hasFriends("draw"))
 			or (self:hasSkills("yongsi|renjie") and self:getOverflow() < 2)
 			or (self:hasSkills("qixi|duanliang|yinling") and (card:isBlack() or same:isBlack()))
 			or (self:hasSkills("guose|longhun") and (card:getSuit() == sgs.Card_Diamond or same:getSuit() == sgs.Card_Diamond))
@@ -5322,7 +5322,7 @@ function SmartAI:useEquipCard(card, use)
 			self:useSkillCard(sgs.Card_Parse("@QiangxiCard=" .. same:getEffectiveId()), dummy_use)
 			if dummy_use.card then return end
 		end
-		if self.player:hasSkill("nosrende") or (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard")) then
+		if self.player:hasSkill("nosrende") or (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard")) and self:shouldUseRende() then
 			for _, friend in ipairs(self.friends_noself) do
 				if not friend:getWeapon() then return end
 			end
@@ -5349,7 +5349,8 @@ function SmartAI:useEquipCard(card, use)
 			use.card = lion
 			return
 		end
-		if (self.player:hasSkill("nosrende") or (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard"))) and self:evaluateArmor(card) < 4 then
+		if (self.player:hasSkill("nosrende") or (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard"))) and self:evaluateArmor(card) < 4
+			and self:shouldUseRende() then
 			for _, friend in ipairs(self.friends_noself) do
 				if not friend:getArmor() then return end
 			end
@@ -5359,7 +5360,7 @@ function SmartAI:useEquipCard(card, use)
 	elseif self:needBear() then return
 	elseif card:isKindOf("OffensiveHorse") then
 		if self.player:hasSkill("jiehuo") and self.player:getMark("jiehuo") < 0 and card:isRed() then return end
-		if (self.player:hasSkill("nosrende") or (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard"))) then
+		if (self.player:hasSkill("nosrende") or (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard"))) and self:shouldUseRende() then
 			for _,friend in ipairs(self.friends_noself) do
 				if not friend:getOffensiveHorse() then return end
 			end

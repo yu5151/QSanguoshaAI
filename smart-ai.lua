@@ -4981,20 +4981,20 @@ function SmartAI:getAoeValue(card, player)
 		attacker = menghuo or attacker
 	end	
 	
-	local isEffective_F, isEffective_E
+	local isEffective_F, isEffective_E = 0, 0
 	for _, friend in ipairs(self.friends_noself) do
 		good = good + self:getAoeValueTo(card, friend, attacker)
-		if self:aoeIsEffective(card, friend, attacker) then isEffective_F = true end
+		if self:aoeIsEffective(card, friend, attacker) then isEffective_F = isEffective_F + 1 end
 	end
 	
 	for _, enemy in ipairs(self.enemies) do
 		bad = bad + self:getAoeValueTo(card, enemy, attacker)
-		if self:aoeIsEffective(card, enemy, attacker) then isEffective_E = true end
+		if self:aoeIsEffective(card, enemy, attacker) then isEffective_E = isEffective_E + 1 end
 	end
 	
-	if not isEffective_F and #self.friends_noself > 0 and not isEffective_E then
-		return self.player:hasSkills("nosjizhi|jizhi") and 10 or -100
-	elseif not isEffective_E then
+	if isEffective_F == 0 and isEffective_E == 0 then
+		return self.player:hasSkills("jizhi|nosjizhi") and 10 or -100
+	elseif isEffective_E == 0 then
 		return -100
 	end
 	
@@ -5013,24 +5013,26 @@ function SmartAI:getAoeValue(card, player)
 		end
 	end
 	
-	for _, player in sgs.qlist(self.room:getAlivePlayers()) do
-		if player:hasSkill("huangen") then
-			if self:isFriend(player) then
-				if player:getHp() >= #self.friends_noself then
-					good = good + 300
-				else
-					good = good + player:getHp()*50
-				end
-			elseif self:isEnemy(player) then
-				if player:getHp() >= #self.enemies then
-					bad = bad + 300
-				else
-					bad = bad + player:getHp()*50
+	if isEffective_E + isEffective_F > 1 then
+		for _, player in sgs.qlist(self.room:getAlivePlayers()) do
+			if player:hasSkill("huangen") then
+				if self:isFriend(player) then
+					if player:getHp() >= #self.friends_noself then
+						good = good + 300
+					else
+						good = good + player:getHp() * 50
+					end
+				elseif self:isEnemy(player) then
+					if player:getHp() >= #self.enemies then
+						bad = bad + 300
+					else
+						bad = bad + player:getHp() * 50
+					end
 				end
 			end
 		end
 	end
-		
+	
 	local enemy_number = 0
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if self:cantbeHurt(player) and self:aoeIsEffective(card, player, attacker) then
@@ -5069,9 +5071,9 @@ function SmartAI:getAoeValue(card, player)
 	if not sgs.GetConfig("EnableHegemony", false) then
 		if forbid_start and sgs.turncount < 2 and self.player:getSeat() <= 3 and card:isKindOf("SavageAssault") and enemy_number > 0 then
 			if self.role ~= "rebel" then
-				good = good + (isEffective_E and 50 or 0)
+				good = good + (isEffective_E > 0 and 50 or 0)
 			else
-				bad = bad + (isEffective_F and 50 or 0)
+				bad = bad + (isEffective_F > 0 and 50 or 0)
 			end
 		end
 

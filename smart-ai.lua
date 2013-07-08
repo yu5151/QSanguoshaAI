@@ -418,6 +418,7 @@ function SmartAI:getUseValue(card)
 			v = sgs.ai_use_value[class_name] or 0
 			if self.player:hasFlag("TianyiSuccess") or self.player:hasFlag("JiangchiInvoke")
 				or self:hasHeavySlashDamage(self.player, card) then v = 8.7 end
+			if self.player:getPhase() == sgs.Player_Play and self:slashIsAvailable() and #self.enemies > 0 then v = v + 5 end
 			if self:isEquip("Crossbow") then v = v + 4 end
 			if card:getSkillName() == "Spear"   then v = v - 1 end
 			if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 1 end

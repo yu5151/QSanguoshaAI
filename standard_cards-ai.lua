@@ -1907,11 +1907,12 @@ function SmartAI:useCardDuel(duel, use)
 		local targets_num = 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_ExtraTarget, self.player, duel)
 		local enemySlash = 0
 		local setFlag = false
-
+		local lx = self.room:findPlayerBySkillName("huangen")
+		
 		use.card = duel
 		
 		for i = 1, #targets, 1 do
-			local n2 =getCardsNum("Slash", targets[i])
+			local n2 = getCardsNum("Slash", targets[i])
 			if sgs.card_lack[targets[i]:objectName()]["Slash"] == 1 then n2 = 0 end
 			if self:isEnemy(targets[i]) then enemySlash = enemySlash + n2 end
 
@@ -1919,7 +1920,7 @@ function SmartAI:useCardDuel(duel, use)
 				if i == 1 and not use.current_targets then
 					use.to:append(targets[i])
 					if not use.isDummy then self:speak("duel", self.player:isFemale()) end
-				elseif n1 >= enemySlash then
+				elseif n1 >= enemySlash and not targets[i]:hasSkill("danlao") and not (lx and self:isEnemy(lx) and lx:getHp() > targets_num / 2) then
 					use.to:append(targets[i])
 				end
 				if not setFlag and self.player:getPhase() == sgs.Player_Play and self:isEnemy(targets[i]) then 
@@ -2111,10 +2112,14 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 
 	local targets = {}
 	local targets_num = isYinling and 1 or (1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_ExtraTarget, self.player, card))
-
+	local lx = self.room:findPlayerBySkillName("huangen")
+	
 	local addTarget = function(player, cardid)
 		if not table.contains(targets, player:objectName())
-			and (not use.current_targets or not table.contains(use.current_targets, player:objectName())) then
+			and (not use.current_targets or not table.contains(use.current_targets, player:objectName()))
+			and not (use.to and use.to:length() > 0 and player:hasSkill("danlao"))
+			and not (use.to and use.to:length() > 0 and lx and self:isEnemy(lx) and lx:getHp() > targets_num / 2)
+			then
 			if not usecard then
 				use.card = card
 				usecard = true
@@ -2420,6 +2425,7 @@ sgs.ai_choicemade_filter.cardChosen.snatch = function(player, promptlist, self)
 			if not card:isKindOf("Disaster") then intention = -intention else intention = 0 end
 			if card:isKindOf("YanxiaoCard") then intention = -intention end
 		elseif place == sgs.Player_PlaceEquip then
+			if card:isKindOf("Armor") and self:evaluateArmor(to:getArmor(), to) <= -2 then intention = 0 end
 			if card:isKindOf("SilverLion") then
 				if to:getLostHp() > 1 then
 					if to:hasSkills(sgs.use_lion_skill) then

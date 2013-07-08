@@ -2369,7 +2369,7 @@ function SmartAI:findLijianTarget(card_name, use)
 								end
 							end
 							if #males == 1 and self:hasTrickEffective(duel, males[1], anotherenemy) then
-								if not self:hasSkills("jizhi|jiang", anotherenemy) then
+								if not anotherenemy:hasSkills("nosjizhi|jizhi|jiang") then
 									table.insert(males, anotherenemy)
 								else
 									table.insert(others, anotherenemy)

@@ -2596,7 +2596,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 				end
 				if peach_num == 0 and not self:willSkipPlayPhase(NP) then
 					if exnihilo_num > 0 then
-						if self:hasSkills("jizhi|rende|zhiheng", NP) or NP:hasSkill("jilve") and NP:getMark("@bear") > 0 then return null_card end
+						if NP:hasSkills("nosjizhi|jizhi|nosrende|rende|zhiheng") or NP:hasSkill("jilve") and NP:getMark("@bear") > 0 then return null_card end
 					else
 						for _, enemy in ipairs(self.enemies) do
 							if snatch_num > 0 and to:distanceTo(enemy) == 1 and
@@ -4993,7 +4993,7 @@ function SmartAI:getAoeValue(card, player)
 	end
 	
 	if not isEffective_F and #self.friends_noself > 0 and not isEffective_E then
-		return self.player:hasSkill("jizhi") and 10 or -100
+		return self.player:hasSkills("nosjizhi|jizhi") and 10 or -100
 	elseif not isEffective_E then
 		return -100
 	end
@@ -5051,7 +5051,7 @@ function SmartAI:getAoeValue(card, player)
 	end
 
 	local forbid_start = true
-	if self.player:hasSkill("jizhi") then
+	if self.player:hasSkills("nosjizhi|jizhi") then
 		forbid_start = false
 		good = good + 51
 	end

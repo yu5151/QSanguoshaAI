@@ -34,9 +34,23 @@ sgs.ai_skill_use_func.JuaoCard = function(card, use, self)
 				end
 			end
 		end
-		if friend:hasSkill("jizhi") then --队友有集智
+		if friend:hasSkill("nosjizhi") then --队友有集智
 			for _, hcard in sgs.qlist(cards) do
 				if hcard:isKindOf("TrickCard") and not hcard:isKindOf("DelayedTrick") then
+					table.insert(givecard, hcard:getId())
+				end
+				if #givecard == 1 and givecard[1] ~= hcard:getId() then
+					table.insert(givecard, hcard:getId())
+				elseif #givecard == 2 then
+					use.card = sgs.Card_Parse("@JuaoCard=" .. table.concat(givecard, "+"))
+					if use.to then use.to:append(friend) end
+					return
+				end
+			end
+		end
+		if friend:hasSkill("jizhi") then --队友有集智
+			for _, hcard in sgs.qlist(cards) do
+				if hcard:isKindOf("TrickCard") then
 					table.insert(givecard, hcard:getId())
 				end
 				if #givecard == 1 and givecard[1] ~= hcard:getId() then

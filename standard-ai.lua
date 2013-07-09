@@ -2502,7 +2502,7 @@ sgs.ai_use_value.LijianCard = 8.5
 sgs.ai_use_priority.LijianCard = 4
 
 lijian_filter = function(player, carduse)
-	if carduse.card:isKindOf("LijianCard") then
+	if carduse.card:isKindOf("LijianCard") or carduse.card:isKindOf("NosLijianCard") then
 		sgs.ai_lijian_effect = true
 	end
 end

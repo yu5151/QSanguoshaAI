@@ -123,7 +123,7 @@ sgs.ai_skill_use_func.LihunCard = function(card,use,self)
 		if not target and (self:isEquip("Crossbow") or self:getCardsNum("Crossbow") > 0) then
 			local slash = self:getCard("Slash") or sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 			for _, enemy in ipairs(self.enemies) do
-				if self:slashIsEffective(slash, enemy) and self.player:distanceTo(enemy) == 1 and
+				if enemy:isMale() and self:slashIsEffective(slash, enemy) and self.player:distanceTo(enemy) == 1 and
 					not self:hasSkills("fenyong|zhichi|fankui|neoganglie|ganglie|enyuan|nosenyuan|langgu|guixin|kongcheng", enemy) and
 					self:getCardsNum("Slash") + getKnownCard(enemy, "Slash") >= 3 then
 						target = enemy

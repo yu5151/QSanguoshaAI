@@ -1082,7 +1082,7 @@ function sgs.ai_skill_choice.huashen(self, choices)
 			end
 		end
 
-		for _, askill in ipairs(("manjuan|tuxi|dimeng|haoshi|guanxing|zhiheng|qiaobian|qice|lijian|neofanjian|shuijian|shelie|luoshen|" ..
+		for _, askill in ipairs(("manjuan|tuxi|dimeng|haoshi|guanxing|zhiheng|qiaobian|qice|noslijian|lijian|neofanjian|shuijian|shelie|luoshen|" ..
 		"yongsi|shude|biyue|yingzi|qingnang|caizhaoji_hujia"):split("|")) do
 			if str:matchOne(askill) then return askill end
 		end

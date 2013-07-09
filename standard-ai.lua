@@ -416,7 +416,7 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 
 	for i = 1, #self.enemies, 1 do
 		local p = self.enemies[i]
-		if self:hasSkills("jijiu|qingnang|xinzhan|leiji|jieyin|beige|kanpo|liuli|qiaobian|zhiheng|guidao|longhun|xuanfeng|tianxiang|lijian", p) then
+		if p:hasSkills("jijiu|qingnang|xinzhan|leiji|jieyin|beige|kanpo|liuli|qiaobian|zhiheng|guidao|longhun|xuanfeng|tianxiang|noslijian|lijian") then
 			if add_player(p) == 2  then return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2]) end
 		end
 	end
@@ -424,7 +424,7 @@ sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 	for i = 1, #self.enemies, 1 do
 		local p = self.enemies[i]
 		local x = p:getHandcardNum()
-		local good_target = true				
+		local good_target = true
 		if x == 1 and self:needKongcheng(p) then good_target = false end
 		if x >= 2 and p:hasSkill("tuntian") and p:hasSkill("zaoxian") then good_target = false end
 		if good_target and add_player(p)==2 then return ("@TuxiCard=.->%s+%s"):format(targets[1], targets[2]) end				
@@ -1640,7 +1640,7 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 		if self.player:getRole()=="loyalist" then
 			if lord and lord:getCards("he"):isEmpty() then return end
 			if self:isEnemy(nextplayer) and not self:willSkipPlayPhase(nextplayer) then
-				if nextplayer:hasSkill("lijian") and self.player:isMale() and lord and lord:isMale() then
+				if nextplayer:hasSkills("noslijian|lijian") and self.player:isMale() and lord and lord:isMale() then
 					to_death = true
 				elseif nextplayer:hasSkill("quhu") and lord and lord:getHp() > nextplayer:getHp() and not lord:isKongcheng() 
 					and lord:inMyAttackRange(self.player) then
@@ -2502,7 +2502,7 @@ sgs.ai_use_value.LijianCard = 8.5
 sgs.ai_use_priority.LijianCard = 4
 
 lijian_filter = function(player, carduse)
-	if carduse.card:isKindOf("LijianCard") or carduse.card:isKindOf("NosLijianCard") then
+	if carduse.card:isKindOf("LijianCard") then
 		sgs.ai_lijian_effect = true
 	end
 end

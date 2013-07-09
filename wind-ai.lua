@@ -264,6 +264,7 @@ function SmartAI:needLeiji(to, from)
 	to = to or self.player
 	if not to:hasSkill("leiji") then return false end
 	if from and self:canLiegong(to, from) and not self:isFriend(to, from) then return false end
+	if sgs.current_mode_players["rebel"] == 0 and not sgs.explicit_renegade then return false end
 	if sgs.card_lack[to:objectName()]["Jink"] == 1 then return end
 	local hasspade = to:hasSkill("guidao") and self:hasSuit("spade", true, to)
 						or to:hasSkill("guicai") and self:hasSuit("spade", false, to)

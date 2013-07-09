@@ -86,7 +86,7 @@ sgs.ai_skill_use_func.MouzhuCard = function(card, use, self)
 		self:sort(self.friends_noself, "handcard")
 		sgs.reverse(self.friends_noself)
 		for _, friend in ipairs(self.friend_noself) do
-			if not friend:isKongcheng() and not self:canLiegong(self.player, friend) and friend:getHandcardNum() < self.player:getHandcardNum() + 2
+			if not friend:isKongcheng() and friend:getHandcardNum() < self.player:getHandcardNum() + 2
 				and (self.player:getCardsNum("Jink") > 0 or not IgnoreArmor(friend, to) and not self:isWeak() and self:isEquip("EightDiagram")) then
 				use.card = card
 				if use.to then use.to:append(friend) end
@@ -113,11 +113,11 @@ sgs.ai_skill_use_func.MouzhuCard = function(card, use, self)
 		elseif enemy:getHandcardNum() > 0 then
 			if not self:slashIsEffective(slash_nosuit, self.player, nil, enemy) and self:getCardsNum("Slash") > getCardsNum("Slash", enemy) and not second then
 				second = enemy
-			elseif not self:canLiegong(self.player, enemy) and not enemy:hasSkills("wushuang|mengjin|teji")
-				and not ((enemy:hasSkill("roulin") or self:isEquip("DoubleSword", enemy)) and enemy:getGender() ~= self.player:getGender()) then
+			elseif not enemy:hasSkills("wushuang|mengjin|tieji")
+				and not ((enemy:hasSkill("roulin") or enemy:hasWeapon("DoubleSword")) and enemy:getGender() ~= self.player:getGender()) then
 				
 				if enemy:getHandcardNum() == 1 and slash and not third and self.player:inMyAttackRange(enemy)
-					and (self:hasHeavySlashDamage(self.player, slash, enemy) or self:isEquip("GudingBlade") and not self:needKongcheng(enemy))
+					and (self:hasHeavySlashDamage(self.player, slash, enemy) or self.player:hasWeapon("GudingBlade") and not self:needKongcheng(enemy))
 					and (not self:isWeak() or self:getCardsNum("Peach") + self:getCardsNum("Analeptic") > 0) then
 					third = enemy
 				elseif self:getCardsNum("Jink") > 0 and self:getCardsNum("Slash") > getCardsNum("Slash", enemy) and not fourth then
@@ -168,7 +168,7 @@ sgs.ai_skill_cardask["@mouzhu-give"] = function(self, data)
 		end
 		for _, c in ipairs(cards) do
 			if not c:isKindOf("Peach") then return c:getEffectiveId() end
-		end		
+		end
 	end
 	
 	return cards[1]:getEffectiveId()
@@ -197,3 +197,16 @@ sgs.ai_skill_choice.mouzhu = function(self, choices)
 end
 
 sgs.ai_use_priority.MouzhuCard = 5.5
+
+sgs.ai_card_intention.MouzhuCard = function(self, card, from, tos)
+	if not self.player:hasSkill("leiji") then sgs.updateIntention(from, tos[1], 30) end
+end
+
+sgs.ai_skill_invoke.yanhuo = function(self, data)
+	local opponent = self.player:getOtherPlayers(true):first()
+	return opponent:isAlive() and not self:doNotDiscard(opponent)
+end
+
+sgs.ai_skill_playerchosen.yanhuo = function(self, targets)
+	return self:findPlayerToDiscard()
+end

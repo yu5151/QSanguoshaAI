@@ -418,7 +418,7 @@ function SmartAI:getUseValue(card)
 			v = sgs.ai_use_value[class_name] or 0
 			if self.player:hasFlag("TianyiSuccess") or self.player:hasFlag("JiangchiInvoke")
 				or self:hasHeavySlashDamage(self.player, card) then v = 8.7 end
-			if self.player:getPhase() == sgs.Player_Play and self:slashIsAvailable() and #self.enemies > 0 then v = v + 5 end
+			if self.player:getPhase() == sgs.Player_Play and self:slashIsAvailable() and #self.enemies > 0 and self:getCardsNum("Slash") == 1 then v = v + 5 end
 			if self:isEquip("Crossbow") then v = v + 4 end
 			if card:getSkillName() == "Spear"   then v = v - 1 end
 			if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 1 end
@@ -3567,12 +3567,8 @@ function SmartAI:willUsePeachTo(dying)
 	else --救对方的情形 
 		if dying:hasSkill("wuhun") then --濒死者有技能“武魂”
 			if not sgs.GetConfig("EnableHegemony", false) then
-				local should = true
-				if self.role == "rebel" then --反贼
-					should = false
-				elseif self.role == "renegade" then --内奸
-					should = self.room:alivePlayerCount() > 2
-				end
+				local should = self.role == "renegade" and self.room:alivePlayerCount() > 2
+								or (self.role == "lord" or self.role == "loyalist") and sgs.current_mode_players["rebel"] + sgs.current_mode_players["renegade"] > 1
 				if should then --可能有救的必要
 					local willKillLord = false
 					local revengeTargets = self:getWuhunRevengeTargets() --武魂复仇目标

@@ -5773,20 +5773,14 @@ function CanUpdateIntention(player)
 	if not player then global_room:writeToConsole(debug.traceback()) end
 	local current_rebel_num, current_loyalist_num = 0, 0
 	local rebel_num = sgs.current_mode_players["rebel"]
-	local loyalist_num = sgs.current_mode_players["loyalist"] + sgs.current_mode_players["renegade"] + 1
 	
 	for _, aplayer in sgs.qlist(global_room:getAlivePlayers()) do
 		if sgs.ai_role[aplayer:objectName()] == "rebel" then current_rebel_num = current_rebel_num + 1 end
-		if (sgs.evaluatePlayerRole(aplayer) == "loyalist" or sgs.ai_role[aplayer:objectName()] == "renegade") then
-			current_loyalist_num = current_loyalist_num + 1
-		end
 	end
 	
 	if sgs.ai_role[player:objectName()] == "rebel" and current_rebel_num >= rebel_num then return false
-	elseif 	sgs.ai_role[player:objectName()] == "loyalist" and current_loyalist_num >= loyalist_num then return false
-	elseif 	sgs.ai_role[player:objectName()] == "neutral" and
-		(current_loyalist_num + 1 >= loyalist_num or current_rebel_num + 1 >= rebel_num) then return false
-	end
+	elseif sgs.ai_role[player:objectName()] == "neutral" and current_rebel_num + 1 >= rebel_num then return false end
+	
 	return true
 end
 

@@ -601,7 +601,20 @@ mingce_skill.getTurnUseCard = function(self)
 		self:sortByUseValue(hcards, true)
 
 		for _, hcard in ipairs(hcards) do
-			if hcard:isKindOf("Slash") or hcard:isKindOf("EquipCard") then
+			if hcard:isKindOf("Slash") then
+				if self:getCardsNum("Slash") > 1 then
+					card = hcard
+					break
+				else
+					local dummy_use = { isDummy = true, to = sgs.SPlayerList() }
+					self:useBasicCard(hcard, use)
+					if dummy_use and dummy_use.to and (dummy_use.to:length() == 0
+							or dummy_use.to:length() == 1 and not self:hasHeavySlashDamage(self.player, hcard, dummy_use.to:first())) then
+						card = hcard
+						break
+					end
+				end
+			elseif hcard:isKindOf("EquipCard") then
 				card = hcard
 				break
 			end
@@ -641,7 +654,7 @@ sgs.ai_skill_use_func.MingceCard = function(card, use, self)
 	for _, friend in ipairs(friends) do
 		if canMingceTo(friend) then
 			for _, enemy in ipairs(self.enemies) do
-				if friend:canSlash(enemy) and not self:slashProhibit(slash ,enemy) and sgs.getDefenseSlash(enemy) <= 2
+				if friend:canSlash(enemy) and not self:slashProhibit(slash, enemy) and sgs.getDefenseSlash(enemy) <= 2
 						and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
 						and enemy:objectName() ~= self.player:objectName() then
 					target = friend

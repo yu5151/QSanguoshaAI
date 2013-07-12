@@ -1344,10 +1344,10 @@ function SmartAI:objectiveLevel(player)
 		if renegade_num == 0 then
 			if sgs.ai_role[player:objectName()] ~= "loyalist" then return 5 end
 			
-			if rebel_num > 0 then
+			if rebel_num > 0 and sgs.turncount > 1 then
 				local hasRebel
 				for _, p in ipairs(players) do
-					if sgs.ai_role[p:objectName()] == "rebel" then hasRebel = true break end
+					if sgs.ai_role[p:objectName()] == "rebel" then hasRebel = true sgs.UnknownRebel = false break end
 				end
 				if not hasRebel then
 					sgs.UnknownRebel = true
@@ -5286,7 +5286,7 @@ function SmartAI:useEquipCard(card, use)
 			or (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard") and self:shouldUseRende() and self:hasFriends("draw"))
 			or (self:hasSkills("yongsi|renjie") and self:getOverflow() < 2)
 			or (self:hasSkills("qixi|duanliang|yinling") and (card:isBlack() or same:isBlack()))
-			or (self:hasSkills("guose|longhun") and (card:getSuit() == sgs.Card_Diamond or same:getSuit() == sgs.Card_Diamond))
+			or (self:hasSkills("guose|longhun") and not card:isKindOf("Crossbow") and (card:getSuit() == sgs.Card_Diamond or same:getSuit() == sgs.Card_Diamond))
 			or (self.player:hasSkill("jijiu") and (card:isRed() or same:isRed()))
 			or (self.player:hasSkill("guidao") and same:isBlack() and card:isRed()) then return end
 	end

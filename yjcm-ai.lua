@@ -607,7 +607,7 @@ mingce_skill.getTurnUseCard = function(self)
 					break
 				else
 					local dummy_use = { isDummy = true, to = sgs.SPlayerList() }
-					self:useBasicCard(hcard, use)
+					self:useBasicCard(hcard, dummy_use)
 					if dummy_use and dummy_use.to and (dummy_use.to:length() == 0
 							or dummy_use.to:length() == 1 and not self:hasHeavySlashDamage(self.player, hcard, dummy_use.to:first())) then
 						card = hcard

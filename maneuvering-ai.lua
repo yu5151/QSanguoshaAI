@@ -320,6 +320,7 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 	
 	local kills, killlord = 0
 	local good, bad = 0, 0
+	local peach_num = self.player:objectName() == source:objectName() and self:getCardsNum("Peach") or getCardsNum("Peach", source)
 	
 	local function getChainedPlayerValue(target, dmg)
 		local newvalue = 0

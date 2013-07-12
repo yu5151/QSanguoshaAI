@@ -215,6 +215,7 @@ function sgs.ai_cardneed.leiji(to, card, self)
 end
 
 function SmartAI:findLeijiTarget(player, leiji_value)
+	if not player:hasSkill("leiji") then return end
 	local getCmpValue = function(enemy)
 		local value = 0
 		if not self:damageIsEffective(enemy, sgs.DamageStruct_Thunder, player) then return 99 end

@@ -20,7 +20,7 @@ neoluoyi_skill.getTurnUseCard = function(self)
 	local noHorseTargets = 0
 	self:sort(self.enemies,"hp")
 	for _, card in sgs.qlist(self.player:getCards("he")) do
-		if card:isKindOf("EquipCard") and not (card:isKindOf("Weapon") and self:hasEquip(card))  then
+		if card:isKindOf("EquipCard") and not (card:isKindOf("Weapon") and self:hasEquip(card)) then
 			equipnum = equipnum + 1
 		end
 	end
@@ -73,7 +73,7 @@ neoluoyi_skill.getTurnUseCard = function(self)
 		end
 		if not luoyicard then
 			for _, card in sgs.qlist(self.player:getCards("he")) do
-				if card:isKindOf("EquipCard") and not card:isKindOf("Weapon") then 
+				if card:isKindOf("EquipCard") and not (card:isKindOf("Weapon") and self.player:hasEquip(card)) then
 					luoyicard = card
 					break
 				end

@@ -3060,7 +3060,7 @@ function SmartAI:needKongcheng(player, keep)
 		end
 	end
 	
-	if not self:hasLoseHandcardEffective() and not player:isKongcheng() then return true end
+	if not self:hasLoseHandcardEffective(player) and not player:isKongcheng() then return true end
 	if player:hasSkill("zhiji") and player:getMark("zhiji") == 0 then return true end
 	if player:hasSkill("shude") and player:getPhase() == sgs.Player_Play then return true end
 	return self:hasSkills(sgs.need_kongcheng, player)

@@ -432,7 +432,7 @@ function SmartAI:shouldUseAnaleptic(target, slash, anal)
 	return self:getCardsNum("Analeptic") > 1 or getCardsNum("Jink", target) < 1 or sgs.card_lack[target:objectName()]["Jink"] == 1
 end
 
-function SmartAI:isPriorityFriend(friend, card)
+function SmartAI:isPriorFriendOfSlash(friend, card)
 	local huatuo = self.room:findPlayerBySkillName("jijiu")
 	for _, p in sgs.qlist(self.room:getAlivePlayers()) do
 		if p:hasSkill("jijiu") and self:isFriend(p) then huatuo = p break end
@@ -446,7 +446,7 @@ function SmartAI:isPriorityFriend(friend, card)
 			return true
 		end
 	end
-	if card:isKindOf("NatureSlash") and friend:isChained() and self:isGoodChainTarget(friend, nil, nil, nil, card) then return true end
+	if not self.player:hasSkill("jueqing") and card:isKindOf("NatureSlash") and friend:isChained() and self:isGoodChainTarget(friend, nil, nil, nil, card) then return true end
 	return
 end
 
@@ -485,7 +485,7 @@ function SmartAI:useCardSlash(card, use)
 
 	if not use.isDummy and self.player:hasSkill("qingnang") and self:isWeak() and self:getOverflow() == 0 then return end
 	for _, friend in ipairs(self.friends_noself) do
-		if not self:slashProhibit(card, friend) and self:isPriorityFriend(friend, card) then
+		if not self:slashProhibit(card, friend) and self:isPriorFriendOfSlash(friend, card) then
 			if (not use.current_targets or not table.contains(use.current_targets, friend:objectName()))
 				and (self.player:canSlash(friend, card, not no_distance, rangefix)
 					or (use.isDummy and (self.player:distanceTo(friend, rangefix) <= self.predictedRange)))

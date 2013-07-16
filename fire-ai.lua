@@ -232,10 +232,28 @@ huoji_skill.getTurnUseCard=function(self)
 
 	self:sortByUseValue(cards,true)
 
-	for _,acard in ipairs(cards)  do
+	for _,acard in ipairs(cards) do
 		if acard:isRed() and not acard:isKindOf("Peach") and (self:getDynamicUsePriority(acard) < sgs.ai_use_value.FireAttack or self:getOverflow() > 0) then
-			card = acard
-			break
+			if acard:isKindOf("Slash") and self:getCardsNum("Slash") == 1 then
+				local keep
+				local dummy_use = { isDummy = true , to = sgs.SPlayerList() }
+				self:useBasicCard(acard, dummy_use)
+				if dummy_use.card and dummy_use.to and dummy_use.to:length() > 0 then
+					for _, p in sgs.qlist(dummy_use.to) do
+						if p:getHp() <= 1 then keep = true break end
+					end
+					if dummy_use.to:length() > 1 then keep = true end
+				end
+				if keep then sgs.ai_use_priority.Slash = sgs.ai_use_priority.FireAttack + 0.1
+				else
+					sgs.ai_use_priority.Slash = 2.6
+					card = acard
+					break
+				end
+			else
+				card = acard
+				break
+			end
 		end
 	end
 

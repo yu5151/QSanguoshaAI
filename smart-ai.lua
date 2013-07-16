@@ -2438,7 +2438,11 @@ function SmartAI:askForNullification(trick, from, to, positive)
 	if (from and from:isDead()) or (to and to:isDead()) then return nil end --已死
 	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") == 0 and (self:isWeak() or self.player:isLord()) then return nil end
 
-	if trick:isKindOf("FireAttack") and (to:isKongcheng() or from:isKongcheng()) then return nil end
+	if trick:isKindOf("FireAttack") then
+		if to:isKongcheng() or from:isKongcheng() then return nil end
+		if self.player:objectName() == from:objectName() and self.player:getHandcardNum() == 1 and self.player:handCards():first() == null_card:getId() then return nil end
+	end
+	
 	if ("snatch|dismantlement"):match(trick:objectName()) and to:isAllNude() then return nil end
 	
 	if self:isFriend(to) and to:hasFlag("AIGlobal_NeedToWake") then return end

@@ -25,9 +25,6 @@ end
 sgs.ais = {}
 sgs.ai_card_intention = 	{}
 sgs.ai_playerchosen_intention = {}
-sgs.ai_skillInvoke_intention = {}
-sgs.ai_skillChoice_intention = {}
-sgs.ai_cardChosen_intention = {}
 sgs.role_evaluation = 		{}
 sgs.ai_role = 				{}
 sgs.ai_keep_value = 		{}
@@ -73,9 +70,9 @@ sgs.ai_choicemade_filter = 	{
 	Nullification =			{},
 	playerChosen =			{},
 	cardChosen =			{},
-	Yiji = {},
-	viewCards = {},
-	pindian = {}
+	Yiji = 					{},
+	viewCards = 			{},
+	pindian = 				{}
 }
 
 sgs.card_lack =				{}
@@ -1683,20 +1680,6 @@ sgs.ai_choicemade_filter.playerChosen.general = function(from, promptlist, self)
 	end
 end
 
-sgs.ai_choicemade_filter.cardChosen.general = function(from, promptlist, self)
-	local reason = string.gsub(promptlist[2], "%-", "_")
-	local callback = sgs.ai_cardChosen_intention[reason] 
-	local to = global_room:getCurrent()
-	if callback and to then 
-		if type(callback) == "number" and to:objectName() ~= from:objectName() then
-			sgs.updateIntention(from, to, sgs.ai_cardChosen_intention[reason])
-		elseif type(callback) == "function" then
-			local card_id = promptlist[3]
-			callback(from, to, card_id)
-		end
-	end	
-end
-
 sgs.ai_choicemade_filter.viewCards.general = function(from, promptlist, self)
 	local to = findPlayerByObjectName(self.room, promptlist[#promptlist])
 	if to and not to:isKongcheng() then
@@ -2490,19 +2473,15 @@ function SmartAI:askForNullification(trick, from, to, positive)
 						return null_card
 					end
 				else
-					--敌方使用顺手牵羊->命中
 					if trick:isKindOf("Snatch") then return null_card end
-					--非无言敌方火攻藤甲、狂风、铁索连环友方->命中
-					if trick:isKindOf("FireAttack") and (self:isEquip("Vine", to) or to:getMark("@gale") > 0 or (to:isChained() and not self:isGoodChainTarget(to))) 
-						and from:objectName() ~= to:objectName() and not from:hasSkill("wuyan") then return null_card end
-					if self:isWeak(to)  then
-						--非无言敌方决斗虚弱友方->命中
-						if trick:isKindOf("Duel") and not from:hasSkill("wuyan") then
-							return null_card
-						--非无言多手牌敌方火攻虚弱友方->命中
-						elseif trick:isKindOf("FireAttack") and not from:hasSkill("wuyan") then
-							if from:getHandcardNum() > 2  and from:objectName() ~= to:objectName() then return null_card end
-						end
+					if trick:isKindOf("Duel") and not from:hasSkill("wuyan") and self:isWeak(to) then return null_card end
+					if trick:isKindOf("FireAttack") and from:objectName() ~= to:objectName() and not from:hasSkill("wuyan") then
+						if from:getHandcardNum() > 2
+							or self:isWeak(to)
+							or to:hasArmorEffect("Vine")
+							or to:getMark("@gale") > 0
+							or to:isChained() and not self:isGoodChainTarget(to)
+							then return null_card end
 					end
 				end
 			elseif self:isEnemy(to) then

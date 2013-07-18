@@ -39,7 +39,7 @@ function sgs.isGoodHp(player)
 	end
 end
 
-function sgs.isGoodTarget(player, targets, self)
+function sgs.isGoodTarget(player, targets, self, isSlash)
 	local arr = {"jieming", "yiji", "guixin", "fangzhu", "neoganglie", "nosmiji", "xuehen", "xueji"}
 	local m_skill = false
 	local attacker = global_room:getCurrent()
@@ -86,7 +86,11 @@ function sgs.isGoodTarget(player, targets, self)
 			end
 		end
 	end
-
+	
+	if isSlash and self and (self:hasCrossbowEffect() or self:getCardsNum("Crossbow") > 0) and self:getCardsNum("Slash") > player:getHp() then
+		return true
+	end
+	
 	if player:hasSkill("hunzi") and player:getMark("hunzi") == 0 and player:isLord() and player:getHp() == 2 and sgs.current_mode_players["loyalist"] > 0 then
 		return false
 	end
@@ -518,7 +522,7 @@ function SmartAI:useCardSlash(card, use)
 	local forbidden = {}
 	self:sort(self.enemies, "defenseSlash")
 	for _, enemy in ipairs(self.enemies) do
-		if not self:slashProhibit(card, enemy) and sgs.isGoodTarget(enemy, self.enemies, self) then
+		if not self:slashProhibit(card, enemy) and sgs.isGoodTarget(enemy, self.enemies, self, true) then
 			if not self:getDamagedEffects(enemy, self.player, true) then 
 				table.insert(targets, enemy)
 			else table.insert(forbidden, enemy)

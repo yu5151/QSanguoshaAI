@@ -42,7 +42,7 @@ sgs.ai_skill_use["@@jujian"] = function(self, prompt)
 		end
 	end
 	for _, friend in ipairs(self.friends_noself) do
-		if self:isWeak(friend) or friend:getHandcardNum() < 2 or not friend:faceUp() 
+		if self:isWeak(friend) or friend:getHandcardNum() < 2 or not friend:faceUp() or self:getOverflow() > 0
 		or (friend:getArmor() and friend:getArmor():objectName() == "Vine" and (friend:isChained() and not self:isGoodChainPartner(friend))) then
 			needfriend = needfriend + 1
 		end

@@ -257,7 +257,7 @@ function sgs.getDefense(player, gameProcess)
 	if player:hasSkills("tuntian+zaoxian") then defense = defense + player:getHandcardNum() * 0.4 end
 	if player:hasSkill("aocai") and player:getPhase() == sgs.Player_NotActive then defense = defense + 0.3 end
 	if attacker and not attacker:hasSkill("jueqing") then
-		if sgs.isGoodHp(player) then
+		if not gameProcess and sgs.isGoodHp(player) then
 			local m = sgs.masochism_skill:split("|")
 			for _, masochism in ipairs(m) do
 				if player:hasSkill(masochism) then
@@ -278,7 +278,7 @@ function sgs.getDefense(player, gameProcess)
 	if player:hasSkill("zaiqi") and player:getHp() > 1 then defense = defense + 0.35 end
 	if player:hasSkill("tianming") then defense = defense + 0.1 end
 
-	if player:getHp() > getBestHp(player) then defense = defense + 0.8 end
+	if not gameProcess and player:getHp() > getBestHp(player) then defense = defense + 0.8 end
 	if player:getHp() <= 2 then defense = defense - 0.4 end
 
 	if player:hasSkill("tianxiang") then defense = defense + player:getHandcardNum() * 0.5 end
@@ -1103,7 +1103,7 @@ function sgs.isLordInDanger()
 	return lord_hp < 3 
 end
 
-function sgs.gameProcess(room,arg1)
+function sgs.gameProcess(room, arg1)
 	local rebel_num = sgs.current_mode_players["rebel"]
 	local loyal_num = sgs.current_mode_players["loyalist"]
 	if rebel_num == 0 and loyal_num> 0 then return "loyalist"

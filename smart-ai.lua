@@ -2461,7 +2461,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 			 --敌方在虚弱、需牌技、漫卷中使用无中生有->命中
 			if trick:isKindOf("ExNihilo") and (self:isWeak(from) or self:hasSkills(sgs.cardneed_skill, from) or from:hasSkill("manjuan")) then return null_card end
 			--铁索连环的目标没有藤甲->不管
-			if trick:isKindOf("IronChain") and not self:isEquip("Vine", to) then return nil end
+			if trick:isKindOf("IronChain") and not to:hasArmorEffect("Vine") then return nil end
 			if self:isFriend(to) then
 				if trick:isKindOf("Dismantlement") then 
 					--敌方拆友方威胁牌、价值牌、最后一张手牌->命中
@@ -4733,7 +4733,7 @@ function SmartAI:canAvoidAOE(card)
 		end
 	end
 	if card:isKindOf("ArcheryAttack") then
-		if self:getCardsNum("Jink") > 0 or (self:isEquip("EightDiagram") and self.player:getHp() > 1) then
+		if self:getCardsNum("Jink") > 0 or (self:hasEightDiagramEffect() and self.player:getHp() > 1) then
 			return true
 		end
 	end
@@ -4812,12 +4812,12 @@ function SmartAI:getAoeValueTo(card, to , from)
 		if self:needToLoseHp(to, from, nil, true) then value = value + 10 end
 		
 		if card:isKindOf("ArcheryAttack") then
-			if to:hasSkill("leiji") and (sj_num >= 1 or self:isEquip("EightDiagram", to)) and self:needLeiji(to, from) then
+			if to:hasSkill("leiji") and (sj_num >= 1 or self:hasEightDiagramEffect(to)) and self:needLeiji(to, from) then
 				value = value + 100
 				if self:hasSuit("spade", true, to) then value = value + 150
 				else value = value + to:getHandcardNum()*35
 				end
-			elseif self:isEquip("EightDiagram", to) then
+			elseif self:hasEightDiagramEffect(to) then
 				value = value + 20
 				if self:getFinalRetrial(to) == 2 then
 					value = value - 15
@@ -5332,7 +5332,7 @@ function SmartAI:useEquipCard(card, use)
 	elseif card:isKindOf("Armor") then
 		if self:needBear() and self.player:getLostHp() == 0 then return end
 		local lion = self:getCard("SilverLion")
-		if lion and self.player:isWounded() and not self:isEquip("SilverLion") and not card:isKindOf("SilverLion") and
+		if lion and self.player:isWounded() and not self.player:hasArmorEffect("SilverLion") and not card:isKindOf("SilverLion") and
 			not (self:hasSkills("bazhen|yizhong") and not self.player:getArmor() and not card:isKindOf("EightDiagram")) then
 			use.card = lion
 			return
@@ -5396,7 +5396,7 @@ function SmartAI:damageMinusHp(self, enemy, type)
 				and (self.player:distanceTo(enemy) <= self.player:getAttackRange()) then
 				if not (enemy:hasSkill("xiangle") and basicnum < 2) then slash_damagenum = slash_damagenum + 1 end
 				if self:getCardsNum("Analeptic") > 0 and analepticpowerup == 0
-				  and not (enemy:hasArmorEffect("SilverLion") or self:isEquip("EightDiagram", enemy))
+				  and not (enemy:hasArmorEffect("SilverLion") or self:hasEightDiagramEffect(enemy))
 				  and not IgnoreArmor(self.player, enemy) then 
 					slash_damagenum = slash_damagenum + 1 
 					analepticpowerup = analepticpowerup + 1 

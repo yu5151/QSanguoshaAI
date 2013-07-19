@@ -87,7 +87,7 @@ sgs.ai_skill_use_func.MouzhuCard = function(card, use, self)
 		sgs.reverse(self.friends_noself)
 		for _, friend in ipairs(self.friend_noself) do
 			if not friend:isKongcheng() and friend:getHandcardNum() < self.player:getHandcardNum() + 2
-				and (self.player:getCardsNum("Jink") > 0 or not IgnoreArmor(friend, to) and not self:isWeak() and self:isEquip("EightDiagram")) then
+				and (self.player:getCardsNum("Jink") > 0 or not IgnoreArmor(friend, to) and not self:isWeak() and self:hasEightDiagramEffect()) then
 				use.card = card
 				if use.to then use.to:append(friend) end
 				return
@@ -153,7 +153,7 @@ sgs.ai_skill_cardask["@mouzhu-give"] = function(self, data)
 				if c:getSuit() == sgs.Card_Spade then spade = c:getEffectiveId() end
 			end
 			if self:hasSuit("spade", true, target) and jink then return jink
-			elseif not self:isEquip("EightDiagram", target) and jink then return jink
+			elseif not self:hasEightDiagramEffect(target) and jink then return jink
 			elseif spade or jink then return spade or jink
 			end
 		end

@@ -211,7 +211,7 @@ end
 function sgs.ai_cardneed.leiji(to, card, self)
 	return  ((isCard("Jink", card, to) and getKnownCard(to, "Jink", true) == 0)
 			or (card:getSuit() == sgs.Card_Spade and not self:hasSuit("spade", true, to))
-			or (card:isKindOf("EightDiagram") and not (self:isEquip("EightDiagram") or getKnownCard(to, "EightDiagram", false) >0)))
+			or (card:isKindOf("EightDiagram") and not (self:hasEightDiagramEffect() or getKnownCard(to, "EightDiagram", false) >0)))
 end
 
 function SmartAI:findLeijiTarget(player, leiji_value)
@@ -273,7 +273,7 @@ function SmartAI:needLeiji(to, from)
 						or to:getHandcardNum() > 4
 	local hasjink = getKnownCard(to, "Jink", true) >= 1
 						or sgs.card_lack[to:objectName()]["Jink"] == 2
-						or not IgnoreArmor(from, to) and not self:isWeak(to) and self:isEquip("EightDiagram", to) and sgs.card_lack[to:objectName()]["Jink"] == 0
+						or not IgnoreArmor(from, to) and not self:isWeak(to) and self:hasEightDiagramEffect(to) and sgs.card_lack[to:objectName()]["Jink"] == 0
 	
 	if hasjink and hasspade and self:findLeijiTarget(to, 50) and self:getFinalRetrial(to) == 1 then
 		return true
@@ -303,7 +303,7 @@ function sgs.ai_slash_prohibit.leiji(self, to, card, from)
 	
 	if sgs.card_lack[to:objectName()]["Jink"] == 2 then return true end
 	if getKnownCard(to, "Jink", true) >= 1 or (self:hasSuit("spade", true, to) and hcard >= 2) or hcard >= 4 then return true end
-	if self:isEquip("EightDiagram", to) and not IgnoreArmor(from, to) then return true end
+	if self:hasEightDiagramEffect(to) and not IgnoreArmor(from, to) then return true end
 end
 
 local huangtianv_skill = {}

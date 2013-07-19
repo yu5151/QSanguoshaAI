@@ -576,7 +576,7 @@ sgs.ai_skill_invoke.tiandu = sgs.ai_skill_invoke.jianxiong
 
 function sgs.ai_slash_prohibit.tiandu(self, to, card, from)
 	if self:canLiegong(to, from) then return false end
-	if self:isEnemy(to) and self:isEquip("EightDiagram", to) and not IgnoreArmor(from, to) and #self.enemies > 1 then return true end
+	if self:isEnemy(to) and self:hasEightDiagramEffect(to) and not IgnoreArmor(from, to) and #self.enemies > 1 then return true end
 end
 
 function SmartAI:IsLihunTarget(player, DrawCardNum)
@@ -587,7 +587,7 @@ function SmartAI:IsLihunTarget(player, DrawCardNum)
 		if #player == 0 then return false end
 		local found
 		for _, ap in ipairs(player) do
-			if self:IsLihunTarget(ap, DrawCardNum) then found = true break end			
+			if self:IsLihunTarget(ap, DrawCardNum) then found = true break end
 		end
 		if found then return true
 		else return false
@@ -1826,7 +1826,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt)
 	local doLiuli = function(who)
 		if not self:isFriend(who) and who:hasSkill("leiji") 
 			and ( self:hasSuit("spade", true, who) or who:getHandcardNum() >= 3)
-			and (getKnownCard(who, "Jink", true) >= 1 or (not self:isEquip("QinggangSword", source) and self:isEquip("EightDiagram",who) )) then
+			and (getKnownCard(who, "Jink", true) >= 1 or (not self:isEquip("QinggangSword", source) and self:hasEightDiagramEffect(who) )) then
 			return "."
 		end
 

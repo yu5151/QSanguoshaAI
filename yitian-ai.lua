@@ -411,7 +411,7 @@ sgs.ai_skill_invoke.lianli_jink = function(self, data)
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if player:getMark("@tied") > 0 then tied = player break end
 	end
-	if self:isEquip("EightDiagram", tied) then return true end
+	if self:hasEightDiagramEffect(tied) then return true end
 	return self:getCardsNum("Jink") == 0
 end
 

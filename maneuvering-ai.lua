@@ -77,7 +77,7 @@ fan_skill.getTurnUseCard=function(self)
 end
 
 function sgs.ai_weapon_value.Fan(self, enemy)
-	if enemy and (self:isEquip("Vine", enemy) or enemy:getMark("@gale") > 0) then return 6 end
+	if enemy and (enemy:hasArmorEffect("Vine") or enemy:getMark("@gale") > 0) then return 6 end
 end
 
 function sgs.ai_armor_value.Vine(player, self)
@@ -530,7 +530,7 @@ sgs.ai_skill_cardask["@fire-attack"] = function(self, data, pattern, target)
 	local lord = self.room:getLord()
 	if sgs.GetConfig("EnableHegemony", false) then lord = nil end
 	
-	for _, acard in ipairs(cards) do		
+	for _, acard in ipairs(cards) do
 		if acard:getSuitString() == convert[pattern] then
 			if not isCard("Peach", acard, self.player) then
 				card = acard
@@ -538,7 +538,7 @@ sgs.ai_skill_cardask["@fire-attack"] = function(self, data, pattern, target)
 			else
 				local needKeepPeach = true
 				if (self:isWeak(target) and not self:isWeak()) or target:getHp() == 1
-						or self:isGoodChainTarget(target) or self:isEquip("Vine", target) or target:getMark("@gale") > 0 then 
+						or self:isGoodChainTarget(target) or target:hasArmorEffect("Vine") or target:getMark("@gale") > 0 then 
 					needKeepPeach = false 
 				end
 				if lord and not self:isEnemy(lord) and sgs.isLordInDanger() and self:getCardsNum("Peach") == 1 and self.player:aliveCount() > 2 then 

@@ -1979,6 +1979,9 @@ function SmartAI:filterEvent(event, player, data)
 			sgs.ai_qice_data = nil
 		end
 		
+		if card:isKindOf("Slash") and struct.from:objectName() == self.room:getCurrent():objectName() and struct.m_reason == sgs.CardUseStruct_CARD_USE_REASON_PLAY
+			and struct.m_addHistory then struct.from:setFlags("hasUsedSlash") end
+		
 	elseif event == sgs.CardsMoveOneTime then
 		local move = data:toMoveOneTime()
 		local from = nil   -- convert move.from from const Player * to ServerPlayer *
@@ -2059,7 +2062,7 @@ function SmartAI:filterEvent(event, player, data)
 				
 				local is_neutral = sgs.evaluatePlayerRole(player) == "neutral" and CanUpdateIntention(player)
 					
-				if isCard("Slash", card, player) and player:canSlashWithoutCrossbow() then
+				if isCard("Slash", card, player) and not player:hasFlag("hasUsedSlash") then
 					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
 						local has_slash_prohibit_skill = false
 						for _, askill in sgs.qlist(target:getVisibleSkillList()) do

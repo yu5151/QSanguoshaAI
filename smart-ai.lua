@@ -256,13 +256,11 @@ function sgs.getDefense(player, gameProcess)
 
 	if player:hasSkills("tuntian+zaoxian") then defense = defense + player:getHandcardNum() * 0.4 end
 	if player:hasSkill("aocai") and player:getPhase() == sgs.Player_NotActive then defense = defense + 0.3 end
-	if attacker and not attacker:hasSkill("jueqing") then
-		if not gameProcess and sgs.isGoodHp(player) then
-			local m = sgs.masochism_skill:split("|")
-			for _, masochism in ipairs(m) do
-				if player:hasSkill(masochism) then
-					defense = defense + 1
-				end
+	if (attacker and not attacker:hasSkill("jueqing")) or gameProcess then
+		local m = sgs.masochism_skill:split("|")
+		for _, masochism in ipairs(m) do
+			if player:hasSkill(masochism) and sgs.isGoodHp(player) then
+				defense = defense + 1
 			end
 		end
 		if player:getMark("@tied") > 0 then defense = defense + 1 end
@@ -283,18 +281,18 @@ function sgs.getDefense(player, gameProcess)
 
 	if player:hasSkill("tianxiang") then defense = defense + player:getHandcardNum() * 0.5 end
 
-	if player:getHandcardNum() == 0 then
+	if not gameProcess and player:getHandcardNum() == 0 then
 		if player:getHp() <= 1 then defense = defense - 2.5 end
 		if player:getHp() == 2 then defense = defense - 1.5 end
 		if not hasEightDiagram then defense = defense - 2 end
 	end
 
-	if isLord(player) then 
+	if isLord(player) then
 		defense = defense - 0.4
 		if sgs.isLordInDanger() then defense = defense - 0.7 end
 	end
 
-	if (sgs.ai_chaofeng[player:getGeneralName()] or 0) >= 3 then
+	if not gameProcess and (sgs.ai_chaofeng[player:getGeneralName()] or 0) >= 3 then
 		defense = defense - math.max(6, (sgs.ai_chaofeng[player:getGeneralName()] or 0)) * 0.035
 	end
 
@@ -889,9 +887,9 @@ function sgs.modifiedRoleEvaluation()
 	if players:length() == 1 then return false end
 	
 	local rebel, loyalist, renegade = {}, {}, {}
-	local rebel_num = sgs.current_mode_players["rebel"] or 0
-	local loyalist_num = sgs.current_mode_players["loyalist"] or 0
-	local renegade_num = sgs.current_mode_players["renegade"] or 0
+	local rebel_num = sgs.current_mode_players["rebel"]
+	local loyalist_num = sgs.current_mode_players["loyalist"]
+	local renegade_num = sgs.current_mode_players["renegade"]
 	
 	for _, player in sgs.qlist(players) do
 		if sgs.ai_role[player:objectName()] == "rebel" then table.insert(rebel, player)
@@ -1031,6 +1029,8 @@ sgs.ai_card_intention.general = function(from, to, level)
 			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level) 
 		end
 	end
+	
+	sgs.evaluateAlivePlayersRole()
 	--[[
 	if global_room:getTag("humanCount") and global_room:getTag("humanCount"):toInt() ==1 then
 		local diffarr = {
@@ -1220,6 +1220,7 @@ function SmartAI:objectiveLevel(player)
 				end
 			elseif loyal_num > 0 then
 				if player:isLord() then
+					if not sgs.explicit_renegade and sgs.role_evaluation[self.player:objectName()]["renegade"] == 0 then return 0 end
 					if not sgs.isLordHealthy() then return 0
 					else return 1 end
 				elseif target_role == "renegade" and renegade_num > 1 then
@@ -1300,7 +1301,7 @@ function SmartAI:objectiveLevel(player)
 		if rebel_num == 0 then
 			if #players == 2 and self.role == "loyalist" then return 5 end
 
-			if self.player:isLord() and not self.player:hasFlag("stack_overflow") and player:getHp() <= 2 and self:hasHeavySlashDamage(self.player, nil, player) then
+			if self.player:isLord() and not self.player:hasFlag("stack_overflow_jijiang") and player:getHp() <= 2 and self:hasHeavySlashDamage(self.player, nil, player) then
 				return 0
 			end
 
@@ -1389,7 +1390,7 @@ function SmartAI:objectiveLevel(player)
 		
 		if player:isLord() then return 5
 		elseif sgs.ai_role[player:objectName()] == "loyalist" then return 5
-		elseif sgs.ai_role[player:objectName()] == "rebel" then return -2
+		elseif sgs.ai_role[player:objectName()] == "rebel" then return (rebel_num > 1 or renegade_num > 0) and -2 or 5
 		elseif renegade_num > 0 and loyal_num + 1 > rebel_num and sgs.ai_role[player:objectName()] == "renegade" and sgs.gameProcess(self.room) == "loyalist" then return -2
 		elseif rebel_num >= loyal_num + renegade_num + 1 and sgs.ai_role[player:objectName()] == "renegade" 
 			and (sgs.gameProcess(self.room) == "rebel" or sgs.gameProcess(self.room) == "rebelish") then return 4
@@ -1545,8 +1546,11 @@ function SmartAI:updatePlayers(clear_flags)
 	
 	if sgs.isRolePredictable() then return end
 	self:updateAlivePlayerRoles()
+	sgs.evaluateAlivePlayersRole()
+end
 
-	local players = sgs.QList2Table(self.room:getAlivePlayers())
+function sgs.evaluateAlivePlayersRole()
+	local players = sgs.QList2Table(global_room:getAlivePlayers())
 	local cmp = function(a, b)
 		return sgs.role_evaluation[a:objectName()]["renegade"] > sgs.role_evaluation[b:objectName()]["renegade"]
 	end
@@ -1571,14 +1575,12 @@ function SmartAI:updatePlayers(clear_flags)
 		end
 		if sgs.current_mode_players["rebel"] == 0 and sgs.current_mode_players["loyalist"] == 0 and not p:isLord() then
 			sgs.ai_role[p:objectName()] = "renegade"
-			sgs.explicit_renegade = true			
+			sgs.explicit_renegade = true
 		end
-	end
-	
+	end	
 	sgs.modifiedRoleEvaluation()
-
-
 end
+
 ---查找room内指定objectName的player
 function findPlayerByObjectName(room, name, include_death, except)
 	if not room then
@@ -3030,7 +3032,7 @@ function SmartAI:needKongcheng(player, keep)
 		return player:isKongcheng() and (player:hasSkill("kongcheng") or (player:hasSkill("zhiji") and player:getMark("zhiji") == 0))
 	end
 	
-	if not player:hasFlag("stack_overflow") then
+	if not player:hasFlag("stack_overflow_xiangle") then
 		if player:hasSkill("beifa") and not player:isKongcheng() then
 			local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 			for _, to in ipairs(self:getEnemies(player)) do

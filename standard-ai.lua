@@ -1120,9 +1120,9 @@ function sgs.ai_cardsview_valuable.jijiang(self, class_name, player, need_lord)
 		and not player:hasFlag("Global_JijiangFailed") and (need_lord ~= false or player:hasLordSkill("jijiang")) then
 		local current = self.room:getCurrent()
 		if current:getKingdom() == "shu" and self:getOverflow(current) > 2 and not self:hasCrossbowEffect(current) then
-			self.player:setFlags("stack_overflow")
+			self.player:setFlags("stack_overflow_jijiang")
 			local isfriend = self:isFriend(current, player)
-			self.player:setFlags("-stack_overflow")
+			self.player:setFlags("-stack_overflow_jijiang")
 			if isfriend then return "@JijiangCard=." end
 		end
 
@@ -1135,9 +1135,9 @@ function sgs.ai_cardsview_valuable.jijiang(self, class_name, player, need_lord)
 		if lieges:isEmpty() then return end
 		local has_friend = false
 		for _, p in sgs.qlist(lieges) do
-			self.player:setFlags("stack_overflow")
+			self.player:setFlags("stack_overflow_jijiang")
 			has_friend = self:isFriend(p, player)
-			self.player:setFlags("-stack_overflow")
+			self.player:setFlags("-stack_overflow_jijiang")
 			if has_friend then break end
 		end
 		if has_friend then return "@JijiangCard=." end

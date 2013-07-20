@@ -435,9 +435,9 @@ function sgs.ai_slash_prohibit.xiangle(self, to, card, from)
 		jink_num = getCardsNum("Jink", from)
 	end
 	if self.player:getHandcardNum() == 2 then
-		if self.player:hasSkill("beifa") then self.player:setFlags("stack_overflow") end
+		if self.player:hasSkill("beifa") then self.player:setFlags("stack_overflow_xiangle") end
 		local needkongcheng = self:needKongcheng()
-		self.player:setFlags("-stack_overflow")
+		self.player:setFlags("-stack_overflow_xiangle")
 		if needkongcheng then return slash_num + anal_num + jink_num < 2 end
 	end
 	return slash_num + anal_num + math.max(jink_num - 1, 0) < 2

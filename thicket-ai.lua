@@ -1,6 +1,6 @@
 sgs.ai_skill_invoke.xingshang = true
 
-function SmartAI:toTurnOver(player, n)
+function SmartAI:toTurnOver(player, n, isFangzhu)
 	if not player then global_room:writeToConsole(debug.traceback()) return end
 	n = n or 0
 	if self:isEnemy(player) then
@@ -12,7 +12,7 @@ function SmartAI:toTurnOver(player, n)
 		end
 	end
 	
-	if self.player:hasSkill("fangzhu") and player:getHp() == 1 and sgs.ai_AOE_data then
+	if isFangzhu and player:getHp() == 1 and sgs.ai_AOE_data then
 		local use = sgs.ai_AOE_data:toCardUse()
 		if use.to:contains(player) and self:aoeIsEffective(use.card, player) and self:playerGetRound(player) > self:playerGetRound(self.player)
 			and player:isKongcheng() then return false end
@@ -53,7 +53,7 @@ sgs.ai_skill_playerchosen.fangzhu = function(self, targets)
 			target = self:findPlayerToDraw(false, n)
 			if not target then
 				for _, enemy in ipairs(self.enemies) do
-					if self:toTurnOver(enemy, n) and enemy:hasSkill("manjuan") and enemy:getPhase() == sgs.Player_NotActive then
+					if self:toTurnOver(enemy, n, true) and enemy:hasSkill("manjuan") and enemy:getPhase() == sgs.Player_NotActive then
 						target = enemy
 						break
 					end
@@ -62,14 +62,14 @@ sgs.ai_skill_playerchosen.fangzhu = function(self, targets)
 		else
 			self:sort(self.enemies, "chaofeng")
 			for _, enemy in ipairs(self.enemies) do
-				if self:toTurnOver(enemy, n) and enemy:hasSkill("manjuan") and enemy:getPhase() == sgs.Player_NotActive then
+				if self:toTurnOver(enemy, n, true) and enemy:hasSkill("manjuan") and enemy:getPhase() == sgs.Player_NotActive then
 					target = enemy
 					break
 				end
 			end
 			if not target then
 				for _, enemy in ipairs(self.enemies) do
-					if self:toTurnOver(enemy, n) and self:hasSkills(sgs.priority_skill, enemy) then
+					if self:toTurnOver(enemy, n, true) and self:hasSkills(sgs.priority_skill, enemy) then
 						target = enemy
 						break
 					end
@@ -77,7 +77,7 @@ sgs.ai_skill_playerchosen.fangzhu = function(self, targets)
 			end
 			if not target then
 				for _, enemy in ipairs(self.enemies) do
-					if self:toTurnOver(enemy, n) then
+					if self:toTurnOver(enemy, n, true) then
 						target = enemy
 						break
 					end

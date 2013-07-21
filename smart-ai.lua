@@ -2062,7 +2062,7 @@ function SmartAI:filterEvent(event, player, data)
 				
 				local is_neutral = sgs.evaluatePlayerRole(player) == "neutral" and CanUpdateIntention(player)
 					
-				if isCard("Slash", card, player) and not player:hasFlag("hasUsedSlash") then
+				if isCard("Slash", card, player) and not player:hasFlag("hasUsedSlash") or player:hasFlag("JiangchiInvoke") then
 					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
 						local has_slash_prohibit_skill = false
 						for _, askill in sgs.qlist(target:getVisibleSkillList()) do

@@ -1725,7 +1725,7 @@ sgs.ai_skill_use_func.FanjianCard=function(card,use,self)
 			for _, enemy in ipairs(self.enemies) do
 				if self:canAttack(enemy) and not enemy:hasSkills("qingnang|jijiu|tianxiang")
 					and not (wgt and card:getTypeId() ~= sgs.Card_Basic and (enemy:isKongcheng() or enemy:objectName() == wgt:objectName())) then
-					use.card = sgs.Card_Parse("@FanjianCard=")
+					use.card = sgs.Card_Parse("@FanjianCard=.")
 					if use.to then use.to:append(enemy) end
 					return
 				end

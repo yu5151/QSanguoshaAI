@@ -464,8 +464,9 @@ sgs.ai_skill_use["@@tianxiang"] = function(self, data)
 
 	for _, enemy in ipairs(self.enemies) do
 		if (enemy:getHp() <= dmg.damage and enemy:isAlive()) then
-			if ((enemy:getHandcardNum() <= 2) or self:hasSkills("guose|leiji|ganglie|enyuan|qingguo|wuyan|kongcheng", enemy)
-				or enemy:containsTrick("indulgence")) and self:canAttack(enemy, (dmg.from or self.room:getCurrent()), dmg.nature) then
+			if ((enemy:getHandcardNum() <= 2) or self:hasSkills("guose|leiji|ganglie|enyuan|qingguo|wuyan|kongcheng", enemy) or enemy:containsTrick("indulgence"))
+				and self:canAttack(enemy, (dmg.from or self.room:getCurrent()), dmg.nature)
+				and not (dmg.card and dmg.card:isKindOf("TrickCard") and enemy:hasSkill("wuyan")) then
 				return "@TianxiangCard="..card_id.."->"..enemy:objectName() 
 			end
 		end
@@ -473,13 +474,14 @@ sgs.ai_skill_use["@@tianxiang"] = function(self, data)
 
 	for _, friend in ipairs(self.friends_noself) do
 		if (friend:getLostHp() + dmg.damage > 1 and friend:isAlive()) then
-			if friend:isChained() and #(self:getChainedFriends()) > 1 and dmg.nature ~= sgs.DamageStruct_Normal then
+			if friend:isChained() and dmg.nature ~= sgs.DamageStruct_Normal and not self:isGoodChainTarget(who, dmg.from, dmg.nature, dmg.damage, dmg.card) then
 			elseif friend:getHp() >= 2 and dmg.damage < 2 and 
 				(self:hasSkills("yiji|buqu|shuangxiong|zaiqi|yinghun|jianxiong|fangzhu", friend)
 					or self:getDamagedEffects(friend, dmg.from or self.room:getCurrent())
 					or self:needToLoseHp(friend, dmg.from or self.room:getCurrent(), nil, true)
 					or (friend:getHandcardNum() < 3 and friend:hasSkill("rende")))
 				then return "@TianxiangCard="..card_id.."->"..friend:objectName()
+			elseif dmg.card and dmg.card:isKindOf("TrickCard") and friend:hasSkill("wuyan") and friend:getLostHp() > 1 then return "@TianxiangCard="..card_id.."->"..friend:objectName()
 			elseif friend:hasSkill("buqu") then return "@TianxiangCard="..card_id.."->"..friend:objectName() end
 		end
 	end
@@ -489,13 +491,17 @@ sgs.ai_skill_use["@@tianxiang"] = function(self, data)
 			if ((enemy:getHandcardNum() <= 2)
 				or enemy:containsTrick("indulgence") or self:hasSkills("guose|leiji|ganglie|enyuan|qingguo|wuyan|kongcheng", enemy))
 				and self:canAttack(enemy, (dmg.from or self.room:getCurrent()), dmg.nature)
+				and not (dmg.card and dmg.card:isKindOf("TrickCard") and enemy:hasSkills("wuyan"))
 			then return "@TianxiangCard="..card_id.."->"..enemy:objectName() end
 		end
 	end
 
 	for i = #self.enemies, 1, -1 do
 		local enemy = self.enemies[i]
-		if not enemy:isWounded() and not self:hasSkills(sgs.masochism_skill, enemy) and enemy:isAlive() and self:canAttack(enemy, (dmg.from or self.room:getCurrent()), dmg.nature) then
+		if not enemy:isWounded() and not self:hasSkills(sgs.masochism_skill, enemy) and enemy:isAlive() 
+			and self:canAttack(enemy, (dmg.from or self.room:getCurrent()), dmg.nature)
+			and (not (dmg.card and dmg.card:isKindOf("TrickCard") and enemy:hasSkill("wuyan") and enemy:getLostHp() > 0) or self:isWeak())
+			then
 			return "@TianxiangCard="..card_id.."->"..enemy:objectName()
 		end
 	end

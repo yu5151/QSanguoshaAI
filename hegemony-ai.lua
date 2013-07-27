@@ -108,11 +108,10 @@ end
 
 sgs.ai_chaofeng.yuejin = 2
 
-sgs.ai_skill_use["@@shushen"] = function(self, prompt)
-	if #self.friends_noself == 0 then return "." end
+sgs.ai_skill_playerchosen.shushen = function(self, targets)
+	if #self.friends_noself == 0 then return end
 	local to = self:findPlayerToDraw(false)
 	if to then return ("@ShushenCard=.->%s"):format(to:objectName()) end
-	return "."
 end
 
 sgs.ai_card_intention.ShushenCard = -80

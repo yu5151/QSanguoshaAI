@@ -1608,10 +1608,12 @@ function getTrickIntention(TrickClass, target)
 		return Intention 
 	elseif type(Intention == "function") then
 		if TrickClass == "IronChain" then --这个铁索连环真让人头疼……不知还有没有别的仇恨值是函数的锦囊
-			if target:isChained() then
-				return -80
-			else
-				return 80
+			if target then
+				if target:isChained() then
+					return -80
+				else
+					return 80
+				end
 			end
 		end
 	end
@@ -1654,7 +1656,12 @@ sgs.ai_choicemade_filter.Nullification.general = function(player, promptlist)
 		sgs.Nullification_Source = findPlayerByObjectName(global_room, target_objectName)
 		sgs.Nullification_Level = 1
 		sgs.Nullification_Intention = getTrickIntention(TrickClass, sgs.Nullification_Source)
-		if sgs.ai_role[sgs.Nullification_Source:objectName()] == "neutral" and sgs.TrickUsefrom and sgs.ai_role[sgs.TrickUsefrom:objectName()] ~= "neutral" and
+		local neutral = false
+		if sgs.Nullification_Source then --有时Nullification_Source会是nil，不能取objectName
+			local source = sgs.Nullification_Source:objectName()
+			neutral = (sgs.ai_role[source] == "neutral")
+		end
+		if neutral and sgs.TrickUsefrom and sgs.ai_role[sgs.TrickUsefrom:objectName()] ~= "neutral" and
 			sgs.Nullification_Intention ~= 0 and (TrickClass == ("Snatch") or TrickClass == ("Dismantlement") or TrickClass == ("FireAttack") or TrickClass == ("Duel")) then
 			sgs.Nullification_Source = sgs.TrickUsefrom
 			sgs.Nullification_Intention = -sgs.Nullification_Intention

@@ -449,7 +449,7 @@ function sgs.ai_slash_prohibit.lianli(self, to, card, from)
 		if player:getMark("@tied") > 0 and self:isFriend(player, to) then
 			if player:hasSkill("tiandu") and sgs.ai_slash_prohibit.tiandu(self, player) then return true end
 			if player:hasLordSkill("hujia") and sgs.ai_slash_prohibit.hujia(self, player) then return true end
-			if player:hasSkill("leiji") and sgs.ai_slash_prohibit.leiji(self, player) then return true end
+			if player:hasSkill("leiji") and sgs.ai_slash_prohibit.leiji(self, player, nil, nil) then return true end
 			if player:hasSkill("weidi") and sgs.ai_slash_prohibit.weidi(self, player) then return true end
 		end
 	end

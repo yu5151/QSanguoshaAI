@@ -303,6 +303,9 @@ function sgs.ai_slash_prohibit.leiji(self, to, card, from)
 	
 	if sgs.card_lack[to:objectName()]["Jink"] == 2 then return true end
 	if getKnownCard(to, "Jink", true) >= 1 or (self:hasSuit("spade", true, to) and hcard >= 2) or hcard >= 4 then return true end
+	if not from then --倚天包连理AI（452行）并未给出from和card，会导致下文中IgnoreArmor出错，在此进行补充。
+		from = self.room:getCurrent()
+	end
 	if self:hasEightDiagramEffect(to) and not IgnoreArmor(from, to) then return true end
 end
 

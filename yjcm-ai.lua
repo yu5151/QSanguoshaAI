@@ -530,11 +530,18 @@ sgs.ai_skill_invoke.buyi = function(self, data)
 	if dying.who:isKongcheng() then return false end
 
 	isFriend = not self:isEnemy(dying.who)
-	if not sgs.GetConfig("EnableHegemony", false) and self.role == "renegade" and not (dying.who:isLord() or dying.who:objectName() == self.player:objectName())
-		and (sgs.current_mode_players["loyalist"] + 1 == sgs.current_mode_players["rebel"]
+	if not sgs.GetConfig("EnableHegemony", false) then
+		if self.role == "renegade" then
+			if self.room:getMode() == "couple" then --“夫妻协战”模式，考虑对孙坚（内奸）发动
+				--waiting for more details
+			elseif not (dying.who:isLord() or dying.who:objectName() == self.player:objectName()) then
+				if (sgs.current_mode_players["loyalist"] + 1 == sgs.current_mode_players["rebel"]
 				or sgs.current_mode_players["loyalist"] == sgs.current_mode_players["rebel"]
 				or self.room:getCurrent():objectName() == self.player:objectName()) then
-		isFriend = false
+					isFriend = false
+				end
+			end
+		end
 	end
 
 	local knownNum = 0

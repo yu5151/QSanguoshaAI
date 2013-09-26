@@ -1857,7 +1857,7 @@ function SmartAI:filterEvent(event, player, data)
 				if self:isFriend(target, from) and sgs.ai_role[target:objectName()] == "rebel" and target:getHp() == 1 and target:isKongcheng()
 				and sgs.isGoodTarget(target, nil, self) and getCardsNum("Analeptic", target) + getCardsNum("Peach", target) == 0
 				and self:getEnemyNumBySeat(from, target) > 0 then
-					target:setFlags("AI_doNotSave")
+					if not target:hasFlag("AI_doNotSave") then target:setFlags("AI_doNotSave") end
 				end
 			end
 		end
@@ -2826,7 +2826,8 @@ function SmartAI:askForCardChosen(who, flags, reason, method)
 end
 
 function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
-	local damage_nature = sgs.DamageStruct_Normal	if self.player:isDead() then return "." end
+	if self.player:isDead() then return "." end
+	local damage_nature = sgs.DamageStruct_Normal
 	local effect
 	if type(data) == "userdata" then
 		effect = data:toSlashEffect()
@@ -2843,12 +2844,14 @@ function sgs.ai_skill_cardask.nullfilter(self, data, pattern, target)
 	if effect and self:hasHeavySlashDamage(target, effect.slash, self.player) then return end
 	if target and target:hasSkill("jueqing") and self:needToLoseHp() then return "." end
 	if target and target:hasSkill("jueqing") then return end
-	if effect and effect.from and effect.from:hasSkill("nosqianxi") and effect.from:distanceTo(self.player) == 1 then return end	
+	if effect and effect.from and effect.from:hasSkill("nosqianxi") and effect.from:distanceTo(self.player) == 1 then return end
 	if not self:damageIsEffective(nil, damage_nature, target) then return "." end
 	if target and target:hasSkill("guagu") and self.player:isLord() then return "." end
-	if effect and target and target:hasWeapon("IceSword") and self.player:getCards("he"):length() > 1 then return end	
+	if effect and target and target:hasWeapon("IceSword") and self.player:getCards("he"):length() > 1 then return end
 	if self:getDamagedEffects(self.player, target) or self:needToLoseHp() then return "." end
 
+	if target and sgs.ai_role[target:objectName()] == "rebel" and self.role == "rebel" and self.player:hasFlag("AI_doNotSave") then return "." end
+	if target and self:needDeath() then return "." end
 	if self:needBear() and self.player:getHp() > 2 then return "." end
 	if self.player:hasSkill("zili") and not self.player:hasSkill("paiyi") and self.player:getLostHp() < 2 then return "." end
 	if self.player:hasSkill("wumou") and self.player:getMark("@wrath") < 7 and self.player:getHp() > 2 then return "." end

@@ -747,7 +747,9 @@ sgs.ai_skill_invoke.danshou = function(self, data)
 	if phase < sgs.Player_Play then
 		return self:willSkipPlayPhase()
 	elseif phase == sgs.Player_Play then
-		if self:getOverflow() >= 2 then
+		if self.player:isChained() and (damage.chain or self.room:getTag("is_chained"):toInt() > 0) and self:isGoodChainTarget(self.player) then
+			return false
+		elseif self:getOverflow() >= 2 then
 			return true
 		else
 			if damage.chain or self.room:getTag("is_chained"):toInt() > 0 then

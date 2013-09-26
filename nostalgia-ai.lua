@@ -46,7 +46,8 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 	local index = 0
 	local hasPeach = (self:getCardsNum("Peach") > 0)
 	local to
-	local AssistTarget = self:AssistTarget() and not self:willSkipPlayPhase(AssistTarget)
+	local AssistTarget = self:AssistTarget()
+	if self:willSkipPlayPhase(AssistTarget) then AssistTarget = nil end
 
 	local trick_num, basic_num, equip_num = 0, 0, 0
 	if not hasPeach and self.player:isWounded() and self.player:getCards("he"):length() >=3 then

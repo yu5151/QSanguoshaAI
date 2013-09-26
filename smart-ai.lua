@@ -4196,6 +4196,18 @@ function SmartAI:getKnownNum(player)
 	end
 end
 
+function getKnownNum(player)
+	if not player then global_room:writeToConsole(debug.traceback()) return end
+	local cards = player:getHandcards()
+	local known = 0
+	for _, card in sgs.qlist(cards) do
+		local flag=string.format("%s_%s_%s","visible",global_room:getCurrent():objectName(),player:objectName())
+		if card:hasFlag("visible") or card:hasFlag(flag) then
+			known = known + 1
+		end
+	end
+	return known
+end
 
 function getKnownCard(player, class_name, viewas, flags)
 	if not player then global_room:writeToConsole(debug.traceback()) return 0 end
@@ -4542,7 +4554,8 @@ function SmartAI:getAllPeachNum(player)
 end
 function SmartAI:getRestCardsNum(class_name, yuji)
 	yuji = yuji or self.player
-	local ban = sgs.GetConfig("BanPackages", "")
+	local ban = sgs.Sanguosha:getBanPackages()
+	ban = table.concat(ban, "|")
 	sgs.discard_pile = self.room:getDiscardPile()
 	local totalnum = 0
 	local discardnum = 0
@@ -5383,6 +5396,18 @@ function SmartAI:useEquipCard(card, use)
 					return
 				end
 			end
+		end
+	elseif card:isKindOf("DefensiveHorse") then
+		if self.player:hasSkill("tiaoxin") then
+			local dummy_use = { isDummy = true, DefHorse = true }
+			self:useSkillCard(sgs.Card_Parse("@TiaoxinCard=."), dummy_use)
+			if dummy_use.card and self.lua_ai:useCard(card) then
+				use.card = card
+				return
+			end			
+		elseif self.lua_ai:useCard(card) then
+			use.card = card 
+			return
 		end
 	elseif self.lua_ai:useCard(card) then
 		use.card = card

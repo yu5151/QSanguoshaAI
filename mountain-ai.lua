@@ -586,9 +586,10 @@ tiaoxin_skill.getTurnUseCard = function(self)
 end
 
 sgs.ai_skill_use_func.TiaoxinCard = function(card,use,self)
+	local distance = use.DefHorse and 1 or 0
 	local targets = {}
 	for _, enemy in ipairs(self.enemies) do
-		if enemy:inMyAttackRange(self.player) and not self:doNotDiscard(enemy) and self:isTiaoxinTarget(enemy) then
+		if enemy:distanceTo(self.player, distance) <= enemy:getAttackRange() and not self:doNotDiscard(enemy) and self:isTiaoxinTarget(enemy) then
 			table.insert(targets, enemy)
 		end
 	end

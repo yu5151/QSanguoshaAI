@@ -163,6 +163,17 @@ function sgs.getDefenseSlash(player)
 		if attacker:hasSkill("kofliegong") and hcard >= attacker:getHp() then defense = 0 end
 	end	
 
+	if attacker:hasSkill("wushuang") and getKnownCard(player, "Jink", true, "he") < 2
+		and (player:getHandcardNum() < 2 or getCardsNum("Jink", player) < 2)
+		and (not player:hasLordSkill("hujia") and player:getHandcardNum() < 2 or hujiaJink < 2) then
+		defense = 0
+	end
+	
+	if attacker:hasSkill("dahe") and player:hasFlag("dahe")	and getKnownCard(player, "Jink", true, "he") == 0 and getKnownNum(player) == player:getHandcardNum()
+		and not (player:hasLordSkill("hujia") and hujiaJink >= 1) then
+		defense = 0
+	end
+	
 	if player:hasFlag("QianxiTarget") then
 		local red = player:getMark("@qianxi_red") > 0
 		local black = player:getMark("@qianxi_black") > 0
@@ -2188,7 +2199,8 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 		if self:slashIsAvailable() then
 			for _, slash in ipairs(self:getCards("Slash")) do
 				if not self:slashProhibit(slash, enemy) and enemy:getHandcardNum() == 1 and enemy:getHp() == 1 and self:hasLoseHandcardEffective(enemy)
-					and self:objectiveLevel(enemy) > 3 and not self:cantbeHurt(enemy) and not enemy:hasSkills("kongcheng|tianming") and self.player:canSlash(enemy, slash)
+					and self:objectiveLevel(enemy) > 3 and not self:cantbeHurt(enemy) and not enemy:hasSkills("kongcheng|tianming")
+					and self.player:canSlash(enemy, slash) and (self:hasTrickEffective(card, enemy) or isYinling)
 					and (not enemy:isChained() or self:isGoodChainTarget(enemy, nil, nil, nil, slash))
 					and (not self:hasEightDiagramEffect() or IgnoreArmor(self.player, enemy)) then
 					if addTarget(enemy, enemy:getHandcards():first():getEffectiveId()) then return end

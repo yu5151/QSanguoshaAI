@@ -551,7 +551,7 @@ sgs.ai_skill_use_func.SmallYeyanCard = function(card, use, self)
 	self:sort(self.enemies, "hp")
 	for _, enemy in ipairs(self.enemies) do
 		if not (enemy:hasSkill("tianxiang") and enemy:getHandcardNum() > 0) and self:damageIsEffective(enemy, sgs.DamageStruct_Fire)
-			and enemy:isChained() and self:isGoodChainTarget(enemy) and enemy:hasArmorEffect("Vine") and not targets:append(enemy) then
+			and enemy:isChained() and self:isGoodChainTarget(enemy) and enemy:hasArmorEffect("Vine") and not targets:contains(enemy) then
 			targets:append(enemy)
 			if targets:length() >= 3 then break end
 		end
@@ -559,7 +559,7 @@ sgs.ai_skill_use_func.SmallYeyanCard = function(card, use, self)
 	if targets:length() < 3 then
 		for _, enemy in ipairs(self.enemies) do
 			if not (enemy:hasSkill("tianxiang") and enemy:getHandcardNum() > 0) and self:damageIsEffective(enemy, sgs.DamageStruct_Fire)
-				and enemy:isChained() and self:isGoodChainTarget(enemy) and not targets:append(enemy) then
+				and enemy:isChained() and self:isGoodChainTarget(enemy) and not targets:contains(enemy) then
 				targets:append(enemy)
 				if targets:length() >= 3 then break end
 			end
@@ -568,7 +568,7 @@ sgs.ai_skill_use_func.SmallYeyanCard = function(card, use, self)
 	if targets:length() < 3 then
 		for _, enemy in ipairs(self.enemies) do
 			if not (enemy:hasSkill("tianxiang") and enemy:getHandcardNum() > 0) and self:damageIsEffective(enemy, sgs.DamageStruct_Fire)
-				and not enemy:isChained() and enemy:hasArmorEffect("Vine") and not targets:append(enemy) then
+				and not enemy:isChained() and enemy:hasArmorEffect("Vine") and not targets:contains(enemy) then
 				targets:append(enemy)
 				if targets:length() >= 3 then break end
 			end
@@ -577,7 +577,7 @@ sgs.ai_skill_use_func.SmallYeyanCard = function(card, use, self)
 	if targets:length() < 3 then
 		for _, enemy in ipairs(self.enemies) do
 			if not (enemy:hasSkill("tianxiang") and enemy:getHandcardNum() > 0) and self:damageIsEffective(enemy, sgs.DamageStruct_Fire)
-				and not enemy:isChained() and not targets:append(enemy) then
+				and not enemy:isChained() and not targets:contains(enemy) then
 				targets:append(enemy)
 				if targets:length() >= 3 then break end
 			end

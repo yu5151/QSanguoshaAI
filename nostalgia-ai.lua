@@ -47,7 +47,7 @@ sgs.ai_skill_use_func.NosJujianCard = function(card, use, self)
 	local hasPeach = (self:getCardsNum("Peach") > 0)
 	local to
 	local AssistTarget = self:AssistTarget()
-	if self:willSkipPlayPhase(AssistTarget) then AssistTarget = nil end
+	if AssistTarget and self:willSkipPlayPhase(AssistTarget) then AssistTarget = nil end
 
 	local trick_num, basic_num, equip_num = 0, 0, 0
 	if not hasPeach and self.player:isWounded() and self.player:getCards("he"):length() >=3 then
@@ -418,7 +418,7 @@ end
 
 sgs.ai_card_intention.NosJiefanCard = sgs.ai_card_intention.Peach
 
-sgs.ai_skill_cardask["nosjiefan-slash"] = function(self, data, pattern, target)
+sgs.ai_skill_cardask["jiefan-slash"] = function(self, data, pattern, target)
 	if self:isEnemy(target) and self:needLeiji(target, self.player) then return "." end
 	for _, slash in ipairs(self:getCards("Slash")) do
 		if self:slashIsEffective(slash, target) then 

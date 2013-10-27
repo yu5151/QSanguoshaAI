@@ -378,8 +378,8 @@ sgs.ai_skill_use["@@xuanfeng"] = function(self, prompt)
 end
 
 sgs.ai_card_intention.XuanfengCard = function(self, card, from, tos)
-	local intention = 80
 	for i=1, #tos do
+		local intention = 80
 		local to = tos[i]
 		if to:hasSkill("kongcheng") and to:getHandcardNum() == 1 and to:getHp() <= 2 then
 			intention = 0

@@ -291,18 +291,18 @@ function SmartAI:slashProhibit(card, enemy, from)
 		if filter and type(filter) == "function" and filter(self, enemy, card, from) then return true end
 	end
 
-	if self:isFriend(enemy) then
+	if self:isFriend(enemy, from) then
 		if card:isKindOf("FireSlash") or from:hasWeapon("Fan") or from:hasSkill("zonghuo") then
 			if enemy:hasArmorEffect("Vine") and not (enemy:isChained() and self:isGoodChainTarget(enemy, nil, nil, nil, card)) then return true end
 		end
 		if enemy:isChained() and (card:isKindOf("NatureSlash") or from:hasSkill("zonghuo")) and self:slashIsEffective(card, enemy, nil, from)
-			and (not self:isGoodChainTarget(enemy, self.player, nature, nil, card) and not from:hasSkill("jueqing")) then return true end
+			and (not self:isGoodChainTarget(enemy, from, nature, nil, card) and not from:hasSkill("jueqing")) then return true end
 		if getCardsNum("Jink",enemy) == 0 and enemy:getHp() < 2 and self:slashIsEffective(card, enemy, nil, from) then return true end
 		if enemy:isLord() and self:isWeak(enemy) and self:slashIsEffective(card, enemy, nil, from) then return true end
-		if self:isEquip("GudingBlade") and enemy:isKongcheng() then return true end
+		if self:isEquip("GudingBlade", from) and enemy:isKongcheng() then return true end
 	else
 		if (card:isKindOf("NatureSlash") or from:hasSkill("zonghuo")) and not from:hasSkill("jueqing") and enemy:isChained()
-			and not self:isGoodChainTarget(enemy, self.player, nature, nil, card) and self:slashIsEffective(card, enemy, nil, from) then
+			and not self:isGoodChainTarget(enemy, from, nature, nil, card) and self:slashIsEffective(card, enemy, nil, from) then
 			return true
 		end
 	end
@@ -408,7 +408,7 @@ function SmartAI:shouldUseAnaleptic(target, slash, anal)
 	if target:hasSkill("anxian") and target:getHandcardNum() > 0 then return false end
 	
 	if self:hasSkills(sgs.masochism_skill .. "|longhun|buqu|" .. sgs.recover_skill .. "|" .. sgs.exclusive_skill ,target) and 
-		self.player:hasSkill("nosqianxi") and self.player:distanceTo(enemy) == 1 then
+		self.player:hasSkill("nosqianxi") and self.player:distanceTo(target) == 1 then
 			return false
 	end
 	
@@ -428,6 +428,9 @@ function SmartAI:shouldUseAnaleptic(target, slash, anal)
 	if self.player:hasWeapon("Axe") and self.player:getCards("he"):length() > 4 then return true end
 	if self.player:hasSkill("tieji") then return true end
 	
+	local hasHeart = false
+	local hasBlack = false
+	local hasRed = false
 	for _, card in ipairs(self:getCards("Jink"), target) do
 		if card:getSuit() == sgs.Card_Heart then hasHeart = true end
 		if card:isRed() then hasRed = true end
@@ -2098,7 +2101,6 @@ function SmartAI:getValuableCard(who)
 	
 	if offhorse and who:getHandcardNum() > 1 then
 		if not self:doNotDiscard(who, "e", true) then
-		else
 			for _,friend in ipairs(self.friends) do
 				if who:distanceTo(friend) == who:getAttackRange() and who:getAttackRange() > 1 then
 					return offhorse:getEffectiveId()

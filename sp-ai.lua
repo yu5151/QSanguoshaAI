@@ -452,7 +452,7 @@ sgs.ai_card_intention.XuejiCard = function(self, card, from, tos)
 			end
 		end
 		if to:hasSkill("hunzi") and to:getMark("hunzi") == 0 then
-			if to:objectName() == to:getNextAlive():objectName() and to:getHp() == 2 then 
+			if to:objectName() == from:getNextAlive():objectName() and to:getHp() == 2 then 
 				intention = -20 
 			end
 		end
@@ -559,7 +559,7 @@ sgs.ai_skill_cardask["@xingwu"] = function(self, data)
 	for _, enemy in ipairs(self.enemies) do
 		if enemy:isMale() and ((self:damageIsEffective(enemy) and not self:cantbeHurt(enemy, 2, self.player))
 								or (not self:damageIsEffective(enemy) and not enemy:getEquips():isEmpty()
-									and not (enemy:getEquips():length() == 1 and enemy:getArmor() and self:needToThrowArmor()))) then
+									and not (enemy:getEquips():length() == 1 and enemy:getArmor() and self:needToThrowArmor(enemy)))) then
 			table.insert(good_enemies, enemy)
 		end
 	end

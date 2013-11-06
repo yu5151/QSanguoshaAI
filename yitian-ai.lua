@@ -690,7 +690,7 @@ sgs.ai_skill_invoke.gongmou = function(self)
 	sgs.gongmou_target = nil
 	if self.player:hasSkill("manjuan") then return false end
 	self:sort(self.friends_noself, "defense")
-	for _, friend in ipairs(self, friends_noself) do
+	for _, friend in ipairs(self.friends_noself) do
 		if friend:hasSkill("enyuan") then
 			sgs.gongmou_target = friend
 		elseif friend:hasSkill("manjuan") then

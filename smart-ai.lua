@@ -184,8 +184,8 @@ function SmartAI:initialize(player)
 				
 		setInitialTables()
 		if sgs.isRolePredictable() then
-			sgs.explicit_renegade = true
 			for _, aplayer in sgs.qlist(global_room:getAllPlayers()) do
+				if aplayer:getRole() == "renegade" then sgs.explicit_renegade = true end
 				if aplayer:getRole() ~= "lord" then
 					sgs.role_evaluation[aplayer:objectName()][aplayer:getRole()] = 65535
 					sgs.ai_role[aplayer:objectName()] = aplayer:getRole()
@@ -915,6 +915,7 @@ function sgs.modifiedRoleEvaluation()
 			if sgs.role_evaluation[name]["loyalist"] < 0 and sgs.role_evaluation[name]["renegade"] > 0 then
 				sgs.role_evaluation[name]["loyalist"] = math.min(-sgs.role_evaluation[name]["renegade"], sgs.role_evaluation[name]["loyalist"])
 				sgs.role_evaluation[name]["renegade"] = 0
+				sgs.outputRoleValues(p, 0)
 				global_room:writeToConsole("rebel:" .. p:getGeneralName() .." Modified Success!")
 				break
 			end
@@ -927,13 +928,12 @@ function sgs.modifiedRoleEvaluation()
 			if sgs.role_evaluation[loyalist[1]:objectName()]["renegade"] > 0 and sgs.role_evaluation[loyalist[2]:objectName()]["renegade"] == 0 then
 				sgs.role_evaluation[loyalist[1]:objectName()]["renegade"] = sgs.role_evaluation[loyalist[1]:objectName()]["renegade"] + 5
 				sgs.ai_role[loyalist[1]:objectName()] = "renegade"
+				sgs.outputRoleValues(loyalist[1], 5)
 				global_room:writeToConsole("renegade:" .. loyalist[1]:getGeneralName() .." Modified Success!")
 			end
 		end
 	end
-	
-	if not sgs.explicit_renegade and rebel_num == 0 and #rebel > 0 and loyalist_num == #loyalist then sgs.explicit_renegade = true end
-	
+
 end
 
 function sgs.evaluatePlayerRole(player)
@@ -1219,6 +1219,10 @@ function SmartAI:objectiveLevel(player)
 					end
 				end
 			elseif loyal_num > 0 then
+				if sgs.explicit_renegade and renegade_num == 1 and sgs.role_evaluation[self.player:objectName()]["renegade"] == 0
+					and sgs.evaluatePlayerRole(player) == "loyalist" then
+					if target_role == "renegade" then return 5 else return -1 end
+				end
 				if player:isLord() then
 					if not sgs.explicit_renegade and sgs.role_evaluation[self.player:objectName()]["renegade"] == 0 then return 0 end
 					if not sgs.isLordHealthy() then return 0
@@ -1294,6 +1298,8 @@ function SmartAI:objectiveLevel(player)
 				elseif current_enemy_num >= rebel_num and loyal_num + renegade_num + 1 <= rebel_num then
 					return -1
 				end
+			else
+				if sgs.explicit_renegade and renegade_num == 1 then return -1 end
 			end
 			return 0
 		end
@@ -1313,21 +1319,24 @@ function SmartAI:objectiveLevel(player)
 				if maxhp == 2 then return self.player:isLord() and 0 or (player:getHp() == maxhp and 5 or 1) end      
 				return self.player:isLord() and 0 or 5
 			else
-				-- if self.player:isLord() then
-					-- if sgs.ai_role[player:objectName()] == "renegade" and player:getHp() > 1 then
-						-- return 5
-					-- else
-						-- return player:getHp() > 1 and 1 or 0
-					-- end
-				-- else
-					-- return sgs.ai_role[player:objectName()] == "renegade" and 5 or 0
-				-- end
 				if self.player:isLord() then
 					if sgs.ai_role[player:objectName()] == "loyalist" then return -2
 					else
 						return player:getHp() > 1 and 4 or 0
 					end
 				else
+					if self.role == "loyalist" and sgs.ai_role[self.player:objectName()] == "renegade" then
+						if #players == 2 then return 5 end
+						local renegade_value, renegade_player = 0
+						for _, p in ipairs(players) do
+							if sgs.role_evaluation[p:objectName()]["renegade"] > 0 then
+								renegade_value = sgs.role_evaluation[p:objectName()]["renegade"]
+								renegade_player = p
+							end
+						end
+						if renegade_player then return renegade_player:objectName() == player:objectName() and 5 or -1
+						else return 1 end
+					end
 					return sgs.ai_role[player:objectName()] == "loyalist" and -2 or 4
 				end
 			end	
@@ -1556,6 +1565,7 @@ function sgs.evaluateAlivePlayersRole()
 	end
 	table.sort(players, cmp)
 	
+	sgs.explicit_renegade = false
 	for i =1, #players, 1 do
 		local p = players[i]
 		local renegade_val = sgs.current_mode_players["rebel"] == 0 and 10 or 15
@@ -1568,9 +1578,10 @@ function sgs.evaluateAlivePlayersRole()
 			elseif sgs.role_evaluation[p:objectName()]["loyalist"] < 0 and sgs.current_mode_players["rebel"] > 0 then 
 				sgs.ai_role[p:objectName()] = "rebel"
 			else
-				if sgs.role_evaluation[p:objectName()]["loyalist"] > 0  then sgs.ai_role[p:objectName()] = "loyalist" end
-				if sgs.role_evaluation[p:objectName()]["loyalist"] < 0  then sgs.ai_role[p:objectName()] = "rebel" end
-				if sgs.role_evaluation[p:objectName()]["loyalist"] == 0 then sgs.ai_role[p:objectName()] = "neutral" end
+				sgs.ai_role[p:objectName()] = "neutral"
+				-- if sgs.role_evaluation[p:objectName()]["loyalist"] > 0  then sgs.ai_role[p:objectName()] = "loyalist" end
+				-- if sgs.role_evaluation[p:objectName()]["loyalist"] < 0  then sgs.ai_role[p:objectName()] = "rebel" end
+				-- if sgs.role_evaluation[p:objectName()]["loyalist"] == 0 then sgs.ai_role[p:objectName()] = "neutral" end
 			end
 		end
 		if sgs.current_mode_players["rebel"] == 0 and sgs.current_mode_players["loyalist"] == 0 and not p:isLord() then

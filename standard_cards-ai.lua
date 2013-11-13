@@ -837,32 +837,14 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 end
 
 sgs.ai_card_intention.Slash = function(self, card, from, tos)
-	if sgs.ai_liuli_effect then
-		sgs.ai_liuli_effect = false
-		return
-	end
+	if sgs.ai_liuli_effect then sgs.ai_liuli_effect = false return end
+	if sgs.ai_collateral then sgs.ai_collateral = false return end
 	for _, to in ipairs(tos) do
 		local value = 80
-		if sgs.ai_collateral then sgs.ai_collateral = false value = 0 end
-
-		if sgs.ai_leiji_effect then
-			if self:canLiegong(to, from) then 
-				sgs.ai_leiji_effect = false
-			end
-			
-			if sgs.ai_pojun_effect then
-				value = value/1.5
-			else
-				--value = -value/1.5
-				value = 0
-			end
-		end
 		speakTrigger(card, from, to)
-		if to:hasSkill("yiji") then
-			-- value = value*(2-to:getHp())/1.1
-			value = math.max(value*(2-to:getHp())/1.1, 0)
-		end
-		if to:hasSkill("leiji") and getCardsNum("Jink", to) > 0 then value = 0 end
+		if to:hasSkill("yiji") then value = 0 end
+		if to:hasSkill("leiji") and (getCardsNum("Jink", to) > 0 or to:hasArmorEffect("EightDiagram")) and not self:hasHeavySlashDamage(from, card, to)
+			and (hasExplicitRebel(self.room) or sgs.explicit_renegade) and not self:canLiegong(to, from) then value = 0 end
 		if not self:hasHeavySlashDamage(from, card, to) and (self:getDamagedEffects(to, from, true) or self:needToLoseHp(to, from, true, true)) then value = 0 end
 		if from:hasSkill("pojun") and to:getHp() > (2 + self:hasHeavySlashDamage(from, card, to, true)) then value = 0 end
 		if self:needLeiji(to, from) then value = -10 end
@@ -2634,7 +2616,7 @@ sgs.ai_use_priority.Collateral = 2.75
 
 sgs.ai_card_intention.Collateral = function(self,card, from, tos)
 	assert(#tos == 1)
-	sgs.ai_collateral = false
+	sgs.ai_collateral = true
 end
 
 sgs.dynamic_value.control_card.Collateral = true

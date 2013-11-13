@@ -1920,15 +1920,7 @@ function SmartAI:filterEvent(event, player, data)
 			sgs.ai_lord_in_danger_SA = nil
 			sgs.ai_lord_in_danger_AA = nil
 		end
-		if card:isKindOf("Collateral") then sgs.ai_collateral = true end
 
-		if card:isKindOf("Slash") then
-			if to:hasSkill("leiji") and (getCardsNum("Jink", to) > 0 or to:hasArmorEffect("EightDiagram")) then
-				if to:isLord() and not hasExplicitRebel(self.room) and not sgs.explicit_renegade then sgs.updateIntention(from, to, 50) end
-				sgs.ai_leiji_effect = true
-			end
-		end
-		
 		if from and to and to:hasSkills("longdan+chongzhen") and (card:isKindOf("AOE") or card:isKindOf("Slash")) then
 			sgs.chongzhen_target = from
 		end
@@ -2024,6 +2016,8 @@ function SmartAI:filterEvent(event, player, data)
 		
 		if card:isKindOf("Slash") and struct.from:objectName() == self.room:getCurrent():objectName() and struct.m_reason == sgs.CardUseStruct_CARD_USE_REASON_PLAY
 			and struct.m_addHistory then struct.from:setFlags("hasUsedSlash") end
+		
+		if card:isKindOf("Collateral") then sgs.ai_collateral = false end
 		
 	elseif event == sgs.CardsMoveOneTime then
 		local move = data:toMoveOneTime()

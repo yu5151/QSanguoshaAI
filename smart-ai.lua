@@ -1334,8 +1334,8 @@ function SmartAI:objectiveLevel(player)
 								renegade_player = p
 							end
 						end
-						if renegade_player then return renegade_player:objectName() == player:objectName() and 5 or -1
-						else return 1 end
+						if renegade_player then return renegade_player:objectName() == player:objectName() and 5 or -2
+						else return 4 end
 					end
 					return sgs.ai_role[player:objectName()] == "loyalist" and -2 or 4
 				end

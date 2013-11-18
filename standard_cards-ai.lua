@@ -585,15 +585,6 @@ function SmartAI:useCardSlash(card, use)
 						use.card = Weapons[1]
 						return
 					end
-					-- local equips = self:getCards("EquipCard", self.player, "h")
-					-- for _, equip in ipairs(equips) do
-						-- local callback = sgs.ai_slash_weaponfilter[equip:objectName()]
-						-- if callback and type(callback) == "function" and callback(target, self) and
-							-- self.player:distanceTo(target) <= (sgs.weapon_range[equip:getClassName()] or 0) then
-							-- self:useEquipCard(equip, use)
-							-- if use.card then return end
-						-- end
-					-- end
 				end
 				
 				if target:isChained() and self:isGoodChainTarget(target, nil, nil, nil, card) and not use.card then
@@ -639,6 +630,13 @@ function SmartAI:useCardSlash(card, use)
 				local anal = self:searchForAnaleptic(use, target, use.card)
 				if anal and self:shouldUseAnaleptic(target, use.card, anal) and anal:getEffectiveId() ~= card:getEffectiveId() then
 					use.card = anal
+					if use.to then use.to = sgs.SPlayerList() end
+					return
+				end
+				if self.player:hasSkill("jilve") and self.player:getMark("@bear") > 0 and self.player:hasFlag("JilveWansha") and target:getHp() == 1
+					and (target:isKongcheng() or getCardsNum("Jink", target) < 1 or sgs.card_lack[target:objectName()]["Jink"] == 1) then
+					use.card = sgs.Card_Parse("@JilveCard=.")
+					sgs.ai_skill_choice.jilve = "wansha"
 					if use.to then use.to = sgs.SPlayerList() end
 					return
 				end

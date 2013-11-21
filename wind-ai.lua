@@ -126,7 +126,7 @@ sgs.ai_skill_use["@@shensu2"] = function(self, prompt)
 end
 
 sgs.ai_cardneed.shensu = function(to, card)
-	return card:getTypeId() == sgs.Card_Equip and getKnownCard(to, "EquipCard", false) < 2
+	return card:getTypeId() == sgs.Card_TypeEquip and getKnownCard(to, "EquipCard", false) < 2
 end
 
 sgs.ai_card_intention.ShensuCard = 80
@@ -579,7 +579,7 @@ sgs.ai_skill_choice.guhuo = function(self, choices)
 	local questioner
 	for _, friend in ipairs(self.friends) do
 		if friend:getHp() == self.friends[#self.friends]:getHp() then
-			if self:hasSkills("rende|kuanggu|zaiqi|buqu|yinghun|longhun|xueji|baobian") then
+			if self:hasSkills("rende|kuanggu|zaiqi|buqu|yinghun|longhun|xueji|baobian", friend) then
 				questioner = friend
 				break
 			end
@@ -667,7 +667,7 @@ guhuo_skill.getTurnUseCard = function(self)
 		end
 		for i=1, #guhuos do
 			local forbiden = guhuos[i]
-			forbid = sgs.Sanguosha:cloneCard(forbiden, sgs.Card_NoSuit, 0)
+			local forbid = sgs.Sanguosha:cloneCard(forbiden, sgs.Card_NoSuit, 0)
 			if self.player:isLocked(forbid) then table.remove(forbiden, #guhuos) end
 		end
 		if can_fake_guhuo then

@@ -3850,7 +3850,7 @@ function SmartAI:needRetrial(judge)
 				or (who:hasSkill("jixi") and who:getPile("field"):length() > 2)
 				or (who:hasSkill("lihun") and self:IsLihunTarget(self:getEnemies(who), 0))
 				or (who:hasSkill("xiongyi") and who:getMark("@arise") > 0) then
-				if self:isFriend(to) then
+				if self:isFriend(who) then
 					return not judge:isGood()
 				else
 					return judge:isGood()

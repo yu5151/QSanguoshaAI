@@ -25,6 +25,7 @@ end
 sgs.ais = {}
 sgs.ai_card_intention = 	{}
 sgs.ai_playerchosen_intention = {}
+sgs.ai_Yiji_intention = {}
 sgs.role_evaluation = 		{}
 sgs.ai_role = 				{}
 sgs.ai_keep_value = 		{}
@@ -184,8 +185,8 @@ function SmartAI:initialize(player)
 				
 		setInitialTables()
 		if sgs.isRolePredictable() then
-			sgs.explicit_renegade = true
 			for _, aplayer in sgs.qlist(global_room:getAllPlayers()) do
+				if aplayer:getRole() == "renegade" then sgs.explicit_renegade = true end
 				if aplayer:getRole() ~= "lord" then
 					sgs.role_evaluation[aplayer:objectName()][aplayer:getRole()] = 65535
 					sgs.ai_role[aplayer:objectName()] = aplayer:getRole()
@@ -915,6 +916,7 @@ function sgs.modifiedRoleEvaluation()
 			if sgs.role_evaluation[name]["loyalist"] < 0 and sgs.role_evaluation[name]["renegade"] > 0 then
 				sgs.role_evaluation[name]["loyalist"] = math.min(-sgs.role_evaluation[name]["renegade"], sgs.role_evaluation[name]["loyalist"])
 				sgs.role_evaluation[name]["renegade"] = 0
+				sgs.outputRoleValues(p, 0)
 				global_room:writeToConsole("rebel:" .. p:getGeneralName() .." Modified Success!")
 				break
 			end
@@ -927,13 +929,12 @@ function sgs.modifiedRoleEvaluation()
 			if sgs.role_evaluation[loyalist[1]:objectName()]["renegade"] > 0 and sgs.role_evaluation[loyalist[2]:objectName()]["renegade"] == 0 then
 				sgs.role_evaluation[loyalist[1]:objectName()]["renegade"] = sgs.role_evaluation[loyalist[1]:objectName()]["renegade"] + 5
 				sgs.ai_role[loyalist[1]:objectName()] = "renegade"
+				sgs.outputRoleValues(loyalist[1], 5)
 				global_room:writeToConsole("renegade:" .. loyalist[1]:getGeneralName() .." Modified Success!")
 			end
 		end
 	end
-	
-	if not sgs.explicit_renegade and rebel_num == 0 and #rebel > 0 and loyalist_num == #loyalist then sgs.explicit_renegade = true end
-	
+
 end
 
 function sgs.evaluatePlayerRole(player)
@@ -1219,6 +1220,10 @@ function SmartAI:objectiveLevel(player)
 					end
 				end
 			elseif loyal_num > 0 then
+				if sgs.explicit_renegade and renegade_num == 1 and sgs.role_evaluation[self.player:objectName()]["renegade"] == 0
+					and sgs.evaluatePlayerRole(player) == "loyalist" then
+					if target_role == "renegade" then return 5 else return -1 end
+				end
 				if player:isLord() then
 					if not sgs.explicit_renegade and sgs.role_evaluation[self.player:objectName()]["renegade"] == 0 then return 0 end
 					if not sgs.isLordHealthy() then return 0
@@ -1294,6 +1299,7 @@ function SmartAI:objectiveLevel(player)
 				elseif current_enemy_num >= rebel_num and loyal_num + renegade_num + 1 <= rebel_num then
 					return -1
 				end
+			elseif sgs.explicit_renegade and renegade_num == 1 then return -1
 			end
 			return 0
 		end
@@ -1313,21 +1319,24 @@ function SmartAI:objectiveLevel(player)
 				if maxhp == 2 then return self.player:isLord() and 0 or (player:getHp() == maxhp and 5 or 1) end      
 				return self.player:isLord() and 0 or 5
 			else
-				-- if self.player:isLord() then
-					-- if sgs.ai_role[player:objectName()] == "renegade" and player:getHp() > 1 then
-						-- return 5
-					-- else
-						-- return player:getHp() > 1 and 1 or 0
-					-- end
-				-- else
-					-- return sgs.ai_role[player:objectName()] == "renegade" and 5 or 0
-				-- end
 				if self.player:isLord() then
 					if sgs.ai_role[player:objectName()] == "loyalist" then return -2
 					else
 						return player:getHp() > 1 and 4 or 0
 					end
 				else
+					if self.role == "loyalist" and sgs.ai_role[self.player:objectName()] == "renegade" then
+						if #players == 2 then return 5 end
+						local renegade_value, renegade_player = 0
+						for _, p in ipairs(players) do
+							if sgs.role_evaluation[p:objectName()]["renegade"] > 0 then
+								renegade_value = sgs.role_evaluation[p:objectName()]["renegade"]
+								renegade_player = p
+							end
+						end
+						if renegade_player then return renegade_player:objectName() == player:objectName() and 5 or -2
+						else return 4 end
+					end
 					return sgs.ai_role[player:objectName()] == "loyalist" and -2 or 4
 				end
 			end	
@@ -1556,6 +1565,7 @@ function sgs.evaluateAlivePlayersRole()
 	end
 	table.sort(players, cmp)
 	
+	sgs.explicit_renegade = false
 	for i =1, #players, 1 do
 		local p = players[i]
 		local renegade_val = sgs.current_mode_players["rebel"] == 0 and 10 or 15
@@ -1568,9 +1578,10 @@ function sgs.evaluateAlivePlayersRole()
 			elseif sgs.role_evaluation[p:objectName()]["loyalist"] < 0 and sgs.current_mode_players["rebel"] > 0 then 
 				sgs.ai_role[p:objectName()] = "rebel"
 			else
-				if sgs.role_evaluation[p:objectName()]["loyalist"] > 0  then sgs.ai_role[p:objectName()] = "loyalist" end
-				if sgs.role_evaluation[p:objectName()]["loyalist"] < 0  then sgs.ai_role[p:objectName()] = "rebel" end
-				if sgs.role_evaluation[p:objectName()]["loyalist"] == 0 then sgs.ai_role[p:objectName()] = "neutral" end
+				sgs.ai_role[p:objectName()] = "neutral"
+				-- if sgs.role_evaluation[p:objectName()]["loyalist"] > 0  then sgs.ai_role[p:objectName()] = "loyalist" end
+				-- if sgs.role_evaluation[p:objectName()]["loyalist"] < 0  then sgs.ai_role[p:objectName()] = "rebel" end
+				-- if sgs.role_evaluation[p:objectName()]["loyalist"] == 0 then sgs.ai_role[p:objectName()] = "neutral" end
 			end
 		end
 		if sgs.current_mode_players["rebel"] == 0 and sgs.current_mode_players["loyalist"] == 0 and not p:isLord() then
@@ -1695,6 +1706,31 @@ sgs.ai_choicemade_filter.viewCards.general = function(from, promptlist, self)
 		local flag = string.format("%s_%s_%s", "visible", from:objectName(), to:objectName())
 		for _, card in sgs.qlist(to:getHandcards()) do
 			if not card:hasFlag("visible") then card:setFlags(flag) end
+		end
+	end
+end
+
+sgs.ai_choicemade_filter.Yiji.general = function(from, promptlist, self)
+	local from = findPlayerByObjectName(promptlist[3])
+	local to = findPlayerByObjectName(promptlist[4])
+	local reason = promptlist[2]
+	local cards = {}
+	local card_ids = promptlist[5]:split("+")
+	for _, id in ipairs(card_ids) do
+		local card = sgs.Sanguosha:getCard(tonumber(id))
+		table.insert(cards, card)
+	end
+	if from and to then
+		local callback = sgs.ai_Yiji_intention[reason]
+		if callback then
+			if type(callback) == "number" and not (self:needKongcheng(to, true) and #cards == 1)
+				and not (to:hasSkill("manjuan") and to:getPhase() == sgs.Player_NotActive) then
+				sgs.updateIntention(from, to, sgs.ai_Yiji_intention[reason])
+			elseif type(callback) == "function" then
+				callback(self, from, to, cards)
+			end
+		elseif not (self:needKongcheng(to, true) and #cards == 1) and not (to:hasSkill("manjuan") and to:getPhase() == sgs.Player_NotActive) then
+			sgs.updateIntention(from, to, -10)
 		end
 	end
 end
@@ -1884,15 +1920,7 @@ function SmartAI:filterEvent(event, player, data)
 			sgs.ai_lord_in_danger_SA = nil
 			sgs.ai_lord_in_danger_AA = nil
 		end
-		if card:isKindOf("Collateral") then sgs.ai_collateral = true end
 
-		if card:isKindOf("Slash") then
-			if to:hasSkill("leiji") and (getCardsNum("Jink", to) > 0 or to:hasArmorEffect("EightDiagram")) then
-				if to:isLord() and not hasExplicitRebel(self.room) and not sgs.explicit_renegade then sgs.updateIntention(from, to, 50) end
-				sgs.ai_leiji_effect = true
-			end
-		end
-		
 		if from and to and to:hasSkills("longdan+chongzhen") and (card:isKindOf("AOE") or card:isKindOf("Slash")) then
 			sgs.chongzhen_target = from
 		end
@@ -1989,6 +2017,8 @@ function SmartAI:filterEvent(event, player, data)
 		if card:isKindOf("Slash") and struct.from:objectName() == self.room:getCurrent():objectName() and struct.m_reason == sgs.CardUseStruct_CARD_USE_REASON_PLAY
 			and struct.m_addHistory then struct.from:setFlags("hasUsedSlash") end
 		
+		if card:isKindOf("Collateral") then sgs.ai_collateral = false end
+		
 	elseif event == sgs.CardsMoveOneTime then
 		local move = data:toMoveOneTime()
 		local from = nil   -- convert move.from from const Player * to ServerPlayer *
@@ -2047,18 +2077,6 @@ function SmartAI:filterEvent(event, player, data)
 
 			end
 
-			if reason.m_skillName == "yiji" and reason.m_reason == sgs.CardMoveReason_S_REASON_PREVIEW and to and to:objectName() == player:objectName() then			
-				global_room:setCardFlag(card_id, "yijicard")
-			end
-			if move.to_place == sgs.Player_PlaceHand and place == sgs.Player_PlaceHand and to and from and from:objectName() == player:objectName()
-					and (from:hasSkill("yiji") and card:hasFlag("yijicard") or from:hasSkill("miji") and from:getPhase() == sgs.Player_Finish)
-					and (reason.m_reason == sgs.CardMoveReason_S_REASON_GIVE or reason.m_reason == sgs.CardMoveReason_S_REASON_PREVIEWGIVE) then
-				if (to:hasSkill("manjuan") and to:getPhase() == sgs.Player_NotActive) or to:hasSkill("kongcheng") then
-				else
-					sgs.updateIntention(from, to, -70)
-				end	
-			end
-			
 			-- 张角用
 			if player:hasFlag("AI_Playing") and player:hasSkill("leiji") and player:getPhase() == sgs.Player_Discard and isCard("Jink", card, player)
 			and player:getHandcardNum() >= 2 and reason.m_reason == sgs.CardMoveReason_S_REASON_RULEDISCARD then sgs.card_lack[player:objectName()]["Jink"] = 2 end
@@ -3123,21 +3141,29 @@ function SmartAI:getCardNeedPlayer(cards)
 		AssistTarget = nil
 	end
 	
-	local renegade_num = sgs.current_mode_players["renegade"]
-	if renegade_num > 0 and #friends > renegade_num then
-		local k = 0
-		for i, p in ipairs(friends) do
-			if sgs.ai_role[p:objectName()] == "renegade" 
-				or sgs.ai_role[p:objectName()] == "neutral" and sgs.role_evaluation[p:objectName()]["renegade"] >= 10
-				or sgs.ai_role[p:objectName()] == "loyalist" and sgs.role_evaluation[p:objectName()]["renegade"] >= 10 then
-				table.remove(friends, i)
-				k = k + 1
-				if AssistTarget and p:objectName() == AssistTarget:objectName() then AssistTarget = nil end
-				if k == renegade_num then break end
+	if self.role ~= "renegade" then
+		local R_num = sgs.current_mode_players["renegade"]
+		if R_num > 0 and #friends > R_num then
+			local k = 0
+			local temp_friends, new_friends = {}, {}
+			for _, p in ipairs(friends) do
+				if k < R_num and sgs.explicit_renegade and sgs.ai_role[p:objectName()] == "renegade" then
+					if AssistTarget and p:objectName() == AssistTarget:objectName() then AssistTarget = nil end
+					k = k + 1
+				else table.insert(temp_friends, p) end
+			end
+			if k == R_num then friends = temp_friends
+			else
+				for _, p in ipairs(temp_friends) do
+					if sgs.role_evaluation[p:objectName()]["renegade"] > 0 then
+						k = k + 1
+						if AssistTarget and p:objectName() == AssistTarget:objectName() then AssistTarget = nil end
+					else table.insert(new_friends, p) end
+				end
+				friends = new_friends
 			end
 		end
 	end
-	
 	-- special move between liubei and xunyu and huatuo
 	for _,player in ipairs(friends) do
 		if player:hasSkill("jieming") or player:hasSkill("jijiu") then
@@ -3346,7 +3372,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	
 	self:sort(friends, "defense")
 	for _, hcard in ipairs(cardtogive) do
-		for _, friend in ipairs(self.friends_noself) do
+		for _, friend in ipairs(friends) do
 			if not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") and not self:willSkipPlayPhase(friend)
 					and (self:hasSkills(sgs.priority_skill,friend) or (sgs.ai_chaofeng[self.player:getGeneralName()] or 0) > 2) then
 				if (self:getOverflow() > 0 or self.player:getHandcardNum() > 3) and friend:getHandcardNum() <= 3 then
@@ -3356,12 +3382,24 @@ function SmartAI:getCardNeedPlayer(cards)
 		end
 	end
 
+	local shoulduse = self.player:isWounded() and (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard") and self.player:getMark("rende") < 2)
+					or (self.player:hasSkill("nosrende") and self.player:getMark("nosrende") < 2)
+	
 	self:sort(friends, "handcard")
+	for _, hcard in ipairs(cardtogive) do
+		for _, friend in ipairs(friends) do
+			if not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") then
+				if friend:getHandcardNum() <= 3 and (self:getOverflow() > 0 or self.player:getHandcardNum() > 3 or shoulduse) then
+					return hcard, friend
+				end
+			end
+		end
+	end
+
 	for _, hcard in ipairs(cardtogive) do
 		for _, friend in ipairs(self.friends_noself) do
 			if not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") then
-				if friend:getHandcardNum() <= 3 and (self:getOverflow() > 0 or self.player:getHandcardNum() > 3 
-						or (self.player:hasSkill("rende") and self.player:isWounded() and self.player:usedTimes("RendeCard") < 2)) then
+				if friend:getHandcardNum() <= 3 and (self:getOverflow() > 0 or self.player:getHandcardNum() > 3 or shoulduse) then
 					return hcard, friend
 				end
 			end
@@ -3370,18 +3408,26 @@ function SmartAI:getCardNeedPlayer(cards)
 	
 	-- 如果所有队友都有3牌以上，刘备情愿弃牌也不仁德
 	for _, hcard in ipairs(cardtogive) do
-		for _, friend in ipairs(self.friends_noself) do
+		for _, friend in ipairs(friends) do
 			if not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") then
-				if (self:getOverflow() > 0 or self.player:getHandcardNum() > 3 
-						or (self.player:hasSkill("rende") and self.player:isWounded() and self.player:usedTimes("RendeCard") < 2)) then
+				if self:getOverflow() > 0 or self.player:getHandcardNum() > 3 or shoulduse then
 					return hcard, friend
 				end
 			end
 		end
 	end
+
+	for _, hcard in ipairs(cardtogive) do
+		for _, friend in ipairs(self.friends_noself) do
+			if not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") then
+				if self:getOverflow() > 0 or self.player:getHandcardNum() > 3 or shoulduse then
+					return hcard, friend
+				end
+			end
+		end
+	end	
 	
-	if #cards > 0 and ((self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard") and self.player:getMark("rende") < 2)
-						or (self.player:hasSkill("nosrende") and self.player:getMark("nosrende") < 2)) then
+	if #cards > 0 and shoulduse then
 		local need_rende = (sgs.current_mode_players["rebel"] ==0 and sgs.current_mode_players["loyalist"] > 0 and self.player:isWounded()) or 
 				(sgs.current_mode_players["rebel"] >0 and sgs.current_mode_players["renegade"] >0 and sgs.current_mode_players["loyalist"] ==0 and self:isWeak())
 		if need_rende then
@@ -4846,9 +4892,14 @@ function SmartAI:getAoeValueTo(card, to , from)
 	if card:isKindOf("SavageAssault") then sj_num = getCardsNum("Slash", to) end
 
 	if self:aoeIsEffective(card, to, from) then
+		local jink = sgs.Sanguosha:cloneCard("jink")
+		local slash = sgs.Sanguosha:cloneCard("slash")
+		local isLimited
+		if card:isKindOf("ArcheryAttack") and to:isCardLimited(jink, sgs.Card_MethodResponse) then isLimited = true
+		elseif card:isKindOf("SavageAssault") and to:isCardLimited(slash, sgs.Card_MethodResponse) then isLimited = true end
 		if card:isKindOf("SavageAssault") and sgs.card_lack[to:objectName()]["Slash"] == 1 
 			or card:isKindOf("ArcheryAttack") and sgs.card_lack[to:objectName()]["Jink"] == 1 
-			or sj_num < 1 then
+			or sj_num < 1 or isLimited then
 			value = -70
 		else
 			value = -50

@@ -174,6 +174,9 @@ function sgs.getDefenseSlash(player)
 		defense = 0
 	end
 	
+	local jink = sgs.Sanguosha:cloneCard("jink")
+	if player:isCardLimited(jink, sgs.Card_MethodUse) then defense = 0 end
+	
 	if player:hasFlag("QianxiTarget") then
 		local red = player:getMark("@qianxi_red") > 0
 		local black = player:getMark("@qianxi_black") > 0
@@ -585,15 +588,6 @@ function SmartAI:useCardSlash(card, use)
 						use.card = Weapons[1]
 						return
 					end
-					-- local equips = self:getCards("EquipCard", self.player, "h")
-					-- for _, equip in ipairs(equips) do
-						-- local callback = sgs.ai_slash_weaponfilter[equip:objectName()]
-						-- if callback and type(callback) == "function" and callback(target, self) and
-							-- self.player:distanceTo(target) <= (sgs.weapon_range[equip:getClassName()] or 0) then
-							-- self:useEquipCard(equip, use)
-							-- if use.card then return end
-						-- end
-					-- end
 				end
 				
 				if target:isChained() and self:isGoodChainTarget(target, nil, nil, nil, card) and not use.card then
@@ -639,6 +633,13 @@ function SmartAI:useCardSlash(card, use)
 				local anal = self:searchForAnaleptic(use, target, use.card)
 				if anal and self:shouldUseAnaleptic(target, use.card, anal) and anal:getEffectiveId() ~= card:getEffectiveId() then
 					use.card = anal
+					if use.to then use.to = sgs.SPlayerList() end
+					return
+				end
+				if self.player:hasSkill("jilve") and self.player:getMark("@bear") > 0 and not self.player:hasFlag("JilveWansha") and target:getHp() == 1
+					and (target:isKongcheng() or getCardsNum("Jink", target) < 1 or sgs.card_lack[target:objectName()]["Jink"] == 1) then
+					use.card = sgs.Card_Parse("@JilveCard=.")
+					sgs.ai_skill_choice.jilve = "wansha"
 					if use.to then use.to = sgs.SPlayerList() end
 					return
 				end
@@ -837,32 +838,14 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 end
 
 sgs.ai_card_intention.Slash = function(self, card, from, tos)
-	if sgs.ai_liuli_effect then
-		sgs.ai_liuli_effect = false
-		return
-	end
+	if sgs.ai_liuli_effect then sgs.ai_liuli_effect = false return end
+	if sgs.ai_collateral then sgs.ai_collateral = false return end
 	for _, to in ipairs(tos) do
 		local value = 80
-		if sgs.ai_collateral then sgs.ai_collateral = false value = 0 end
-
-		if sgs.ai_leiji_effect then
-			if self:canLiegong(to, from) then 
-				sgs.ai_leiji_effect = false
-			end
-			
-			if sgs.ai_pojun_effect then
-				value = value/1.5
-			else
-				--value = -value/1.5
-				value = 0
-			end
-		end
 		speakTrigger(card, from, to)
-		if to:hasSkill("yiji") then
-			-- value = value*(2-to:getHp())/1.1
-			value = math.max(value*(2-to:getHp())/1.1, 0)
-		end
-		if to:hasSkill("leiji") and getCardsNum("Jink", to) > 0 then value = 0 end
+		if to:hasSkill("yiji") then value = 0 end
+		if to:hasSkill("leiji") and (getCardsNum("Jink", to) > 0 or to:hasArmorEffect("EightDiagram")) and not self:hasHeavySlashDamage(from, card, to)
+			and (hasExplicitRebel(self.room) or sgs.explicit_renegade) and not self:canLiegong(to, from) then value = 0 end
 		if not self:hasHeavySlashDamage(from, card, to) and (self:getDamagedEffects(to, from, true) or self:needToLoseHp(to, from, true, true)) then value = 0 end
 		if from:hasSkill("pojun") and to:getHp() > (2 + self:hasHeavySlashDamage(from, card, to, true)) then value = 0 end
 		if self:needLeiji(to, from) then value = -10 end
@@ -958,6 +941,8 @@ sgs.ai_use_priority.Slash = 2.6
 function SmartAI:canHit(to, from, conservative)
 	from = from or self.room:getCurrent()
 	to = to or self.player
+	local jink = sgs.Sanguosha:cloneCard("jink")
+	if to:isCardLimited(jink, sgs.Card_MethodUse) then return true end
 	if self:canLiegong(to, from) then return true end
 	if not self:isFriend(to, from) then
 		if from:hasWeapon("Axe") and from:getCards("he"):length() > 2 then return true end
@@ -1215,7 +1200,9 @@ sgs.ai_skill_invoke.IceSword=function(self, data)
 	local target = damage.to
 	if damage.card:hasFlag("drank") then return false end
 	if self:isFriend(target) then
-		if self:isWeak(target) or damage.damage > 1 then return true
+		if self:getDamagedEffects(target, self.players, true) or self:needToLoseHp(target, self.player, true) then return false
+		elseif target:isChained() and self:isGoodChainTarget(target, self.player, nil, nil, damage.card) then return false
+		elseif self:isWeak(target) or damage.damage > 1 then return true
 		elseif target:getLostHp() < 1 then return false end
 		return true
 	else
@@ -2634,7 +2621,7 @@ sgs.ai_use_priority.Collateral = 2.75
 
 sgs.ai_card_intention.Collateral = function(self,card, from, tos)
 	assert(#tos == 1)
-	sgs.ai_collateral = false
+	sgs.ai_collateral = true
 end
 
 sgs.dynamic_value.control_card.Collateral = true

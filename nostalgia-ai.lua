@@ -181,6 +181,21 @@ function sgs.ai_slash_prohibit.nosenyuan(self, to, card, from)
 	if self:needToLoseHp(from) and not self:hasSkills(sgs.masochism_skill, from) then return false end
 	if from:getHp() > 3 then return false end
 	
+	local role = from:objectName() == self.player:objectName() and from:getRole() or sgs.ai_role[from:objectName()]
+	if (role == "loyalist" or role == "lord") and sgs.current_mode_players.rebel + sgs.current_mode_players.renegade == 1
+		and to:getHp() == 1 and getCardsNum("Peach", to) < 1 and getCardsNum("Analeptic", to) < 1
+		and (from:getHp() > 1 or getCardsNum("Peach", from) >= 1 and getCardsNum("Analeptic", from) >= 1) then
+		return false
+	end
+	if role == "rebel" and isLord(to) and self:getAllPeachNum(player) < 1 and to:getHp() == 1
+		and (from:getHp() > 1 or getCardsNum("Peach", from) >= 1 and getCardsNum("Analeptic", from) >= 1) then
+		return false
+	end
+	if role == "renegade" and from:aliveCount() == 2 and to:getHp() == 1 and getCardsNum("Peach", to) < 1 and getCardsNum("Analeptic", to) < 1
+		and (from:getHp() > 1 or getCardsNum("Peach", from) >= 1 and getCardsNum("Analeptic", from) >= 1) then
+		return false
+	end
+	
 	local n = 0
 	local cards = from:getHandcards()
 	for _, card in sgs.qlist(cards) do
@@ -458,6 +473,13 @@ sgs.ai_skill_playerchosen.nosmiji = function(self, targets)
 	end
 	local to = self:findPlayerToDraw(true, n)
 	return to or self.player
+end
+
+sgs.ai_playerchosen_intention.nosmiji = function(self, from, to)
+	if not (self:needKongcheng(to, true) and from:getLostHp() == 1)
+		and not (to:hasSkill("manjuan") and to:getPhase() == sgs.Player_NotActive) then
+		sgs.updateIntention(from, to, -10)
+	end
 end
 
 sgs.ai_skill_invoke.nosqianxi = function(self, data)

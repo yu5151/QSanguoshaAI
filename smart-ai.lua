@@ -2483,6 +2483,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 		end
 		
 		if trick:getSkillName() == "lijian" and trick:isKindOf("Duel") then
+			if to:getHp() == 1 and sgs.ai_role[to:objectName()] == "rebel" and from and sgs.ai_role[from:objectName()] == "rebel" then return end
 			if self:isFriend(to) and (self:isWeak(to) or null_num > 1 or self:getOverflow() or not self:isWeak()) then return null_card end
 			return
 		end

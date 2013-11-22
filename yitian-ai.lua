@@ -801,7 +801,7 @@ sgs.ai_skill_use_func.LexueCard = function(card, use, self)
 		if #self.enemies > 0 then
 			local target
 			self:sort(self.enemies, "hp")
-			enemy = self.enemies[1]
+			local enemy = self.enemies[1]
 			if self:isWeak(enemy) and not enemy:isKongcheng() then
 				target = enemy
 			else

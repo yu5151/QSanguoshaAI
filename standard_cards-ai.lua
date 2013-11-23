@@ -840,6 +840,7 @@ end
 sgs.ai_card_intention.Slash = function(self, card, from, tos)
 	if sgs.ai_liuli_effect then sgs.ai_liuli_effect = false return end
 	if sgs.ai_collateral then sgs.ai_collateral = false return end
+	if card:hasFlag("nosjiefan-slash") then return end
 	for _, to in ipairs(tos) do
 		local value = 80
 		speakTrigger(card, from, to)

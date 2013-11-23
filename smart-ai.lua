@@ -1785,8 +1785,12 @@ function SmartAI:filterEvent(event, player, data)
 						elseif promptlist[2]:match("peach") then sgs.card_lack[player:objectName()]["Peach"] = 1 end
 					end
 	
-					if (promptlist[3] == "@guicai-card" or promptlist[3] == "@guidao-card") and promptlist[#promptlist] ~= "_nil_" then
-						sgs.RetrialPlayer = player
+					if promptlist[3] == "@guicai-card" or promptlist[3] == "@guidao-card" or promptlist[3] == "@huanshi-card" then
+						if promptlist[#promptlist] == "_nil_" then
+							sgs.RetrialPlayer = nil
+						else
+							sgs.RetrialPlayer = player
+						end
 					end
 					index = 3 
 				end

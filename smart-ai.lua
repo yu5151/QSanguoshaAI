@@ -1242,8 +1242,10 @@ function SmartAI:objectiveLevel(player)
 				else
 					return 5
 				end
-			end	
-		elseif sgs.gameProcess(self.room) == "neutral" or (sgs.turncount <= 1 and sgs.isLordHealthy()) then
+			end
+		end
+		local gameProcess = sgs.gameProcess(self.room)
+		if gameProcess == "neutral" or (sgs.turncount <= 1 and sgs.isLordHealthy()) then
 			if sgs.turncount <= 1 and sgs.isLordHealthy() then
 				if self:getOverflow() <= 0 then return 0 end
 				local rebelish = (loyal_num + 1 < rebel_num)
@@ -1261,9 +1263,9 @@ function SmartAI:objectiveLevel(player)
 				if not players[i]:isLord() and math.abs(sgs.ai_chaofeng[players[i]:getGeneralName()] or 0) >3 then return 5 end
 			end
 			return 3
-		elseif sgs.gameProcess(self.room):match("rebel") then
+		elseif gameProcess:match("rebel") then
 			return target_role == "rebel" and 5 or -1
-		elseif sgs.gameProcess(self.room):match("dilemma") then
+		elseif gameProcess:match("dilemma") then
 			if target_role == "rebel" then return 5
 			elseif player:isLord() then return -2
 			elseif target_role == "renegade" then return 0
@@ -1299,7 +1301,7 @@ function SmartAI:objectiveLevel(player)
 				elseif current_enemy_num >= rebel_num and loyal_num + renegade_num + 1 <= rebel_num then
 					return -1
 				end
-			elseif sgs.explicit_renegade and renegade_num == 1 then return -1
+			elseif sgs.explicit_renegade and renegade_num == 1 then return -1 
 			end
 			return 0
 		end
@@ -1368,14 +1370,14 @@ function SmartAI:objectiveLevel(player)
 		end
 		
 		if sgs.ai_role[player:objectName()] == "rebel" then return 5
-		elseif sgs.ai_role[player:objectName()] == "loyalist" then return -2
-		elseif rebel_num > loyal_num and target_role == "renegade" and sgs.gameProcess(self.room) == "rebel" then return -2
-		elseif loyal_num + 1 > rebel_num and renegade_num > 0 and sgs.ai_role[player:objectName()] == "renegade" and 
-			(sgs.gameProcess(self.room) == "loyalist" or sgs.gameProcess(self.room) == "loyalish") then return 4
+		elseif sgs.ai_role[player:objectName()] == "loyalist" then return -2 end
+		local gameProcess = sgs.gameProcess(self.room)
+		if rebel_num > loyal_num and target_role == "renegade" and gameProcess == "rebel" then return -2
+		elseif loyal_num + 1 > rebel_num and renegade_num > 0 and sgs.ai_role[player:objectName()] == "renegade" and gameProcess:match("loyal") then return 4
 		else return 0 end
 	elseif self.role == "rebel" then
 	
-		if loyal_num ==0 and renegade_num ==0 then return player:isLord() and 5 or -2 end
+		if loyal_num == 0 and renegade_num == 0 then return player:isLord() and 5 or -2 end
 
 		if sgs.ai_role[player:objectName()] == "neutral" then
 			local current_friend_num = 0
@@ -1399,10 +1401,10 @@ function SmartAI:objectiveLevel(player)
 		
 		if player:isLord() then return 5
 		elseif sgs.ai_role[player:objectName()] == "loyalist" then return 5
-		elseif sgs.ai_role[player:objectName()] == "rebel" then return (rebel_num > 1 or renegade_num > 0) and -2 or 5
-		elseif renegade_num > 0 and loyal_num + 1 > rebel_num and sgs.ai_role[player:objectName()] == "renegade" and sgs.gameProcess(self.room) == "loyalist" then return -2
-		elseif rebel_num >= loyal_num + renegade_num + 1 and sgs.ai_role[player:objectName()] == "renegade" 
-			and (sgs.gameProcess(self.room) == "rebel" or sgs.gameProcess(self.room) == "rebelish") then return 4
+		elseif sgs.ai_role[player:objectName()] == "rebel" then return (rebel_num > 1 or renegade_num > 0) and -2 or 5 end
+		local gameProcess = sgs.gameProcess(self.room)
+		if renegade_num > 0 and loyal_num + 1 > rebel_num and sgs.ai_role[player:objectName()] == "renegade" and gameProcess == "loyalist" then return -2
+		elseif rebel_num >= loyal_num + renegade_num + 1 and sgs.ai_role[player:objectName()] == "renegade" and gameProcess:match("rebel") then return 4
 		else return 0 end
 	end
 end
@@ -3580,6 +3582,12 @@ function SmartAI:willUsePeachTo(dying)
 		end
 		
 		if self:getCardsNum("Peach") + self:getCardsNum("Analeptic") <= sgs.ai_NeedPeach[self.player:objectName()] and not isLord(dying) then return "." end
+
+		local allcards = 0
+		for _, p in ipairs(self.friends) do
+			if sgs.card_lack[p:objectName()]["Peach"] == 0 then allcards = allpeaches + p:getHandcardNum() end
+		end
+		if allcards < 1 - dying:getHp() then return "." end
 		
 		if not dying:isLord() and dying:objectName() ~= self.player:objectName() then
 			local possible_friend = 0

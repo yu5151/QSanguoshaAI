@@ -3281,7 +3281,7 @@ function SmartAI:getCardNeedPlayer(cards)
 	end	
 
 	for _, friend in ipairs(friends) do
-		if getKnownCard(friend, "Crossbow") then
+		if getKnownCard(friend, "Crossbow") > 0 then
 			for _, p in sgs.qlist(self.room:getOtherPlayers(friend)) do
 				if self:isEnemy(p) and sgs.isGoodTarget(p, self.enemies, self) and friend:distanceTo(p) <= 1 then
 					for _, hcard in ipairs(cards) do

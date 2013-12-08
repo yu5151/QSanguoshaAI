@@ -3585,7 +3585,7 @@ function SmartAI:willUsePeachTo(dying)
 
 		local allcards = 0
 		for _, p in ipairs(self.friends) do
-			if sgs.card_lack[p:objectName()]["Peach"] == 0 then allcards = allpeaches + p:getHandcardNum() end
+			if sgs.card_lack[p:objectName()]["Peach"] == 0 then allcards = allcards + p:getHandcardNum() end
 		end
 		if allcards < 1 - dying:getHp() then return "." end
 		

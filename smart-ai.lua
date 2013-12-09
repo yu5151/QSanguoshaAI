@@ -1711,8 +1711,8 @@ sgs.ai_choicemade_filter.viewCards.general = function(from, promptlist, self)
 end
 
 sgs.ai_choicemade_filter.Yiji.general = function(from, promptlist, self)
-	local from = findPlayerByObjectName(promptlist[3])
-	local to = findPlayerByObjectName(promptlist[4])
+	local from = findPlayerByObjectName(global_room, promptlist[3])
+	local to = findPlayerByObjectName(global_room, promptlist[4])
 	local reason = promptlist[2]
 	local cards = {}
 	local card_ids = promptlist[5]:split("+")

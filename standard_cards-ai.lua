@@ -566,8 +566,8 @@ function SmartAI:useCardSlash(card, use)
 			-- fill the card use struct
 			local usecard = card
 			if not use.to or use.to:isEmpty() then
-				if self.player:hasWeapon("spear") and card:getSkillName() == "spear" then
-				elseif self.player:hasWeapon("crossbow") and self:getCardsNum("Slash") > 1 then
+				if self.player:hasWeapon("Spear") and card:getSkillName() == "spear" then
+				elseif self.player:hasWeapon("Crossbow") and self:getCardsNum("Slash") > 1 then
 				elseif not use.isDummy then
 					local Weapons = {}
 					for _, acard in sgs.qlist(self.player:getHandcards()) do
@@ -840,6 +840,7 @@ end
 sgs.ai_card_intention.Slash = function(self, card, from, tos)
 	if sgs.ai_liuli_effect then sgs.ai_liuli_effect = false return end
 	if sgs.ai_collateral then sgs.ai_collateral = false return end
+	if card:hasFlag("nosjiefan-slash") then return end
 	for _, to in ipairs(tos) do
 		local value = 80
 		speakTrigger(card, from, to)
@@ -916,9 +917,9 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 				if target:hasSkills(sgs.lose_equip_skill) and target:getEquips():length() > 1 and target:getCards("he"):length() > 2 then return "." end
 				if target:getHandcardNum() - target:getHp() > 2 and not self:isWeak() and not self:getOverflow() then return "." end
 			elseif target:hasWeapon("Blade") then
-				if (slash:isKindOf("FireSlash")
-					and not target:hasSkill("jueqing")
-					and (self.player:hasArmorEffect("Vine") or self.player:getMark("@gale") > 0))
+				if slash:isKindOf("NatureSlash") and self.player:hasArmorEffect("Vine")
+					or self.player:hasArmorEffect("RenwangShield")
+					or self:hasEightDiagramEffect()
 					or self:hasHeavySlashDamage(target, slash)
 					or (self.player:getHp() == 1 and #self.friends_noself == 0) then
 				elseif (self:getCardsNum("Jink") <= getCardsNum("Slash", target) or self.player:hasSkill("qingnang")) and self.player:getHp() > 1
@@ -2302,7 +2303,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 					end
 				end
 
-				if not cardchosen and enemy:getDefensiveHorse() and (not isDiscard or self.player:canDiscard(enemy, enemy:getDefensiveHorse():getEffectiveId())) then cardchosen = enemy:getDefensiveHorse():getEffectiveEffectiveId() end
+				if not cardchosen and enemy:getDefensiveHorse() and (not isDiscard or self.player:canDiscard(enemy, enemy:getDefensiveHorse():getEffectiveId())) then cardchosen = enemy:getDefensiveHorse():getEffectiveId() end
 				if not cardchosen and enemy:getArmor() and not self:needToThrowArmor(enemy) and (not isDiscard or self.player:canDiscard(enemy, enemy:getArmor():getEffectiveId())) then
 					cardchosen = enemy:getArmor():getEffectiveId()
 				end

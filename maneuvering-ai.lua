@@ -286,7 +286,7 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 	source = source or self.player
 	nature = nature or sgs.DamageStruct_Fire
 	
-	if source:hasSkill("jueqing") then return false end
+	if source:hasSkill("jueqing") then return not self:isFriend(who, source) end
 	
 	damagecount = damagecount or 1
 	if slash then
@@ -302,11 +302,11 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 	
 	local jxd = self.room:findPlayerBySkillName("wuling")
 	if jxd then
-		if jxd:getMark("@fire") then nature = sgs.DamageStruct_Fire
+		if jxd:getMark("@fire") > 0 then nature = sgs.DamageStruct_Fire
 		elseif not slash and jxd:getMark("@thunder") > 0 and nature == sgs.DamageStruct_Thunder then damagecount = damagecount + 1
 		elseif not slash and jxd:getMark("@wind") > 0 and nature == sgs.DamageStruct_Fire then damagecount = damagecount + 1 end
 	end
-	if not self:damageIsEffective(who, nature, source) then return end	
+	if not self:damageIsEffective(who, nature, source) then return end
 
 	if who:hasArmorEffect("SilverLion") then damagecount = 1 end
 	
@@ -433,7 +433,7 @@ function SmartAI:useCardIronChain(card, use)
 						and (self:needToLoseHp(self.player) or self:getDamagedEffects(self.player)) and not self.player:isChained()
 						and not self.player:hasSkill("jueqing")
 						and (self:getCardId("FireSlash") or self:getCardId("ThunderSlash") or 
-							(self:getCardId("Slash") and (self.player:hasWeapon("fan") or self.player:hasSkill("lihuo")))
+							(self:getCardId("Slash") and (self.player:hasWeapon("Fan") or self.player:hasSkill("lihuo")))
 						or (self:getCardId("FireAttack") and self.player:getHandcardNum() > 2))
 
 	local targets_num = 2 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_ExtraTarget, self.player, card)

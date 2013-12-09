@@ -60,7 +60,7 @@ function SmartAI:getWuhunRevengeTargets()
 		if count > maxcount then
 			targets = { p }
 			maxcount = count
-		elseif count == maxcount then
+		elseif count == maxcount and maxcount > 0 then
 			table.insert(targets, p)
 		end
 	end
@@ -108,11 +108,11 @@ function SmartAI:cantbeHurt(player, damageNum, from)
 			if enemymark > maxenemymark and enemy:objectName() ~= player:objectName() then maxenemymark = enemymark end
 		end
 		if self:isEnemy(player, from) then
-			if maxfriendmark + damageNum >= maxenemymark and not (#(self:getEnemies(from)) == 1 and #(self:getFriends(from)) + #(self:getEnemies(from)) == self.room:alivePlayerCount())
+			if maxfriendmark + damageNum - player:getHp() >= maxenemymark and not (#(self:getEnemies(from)) == 1 and #(self:getFriends(from)) + #(self:getEnemies(from)) == self.room:alivePlayerCount())
 				and not (from:getMark("@nightmare") == maxfriendmark and from:getRole() == "loyalist") then
 				return true
 			end
-		elseif maxfriendmark + damageNum > maxenemymark then
+		elseif maxfriendmark + damageNum - player:getHp() >= maxenemymark then
 			return true
 		end
 	end
@@ -605,7 +605,7 @@ sgs.ai_skill_use["@@kuangfeng"] = function(self,prompt)
 	local friendly_fire
 	for _, friend in ipairs(self.friends_noself) do
 		if friend:getMark("@gale") == 0 and self:damageIsEffective(friend, sgs.DamageStruct_Fire) and friend:faceUp() and not self:willSkipPlayPhase(friend)
-			and (friend:hasSkill("huoji") or friend:hasWeapon("fan") or (friend:hasSkill("yeyan") and friend:getMark("@flame") > 0)) then
+			and (friend:hasSkill("huoji") or friend:hasWeapon("Fan") or (friend:hasSkill("yeyan") and friend:getMark("@flame") > 0)) then
 			friendly_fire = true
 			break
 		end

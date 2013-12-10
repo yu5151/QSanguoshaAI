@@ -1,5 +1,5 @@
 function speak(to,type)
-	if not sgs.GetConfig("AIChat", true) then return end
+	if not sgs.GetConfig("AIChat", false) then return end
 	if to:getState() ~= "robot" then return end
 	
 	local i =math.random(1,#sgs.ai_chat[type])
@@ -39,7 +39,7 @@ sgs.ai_chat_func[sgs.SlashEffected].blindness=function(self, player, data)
 				"再杀我一下，老子和你拼命了"}
 	if not effect.from then return end
 
-	if self:isEquip("Crossbow",effect.from) then
+	if self:hasCrossbowEffect(effect.from) then
 		table.insert(chat, "快闪，药家鑫来了。")
 		table.insert(chat, "果然是连弩降智商呀。")
 		table.insert(chat, "杀死我也没牌拿，真2")
@@ -121,7 +121,7 @@ end
 
 
 function SmartAI:speak(type, isFemale)
-	if not sgs.GetConfig("AIChat", true) then return end
+	if not sgs.GetConfig("AIChat", false) then return end
 	if self.player:getState() ~= "robot" then return end	
 	
 	if sgs.ai_chat[type] then

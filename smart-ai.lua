@@ -1898,6 +1898,10 @@ function SmartAI:filterEvent(event, player, data)
 			end
 		elseif data:toString() then
 			promptlist = data:toString():split(":")
+			if promptlist[1] == "viewCards" and promptlist[2] then
+				local shenlvmeng = findPlayerByObjectName(self.room, promptlist[2])
+				if shenlvmeng and shenlvmeng:hasSkill("gongxin") then sgs.ai_gongxin_effect = true end
+			end
 			local callbacktable = sgs.ai_choicemade_filter[promptlist[1]]
 			if callbacktable and type(callbacktable) == "table" then
 				local index = 2 
@@ -3085,6 +3089,10 @@ function SmartAI:askForUseCard(pattern, prompt, method)
 end
 
 function SmartAI:askForAG(card_ids, refusable, reason)
+	if reason == "" and sgs.ai_gongxin_effect and self.room:getCurrent():hasSkill("gongxin") then
+		reason = "gongxin"
+	end
+	sgs.ai_gongxin_effect = false
 	local cardchosen = sgs.ai_skill_askforag[string.gsub(reason, "%-", "_")]
 	if type(cardchosen) == "function" then
 		local card_id = cardchosen(self, card_ids)
@@ -3314,8 +3322,14 @@ function SmartAI:getCardNeedPlayer(cards, include_self)
 			end
 			if k == R_num then friends = temp_friends
 			else
+				local cmp = function(a, b)
+					local ar_value, br_value = sgs.role_evaluation[a:objectName()]["renegade"], sgs.role_evaluation[b:objectName()]["renegade"]
+					local al_value, bl_value = sgs.role_evaluation[a:objectName()]["loyalist"], sgs.role_evaluation[b:objectName()]["loyalist"]
+					return (ar_value > br_value) or (ar_value == br_value and al_value > bl_value)
+				end
+				table.sort(temp_friends, cmp)
 				for _, p in ipairs(temp_friends) do
-					if sgs.role_evaluation[p:objectName()]["renegade"] > 0 then
+					if k < R_num and sgs.role_evaluation[p:objectName()]["renegade"] > 0 then
 						k = k + 1
 						if AssistTarget and p:objectName() == AssistTarget:objectName() then AssistTarget = nil end
 					else table.insert(new_friends, p) end
@@ -3484,12 +3498,6 @@ function SmartAI:getCardNeedPlayer(cards, include_self)
 	
 	table.sort(cardtogive, cmpByNumber)
 
-	if AssistTarget then
-		for _, hcard in ipairs(cardtogive) do
-			return hcard, AssistTarget
-		end
-	end	
-	
 	for _, friend in ipairs(friends) do
 		if not self:needKongcheng(friend, true) and friend:faceUp() then
 			for _, hcard in ipairs(cardtogive) do
@@ -3530,6 +3538,12 @@ function SmartAI:getCardNeedPlayer(cards, include_self)
 		end
 	end
 	
+	if AssistTarget then
+		for _, hcard in ipairs(cardtogive) do
+			return hcard, AssistTarget
+		end
+	end
+	
 	self:sort(friends, "defense")
 	for _, hcard in ipairs(cardtogive) do
 		for _, friend in ipairs(friends) do
@@ -3545,6 +3559,8 @@ function SmartAI:getCardNeedPlayer(cards, include_self)
 	local shoulduse = self.player:isWounded() and (self.player:hasSkill("rende") and not self.player:hasUsed("RendeCard") and self.player:getMark("rende") < 2)
 					or (self.player:hasSkill("nosrende") and self.player:getMark("nosrende") < 2)
 	
+	if #cardtogive == 0 and shoulduse then cardtogive = cards end
+	
 	self:sort(friends, "handcard")
 	for _, hcard in ipairs(cardtogive) do
 		for _, friend in ipairs(friends) do
@@ -3556,20 +3572,10 @@ function SmartAI:getCardNeedPlayer(cards, include_self)
 		end
 	end
 
-	for _, hcard in ipairs(cardtogive) do
-		for _, friend in ipairs(self.friends_noself) do
-			if not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") then
-				if friend:getHandcardNum() <= 3 and (self:getOverflow() > 0 or self.player:getHandcardNum() > 3 or shoulduse) then
-					return hcard, friend
-				end
-			end
-		end
-	end
 	
-	-- 如果所有队友都有3牌以上，刘备情愿弃牌也不仁德
 	for _, hcard in ipairs(cardtogive) do
 		for _, friend in ipairs(friends) do
-			if not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") then
+			if (not self:needKongcheng(friend, true) or #friends == 1) and not friend:hasSkill("manjuan") then
 				if self:getOverflow() > 0 or self.player:getHandcardNum() > 3 or shoulduse then
 					return hcard, friend
 				end
@@ -3578,8 +3584,8 @@ function SmartAI:getCardNeedPlayer(cards, include_self)
 	end
 
 	for _, hcard in ipairs(cardtogive) do
-		for _, friend in ipairs(self.friends_noself) do
-			if not self:needKongcheng(friend, true) and not friend:hasSkill("manjuan") then
+		for _, friend in ipairs(friends_table) do
+			if (not self:needKongcheng(friend, true) or #friends_table == 1) and not friend:hasSkill("manjuan") then
 				if self:getOverflow() > 0 or self.player:getHandcardNum() > 3 or shoulduse then
 					return hcard, friend
 				end

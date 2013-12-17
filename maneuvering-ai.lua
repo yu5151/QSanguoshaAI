@@ -96,8 +96,8 @@ function sgs.ai_armor_value.Vine(player, self)
 	for _, enemy in ipairs(self:getEnemies(player)) do
 		if (enemy:canSlash(player) and enemy:hasWeapon("Fan")) or self:hasSkills("huoji|longhun|shaoying|zonghuo|wuling", enemy)
 		  or (enemy:hasSkill("yeyan") and enemy:getMark("@flame") > 0) then return -2 end
-		if getKnownCard(enemy, "FireSlash", true) >= 1 or getKnownCard(enemy, "FireAttack", true) >= 1 or
-			getKnownCard(enemy, "Fan") >= 1 then return -2 end
+		if getKnownCard(enemy, player, "FireSlash", true) >= 1 or getKnownCard(enemy, player, "FireAttack", true) >= 1 or
+			getKnownCard(enemy, player, "Fan") >= 1 then return -2 end
 	end
 
 	if (#self.enemies < 3 and sgs.turncount > 2) or player:getHp() <= 2 then return 5 end
@@ -132,11 +132,11 @@ function SmartAI:shouldUseAnaleptic(target, slash)
 	if target:hasFlag("dahe") then return true end
 
 	if ((self.player:hasSkill("roulin") and target:isFemale()) or (self.player:isFemale() and target:hasSkill("roulin"))) or self.player:hasSkill("wushuang") then
-		if getKnownCard(target, "Jink", true, "he") >= 2 then return false end
-		return getCardsNum("Jink", target) < 2
+		if getKnownCard(target, player, "Jink", true, "he") >= 2 then return false end
+		return getCardsNum("Jink", target, self.player) < 2
 	end
 
-	if getKnownCard(target, "Jink", true, "he") >= 1 and not (self:getOverflow() > 0 and self:getCardsNum("Analeptic") > 1) then return false end
+	if getKnownCard(target, self.player, "Jink", true, "he") >= 1 and not (self:getOverflow() > 0 and self:getCardsNum("Analeptic") > 1) then return false end
 	return self:getCardsNum("Analeptic") > 1 or getCardsNum("Jink", target) < 1 or sgs.card_lack[target:objectName()]["Jink"] == 1
 end
 
@@ -234,7 +234,7 @@ function SmartAI:useCardSupplyShortage(card, use)
 	
 	local sb_daqiao = self.room:findPlayerBySkillName("yanxiao")
 	local yanxiao = sb_daqiao and not self:isFriend(sb_daqiao) and sb_daqiao:faceUp() and
-					(getKnownCard(sb_daqiao, "diamond", nil, "he") > 0
+					(getKnownCard(sb_daqiao, self.player, "diamond", nil, "he") > 0
 					or sb_daqiao:getHandcardNum() + self:ImitateResult_DrawNCards(sb_daqiao, sb_daqiao:getVisibleSkillList()) > 3
 					or sb_daqiao:containsTrick("YanxiaoCard"))
 
@@ -333,7 +333,7 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 	if source:hasSkill("jueqing") then return not self:isFriend(who, source) end
 	
 	damagecount = damagecount or 1
-	if slash then
+	if slash and slash:isKindOf("Slash") then
 		nature = slash:isKindOf("FireSlash") and sgs.DamageStruct_Fire
 					or slash:isKindOf("ThunderSlash") and sgs.DamageStruct_Thunder
 					or sgs.DamageStruct_Normal
@@ -346,7 +346,7 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 	
 	local jxd = self.room:findPlayerBySkillName("wuling")
 	if jxd then
-		if jxd:getMark("@fire") then nature = sgs.DamageStruct_Fire
+		if jxd:getMark("@fire") > 0 then nature = sgs.DamageStruct_Fire
 		elseif not slash and jxd:getMark("@thunder") > 0 and nature == sgs.DamageStruct_Thunder then damagecount = damagecount + 1
 		elseif not slash and jxd:getMark("@wind") > 0 and nature == sgs.DamageStruct_Fire then damagecount = damagecount + 1 end
 	end
@@ -365,7 +365,7 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 		if dmg and nature == sgs.DamageStruct_Fire then
 			if target:hasArmorEffect("Vine") then dmg = dmg + 1 end
 			if target:getMark("@gale") > 0 then dmg = dmg + 1 end
-		end
+			end
 		if self:cantbeHurt(target, source, damagecount) then newvalue = newvalue - 100 end
 		if damagecount + (dmg or 0) >= target:getHp() then
 			newvalue = newvalue - 2

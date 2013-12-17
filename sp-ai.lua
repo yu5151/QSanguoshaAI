@@ -1147,12 +1147,12 @@ sgs.ai_skill_use_func.ZhoufuCard = function(card, use, self)
 	local has_indulgence, has_supplyshortage
 	local friend
 	for _, p in ipairs(self.friends) do
-		if getKnownCard(p, "Indulgence", true, "he") > 0 then
+		if getKnownCard(p, self.player, "Indulgence", true, "he") > 0 then
 			has_indulgence = true
 			friend = p
 			break
 		end
-		if getKnownCard(p, "SupplySortage", true, "he") > 0 then
+		if getKnownCard(p, self.player, "SupplySortage", true, "he") > 0 then
 			has_supplyshortage = true
 			friend = p
 			break
@@ -1194,7 +1194,7 @@ end
 
 sgs.ai_card_intention.ZhoufuCard = 0
 sgs.ai_use_value.ZhoufuCard = 2
-sgs.ai_use_priority.ZhoufuCard = 1.0
+sgs.ai_use_priority.ZhoufuCard = sgs.ai_use_priority.Indulgence - 0.1
 
 local function getKangkaiCard(self, target, data)
 	local use = data:toCardUse()

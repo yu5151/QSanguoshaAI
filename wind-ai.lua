@@ -125,8 +125,8 @@ sgs.ai_skill_use["@@shensu2"] = function(self, prompt, method)
 	return "."
 end
 
-sgs.ai_cardneed.shensu = function(to, card)
-	return card:getTypeId() == sgs.Card_TypeEquip and getKnownCard(to, "EquipCard", false) < 2
+sgs.ai_cardneed.shensu = function(to, card, self)
+	return card:getTypeId() == sgs.Card_TypeEquip and getKnownCard(to, self.player, "EquipCard", false) < 2
 end
 
 sgs.ai_card_intention.ShensuCard = sgs.ai_card_intention.Slash
@@ -282,7 +282,7 @@ function SmartAI:findLeijiTarget(player, leiji_value, slasher, latest_version)
 		else
 			if not self:hasSuit("black", true, player) and player:getHandcardNum() < 2 then return nil end
 		end
-		if not (getKnownCard(player, "Jink", true) > 0 or (getCardsNum("Jink", player, self.player) >= 1 and sgs.card_lack[player:objectName()]["Jink"] ~= 1)
+		if not (getKnownCard(player, self.player, "Jink", true) > 0 or (getCardsNum("Jink", player, self.player) >= 1 and sgs.card_lack[player:objectName()]["Jink"] ~= 1)
 				or (not self:isWeak(player) and self:hasEightDiagramEffect(player) and not slasher:hasWeapon("QinggangSword"))) then
 			return nil
 		end
@@ -354,13 +354,13 @@ function sgs.ai_slash_prohibit.leiji(self, from, to, card) -- @todo: Qianxi flag
 				break
 			end
 		end		
-		if not other_rebel and (self:hasSkills("hongyan") or self.player:getHp() >= 4) and (self:getCardsNum("Peach") > 0  or self:hasSkills("hongyan|ganglie|neoganglie")) then
+		if not other_rebel and (self:hasSkills("hongyan") or self.player:getHp() >= 4) and (self:getCardsNum("Peach") > 0  or self.player:hasSkills("hongyan|ganglie|neoganglie")) then
 			return false
 		end
 	end
 	
 	if sgs.card_lack[to:objectName()]["Jink"] == 2 then return true end
-	if getKnownCard(to, "Jink", true) >= 1 or (self:hasSuit("spade", true, to) and hcard >= 2) or hcard >= 4 then return true end
+	if getKnownCard(to, self.player, "Jink", true) >= 1 or (self:hasSuit("spade", true, to) and hcard >= 2) or hcard >= 4 then return true end
 	if not from then --倚天包连理AI（452行）并未给出from和card，会导致下文中IgnoreArmor出错，在此进行补充。
 		from = self.room:getCurrent()
 	end
@@ -583,9 +583,9 @@ sgs.tianxiang_suit_value = {
 	heart = 4.9
 }
 
-function sgs.ai_cardneed.tianxiang(to, card)
+function sgs.ai_cardneed.tianxiang(to, card, self)
 	return (card:getSuit() == sgs.Card_Heart or (to:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade))
-		and (getKnownCard(to, "heart", false) + getKnownCard(to, "spade", false)) < 2
+		and (getKnownCard(to, self.player, "heart", false) + getKnownCard(to, self.player, "spade", false)) < 2
 end
 
 table.insert(sgs.ai_global_flags, "questioner")
@@ -608,7 +608,7 @@ sgs.ai_skill_choice.guhuo = function(self, choices)
 	local x = 5
 	if guhuoname == "peach" or guhuoname == "ex_nihilo" then
 		x = 2
-		if getKnownCard(yuji, guhuotype, false) > 0 then x = x * 3 end
+		if getKnownCard(yuji, self.player, guhuotype, false) > 0 then x = x * 3 end
 	end
 	return math.random(1, x) == 1 and "question" or "noquestion"
 end
@@ -847,6 +847,6 @@ sgs.ai_skill_choice.guhuo_slash = function(self, choices)
 	return "slash"
 end
 
-function sgs.ai_cardneed.kuanggu(to, card)
-	return card:isKindOf("OffensiveHorse") and not (to:getOffensiveHorse() or getKnownCard(to, "OffensiveHorse", false) > 0)
+function sgs.ai_cardneed.kuanggu(to, card, self)
+	return card:isKindOf("OffensiveHorse") and not (to:getOffensiveHorse() or getKnownCard(to, self.player, "OffensiveHorse", false) > 0)
 end

@@ -294,8 +294,8 @@ sgs.ai_skill_invoke.lukang_weiyan = function(self, data)
 	end
 end
 
-function sgs.ai_cardneed.lukang_weiyan(to, card)
-	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) < 2
+function sgs.ai_cardneed.lukang_weiyan(to, card, self)
+	return isCard("Slash", card, to) and getKnownCard(to, self.player, "Slash", true) < 2
 end
 --[[
 	技能：五灵
@@ -452,7 +452,7 @@ function sgs.ai_slash_prohibit.lianli(self, from, to, card)
 			if player:hasSkill("weidi") and sgs.ai_slash_prohibit.weidi(self, from, player, card) then return true end
 		end
 	end
-	return false	
+	return false
 end
 
 local lianli_slash_skill={name="lianli-slash"}
@@ -624,7 +624,7 @@ sgs.ai_use_priority.GuihanCard = 8
 ]]--
 sgs.ai_skill_invoke.caizhaoji_hujia = function(self, data)
 	local zhangjiao = self.room:findPlayerBySkillName("guidao")
-	if zhangjiao and self:isEnemy(zhangjiao) and getKnownCard(zhangjiao, "black", false, "he") > 1 then return false end
+	if zhangjiao and self:isEnemy(zhangjiao) and getKnownCard(zhangjiao, self.player, "black", false, "he") > 1 then return false end
 	if not self.player:faceUp() then 
 		return true 
 	end
@@ -697,7 +697,7 @@ function sgs.ai_skill_invoke.shaoying(self, data)
 	end
 	if enemynum < 1 then return false end
 	local zhangjiao = self.room:findPlayerBySkillName("guidao")
-	if zhangjiao and self:isEnemy(zhangjiao) and getKnownCard(zhangjiao, "black", false, "he") > 1 then return false end
+	if zhangjiao and self:isEnemy(zhangjiao) and getKnownCard(zhangjiao, self.player, "black", false, "he") > 1 then return false end
 	return true
 end
 

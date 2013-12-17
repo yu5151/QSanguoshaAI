@@ -258,8 +258,8 @@ sgs.ai_need_damaged.enyuan = function (self, attacker, player)
 	return false
 end
 
-function sgs.ai_cardneed.enyuan(to, card)
-	return getKnownCard(to, "Card", false) < 2
+function sgs.ai_cardneed.enyuan(to, card, self)
+	return getKnownCard(to, self.player, "Card", false) < 2
 end
 
 sgs.ai_skill_playerchosen.xuanhuo = function(self, targets)
@@ -507,13 +507,13 @@ sgs.ai_skill_use_func.GanluCard = function(card, use, self)
 											or (friend:hasSkills("tuntian+zaoxian") and friend:getPhase() == sgs.Player_NotActive))
 			and not friend:getEquips():isEmpty()) then
 				target = friend
-				break 
+				break
 		end
 	end
 	if not target then return end
 	for _,friend in ipairs(self.friends) do
 		if friend:objectName() ~= target:objectName() and math.abs(friend:getEquips():length() - target:getEquips():length()) <= lost_hp then
-			use.card = sgs.Card_Parse("@GanluCard=.")			
+			use.card = sgs.Card_Parse("@GanluCard=.")
 			if use.to then
 				use.to:append(friend)
 				use.to:append(target)

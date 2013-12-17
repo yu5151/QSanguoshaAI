@@ -85,7 +85,7 @@ function SmartAI:cantbeHurt(player, from, damageNum)
 			if from:getMaxHp() <= 3 or (self.room:getLord() and from:getRole() == "renegade") then return true end
 		end
 	end
-	if player:hasSkill("tianxiang") and getKnownCard(player, "diamond", false) + getKnownCard(player, "club", false) < player:getHandcardNum() then
+	if player:hasSkill("tianxiang") and getKnownCard(player, from, "diamond", false) + getKnownCard(player, from, "club", false) < player:getHandcardNum() then
 		local peach_num = self.player:objectName() == from:objectName() and self:getCardsNum("Peach") or getCardsNum("Peach", from, self.player)
 		for _, friend in ipairs(self:getFriends(from)) do
 			if friend:getHp() < 2 and peach_num then
@@ -179,7 +179,7 @@ sgs.ai_skill_askforag.gongxin = function(self, card_ids)
 		if card:isKindOf("Slash") then slash = id end
 	end
 	valuable = peach or ex_nihilo or jink or nullification or slash or card_ids[1]
-
+	local card = sgs.Sanguosha:getCard(valuable)
 	if self:isEnemy(target) and target:hasSkill("tuntian") then
 		local zhangjiao = self.room:findPlayerBySkillName("guidao")
 		if zhangjiao and self:isFriend(zhangjiao, target) and self:canRetrial(zhangjiao, target) and self:isValuableCard(card, zhangjiao) then

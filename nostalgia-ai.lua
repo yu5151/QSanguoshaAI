@@ -387,8 +387,8 @@ nosgongqi_skill.getTurnUseCard = function(self, inclusive)
 end
 
 
-function sgs.ai_cardneed.nosgongqi(to, card)
-	return card:getTypeId() == sgs.Card_TypeEquip and getKnownCard(to, "EquipCard", true) == 0
+function sgs.ai_cardneed.nosgongqi(to, card, self)
+	return card:getTypeId() == sgs.Card_TypeEquip and getKnownCard(to, self.player, "EquipCard", true) == 0
 end
 
 function sgs.ai_cardsview_valuable.nosjiefan(self, class_name, player)
@@ -415,8 +415,8 @@ sgs.ai_skill_cardask["nosjiefan-slash"] = function(self, data, pattern, target)
 	return "."
 end
 
-function sgs.ai_cardneed.nosjiefan(to, card)
-	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0
+function sgs.ai_cardneed.nosjiefan(to, card, self)
+	return isCard("Slash", card, to) and getKnownCard(to, self.player,"Slash", true) == 0
 end
 
 sgs.ai_skill_invoke.nosfuhun = function(self, data)
@@ -464,8 +464,8 @@ sgs.ai_skill_invoke.nosqianxi = function(self, data)
 	return (target:getMaxHp() - target:getHp()) < 2
 end
 
-function sgs.ai_cardneed.nosqianxi(to, card)
-	return isCard("Slash", card, to) and getKnownCard(to, "Slash", true) == 0
+function sgs.ai_cardneed.nosqianxi(to, card, self)
+	return isCard("Slash", card, to) and getKnownCard(to, self.player, "Slash", true) == 0
 end
 
 local noslijian_skill = {}
@@ -645,7 +645,7 @@ function sgs.ai_slash_prohibit.nosleiji(self, from, to, card)
 	end
 
 	if sgs.card_lack[to:objectName()]["Jink"] == 2 then return true end
-	if getKnownCard(to, "Jink", true) >= 1 or (self:hasSuit("spade", true, to) and hcard >= 2) or hcard >= 4 then return true end
+	if getKnownCard(to, from, "Jink", true) >= 1 or (self:hasSuit("spade", true, to) and hcard >= 2) or hcard >= 4 then return true end
 	if self:hasEightDiagramEffect(to) then return true end
 end
 

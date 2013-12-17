@@ -96,7 +96,7 @@ sgs.ai_skill_cardask["@xiaoguo-discard"] = function(self, data)
 end
 
 sgs.ai_cardneed.xiaoguo = function(to, card)
-	return getKnownCard(to, "BasicCard", true) == 0 and card:getTypeId() == sgs.Card_Basic
+	return getKnownCard(to, global_room:getCurrent(), "BasicCard", true) == 0 and card:getTypeId() == sgs.Card_Basic
 end
 
 sgs.ai_chaofeng.yuejin = 2

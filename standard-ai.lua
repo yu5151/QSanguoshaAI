@@ -1282,7 +1282,7 @@ sgs.ai_skill_invoke.tieji = function(self, data)
 	end	
 	if target:hasSkill("longhun") and target:getHp() == 1 and self:hasSuit("club", true, target) then return true end
 
-	if target:isKongcheng() or (self:getKnownNum(target) == target:getHandcardNum() and getKnownCard(target, "Jink", true) == 0) then return false end
+	if target:isKongcheng() or (self:getKnownNum(target) == target:getHandcardNum() and getKnownCard(target, self.player, "Jink", true) == 0) then return false end
 	return true
 end
 
@@ -1586,25 +1586,30 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 		or (self.player:getHp() - self.player:getHandcardNum() >= 2)) and not (isLord(self.player) and sgs.turncount <= 1) then
 		return sgs.Card_Parse("@KurouCard=.")
 	end
-	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)	
-	if (self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow")) or self:hasSkills("paoxiao") then
+	local slash = sgs.Sanguosha:cloneCard("slash")
+	if (self.player:getWeapon() and self.player:getWeapon():isKindOf("Crossbow")) or self.player:hasSkill("paoxiao") then
 		for _, enemy in ipairs(self.enemies) do
 			if self.player:canSlash(enemy, nil, true) and self:slashIsEffective(slash, enemy) 
 			    and not (enemy:hasSkill("kongcheng") and enemy:isKongcheng())
-				and not (self:hasSkills("fankui|guixin", enemy) and not self:hasSkills("paoxiao"))
-				and not self:hasSkills("fenyong|jilei|zhichi", enemy)
-				and sgs.isGoodTarget(enemy, self.enemies, self) and not self:slashProhibit(slash, enemy) and self.player:getHp()>1 then
+				and not (enemy:hasSkills("fankui|guixin") and not self.player:hasSkill("paoxiao"))
+				and not enemy:hasSkills("fenyong|jilei|zhichi")
+				and sgs.isGoodTarget(enemy, self.enemies, self) and not self:slashProhibit(slash, enemy) and self.player:getHp() > 1 then
 				return sgs.Card_Parse("@KurouCard=.")
 			end
 		end
 	end
-	if self.player:getHp()==1 and self:getCardsNum("Analeptic")>=1 then
+	if self.player:getHp() == 1 and self:getCardsNum("Analeptic") >= 1 then
 		return sgs.Card_Parse("@KurouCard=.")
 	end
 	
 	--Suicide by Kurou
+	if self.toUse then
+		for _, toUse in ipairs(self.toUse) do
+			if not toUse:isKindOf("KurouCard") then return end
+		end
+	end
 	local nextplayer = self.player:getNextAlive()
-	if self.player:getHp() == 1 and self.player:getRole()~="lord" and self.player:getRole()~="renegade" then
+	if self.player:getHp() == 1 and self.player:getRole() ~= "lord" and self.player:getRole() ~= "renegade" then
 		local to_death = false
 		if self:isFriend(nextplayer) then
 			for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
@@ -1619,7 +1624,7 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 				if nextplayer:hasSkill("qingnang") then return end
 			end
 		end
-		if self.player:getRole()=="rebel" and not self:isFriend(nextplayer) then 
+		if self.player:getRole() == "rebel" and not self:isFriend(nextplayer) then 
 			if not self:willSkipPlayPhase(nextplayer) or nextplayer:hasSkill("shensu") then
 				to_death = true
 			end
@@ -1848,7 +1853,7 @@ sgs.ai_skill_use["@@liuli"] = function(self, prompt, method)
 	local doLiuli = function(who)
 		if not self:isFriend(who) and who:hasSkill("leiji")
 			and (self:hasSuit("spade", true, who) or who:getHandcardNum() >= 3)
-			and (getKnownCard(who, "Jink", true) >= 1 or self:hasEightDiagramEffect(who)) then
+			and (getKnownCard(who, self.player, "Jink", true) >= 1 or self:hasEightDiagramEffect(who)) then
 			return "."
 		end
 
@@ -2420,7 +2425,7 @@ function SmartAI:findLijianTarget(card_name, use)
 				and not lord:isLocked(duel) and lord:objectName() ~= self.player:objectName() and lord:isAlive()
 				and (getCardsNum("Slash", males[1]) < 1
 					or getCardsNum("Slash", males[1]) < getCardsNum("Slash", lord)
-					or self:getKnownNum(males[1]) == males[1]:getHandcardNum() and getKnownCard(males[1], "Slash", true, "he") == 0)
+					or self:getKnownNum(males[1]) == males[1]:getHandcardNum() and getKnownCard(males[1], self.player, "Slash", true, "he") == 0)
 				then
 				return males[1], lord
 			end

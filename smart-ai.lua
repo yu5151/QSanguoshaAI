@@ -1891,10 +1891,6 @@ function SmartAI:filterEvent(event, player, data)
 			end
 		elseif data:toString() then
 			promptlist = data:toString():split(":")
-			if promptlist[1] == "viewCards" and promptlist[2] then
-				local shenlvmeng = findPlayerByObjectName(self.room, promptlist[2])
-				if shenlvmeng and shenlvmeng:hasSkill("gongxin") then sgs.ai_gongxin_effect = true end
-			end
 			local callbacktable = sgs.ai_choicemade_filter[promptlist[1]]
 			if callbacktable and type(callbacktable) == "table" then
 				local index = 2 
@@ -3082,10 +3078,6 @@ function SmartAI:askForUseCard(pattern, prompt, method)
 end
 
 function SmartAI:askForAG(card_ids, refusable, reason)
-	if reason == "" and sgs.ai_gongxin_effect and self.room:getCurrent():hasSkill("gongxin") then
-		reason = "gongxin"
-	end
-	sgs.ai_gongxin_effect = false
 	local cardchosen = sgs.ai_skill_askforag[string.gsub(reason, "%-", "_")]
 	if type(cardchosen) == "function" then
 		local card_id = cardchosen(self, card_ids)

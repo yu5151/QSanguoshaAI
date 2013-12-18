@@ -95,3 +95,5 @@ end
 sgs.ai_use_value.CunsiCard = 10
 sgs.ai_use_priority.CunsiCard = 10.1
 sgs.ai_use_priority.GuixiuCard = sgs.ai_use_priority.CunsiCard
+
+-- @todo: AI for Yingyang (especially coupling conditions in Pindian), Duanxie, Fenming, Hengzheng, Chuanxin and Fengshi

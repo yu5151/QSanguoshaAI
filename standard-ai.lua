@@ -1581,6 +1581,7 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 	local func = Tactic("kurou", self, nil)
 	if func then return func(self, nil) end
 	--一般场景
+	sgs.ai_use_priority.KurouCard = 6.8
 	local losthp = isLord(self.player) and 0 or 1
 	if ((self.player:getHp() > 3 and self.player:getLostHp() <= losthp and self.player:getHandcardNum() > self.player:getHp())
 		or (self.player:getHp() - self.player:getHandcardNum() >= 2)) and not (isLord(self.player) and sgs.turncount <= 1) then
@@ -1603,11 +1604,6 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 	end
 	
 	--Suicide by Kurou
-	if self.toUse then
-		for _, toUse in ipairs(self.toUse) do
-			if not toUse:isKindOf("KurouCard") then return end
-		end
-	end
 	local nextplayer = self.player:getNextAlive()
 	if self.player:getHp() == 1 and self.player:getRole() ~= "lord" and self.player:getRole() ~= "renegade" then
 		local to_death = false
@@ -1653,6 +1649,7 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 		end
 		if to_death then
 			self.player:setFlags("Kurou_toDie")
+			sgs.ai_use_priority.KurouCard = 0
 			return sgs.Card_Parse("@KurouCard=.")
 		end
 		self.player:setFlags("-Kurou_toDie")

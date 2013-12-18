@@ -387,10 +387,10 @@ sgs.ai_skill_choice.mouzhu = function(self, choices)
 
 	if self:isFriend(target) then
 		if (target:hasSkills("leiji|nosleiji") or not self:slashIsEffective(slash, target)) and choices:match("slash") then return "slash" end
-		if self:getDamagedEffects(self.player, target) and getCardsNum("Slash", target) >= 1 and choices:match("duel") then return "duel" end
+		if self:getDamagedEffects(self.player, target) and getCardsNum("Slash", target, self.player) >= 1 and choices:match("duel") then return "duel" end
 	else
 		if target:hasSkills("leiji|nosleiji") and choices:match("duel") then return "duel" end
-		if self:getCardsNum("Slash") > getCardsNum("Slash", target) and choices:match("duel") then return "duel" end
+		if self:getCardsNum("Slash") > getCardsNum("Slash", target, self.player) and choices:match("duel") then return "duel" end
 	end
 	
 	if choices:match("slash") then return "slash" else return "duel" end

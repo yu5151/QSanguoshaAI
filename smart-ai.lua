@@ -1567,29 +1567,40 @@ function SmartAI:isEnemy(other, another)
 end
 
 function SmartAI:getFriendsNoself(player)
-	player = player or self.player
-	local friends_noself = {}
-	for _, p in sgs.qlist(self.room:getAlivePlayers()) do
-		if self:isFriend(p, player) and p:objectName() ~= player:objectName() then table.insert(friends_noself, p) end
+	if self:isFriend(self.player, player) then
+		return self.friends_noself
+	elseif self:isEnemy(self.player, player) then
+		friends = sgs.QList2Table(self.lua_ai:getEnemies())
+		for i = #friends, 1, -1 do
+			if friends[i]:objectName() == player:objectName() or not friends[i]:isAlive() then
+				table.remove(friends, i)
+			end
+		end
+		return friends
+	else
+		return {}
 	end
-	return friends_noself
 end
 
 function SmartAI:getFriends(player)
 	player = player or self.player
-	local friends = {}
-	for _, p in sgs.qlist(self.room:getAlivePlayers()) do
-		if self:isFriend(p, player) then table.insert(friends, p) end
+	if self:isFriend(self.player, player) then
+		return self.friends
+	elseif self:isEnemy(self.player, player) then
+		return self.enemies
+	else
+		return {player}
 	end
-	return friends
 end
 
 function SmartAI:getEnemies(player)
-	local enemies = {}
-	for _, p in sgs.qlist(self.room:getAlivePlayers()) do
-		if self:isEnemy(p, player) then table.insert(enemies, p) end
+	if self:isFriend(self.player, player) then
+		return self.enemies
+	elseif self:isEnemy(self.player, player) then
+		return self.friends
+	else
+		return {}
 	end
-	return enemies
 end
 
 function SmartAI:sortEnemies(players)
@@ -3690,7 +3701,7 @@ function SmartAI:willUsePeachTo(dying)
 		if self:getCardId("Peach") then return self:getCardId("Peach") end
 	end
 	
-	if (self.role == "loyalist" or self.role == "renegade") and dying:isLord() and self.player:aliveCount() > 2 then
+	if not sgs.GetConfig("EnableHegemony", false) and self.room:getMode() ~= "couple" and (self.role == "loyalist" or self.role == "renegade") and dying:isLord() and self.player:aliveCount() > 2 then
 		return self:getCardId("Peach")
 	end
 	
@@ -4450,7 +4461,7 @@ function getKnownCard(player, from, class_name, viewas, flags)
 	if not player or (flags and type(flags) ~= "string") then global_room:writeToConsole(debug.traceback()) return 0 end
 	flags = flags or "h"
 	player = findPlayerByObjectName(global_room, player:objectName())
-	from = from or self.room:getCurrent()
+	from = from or global_room:getCurrent()
 	local cards = player:getCards(flags)
 	local known = 0
 	local suits = {["club"] = 1, ["spade"] = 1, ["diamond"] = 1, ["heart"] = 1}
@@ -5545,7 +5556,7 @@ function SmartAI:useEquipCard(card, use)
 			or (self.player:hasSkills("guose|longhun") and (card:getSuit() == sgs.Card_Diamond or same:getSuit() == sgs.Card_Diamond))
 			or (self.player:hasSkill("jijiu") and (card:isRed() or same:isRed()))
 			or (self.player:hasSkill("guidao") and same:isBlack() and card:isRed())
-			or self.player:hasSkill("juxin")
+			or self.player:hasSkill("junxing")
 			or isfriend_zzzh
 			then return end
 	end

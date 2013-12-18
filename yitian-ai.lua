@@ -376,7 +376,7 @@ sgs.ai_skill_playerchosen.lianli = function(self, targets)
 	self:sort(self.friends, "defense")
 	
 	local AssistTarget = self:AssistTarget()
-	if AssistTarget and AssistTarget:isMale() and not AssistTarget:hasSkill("manjuan") then return "@LianliCard=.->" .. AssistTarget:objectName() end
+	if AssistTarget and AssistTarget:isMale() and not AssistTarget:hasSkill("manjuan") then return AssistTarget end
 	
 	for _, friend in ipairs(self.friends_noself) do --优先考虑与队友连理
 		if friend:isMale() and not friend:hasSkill("manjuan") then
@@ -401,6 +401,7 @@ sgs.ai_skill_playerchosen.lianli = function(self, targets)
 	return nil
 end
 
+sgs.ai_playerchosen_intention.lianli = -10
 sgs.ai_card_intention.LianliCard = -80
 
 table.insert(sgs.ai_global_flags, "lianlisource")

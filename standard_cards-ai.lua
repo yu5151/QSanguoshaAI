@@ -843,7 +843,7 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 			end
 		end
 	end
-	getJink() or "."
+	return getJink() or "."
 end
 
 sgs.dynamic_value.damage_card.Slash = true

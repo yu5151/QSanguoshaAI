@@ -483,6 +483,15 @@ sgs.ai_skill_invoke.fenji = function(self, data)
 	return from:getHandcardNum() < (self.player:getHp() <= 1 and 3 or 5)
 end
 
+sgs.ai_choicemade_filter.skillInvoke.fenji = function(self, player, promptlist)
+	if sgs.ai_fenji_target then
+		if promptlist[3] == "yes" then
+			sgs.updateIntention(player, sgs.ai_fenji_target, -10)
+		end
+		sgs.ai_fenji_target = nil
+	end
+end
+
 sgs.ai_skill_use["@@tianxiang"] = function(self, data, method)
 	if not method then method = sgs.Card_MethodDiscard end
 	local friend_lost_hp = 10

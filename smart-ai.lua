@@ -2170,7 +2170,16 @@ function SmartAI:filterEvent(event, player, data)
 		local reason = move.reason
 		local from_places = sgs.QList2Table(move.from_places)
 		local lord = getLord(player)
-
+		
+		if self.room:findPlayerBySkillName("fenji") then
+			sgs.ai_fenji_target = nil
+			if from and from:isAlive() and move.from_places:contains(sgs.Player_PlaceHand)
+				and ((move.reason.m_reason == sgs.CardMoveReason_S_REASON_DISMANTLE and move.reason.m_playerId ~= move.reason.m_targetId)
+						or (to and to:objectName() ~= from:objectName() and move.to_place == sgs.Player_PlaceHand)) then
+				sgs.ai_fenji_target = from
+			end
+		end
+		
 		for i = 0, move.card_ids:length()-1 do
 			local place = move.from_places:at(i)
 			local card_id = move.card_ids:at(i)

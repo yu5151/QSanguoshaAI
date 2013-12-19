@@ -374,6 +374,12 @@ sgs.ai_skill_use_func.DuyiCard = function(card,use,self)
 end
 
 sgs.ai_skill_playerchosen.duyi = function(self, targets)
+	if sgs.ai_duyi then
+		local tg = sgs.ai_duyi.tg
+		local card = sgs.ai_duyi.id and sgs.Sanguosha:getCard(sgs.ai_duyi.id)
+		sgs.ai_duyi = nil
+		if card and card:isBlack() and tg then return tg end
+	end
 	if self:needBear() then return self.player end
 	local to
 	if self:getOverflow() < 0 then

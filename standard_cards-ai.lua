@@ -569,10 +569,17 @@ function SmartAI:useCardSlash(card, use)
 					if use.to then use.to = sgs.SPlayerList() end
 					return
 				end
-				if self.player:hasSkill("jilve") and self.player:getMark("@bear") > 0 and not self.player:hasFlag("JilveWansha") and target:getHp() == 1
+				if self.player:hasSkill("jilve") and self.player:getMark("@bear") > 0 and not self.player:hasFlag("JilveWansha") and target:getHp() == 1 and not self.room:getCurrent():hasSkill("wansha")
 					and (target:isKongcheng() or getCardsNum("Jink", target, self.player) < 1 or sgs.card_lack[target:objectName()]["Jink"] == 1) then
 					use.card = sgs.Card_Parse("@JilveCard=.")
 					sgs.ai_skill_choice.jilve = "wansha"
+					if use.to then use.to = sgs.SPlayerList() end
+					return
+				end
+				if self.player:hasSkill("duyi") and self.room:getDrawPile():length() > 0 and not self.player:hasUsed("DuyiCard")
+					and (target:getHp() <= 2 or self:hasHeavySlashDamage(self.player, card, target)) then
+					sgs.ai_duyi = { id = self.room:getDrawPile():first(), tg = target }
+					use.card = sgs.Card_Parse("@DuyiCard=.")
 					if use.to then use.to = sgs.SPlayerList() end
 					return
 				end
@@ -1837,6 +1844,12 @@ function SmartAI:useCardDuel(duel, use)
 			if sgs.card_lack[targets[i]:objectName()]["Slash"] == 1 then n2 = 0 end
 			if self:isEnemy(targets[i]) then enemySlash = enemySlash + n2 end
 
+			if not use.isDummy and self.player:hasSkill("duyi") and targets[i]:getHp() == 1 and self.room:getDrawPile():length() > 0 and not self.player:hasUsed("DuyiCard") then
+				sgs.ai_duyi = { id = self.room:getDrawPile():first(), tg = targets[i] }
+				use.card = sgs.Card_Parse("@DuyiCard=.")
+				if use.to then use.to = sgs.SPlayerList() end
+				return
+			end
 			if use.to then
 				if i == 1 and not use.current_targets then
 					use.to:append(targets[i])

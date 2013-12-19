@@ -239,7 +239,7 @@ end
 
 function sgs.getDefense(player, gameProcess)
 	if not player then return 0 end
-	if not sgs.ai_updateDefense and global_room:getCurrent() then
+	if not sgs.ai_updateDefense and global_room:getCurrent() and not sgs.GetConfig("EnableHegemony", false) then
 		return sgs.ai_defense[player:objectName()]
 	end
 	local defense = math.min(sgs.getValue(player), player:getHp() * 3)
@@ -5755,7 +5755,7 @@ end
 function SmartAI:needToThrowArmor(player)
 	player = player or self.player
 	if not player:getArmor() or not player:hasArmorEffect(player:getArmor():objectName()) then return false end
-	if self:hasSkills("bazhen|yizhong") and not player:getArmor():isKindOf("EightDiagram") then return true end
+	if player:hasSkills("bazhen|yizhong") and not player:getArmor():isKindOf("EightDiagram") then return true end
 	if self:evaluateArmor(player:getArmor(), player) <= -2 then return true end
 	if player:hasArmorEffect("SilverLion") and player:isWounded() then
 		if self:isFriend(player) then

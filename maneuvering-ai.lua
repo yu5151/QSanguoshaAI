@@ -91,7 +91,9 @@ function sgs.ai_armor_value.Vine(player, self)
 	if player:hasSkill("jujian") and not player:getArmor() and #(self:getFriendsNoself(player)) > 0 and player:getPhase() == sgs.Player_Play then return 3 end
 	if player:hasSkill("diyyicong") and not player:getArmor() and player:getPhase() == sgs.Player_Play then return 3 end
 	
-	if player:isChained() and not self:isGoodChainTarget(player) or not self:isGoodChainTarget(player, self.player, sgs.DamageStruct_Thunder) then return -2 end
+	local fslash = sgs.Sanguosha:cloneCard("fire_slash")
+	local tslash = sgs.Sanguosha:cloneCard("thunder_slash")
+	if player:isChained() and (not self:isGoodChainTarget(player, self.player, nil, nil, fslash) or not self:isGoodChainTarget(player, self.player, nil, nil, tslash)) then return -2 end
 	
 	for _, enemy in ipairs(self:getEnemies(player)) do
 		if (enemy:canSlash(player) and enemy:hasWeapon("Fan")) or self:hasSkills("huoji|longhun|shaoying|zonghuo|wuling", enemy)
@@ -101,7 +103,7 @@ function sgs.ai_armor_value.Vine(player, self)
 	end
 
 	if (#self.enemies < 3 and sgs.turncount > 2) or player:getHp() <= 2 then return 5 end
-	return -1
+	return 0
 end
 
 function SmartAI:shouldUseAnaleptic(target, slash)

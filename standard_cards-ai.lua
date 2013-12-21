@@ -1122,7 +1122,7 @@ function sgs.ai_weapon_value.QinggangSword(self, enemy)
 	if enemy and enemy:getArmor() then return 3 end
 end
 
-sgs.ai_skill_invoke.IceSword=function(self, data)
+sgs.ai_skill_invoke.IceSword = function(self, data)
 	local damage = data:toDamage()
 	local target = damage.to
 	if self:isFriend(target) then
@@ -1134,6 +1134,7 @@ sgs.ai_skill_invoke.IceSword=function(self, data)
 	else
 		if self:isWeak(target) then return false end
 		if damage.damage > 1 or self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
+		if target:hasSkill("lirang") and #self:getFriends(target) > 0 then return false end
 		if target:getArmor() and self:evaluateArmor(target:getArmor(), target) > 3 and not (target:hasArmorEffect("SilverLion") and target:isWounded()) then return true end
 		local num = target:getHandcardNum()
 		if self.player:hasSkill("tieji") or self:canLiegong(target, self.player) then return false end

@@ -178,6 +178,7 @@ function SmartAI:initialize(player)
 	self.kept = {}
 	self.keepdata = {}
 	self.predictedRange = 1
+	self.slashAvail = 1
 	if not sgs.initialized then
 		sgs.initialized = true
 		sgs.ais = {}
@@ -628,8 +629,11 @@ function SmartAI:adjustUsePriority(card, v)
 	
 	table.insert(suits, "no_suit")
 	if card:isKindOf("Slash") then 
-		if card:getSkillName() == "Spear" then v = v - 0.01 end
-		if card:isRed() then v = v - 0.05 end
+		if card:getSkillName() == "Spear" then v = v - 0.1 end
+		if card:isRed() then
+			if self.slashAvail == 1 and self.player:hasSkill("jie") then v = v + 0.21
+			else v = v - 0.05 end
+		end
 		if card:isKindOf("NatureSlash") then v = v - 0.1 end
 		if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 0.21 end
 		if card:getSkillName() == "fuhun" then v = v + (self.player:getPhase() == sgs.Player_Play and 0.21 or -0.1) end
@@ -638,13 +642,13 @@ function SmartAI:adjustUsePriority(card, v)
 		if self.player:hasSkill("jinjiu") and card:getEffectiveId() >= 0 and sgs.Sanguosha:getEngineCard(card:getEffectiveId()):isKindOf("Analeptic") then v = v + 0.11 end
 	end
 	if self.player:hasSkill("mingzhe") and card:isRed() then v = v + (self.player:getPhase() ~= sgs.Player_NotActive and 0.05 or -0.05) end
-
+	
 	local suits_value = {}
-	for index,suit in ipairs(suits) do
-		suits_value[suit] = 10 - index*2 
+	for index, suit in ipairs(suits) do
+		suits_value[suit] = -index
 	end
-	v = v + (suits_value[card:getSuitString()] or 0) / 100
-	v = v + (13 - card:getNumber()) / 1000
+	v = v + (suits_value[card:getSuitString()] or 0) / 1000
+	v = v + (13 - card:getNumber()) / 10000
 	return v
 end
 
@@ -1461,7 +1465,7 @@ function SmartAI:objectiveLevel(player)
 			elseif target_role == "renegade" then return sgs.isLordInDanger() and -1 or 4 end
 		end
 		if renegade_num == 0 then
-			if sgs.ai_role[player:objectName()] ~= "loyalist" then return 5 end
+			if sgs.ai_role[player:objectName()] == "loyalist" then return -2 end
 			
 			if rebel_num > 0 and sgs.turncount > 1 then
 				local hasRebel
@@ -3849,6 +3853,7 @@ function SmartAI:getTurnUse()
 	local turnUse = {}
 	local slash = sgs.Sanguosha:cloneCard("slash")
 	local slashAvail = 1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_Residue, self.player, slash)
+	self.slashAvail = slashAvail
 	self.predictedRange = self.player:getAttackRange()
 	self.slash_distance_limit = (1 + sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, slash) > 50)
 
@@ -3856,10 +3861,12 @@ function SmartAI:getTurnUse()
 	self:fillSkillCards(cards)
 	self:sortByUseValue(cards)
 
-	if self.player:hasWeapon("Crossbow") or #self.player:property("extra_slash_specific_assignee"):toString():split("+") > 0 then
+	if self.player:hasWeapon("Crossbow") or #self.player:property("extra_slash_specific_assignee"):toString():split("+") > 1 then
 		slashAvail = 100
+		self.slashAvail = slashAvail
 	elseif self.player:hasWeapon("VSCrossbow") then
 		slashAvail = slashAvail + 3
+		self.slashAvail = slashAvail
 	end
 
 	for _, card in ipairs(cards) do
@@ -3883,8 +3890,8 @@ function SmartAI:getTurnUse()
 				else
 					self.predictedRange = 1
 				end
-				if dummy_use.card:objectName() == "Crossbow" then slashAvail = 100 end
-				if dummy_use.card:objectName() == "VSCrossbow" then slashAvail = slashAvail + 3 end
+				if dummy_use.card:objectName() == "Crossbow" then slashAvail = 100 self.slashAvail = slashAvail end
+				if dummy_use.card:objectName() == "VSCrossbow" then slashAvail = slashAvail + 3 self.slashAvail = slashAvail end
 				table.insert(turnUse, dummy_use.card)
 			end
 		end

@@ -174,7 +174,8 @@ sgs.duanliang_suit_value = {
 sgs.ai_chaofeng.xuhuang = 4
 
 sgs.ai_skill_invoke.zaiqi = function(self, data)
-	return self.player:getLostHp() >= 2
+	local lostHp = self.player:hasSkills("rende|nosrende") and 3 or 2
+	return self.player:getLostHp() >= lostHp
 end
 
 sgs.ai_cardneed.lieren = function(to, card, self)

@@ -778,12 +778,11 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 	local function getJink()
 		if target and target:hasSkill("dahe") and self.player:hasFlag("dahe") then
 			for _, card in ipairs(self:getCards("Jink")) do
-				if card:getSuit() == sgs.Card_Heart then
-					return card:getId()
-				end
+				if card:getSuit() == sgs.Card_Heart then return card:getId() end
 			end
+			return "."
 		end
-		return nil
+		return self:getCardId("Jink") or "."
 	end
 
 	local slash
@@ -1134,7 +1133,7 @@ sgs.ai_skill_invoke.IceSword = function(self, data)
 	else
 		if self:isWeak(target) then return false end
 		if damage.damage > 1 or self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
-		if target:hasSkill("lirang") and #self:getFriends(target) > 0 then return false end
+		if target:hasSkill("lirang") and #self:getFriendsNoself(target) > 0 then return false end
 		if target:getArmor() and self:evaluateArmor(target:getArmor(), target) > 3 and not (target:hasArmorEffect("SilverLion") and target:isWounded()) then return true end
 		local num = target:getHandcardNum()
 		if self.player:hasSkill("tieji") or self:canLiegong(target, self.player) then return false end

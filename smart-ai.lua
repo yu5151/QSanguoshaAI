@@ -3733,11 +3733,7 @@ function SmartAI:willUsePeachTo(dying)
 		
 		if self:getCardsNum("Peach") + self:getCardsNum("Analeptic") <= sgs.ai_NeedPeach[self.player:objectName()] and not isLord(dying) then return "." end
 
-		local allcards = 0
-		for _, p in ipairs(self.friends) do
-			if sgs.card_lack[p:objectName()]["Peach"] == 0 then allcards = allcards + p:getHandcardNum() end
-		end
-		if allcards < 1 - dying:getHp() then return "." end
+		if math.ceil(self:getAllPeachNum()) < 1 - dying:getHp() and not isLord(dying) then return "." end
 		
 		if not dying:isLord() and dying:objectName() ~= self.player:objectName() then
 			local possible_friend = 0
@@ -4222,7 +4218,7 @@ function SmartAI:damageIsEffective(to, nature, from)
 			end
 		end
 	end
-	if to:hasLordSkill("shichou") and to:getMark("@hate_to") == 0 then
+	if to:hasLordSkill("shichou") and to:getMark("xhate") == 1 then
 		for _, p in sgs.qlist(self.room:getOtherPlayers(to)) do
 			if p:getMark("hate_" .. to:objectName()) > 0 and p:getMark("@hate_to") > 0 then return self:damageIsEffective(p, nature, from) end
 		end

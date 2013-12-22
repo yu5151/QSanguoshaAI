@@ -912,7 +912,7 @@ sgs.ai_skill_use_func.RendeCard = function(card, use, self)
 		elseif card:isAvailable(self.player) and self:getEnemyNumBySeat(self.player, friend) > 0 and (card:isKindOf("Indulgence") or card:isKindOf("SupplyShortage")) then
 			local dummy_use = { isDummy = true }
 			self:useTrickCard(card, dummy_use)
-			if use.card then continue end
+			if dummy_use.card then continue end
 		end
 
 		if friend:hasSkill("enyuan") and #cards >= 1 and not (self.room:getMode() == "04_1v3" and self.player:getMark("rende") == 1) then
@@ -1000,7 +1000,7 @@ sgs.ai_skill_use["@@rende"] = function(self, prompt)
 		elseif card:isAvailable(self.player) and self:getEnemyNumBySeat(self.player, friend) > 0 and (card:isKindOf("Indulgence") or card:isKindOf("SupplyShortage")) then
 			local dummy_use = { isDummy = true }
 			self:useTrickCard(card, dummy_use)
-			if use.card then continue end
+			if dummy_use.card then continue end
 		end
 		
 		local usecard

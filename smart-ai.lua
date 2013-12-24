@@ -2665,7 +2665,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 							or self:isWeak(to)
 							or to:hasArmorEffect("Vine")
 							or to:getMark("@gale") > 0
-							or to:isChained() and not self:isGoodChainTarget(to)
+							or to:isChained() and not self:isGoodChainTarget(to, from)
 							then return null_card end
 					end
 				end

@@ -2014,6 +2014,7 @@ function SmartAI:filterEvent(event, player, data)
 		if card:isKindOf("AOE") and self.player:objectName() == player:objectName() then
 			for _, t in sgs.qlist(struct.to) do
 				if t:hasSkill("fangzhu") then sgs.ai_AOE_data = data break end
+				if t:hasSkill("guidao") and t:hasSkills("leiji|nosleiji") then sgs.ai_AOE_data = data break end
 			end
 		end
 		

@@ -216,14 +216,29 @@ sgs.ai_skill_cardask["@guidao-card"]=function(self, data)
 	local judge = data:toJudge()
 	local all_cards = self.player:getCards("he")
 	if all_cards:isEmpty() then return "." end
+	
+	local needTokeep = judge.card:getSuit() ~= sgs.Card_Spade and (not self.player:hasSkill("leiji") or judge.card:getSuit() ~= sgs.Card_Club)
+						and sgs.ai_AOE_data and self:playerGetRound(judge.who) < self:playerGetRound(self.player) and self:findLeijiTarget(self.player, 50)
+						and (self:getCardsNum("Jink") > 0 or self:hasEightDiagramEffect()) and self:getFinalRetrial() == 1
+
+	local keptspade, keptblack = 0, 0
+	if needTokeep then
+		if self.player:hasSkill("nosleiji") then keptspade = 2 end
+		if self.player:hasSkill("leiji") then keptblack = 2 end
+	end
 	local cards = {}
 	for _, card in sgs.qlist(all_cards) do
 		if card:isBlack() and not card:hasFlag("using") then
+			if card:getSuit() == sgs.Card_Spade then keptspade = keptspade - 1 end
+			keptblack = keptblack - 1
 			table.insert(cards, card)
 		end
 	end
 
 	if #cards == 0 then return "." end
+	if keptblack == 1 then return "." end
+	if keptspade == 1 and not self.player:hasSkill("leiji") then return "." end
+
 	local card_id = self:getRetrialCardId(cards, judge)
 	if card_id == -1 then
 		if self:needRetrial(judge) and judge.reason ~= "beige" then
@@ -300,8 +315,8 @@ function SmartAI:findLeijiTarget(player, leiji_value, slasher, latest_version)
 			or (enemy:isChained() and not self:isGoodChainTarget(enemy, player, sgs.DamageStruct_Thunder, latest_version == 1 and 1 or 2)) then return 100 end
 		if not sgs.isGoodTarget(enemy, self.enemies, self) then value = value + 50 end
 		if not latest_version and enemy:hasArmorEffect("SilverLion") then value = value + 20 end
-		if self:hasSkills(sgs.exclusive_skill, enemy) then value = value + 10 end
-		if self:hasSkills(sgs.masochism_skill, enemy) then value = value + 5 end
+		if enemy:hasSkills(sgs.exclusive_skill) then value = value + 10 end
+		if enemy:hasSkills(sgs.masochism_skill) then value = value + 5 end
 		if enemy:isChained() and self:isGoodChainTarget(enemy, player, sgs.DamageStruct_Thunder, latest_version == 1 and 1 or 2) and #(self:getChainedEnemies(player)) > 1 then value = value - 25 end
 		if enemy:isLord() then value = value - 5 end
 		value = value + enemy:getHp() + sgs.getDefenseSlash(enemy, self) * 0.01

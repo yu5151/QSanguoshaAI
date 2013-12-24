@@ -332,7 +332,7 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, slash)
 	source = source or self.player
 	nature = nature or sgs.DamageStruct_Fire
 	
-	if source:hasSkill("jueqing") then return not self:isFriend(who, source) end
+	if source:hasSkill("jueqing") then return not self:isFriend(who) end
 	
 	damagecount = damagecount or 1
 	if slash and slash:isKindOf("Slash") then

@@ -2454,7 +2454,7 @@ function SmartAI:findLijianTarget(card_name, use)
 		local zhugeliang_kongcheng, xunyu
 
 		for _, enemy in ipairs(self.enemies) do
-			if enemy:isMale() and not self:hasSkills("wuyan|noswuyan", enemy) then
+			if enemy:isMale() and not enemy:hasSkills("wuyan|noswuyan") then
 				if enemy:hasSkill("kongcheng") and enemy:isKongcheng() then zhugeliang_kongcheng = enemy
 				elseif enemy:hasSkill("jieming") then xunyu = enemy
 				else

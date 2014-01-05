@@ -352,7 +352,7 @@ function SmartAI:assignKeep(num, start)
 		for k, v in pairs(sgs.ai_keep_value) do
 			self.keepdata[k] = v
 		end
-		
+			
 		if not self:isWeak() or num >= 4 then
 			for _, friend in ipairs(self.friends_noself) do
 				if self:willSkipDrawPhase(friend) or self:willSkipPlayPhase(friend) then
@@ -362,26 +362,31 @@ function SmartAI:assignKeep(num, start)
 			end
 		end
 		
-	if not self:isWeak() then
-		local needDamaged = false
-		if self.player:getHp() > getBestHp(self.player) then needDamaged = true end
-		if not needDamaged and not sgs.isGoodTarget(self.player, self.friends, self) then needDamaged = true end
-		if not needDamaged then
-			for _, skill in sgs.qlist(self.player:getVisibleSkillList()) do
-				local callback = sgs.ai_need_damaged[skill:objectName()]
-				if type(callback) == "function" and callback(self, nil, self.player) then
-					needDamaged = true
-					break
+		if self:getOverflow(self.player, true) == 1 then
+			self.keepdata.Analeptic = self.keepdata.Jink + 0.1
+			-- 特殊情况下还是要留闪，待补充...
+		end
+		
+		if not self:isWeak() then
+			local needDamaged = false
+			if self.player:getHp() > getBestHp(self.player) then needDamaged = true end
+			if not needDamaged and not sgs.isGoodTarget(self.player, self.friends, self) then needDamaged = true end
+			if not needDamaged then
+				for _, skill in sgs.qlist(self.player:getVisibleSkillList()) do
+					local callback = sgs.ai_need_damaged[skill:objectName()]
+					if type(callback) == "function" and callback(self, nil, self.player) then
+						needDamaged = true
+						break
+					end
 				end
 			end
+			if needDamaged then
+				self.keepdata.ThunderSlash = 5.2
+				self.keepdata.FireSlash = 5.1
+				self.keepdata.Slash = 5
+				self.keepdata.Jink = 4.5
+			end
 		end
-		if needDamaged then
-			self.keepdata.ThunderSlash = 5.2
-			self.keepdata.FireSlash = 5.1
-			self.keepdata.Slash = 5
-			self.keepdata.Jink = 4.5
-		end
-	end
 
 		for _, enemy in ipairs(self.enemies) do
 			if enemy:hasSkill("nosqianxi") and enemy:distanceTo(self.player) == 1 then
@@ -2681,14 +2686,14 @@ function SmartAI:askForNullification(trick, from, to, positive)
 		if self:isFriend(to) then
 			if not (to:hasSkill("guanxing") and global_room:alivePlayerCount() > 4) then 
 				--无观星友方判定区有乐不思蜀->视“突袭”、“巧变”情形而定
-				if trick:isKindOf("Indulgence") then
+				if trick:isKindOf("Indulgence") and not to:isSkipped(sgs.Player_Play) then
 					if to:getHp() - to:getHandcardNum() >= 2 then return nil end
 					if to:hasSkill("tuxi") and to:getHp() > 2 then return nil end
 					if to:hasSkill("qiaobian") and not to:isKongcheng() then return nil end
 					return null_card
 				end
 				--无观星友方判定区有兵粮寸断->视“鬼道”、“天妒”、“溃围”、“巧变”情形而定
-				if trick:isKindOf("SupplyShortage") then
+				if trick:isKindOf("SupplyShortage") and not to:isSkipped(sgs.Player_Draw) then
 					if self:hasSkills("guidao|tiandu",to) then return nil end
 					if to:getMark("@kuiwei") == 0 then return nil end
 					if to:hasSkill("qiaobian") and not to:isKongcheng() then return nil end
@@ -5946,7 +5951,7 @@ function SmartAI:findPlayerToDraw(include_self, drawnum)
 	local players = sgs.QList2Table(include_self and self.room:getAllPlayers() or self.room:getOtherPlayers(self.player))
 	local friends = {}
 	for _, player in ipairs(players) do
-		if self:isFriend(player) and not hasManjuanEffect(player)
+		if self:isFriend(player) and not hasManjuanEffect(player) and (not self.qiaoshui_effect or not player:hasSkill("danlao"))
 			and not (player:hasSkill("kongcheng") and player:isKongcheng() and drawnum <= 2) then
 			table.insert(friends, player)
 		end

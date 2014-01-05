@@ -775,6 +775,7 @@ sgs.ai_card_intention.Slash = function(self, card, from, tos)
 end
 
 sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
+	local isdummy = type(data) == "number"
 	local function getJink()
 		if target and target:hasSkill("dahe") and self.player:hasFlag("dahe") then
 			for _, card in ipairs(self:getCards("Jink")) do
@@ -782,7 +783,7 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 			end
 			return "."
 		end
-		return self:getCardId("Jink") or type(data) ~= "number" and "."
+		return self:getCardId("Jink") or not isdummy and "."
 	end
 
 	local slash
@@ -817,7 +818,7 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 					break
 				end
 			end
-			if not use then return "." end
+			if not use then return not isdummy and "." end
 		end
 		if self.player:getHandcardNum() == 1 and self:needKongcheng() then return getJink() end
 		if not self:hasLoseHandcardEffective() and not self.player:isKongcheng() then return getJink() end
@@ -833,8 +834,8 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 		end
 		if not (target:hasSkill("nosqianxi") and target:distanceTo(self.player) == 1) then
 			if target:hasWeapon("Axe") then
-				if target:hasSkills(sgs.lose_equip_skill) and target:getEquips():length() > 1 and target:getCards("he"):length() > 2 then return "." end
-				if target:getHandcardNum() - target:getHp() > 2 and not self:isWeak() and not self:getOverflow() then return "." end
+				if target:hasSkills(sgs.lose_equip_skill) and target:getEquips():length() > 1 and target:getCards("he"):length() > 2 then return not isdummy and "." end
+				if target:getHandcardNum() - target:getHp() > 2 and not self:isWeak() and not self:getOverflow() then return not isdummy and "." end
 			elseif target:hasWeapon("Blade") then
 				if slash:isKindOf("NatureSlash") and self.player:hasArmorEffect("Vine")
 					or self.player:hasArmorEffect("RenwangShield")
@@ -845,7 +846,7 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 						or self.player:hasSkill("jijiu") and getKnownCard(self.player, self.player, "red") > 0
 						or self:canUseJieyuanDecrease(target)
 					then
-					return "."
+					return not isdummy and "."
 				end
 			end
 		end
@@ -1137,7 +1138,7 @@ sgs.ai_skill_invoke.IceSword = function(self, data)
 		if target:getArmor() and self:evaluateArmor(target:getArmor(), target) > 3 and not (target:hasArmorEffect("SilverLion") and target:isWounded()) then return true end
 		local num = target:getHandcardNum()
 		if self.player:hasSkill("tieji") or self:canLiegong(target, self.player) then return false end
-		if target:hasSkills("tuntian+zaoxian") then return false end
+		if target:hasSkills("tuntian+zaoxian") and target:getPhase() == sgs.Player_NotActive then return false end
 		if self:hasSkills(sgs.need_kongcheng, target) then return false end
 		if target:getCards("he"):length()<4 and target:getCards("he"):length()>1 then return true end
 		return false
@@ -1983,7 +1984,9 @@ function SmartAI:getValuableCard(who)
 			return weapon:getEffectiveId()
 		end 
 	end
-	if defhorse and not self:doNotDiscard(who, "e") then
+	if defhorse and not self:doNotDiscard(who, "e")
+		and not (self.player:hasWeapon("KylinBow") and self.player:canSlash(who) and self:slashIsEffective(sgs.Sanguosha:cloneCard("slash"), who, self.player)
+				and (getCardsNum("Jink", who, self.player) < 1 or sgs.card_lack[who:objectName()].Jink == 1 )) then
 		return defhorse:getEffectiveId()
 	end
 

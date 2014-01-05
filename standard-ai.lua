@@ -1067,6 +1067,7 @@ local jijiang_skill = {}
 jijiang_skill.name = "jijiang"
 table.insert(sgs.ai_skills, jijiang_skill)
 jijiang_skill.getTurnUseCard = function(self)
+	if not self.player:hasLordSkill("jijiang") then return end
 	local lieges = self.room:getLieges("shu", self.player)
 	if lieges:isEmpty() then return end
 	local has_friend
@@ -1160,7 +1161,7 @@ end
 
 function sgs.ai_cardsview_valuable.jijiang(self, class_name, player, need_lord)
 	if class_name == "Slash" and sgs.Sanguosha:getCurrentCardUseReason() == sgs.CardUseStruct_CARD_USE_REASON_RESPONSE_USE
-		and not player:hasFlag("Global_JijiangFailed") and (need_lord == false or player:hasLordSkill("jijiang")) then
+		and not player:hasFlag("Global_JijiangFailed") and player:hasLordSkill("jijiang") then
 		local current = self.room:getCurrent()
 		if current:getKingdom() == "shu" and self:getOverflow(current) > 2 and not self:hasCrossbowEffect(current) then
 			self.player:setFlags("stack_overflow_jijiang")

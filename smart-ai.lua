@@ -25,7 +25,7 @@ end
 sgs.ais = {}
 sgs.ai_card_intention = 	{}
 sgs.ai_playerchosen_intention = {}
-sgs.ai_Yiji_intention = {}
+sgs.ai_Yiji_intention = 	{}
 sgs.role_evaluation = 		{}
 sgs.ai_role = 				{}
 sgs.ai_keep_value = 		{}
@@ -45,6 +45,7 @@ sgs.ai_filterskill_filter = {}
 sgs.ai_skill_playerchosen = {}
 sgs.ai_skill_discard = 		{}
 sgs.ai_cardshow = 			{}
+sgs.ai_nullification = 		{}
 sgs.ai_skill_cardchosen = 	{}
 sgs.ai_skill_use = 			{}
 sgs.ai_cardneed = 			{}
@@ -2624,6 +2625,13 @@ function SmartAI:askForNullification(trick, from, to, positive)
 		return nil --扣减体力有利
 	end
 	if trick:isKindOf("Drowning") and self:needToThrowArmor(to) and self:isFriend(to) then return nil end
+	
+	local callback = sgs.ai_nullification[trick:getClassName()]
+	if type(callback) == "function" then
+		local shouldUse = callback(self, trick, from, to, positive)
+		if shouldUse then return null_card end
+	end
+	
 	if positive then
 		if from and (trick:isKindOf("FireAttack") or trick:isKindOf("Duel") or trick:isKindOf("AOE")) and (self:needDeath(to) or self:cantbeHurt(to, from)) then
 			if self:isFriend(from) then return null_card end

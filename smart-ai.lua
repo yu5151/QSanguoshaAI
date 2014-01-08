@@ -446,12 +446,7 @@ function SmartAI:getKeepValue(card, kept, Write)
 	if not kept then
 		local CardPlace = self.room:getCardPlace(card:getEffectiveId())
 		if CardPlace == sgs.Player_PlaceHand then
-			local v = self.keepValue[card:getId()]
-			if not v then
-				-- self.room:writeToConsole(debug.traceback())
-				v = 0
-			end
-			return v
+			return self.keepValue[card:getId()] or self.keepdata[card:getClassName()] or 0
 		else
 			local at_play = self.player:getPhase() == sgs.Player_Play
 			if card:isKindOf("SilverLion") and self.player:isWounded() then return -10
@@ -637,6 +632,7 @@ function SmartAI:adjustUsePriority(card, v)
 		if card:getSkillName() == "Spear" then v = v - 0.1 end
 		if card:isRed() then
 			if self.slashAvail == 1 and self.player:hasSkill("jie") then v = v + 0.21
+			elseif self.player:hasSkill("longyin") then v = v + 0.21
 			else v = v - 0.05 end
 		end
 		if card:isKindOf("NatureSlash") then v = v - 0.1 end
@@ -5578,7 +5574,7 @@ function SmartAI:useEquipCard(card, use)
 		end
 		if self:hasSkills("paoxiao|nosfuhun", self.player) and card:isKindOf("Crossbow") then return end
 		if not self:needKongcheng() and not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow() <= 0 and not canUseSlash then return end
-		if (not use.to) and self.weaponUsed and not self:hasSkills(sgs.lose_equip_skill) then return end
+		if (not use.to) and self.player:getWeapon() and not self:hasSkills(sgs.lose_equip_skill) then return end
 		if (self.player:hasSkill("zhiheng") or self.player:hasSkill("jilve") and self.player:getMark("@bear") > 0)
 			and not self.player:hasUsed("ZhihengCard") and self.player:getWeapon() and not card:isKindOf("Crossbow") then return end
 		if not self:needKongcheng() and self.player:getHandcardNum() <= self.player:getHp() - 2 then return end

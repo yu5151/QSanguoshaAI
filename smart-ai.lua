@@ -465,6 +465,7 @@ function SmartAI:getKeepValue(card, kept, Write)
 			else return 3.19
 			end
 		end
+		return self.keepValue[card:getId()] or self.keepdata[card:getClassName()] or 0
 	end
 	
 	local value_suit, value_number, newvalue = 0, 0, 0
@@ -632,9 +633,14 @@ function SmartAI:adjustUsePriority(card, v)
 	if card:isKindOf("Slash") then 
 		if card:getSkillName() == "Spear" then v = v - 0.1 end
 		if card:isRed() then
-			if self.slashAvail == 1 and self.player:hasSkill("jie") then v = v + 0.21
-			elseif self.player:hasSkill("longyin") then v = v + 0.21
-			else v = v - 0.05 end
+			if self.slashAvail == 1 and self.player:hasSkill("jie") then v = v + 0.26 end
+			for _, friend in ipairs(self.friends) do
+				if friend:hasSkill("longyin") and friend:canDiscard(friend, "he") and not hasManjuanEffect(friend) then
+				v = v + 0.26
+				break
+				end
+			end
+			v = v - 0.05
 		end
 		if card:isKindOf("NatureSlash") then v = v - 0.1 end
 		if card:getSkillName() == "longdan" and self:hasSkills("chongzhen") then v = v + 0.21 end
@@ -5955,7 +5961,7 @@ function SmartAI:findPlayerToDraw(include_self, drawnum)
 	local players = sgs.QList2Table(include_self and self.room:getAllPlayers() or self.room:getOtherPlayers(self.player))
 	local friends = {}
 	for _, player in ipairs(players) do
-		if self:isFriend(player) and not hasManjuanEffect(player) and (not self.qiaoshui_effect or not player:hasSkill("danlao"))
+		if self:isFriend(player) and not hasManjuanEffect(player)
 			and not (player:hasSkill("kongcheng") and player:isKongcheng() and drawnum <= 2) then
 			table.insert(friends, player)
 		end

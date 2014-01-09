@@ -1119,11 +1119,12 @@ sgs.ai_skill_cardask["double-sword-card"] = function(self, data, pattern, target
 end
 
 function sgs.ai_weapon_value.QinggangSword(self, enemy)
-	if enemy and enemy:getArmor() and enemy:hasArmorEffect(enemy:getArmor()) then return 3 end
+	if enemy and enemy:getArmor() and enemy:hasArmorEffect(enemy:getArmor():objectName()) then return 3 end
 end
 
 function sgs.ai_slash_weaponfilter.QinggangSword(self, enemy)
-	if enemy and enemy:getArmor() and enemy:hasArmorEffect(enemy:getArmor())
+	local attackrange = math.max(self.player:getAttackRange(), sgs.weapon_range.QinggangSword)
+	if enemy and enemy:getArmor() and enemy:hasArmorEffect(enemy:getArmor():objectName())
 		and (sgs.card_lack[enemy:objectName()] == 1 or getCardsNum("Jink", enemy, self.player) < 1) then
 		return true end
 end

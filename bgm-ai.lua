@@ -1181,6 +1181,7 @@ local function need_huangen(self, who)
 			if self:isWeak(who) then return true end
 			if self:hasSkills(sgs.masochism_skill, who) then return true end
 		end
+		if card:isKindOf("ExNihilo") then return true end
 		return false
 	elseif self:isFriend(who) then
 		if self:hasSkills("noswuyan", who) and from:objectName() ~= who:objectName() then return true end

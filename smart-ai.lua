@@ -10,7 +10,7 @@ math.randomseed(os.time())
 -- SmartAI is the base class for all other specialized AI classes
 SmartAI = class "SmartAI"
 
-version = "QSanguosha AI 20131210 (V1.20 Alpha)"
+version = "QSanguosha AI 20140111 (V1.21 Alpha)"
 
 -- checkout https://github.com/haveatry823/QSanguoshaAI for details
 

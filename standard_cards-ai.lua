@@ -413,6 +413,29 @@ function SmartAI:slashIsAvailable(player, slash) -- @todo: param of slashIsAvail
 	return slash:isAvailable(player)
 end
 
+function SmartAI:findWeaponToUse(enemy)
+	local weaponvalue = {}
+	local hasweapon
+	for _, c in sgs.qlist(self.player:getHandcards()) do
+		if c:isKindOf("Weapon") then
+			local dummy_use = { isDummy == true, to = sgs.SPlayerList() }
+			self:useEquipCard(c, dummy_use)
+			if dummy_use.card then
+				weaponvalue[c] = self:evaluateWeapon(c, self.player, enemy)
+				hasweapon = true
+			end
+		end
+	end
+	if not hasweapon then return end
+	if self.player:getWeapon() then weaponvalue[self.player:getWeapon()] = self:evaluateWeapon(self.player:getWeapon(), self.player, enemy) end
+	local max_value, max_card = -10
+	for c, v in pairs(weaponvalue) do
+		if v > max_value then max_card = c max_value = v end
+	end
+	if self.player:getWeapon() and self.player:getWeapon():getEffectiveId() == max_card:getEffectiveId() then return false end
+	return max_card
+end
+
 function SmartAI:isPriorFriendOfSlash(friend, card, source)
 	source = source or self.player
 	local huatuo = self.room:findPlayerBySkillName("jijiu")
@@ -515,23 +538,9 @@ function SmartAI:useCardSlash(card, use)
 				if self.player:hasWeapon("Spear") and card:getSkillName() == "Spear" then
 				elseif self.player:hasWeapon("Crossbow") and self:getCardsNum("Slash") > 1 then
 				elseif not use.isDummy then
-					local Weapons = {}
-					for _, acard in sgs.qlist(self.player:getHandcards()) do
-						if acard:isKindOf("Weapon") then
-							local callback = sgs.ai_slash_weaponfilter[acard:objectName()]
-							if callback and type(callback) == "function" and callback(self, target, self.player) -- @todo: param of weapon_filter
-								and self.player:distanceTo(target) <= (sgs.weapon_range[acard:getClassName()] or 1) then
-								self:useEquipCard(acard, use)
-								if use.card then table.insert(Weapons, acard) end
-							end
-						end
-					end
-					if #Weapons > 0 then
-						local cmp = function(a, b)
-							return self:evaluateWeapon(a) > self:evaluateWeapon(b)
-						end
-						table.sort(Weapons, cmp)
-						use.card = Weapons[1]
+					local card = self:findWeaponToUse(enemy)
+					if card then
+						use.card = card
 						return
 					end
 				end
@@ -582,6 +591,16 @@ function SmartAI:useCardSlash(card, use)
 					use.card = sgs.Card_Parse("@DuyiCard=.")
 					if use.to then use.to = sgs.SPlayerList() end
 					return
+				end
+				if not target:isCardLimited(sgs.Sanguosha:cloneCard("jink"), sgs.Card_MethodUse) and not self.player:hasUsed("WuqianCard") and self.player:getMark("@wrath") >= 2 then
+					if self.player:getMark("drank") > 0
+						or (self:hasHeavySlashDamage(self.player, card, target) and not target:hasArmorEffect("Vine"))
+						or (getCardsNum("Jink", target, self.player) < 2 and getCardsNum("Jink", target, self.player) >= 1 and target:getHp() <= 2) then
+
+						use.card = sgs.Card_Parse("@WuqianCard=.")
+						if use.to then use.to = sgs.SPlayerList() use.to:append(target) end
+						return
+					end
 				end
 			end
 			if not use.to or self.slash_targets <= use.to:length() then return end
@@ -1060,7 +1079,7 @@ sgs.ai_skill_invoke.DoubleSword = function(self, data)
 end
 
 function sgs.ai_slash_weaponfilter.DoubleSword(self, to, player)
-	return player:getGender()~=to:getGender()
+	return player:distanceTo(to) <= math.max(sgs.weapon_range.DoubleSword, player:getAttackRange()) and player:getGender() ~= to:getGender()
 end
 
 function sgs.ai_weapon_value.DoubleSword(self, enemy, player)
@@ -1122,11 +1141,12 @@ function sgs.ai_weapon_value.QinggangSword(self, enemy)
 	if enemy and enemy:getArmor() and enemy:hasArmorEffect(enemy:getArmor():objectName()) then return 3 end
 end
 
-function sgs.ai_slash_weaponfilter.QinggangSword(self, enemy)
-	local attackrange = math.max(self.player:getAttackRange(), sgs.weapon_range.QinggangSword)
-	if enemy and enemy:getArmor() and enemy:hasArmorEffect(enemy:getArmor():objectName())
+function sgs.ai_slash_weaponfilter.QinggangSword(self, enemy, player)
+	if player:distanceTo(enemy) > math.max(sgs.weapon_range.QinggangSword, player:getAttackRange()) then return end
+	if enemy:getArmor() and enemy:hasArmorEffect(enemy:getArmor():objectName())
 		and (sgs.card_lack[enemy:objectName()] == 1 or getCardsNum("Jink", enemy, self.player) < 1) then
-		return true end
+		return true
+	end
 end
 
 sgs.ai_skill_invoke.IceSword = function(self, data)
@@ -1153,7 +1173,7 @@ sgs.ai_skill_invoke.IceSword = function(self, data)
 end
 
 function sgs.ai_slash_weaponfilter.GudingBlade(self, to)
-	return to:isKongcheng()
+	return to:isKongcheng() and not to:hasArmorEffect("SilverLion")
 end
 
 function sgs.ai_weapon_value.GudingBlade(self, enemy)
@@ -1305,7 +1325,7 @@ end
 
 
 function sgs.ai_slash_weaponfilter.Axe(self, to, player)
-	return self:getOverflow(player) > 0
+	return player:distanceTo(to) <= math.max(sgs.weapon_range.Axe, player:getAttackRange()) and self:getOverflow(player) > 0
 end
 
 function sgs.ai_weapon_value.Axe(self, enemy, player)
@@ -1434,8 +1454,9 @@ function sgs.ai_weapon_value.Spear(self, enemy, player)
 	return 0
 end
 
-function sgs.ai_slash_weaponfilter.Fan(self, to)
-	return to:hasArmorEffect("Vine")
+function sgs.ai_slash_weaponfilter.Fan(self, to, player)
+	return player:distanceTo(to) <= math.max(sgs.weapon_range.Fan, player:getAttackRange())
+		and to:hasArmorEffect("Vine")
 end
 
 sgs.ai_skill_invoke.KylinBow = function(self, data)
@@ -1447,8 +1468,9 @@ sgs.ai_skill_invoke.KylinBow = function(self, data)
 	return self:isEnemy(damage.to)
 end
 
-function sgs.ai_slash_weaponfilter.KylinBow(self, to)
-	return to:getDefensiveHorse() or to:getOffensiveHorse()
+function sgs.ai_slash_weaponfilter.KylinBow(self, to, player)
+	return player:distanceTo(to) <= math.max(sgs.weapon_range.KylinBow, player:getAttackRange())
+		and (to:getDefensiveHorse() or to:getOffensiveHorse())
 end
 
 function sgs.ai_weapon_value.KylinBow(self, enemy)
@@ -1761,6 +1783,7 @@ function SmartAI:useCardDuel(duel, use)
 	local enemies = self:exclude(self.enemies, duel)
 	local friends = self:exclude(self.friends_noself, duel)
 	local n1 = self:getCardsNum("Slash")
+	if use.isWuqian then n1 = n1 * 2 end
 	local huatuo = self.room:findPlayerBySkillName("jijiu")
 	local targets = {}
 

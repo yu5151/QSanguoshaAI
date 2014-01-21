@@ -521,6 +521,12 @@ function SmartAI:useCardSlash(card, use)
 	
 	for _, target in ipairs(targets) do
 		local canliuli = false
+		local use_wuqian = self.player:hasSkill("wuqian") and self.player:getMark("@wrath") >= 2
+							and not target:isLocked(sgs.Sanguosha:cloneCard("jink"))
+							and (not self.player:hasSkill("wushuang")
+								or target:getArmor() and target:hasArmorEffect(target:getArmor():objectName()) and not self.player:hasWeapon("QinggangSword"))
+							and (self:hasHeavySlashDamage(self.player, card, target)
+								or (getCardsNum("Jink", target, self.player) < 2 and getCardsNum("Jink", target, self.player) >= 1 and target:getHp() <= 2))
 		for _, friend in ipairs(self.friends_noself) do
 			if self:canLiuli(target, friend) and self:slashIsEffective(card, friend) and #targets > 1 and friend:getHp() < 3 then canliuli = true end
 		end
@@ -528,7 +534,7 @@ function SmartAI:useCardSlash(card, use)
 			and (self.player:canSlash(target, card, not no_distance, rangefix)
 				or (use.isDummy and self.predictedRange and self.player:distanceTo(target, rangefix) <= self.predictedRange))
 			and self:objectiveLevel(target) > 3
-			and self:slashIsEffective(card, target)
+			and self:slashIsEffective(card, target, self.player, shoulduse_wuqian)
 			and not (target:hasSkill("xiangle") and basicnum < 2) and not canliuli
 			and not (not self:isWeak(target) and #self.enemies > 1 and #self.friends > 1 and self.player:hasSkill("keji")
 			and self:getOverflow() > 0 and not self:hasCrossbowEffect()) then
@@ -538,7 +544,7 @@ function SmartAI:useCardSlash(card, use)
 				if self.player:hasWeapon("Spear") and card:getSkillName() == "Spear" then
 				elseif self.player:hasWeapon("Crossbow") and self:getCardsNum("Slash") > 1 then
 				elseif not use.isDummy then
-					local card = self:findWeaponToUse(enemy)
+					local card = self:findWeaponToUse(target)
 					if card then
 						use.card = card
 						return
@@ -592,15 +598,10 @@ function SmartAI:useCardSlash(card, use)
 					if use.to then use.to = sgs.SPlayerList() end
 					return
 				end
-				if not target:isCardLimited(sgs.Sanguosha:cloneCard("jink"), sgs.Card_MethodUse) and not self.player:hasUsed("WuqianCard") and self.player:getMark("@wrath") >= 2 then
-					if self.player:getMark("drank") > 0
-						or (self:hasHeavySlashDamage(self.player, card, target) and not target:hasArmorEffect("Vine"))
-						or (getCardsNum("Jink", target, self.player) < 2 and getCardsNum("Jink", target, self.player) >= 1 and target:getHp() <= 2) then
-
-						use.card = sgs.Card_Parse("@WuqianCard=.")
-						if use.to then use.to = sgs.SPlayerList() use.to:append(target) end
-						return
-					end
+				if use_wuqian then
+					use.card = sgs.Card_Parse("@WuqianCard=.")
+					if use.to then use.to = sgs.SPlayerList() use.to:append(target) end
+					return
 				end
 			end
 			if not use.to or self.slash_targets <= use.to:length() then return end
@@ -1790,7 +1791,9 @@ function SmartAI:useCardDuel(duel, use)
 	local enemies = self:exclude(self.enemies, duel)
 	local friends = self:exclude(self.friends_noself, duel)
 	local n1 = self:getCardsNum("Slash")
-	if use.isWuqian then n1 = n1 * 2 end
+	if self.player:hasSkill("wushuang") or use.isWuqian then
+		n1 = n1 * 2
+	end
 	local huatuo = self.room:findPlayerBySkillName("jijiu")
 	local targets = {}
 
@@ -1843,7 +1846,8 @@ function SmartAI:useCardDuel(duel, use)
 
 	for _, enemy in ipairs(enemies) do
 		local useduel 
-		local n2 = getCardsNum("Slash",enemy)
+		local n2 = getCardsNum("Slash", enemy)
+		if enemy:hasSkill("wushuang") then n2 = n2 * 2 end
 		if sgs.card_lack[enemy:objectName()]["Slash"] == 1 then n2 = 0 end
 		useduel = n1 >= n2 or self:needToLoseHp(self.player, nil, nil, true) 
 					or self:getDamagedEffects(self.player, enemy) or (n2 < 1 and sgs.isGoodHp(self.player))

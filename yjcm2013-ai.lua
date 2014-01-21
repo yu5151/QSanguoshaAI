@@ -1076,3 +1076,9 @@ function sgs.ai_slash_prohibit.qiuyuan(self, from, to)
 		if not to:isKongcheng() and not (to:getHandcardNum() == 1 and (to:hasSkill("kongcheng") or (to:hasSkill("zhiji") and to:getMark("zhiji") == 0))) then return true end
 	end
 end
+
+function sgs.ai_need_damaged.qiuyuan(self, from, to)
+	if not to:hasSkill("qiuyuan") then return false end
+	if getKnownCard(to, "Jink", true, true) >= 1 then return true end
+	return
+end

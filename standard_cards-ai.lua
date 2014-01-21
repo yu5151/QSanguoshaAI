@@ -777,7 +777,14 @@ sgs.ai_skill_playerchosen.zero_card_as_slash = function(self, targets)
 end
 
 sgs.ai_card_intention.Slash = function(self, card, from, tos)
-	if sgs.ai_liuli_effect then sgs.ai_liuli_effect = false return end
+	if sgs.ai_liuli_effect then
+		sgs.ai_liuli_effect = false
+		if sgs.ai_liuli_user then
+			sgs.updateIntention(from, sgs.ai_liuli_user, 10)
+			sgs.ai_liuli_user = nil
+		end
+		return
+	end
 	if sgs.ai_collateral then sgs.ai_collateral = false return end
 	if card:hasFlag("nosjiefan-slash") then return end
 	for _, to in ipairs(tos) do

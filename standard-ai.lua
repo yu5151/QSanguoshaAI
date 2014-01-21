@@ -2011,6 +2011,8 @@ end
 
 sgs.ai_card_intention.LiuliCard = function(self, card, from, to)
 	sgs.ai_liuli_effect = true
+	if not hasExplicitRebel(self.room) then sgs.ai_liuli_user = from
+	else sgs.ai_liuli_user = nil end
 end
 
 function sgs.ai_slash_prohibit.liuli(self, from, to, card)

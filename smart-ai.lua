@@ -1407,9 +1407,9 @@ function SmartAI:objectiveLevel(player)
 		
 		if sgs.ai_role[player:objectName()] == "neutral" then
 			if rebel_num > 0 then
-				local current_friend_num = 0
-				local current_enemy_num = 0
-				local current_renegade_num = 0
+				local current_friend_num, current_enemy_num, current_renegade_num = 0, 0, 0
+				local mode = self.room:getMode()
+				local consider_renegade = mode == "05p" or mode == "07p" or mode == "09p"
 				local rebelish = sgs.gameProcess(self.room):match("rebel")
 				for _, aplayer in sgs.qlist(self.room:getAlivePlayers()) do
 					if sgs.ai_role[aplayer:objectName()] == "loyalist" or aplayer:objectName() == self.player:objectName() then
@@ -1420,9 +1420,10 @@ function SmartAI:objectiveLevel(player)
 						current_enemy_num = current_enemy_num + 1
 					end
 				end
-				if current_friend_num >= loyal_num + (rebelish and renegade_num or 0) + 1 then
+				if current_friend_num + ((consider_renegade or rebelish) and current_renegade_num or 0) >= loyal_num + ((rebelish or consider_renegade) and renegade_num or 0) + 1 then
 					return 5
-				elseif current_enemy_num + (rebelish and 0 or current_renegade_num) >= rebel_num + (rebelish and 0 or renegade_num) then
+				elseif current_enemy_num + (consider_renegade and current_renegade_num or rebelish and 0 or current_renegade_num)
+					>= rebel_num + (consider_renegade and renegade_num or rebelish and 0 or renegade_num) then
 					return -1
 				end
 			elseif sgs.explicit_renegade and renegade_num == 1 then return -1 end
@@ -1503,19 +1504,20 @@ function SmartAI:objectiveLevel(player)
 		if loyal_num == 0 and renegade_num == 0 then return player:isLord() and 5 or -2 end
 
 		if sgs.ai_role[player:objectName()] == "neutral" then
-			local current_friend_num = 0
-			local current_enemy_num = 0
-			local current_renegade_num = 0
+			local current_friend_num, current_enemy_num, current_renegade_num = 0, 0, 0
 			for _, aplayer in sgs.qlist(self.room:getAlivePlayers()) do
 				if sgs.ai_role[aplayer:objectName()] == "rebel" or aplayer:objectName() == self.player:objectName() then
 					current_friend_num = current_friend_num + 1
 				elseif sgs.ai_role[aplayer:objectName()] == "renegade" then current_renegade_num = current_renegade_num + 1
 				elseif sgs.ai_role[aplayer:objectName()] == "loyalist" then current_enemy_num = current_enemy_num + 1 end
 			end
-			local disadvantage = sgs.gameProcess(self.room):match("loyal")
-			if current_friend_num + (disadvantage and current_renegade_num or 0) >= rebel_num + (disadvantage and renegade_num or 0) then
+			local loyalish = sgs.gameProcess(self.room):match("loyal")
+			local mode = self.room:getMode()
+			local consider_renegade = mode == "05p" or mode == "07p" or mode == "09p"
+			if current_friend_num + ((consider_renegade or loyalish) and current_renegade_num or 0) >= rebel_num + ((consider_renegade or loyalish) and renegade_num or 0) then
 				return 5
-			elseif current_enemy_num + (disadvantage and 0 or current_renegade_num) >= loyal_num + (disadvantage and 0 or renegade_num) + 1 then
+			elseif current_enemy_num + (consider_renegade and current_renegade_num or loyalish and 0 or current_renegade_num)
+				>= loyal_num + (consider_renegade and renegade_num or loyalish and 0 or renegade_num) + 1 then
 				return -2
 			else
 				return 0

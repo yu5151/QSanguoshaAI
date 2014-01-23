@@ -1079,6 +1079,12 @@ end
 
 function sgs.ai_need_damaged.qiuyuan(self, from, to)
 	if not to:hasSkill("qiuyuan") then return false end
-	if getKnownCard(to, self.player, "Jink", true, true) >= 1 then return true end
+	if getKnownCard(to, self.player, "Jink", true, true) >= 1 then
+		for _, target in ipairs(self:getEnemies(to)) do
+			if not target:isKongcheng() and not (target:getHandcardNum() == 1 and self:needKongcheng(target, true)) then
+				return true
+			end
+		end
+	end
 	return
 end

@@ -1531,61 +1531,61 @@ function SmartAI:objectiveLevel(player)
 		if target_role == "renegade" then return gameProcess:match("loyal") and -1 or 4 end
 		return 0
 	end
+	return 0
 end
 
 function SmartAI:isFriend(other, another)
 	if not other then self.room:writeToConsole(debug.traceback()) return end
-	if another then return self:isFriend(other) == self:isFriend(another) end
+	if another then
+		local of, af = self:isFriend(other), self:isFriend(another)
+		return of ~= nil and af ~= nil and of == af
+	end
 	if sgs.isRolePredictable(true) and self.lua_ai:relationTo(other) ~= sgs.AI_Neutrality then return self.lua_ai:isFriend(other) end
 	if self.player:objectName() == other:objectName() then return true end
-	if self:objectiveLevel(other) < 0 then return true end
+	local obj_level = self:objectiveLevel(other)
+	if obj_level < 0 then return true
+	elseif obj_level == 0 then return nil end
 	return false
 end
 
 function SmartAI:isEnemy(other, another)
 	if not other then self.room:writeToConsole(debug.traceback()) return end
-	if another then return self:isFriend(other) ~= self:isFriend(another) end
+	if another then
+		local of, af = self:isFriend(other), self:isFriend(another)
+		return of ~= nil and af ~= nil and of ~= af
+	end
 	if sgs.isRolePredictable(true) and self.lua_ai:relationTo(other) ~= sgs.AI_Neutrality then return self.lua_ai:isEnemy(other) end
 	if self.player:objectName() == other:objectName() then return false end
-	if self:objectiveLevel(other) > 0 then return true end
+	local obj_level = self:objectiveLevel(other)
+	if obj_level > 0 then return true
+	elseif obj_level == 0 then return nil end
 	return false
 end
 
 function SmartAI:getFriendsNoself(player)
-	if self:isFriend(self.player, player) then
-		return self.friends_noself
-	elseif self:isEnemy(self.player, player) then
-		friends = sgs.QList2Table(self.lua_ai:getEnemies())
-		for i = #friends, 1, -1 do
-			if friends[i]:objectName() == player:objectName() or not friends[i]:isAlive() then
-				table.remove(friends, i)
-			end
-		end
-		return friends
-	else
-		return {}
+	player = player or self.player
+	local friends_noself = {}
+	for _, p in sgs.qlist(self.room:getAlivePlayers()) do
+		if self:isFriend(p, player) and p:objectName() ~= player:objectName() then table.insert(friends_noself, p) end
 	end
+	return friends_noself
 end
 
 function SmartAI:getFriends(player)
 	player = player or self.player
-	if self:isFriend(self.player, player) then
-		return self.friends
-	elseif self:isEnemy(self.player, player) then
-		return self.enemies
-	else
-		return {player}
+	local friends = {}
+	for _, p in sgs.qlist(self.room:getAlivePlayers()) do
+		if self:isFriend(p, player) then table.insert(friends, p) end
 	end
+	return friends
 end
 
 function SmartAI:getEnemies(player)
-	if self:isFriend(self.player, player) then
-		return self.enemies
-	elseif self:isEnemy(self.player, player) then
-		return self.friends
-	else
-		return {}
+	local enemies = {}
+	for _, p in sgs.qlist(self.room:getAlivePlayers()) do
+		if self:isEnemy(p, player) then table.insert(enemies, p) end
 	end
+	return enemies
 end
 
 function SmartAI:sortEnemies(players)

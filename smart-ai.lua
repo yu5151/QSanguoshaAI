@@ -1977,7 +1977,7 @@ function SmartAI:filterEvent(event, player, data)
 				end
 			end
 		end
-	elseif event == sgs.CardFinished or event == sgs.GameStart or event == sgs.EventPhaseStart then
+	elseif event == sgs.CardEffect or sgs.CardFinished or event == sgs.GameStart or event == sgs.EventPhaseStart then
 		self:updatePlayers(true, self == sgs.recorder)
 	elseif event == sgs.BuryVictim or event == sgs.HpChanged or event == sgs.MaxHpChanged then
 		self:updatePlayers(false, self == sgs.recorder)

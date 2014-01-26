@@ -10,7 +10,7 @@ math.randomseed(os.time())
 -- SmartAI is the base class for all other specialized AI classes
 SmartAI = class "SmartAI"
 
-version = "QSanguosha AI 20140124 (V1.22 Alpha)"
+version = "QSanguosha AI 20140126 (V1.23 Alpha)"
 
 -- checkout https://github.com/haveatry823/QSanguoshaAI for details
 
@@ -243,7 +243,7 @@ function sgs.getValue(player)
 	return player:getHp() * 2 + player:getHandcardNum()
 end
 
-function sgs.getDefense(player, gameProcess)
+function sgs.getDefense(player, gameProcess, update)
 	if not player then return 0 end
 	local defenseType = gameProcess and "Process" or "Normal"
 	if not update and global_room:getCurrent() then
@@ -1659,83 +1659,92 @@ end
 
 function sgs.evaluateAlivePlayersRole()
 	local players = {}
-	sgs.explicit_renegade = false
-	sgs.shownrole.count = 0
-	sgs.shownrole.loyalist = 0
-	sgs.shownrole.rebel = 0
-	sgs.shownrole.renegade = 0
-	sgs.shownrole.lord = 0
 	
-	for _, p in sgs.qlist(global_room:getAlivePlayers()) do
-		if p:hasShownRole() then
-			local role = p:getRole()
-			sgs.shownrole[role] = sgs.shownrole[role] + 1
-			if role == "renegade" then
-				sgs.explicit_renegade = true
-				if not sgs.shownrole[p:objectName()] or role ~= sgs.ai_role[p:objectName()] then
+	local hasHuman = false
+	for _, ap in sgs.qlist(global_room:getAlivePlayers()) do
+		if ap:getState() ~= "robot" then hasHuman = true break end
+	end
+	
+	if hasHuman then
+		sgs.shownrole.count = 0
+		sgs.shownrole.loyalist = 0
+		sgs.shownrole.rebel = 0
+		sgs.shownrole.renegade = 0
+		sgs.shownrole.lord = 0
+		
+		for _, p in sgs.qlist(global_room:getAlivePlayers()) do
+			if p:hasShownRole() then
+				local role = p:getRole()
+				sgs.shownrole[role] = sgs.shownrole[role] + 1
+				if role == "renegade" then
+					sgs.explicit_renegade = true
+					if not sgs.shownrole[p:objectName()] or role ~= sgs.ai_role[p:objectName()] then
+						sgs.role_evaluation[p:objectName()]["loyalist"] = 0
+						sgs.role_evaluation[p:objectName()]["renegade"] = 8888
+						sgs.outputRoleValues(p, 0)
+					end
+					sgs.ai_role[p:objectName()] = role
+				elseif role == "loyalist" then
+					if not sgs.shownrole[p:objectName()] or role ~= sgs.ai_role[p:objectName()] then
+						sgs.role_evaluation[p:objectName()]["loyalist"] = 8888
+						sgs.role_evaluation[p:objectName()]["renegade"] = 0
+						sgs.outputRoleValues(p, 0)
+					end
+					sgs.ai_role[p:objectName()] = role
+				elseif role == "rebel" then
+					if not sgs.shownrole[p:objectName()] or role ~= sgs.ai_role[p:objectName()] then
+						sgs.role_evaluation[p:objectName()]["loyalist"] = -8888
+						sgs.role_evaluation[p:objectName()]["renegade"] = 0
+						sgs.outputRoleValues(p, 0)
+					end
+					sgs.ai_role[p:objectName()] = role
+				end
+				sgs.shownrole[p:objectName()] = true
+			elseif not p:isLord() then
+				table.insert(players, p)
+			end
+		end
+		
+		if sgs.shownrole.rebel == sgs.current_mode_players.rebel and sgs.current_mode_players.loyalist == sgs.shownrole.loyalist
+			and sgs.shownrole.renegade < sgs.current_mode_players.renegade then
+			for _, p in ipairs(players) do
+				if not sgs.shownrole[p:objectName()] or p:getRole() ~= sgs.ai_role[p:objectName()] then
+					sgs.ai_role[p:objectName()] = "renegade"
+					sgs.shownrole[p:objectName()] = true
+					sgs.shownrole.renegade = sgs.shownrole.renegade + 1
 					sgs.role_evaluation[p:objectName()]["loyalist"] = 0
 					sgs.role_evaluation[p:objectName()]["renegade"] = 8888
 					sgs.outputRoleValues(p, 0)
 				end
-				sgs.ai_role[p:objectName()] = role
-			elseif role == "loyalist" then
-				if not sgs.shownrole[p:objectName()] or role ~= sgs.ai_role[p:objectName()] then
-					sgs.role_evaluation[p:objectName()]["loyalist"] = 8888
-					sgs.role_evaluation[p:objectName()]["renegade"] = 0
-					sgs.outputRoleValues(p, 0)
-				end
-				sgs.ai_role[p:objectName()] = role
-			elseif role == "rebel" then
-				if not sgs.shownrole[p:objectName()] or role ~= sgs.ai_role[p:objectName()] then
+			end
+		elseif sgs.shownrole.renegade == sgs.current_mode_players.renegade and sgs.current_mode_players.loyalist == sgs.shownrole.loyalist
+			and sgs.shownrole.rebel < sgs.current_mode_players.rebel then
+			for _, p in ipairs(players) do
+				if not sgs.shownrole[p:objectName()] or p:getRole() ~= sgs.ai_role[p:objectName()] then
+					sgs.ai_role[p:objectName()] = "rebel"
+					sgs.shownrole[p:objectName()] = true
+					sgs.shownrole.rebel = sgs.shownrole.rebel + 1
 					sgs.role_evaluation[p:objectName()]["loyalist"] = -8888
 					sgs.role_evaluation[p:objectName()]["renegade"] = 0
 					sgs.outputRoleValues(p, 0)
 				end
-				sgs.ai_role[p:objectName()] = role
 			end
-			sgs.shownrole[p:objectName()] = true
-		elseif not p:isLord() then
-			table.insert(players, p)
+		elseif sgs.shownrole.renegade == sgs.current_mode_players.renegade and sgs.current_mode_players.rebel == sgs.shownrole.rebel
+			and sgs.shownrole.loyalist < sgs.current_mode_players.loyalist then
+			for _, p in ipairs(players) do
+				if not sgs.shownrole[p:objectName()] or p:getRole() ~= sgs.ai_role[p:objectName()] then
+					sgs.ai_role[p:objectName()] = "loyalist"
+					sgs.shownrole[p:objectName()] = true
+					sgs.shownrole.loyalist = sgs.shownrole.loyalist + 1
+					sgs.role_evaluation[p:objectName()]["loyalist"] = 8888
+					sgs.role_evaluation[p:objectName()]["renegade"] = 0
+					sgs.outputRoleValues(p, 0)
+				end
+			end
 		end
 	end
 	
-	if sgs.shownrole.rebel == sgs.current_mode_players.rebel and sgs.current_mode_players.loyalist == sgs.shownrole.loyalist
-		and sgs.shownrole.renegade < sgs.current_mode_players.renegade then
-		for _, p in ipairs(players) do
-			if not sgs.shownrole[p:objectName()] or p:getRole() ~= sgs.ai_role[p:objectName()] then
-				sgs.ai_role[p:objectName()] = "renegade"
-				sgs.shownrole[p:objectName()] = true
-				sgs.shownrole.renegade = sgs.shownrole.renegade + 1
-				sgs.role_evaluation[p:objectName()]["loyalist"] = 0
-				sgs.role_evaluation[p:objectName()]["renegade"] = 8888
-				sgs.outputRoleValues(p, 0)
-			end
-		end
-	elseif sgs.shownrole.renegade == sgs.current_mode_players.renegade and sgs.current_mode_players.loyalist == sgs.shownrole.loyalist
-		and sgs.shownrole.rebel < sgs.current_mode_players.rebel then
-		for _, p in ipairs(players) do
-			if not sgs.shownrole[p:objectName()] or p:getRole() ~= sgs.ai_role[p:objectName()] then
-				sgs.ai_role[p:objectName()] = "rebel"
-				sgs.shownrole[p:objectName()] = true
-				sgs.shownrole.rebel = sgs.shownrole.rebel + 1
-				sgs.role_evaluation[p:objectName()]["loyalist"] = -8888
-				sgs.role_evaluation[p:objectName()]["renegade"] = 0
-				sgs.outputRoleValues(p, 0)
-			end
-		end
-	elseif sgs.shownrole.renegade == sgs.current_mode_players.renegade and sgs.current_mode_players.rebel == sgs.shownrole.rebel
-		and sgs.shownrole.loyalist < sgs.current_mode_players.loyalist then
-		for _, p in ipairs(players) do
-			if not sgs.shownrole[p:objectName()] or p:getRole() ~= sgs.ai_role[p:objectName()] then
-				sgs.ai_role[p:objectName()] = "loyalist"
-				sgs.shownrole[p:objectName()] = true
-				sgs.shownrole.loyalist = sgs.shownrole.loyalist + 1
-				sgs.role_evaluation[p:objectName()]["loyalist"] = 8888
-				sgs.role_evaluation[p:objectName()]["renegade"] = 0
-				sgs.outputRoleValues(p, 0)
-			end
-		end
-	end
+	sgs.explicit_renegade = sgs.shownrole.renegade > 0
 	
 	sgs.shownrole.count = sgs.shownrole.loyalist + sgs.shownrole.rebel + sgs.shownrole.renegade + sgs.shownrole.lord
 	if sgs.shownrole.count >= global_room:alivePlayerCount() then return end
@@ -1747,20 +1756,27 @@ function sgs.evaluateAlivePlayersRole()
 	end
 	table.sort(players, cmp)
 	
-	local current_renegade = sgs.shownrole.renegade
+	local l_count, R_count = sgs.current_mode_players["loyalist"], sgs.current_mode_players["renegade"]
+	local renegade, loyalist, rebel = sgs.shownrole.loyalist, sgs.shownrole.rebel, sgs.shownrole.renegade
+	for _, p in ipairs(players) do
+		if sgs.ai_role[p:objectName()] == "renegade" then renegade = renegade + 1
+		elseif sgs.ai_role[p:objectName()] == "loyalist" then loyalist = loyalist + 1
+		elseif sgs.ai_role[p:objectName()] == "rebel" then rebel = rebel + 1 end
+	end
+	
 	for i = 1, #players, 1 do
 		local p = players[i]
-		if i <= sgs.current_mode_players["renegade"] and sgs.role_evaluation[p:objectName()]["renegade"] >= 10 and current_renegade < sgs.current_mode_players["renegade"] then
+		if i <= sgs.current_mode_players["renegade"] and sgs.role_evaluation[p:objectName()]["renegade"] >= 10 and sgs.shownrole.renegade < sgs.current_mode_players["renegade"]
+			and not (renegade == 0 and sgs.ai_role[p:objectName()] == "rebel" and renegade + loyalist == l_count + R_count) then
 			sgs.ai_role[p:objectName()] = "renegade"
 			sgs.explicit_renegade = sgs.role_evaluation[p:objectName()]["renegade"] >= (sgs.current_mode_players["rebel"] == 0 and 10 or 20)
-			current_renegade = current_renegade + 1
 		else
 			if (sgs.role_evaluation[p:objectName()]["loyalist"] > 0 and sgs.current_mode_players["loyalist"] > 0 and sgs.shownrole.loyalist < sgs.current_mode_players.loyalist) or p:isLord() then
 				sgs.ai_role[p:objectName()] = "loyalist" 
 			elseif sgs.role_evaluation[p:objectName()]["loyalist"] < 0 and sgs.current_mode_players["rebel"] > 0 and sgs.shownrole.rebel < sgs.current_mode_players.rebel then
 				sgs.ai_role[p:objectName()] = "rebel"
 			else
-				if current_renegade < sgs.current_mode_players["renegade"] and (sgs.role_evaluation[p:objectName()]["loyalist"] > 0 or sgs.role_evaluation[p:objectName()]["loyalist"] < 0) then
+				if sgs.shownrole.renegade < sgs.current_mode_players["renegade"] and (sgs.role_evaluation[p:objectName()]["loyalist"] > 0 or sgs.role_evaluation[p:objectName()]["loyalist"] < 0) then
 					sgs.ai_role[p:objectName()] = "renegade"
 					sgs.explicit_renegade = true
 				else

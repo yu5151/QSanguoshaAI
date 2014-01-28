@@ -22,9 +22,7 @@ sgs.ai_skill_invoke.hujia = function(self, data)
 	end
 
 	for _, card in sgs.qlist(cards) do
-		if isCard("Jink", card, self.player) then
-			return false
-		end
+		if isCard("Jink", card, self.player) then return false end
 	end
 	local lieges = self.room:getLieges("wei", self.player)
 	if lieges:isEmpty() then return end

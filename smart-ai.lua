@@ -249,8 +249,9 @@ function sgs.getDefense(player, gameProcess, update)
 	if not update and global_room:getCurrent() then
 		return sgs.ai_defense[defenseType][player:objectName()]
 	end
-	local defense = math.min(sgs.getValue(player), player:getHp() * 3)
+	local defense = math.min(player:getHp() * 2 + player:getHandcardNum(), player:getHp() * 3)
 	local attacker = global_room:getCurrent()
+	if not attacker then return 0 end
 	local hasEightDiagram = false
 	if player:hasArmorEffect("EightDiagram") or player:hasArmorEffect("bazhen") then
 		hasEightDiagram = true
@@ -308,10 +309,6 @@ function sgs.getDefense(player, gameProcess, update)
 		if sgs.isLordInDanger() then defense = defense - 0.7 end
 	end
 
-	if not gameProcess and (sgs.ai_chaofeng[player:getGeneralName()] or 0) >= 3 then
-		defense = defense - math.max(6, (sgs.ai_chaofeng[player:getGeneralName()] or 0)) * 0.035
-	end
-
 	if not player:faceUp() then defense = defense - 0.35 end
 	if player:containsTrick("indulgence") and not player:containsTrick("YanxiaoCard") then defense = defense - 0.15 end
 	if player:containsTrick("supply_shortage") and not player:containsTrick("YanxiaoCard") then defense = defense - 0.15 end
@@ -327,8 +324,6 @@ function sgs.getDefense(player, gameProcess, update)
 		if player:hasSkill("xiliang") and getKnownCard(player, attacker, "Jink", true) == 0 then defense = defense - 2 end
 		if player:hasSkill("shouye") then defense = defense - 2 end
 	end
-	
-	defense = defense + player:getHandcardNum() * 0.25
 	
 	sgs.ai_defense[defenseType][player:objectName()] = defense
 	return defense
@@ -1088,7 +1083,9 @@ sgs.ai_card_intention.general = function(from, to, level)
 		end
 	end
 	
-	sgs.evaluateAlivePlayersRole()
+	for _, p in sgs.qlist(global_room:getAllPlayers()) do
+		sgs.ais[p:objectName()]:updatePlayers(true, p:isLord())
+	end
 	--[[
 	if global_room:getTag("humanCount") and global_room:getTag("humanCount"):toInt() ==1 then
 		local diffarr = {
@@ -1993,7 +1990,7 @@ function SmartAI:filterEvent(event, player, data)
 				end
 			end
 		end
-	elseif event == sgs.CardEffect or sgs.CardFinished or event == sgs.GameStart or event == sgs.EventPhaseStart then
+	elseif sgs.CardFinished or event == sgs.GameStart or event == sgs.EventPhaseStart then
 		self:updatePlayers(true, self == sgs.recorder)
 	elseif event == sgs.BuryVictim or event == sgs.HpChanged or event == sgs.MaxHpChanged then
 		self:updatePlayers(false, self == sgs.recorder)
@@ -2323,7 +2320,6 @@ function SmartAI:filterEvent(event, player, data)
 								and not has_slash_prohibit_skill and sgs.isGoodTarget(target,self.enemies, self) then
 							if is_neutral then
 								sgs.updateIntention(player, target, -35) 
-								self:updatePlayers() 
 							end
 						end
 					end
@@ -2337,7 +2333,6 @@ function SmartAI:filterEvent(event, player, data)
 								local aplayer = self:exclude( {target}, card, player)
 								if #aplayer ==1 and is_neutral then
 									sgs.updateIntention(player, target, -35)
-									self:updatePlayers()
 								end
 							end
 						end
@@ -2350,7 +2345,6 @@ function SmartAI:filterEvent(event, player, data)
 								local aplayer = self:exclude( {target}, card, player)
 								if #aplayer == 1 and is_neutral then
 									sgs.updateIntention(player, target, -35)
-									self:updatePlayers()
 								end
 							end
 						end
@@ -2731,7 +2725,10 @@ function SmartAI:askForNullification(trick, from, to, positive)
 				return null_card
 			end
 			 --敌方在虚弱、需牌技、漫卷中使用无中生有->命中
-			if trick:isKindOf("ExNihilo") and (self:isWeak(from) or self:hasSkills(sgs.cardneed_skill, from) or from:hasSkill("manjuan")) then return null_card end
+			if trick:isKindOf("ExNihilo") and (self:isWeak(from) or from:hasSkills(sgs.cardneed_skill) or from:hasSkill("manjuan"))
+				and not (self.role == "rebel" and not hasExplicitRebel(self.room) and sgs.turncount == 0 and self.room:getCurrent():getNextAlive():objectName() ~= self.player:objectName()) then
+				return null_card
+			end
 			--铁索连环的目标没有藤甲->不管
 			if trick:isKindOf("IronChain") and not to:hasArmorEffect("Vine") then return nil end
 			if self:isFriend(to) then

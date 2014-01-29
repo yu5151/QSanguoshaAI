@@ -358,7 +358,6 @@ function SmartAI:assignKeep(start)
 			AmazingGrace-1 = -9 Lightning-1 = -10
 		]]
 		
-		if self.player:getPhase() == sgs.Player_Play then self.player:setFlags("assignKeep_start") end
 		self.keepdata = {}
 		for k, v in pairs(sgs.ai_keep_value) do
 			self.keepdata[k] = v
@@ -4011,7 +4010,7 @@ end
 
 function SmartAI:activate(use)
 	self:updatePlayers()
-	self:assignKeep(not self.player:hasFlag("assignKeep_start"))
+	self:assignKeep(true)
 	self.toUse = self:getTurnUse()
 	self:sortByDynamicUsePriority(self.toUse)
 	for _, card in ipairs(self.toUse) do

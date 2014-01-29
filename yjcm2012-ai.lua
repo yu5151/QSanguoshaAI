@@ -838,6 +838,7 @@ local qice_skill = {}
 qice_skill.name = "qice"
 table.insert(sgs.ai_skills, qice_skill)
 qice_skill.getTurnUseCard = function(self)
+	sgs.ai_use_priority.QiceCard = 1.5
 	if self.player:hasUsed("QiceCard") or self.player:isKongcheng() then return end
 	local cards = self.player:getHandcards()
 	local allcard = {}
@@ -881,7 +882,8 @@ qice_skill.getTurnUseCard = function(self)
 	for _, card in ipairs(cards) do
 		table.insert(allcard, card:getId())
 	end
-
+	
+	if #allcard > 1 then sgs.ai_use_priority.QiceCard = 0 end
 	local godsalvation = sgs.Sanguosha:cloneCard("god_salvation", suit, 0)
 	if self.player:getHandcardNum() < 3 then
 		if aoe_available then

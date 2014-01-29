@@ -227,6 +227,7 @@ function SmartAI:initialize(player)
 
 	sgs.updateAlivePlayerRoles()
 	self:updatePlayers()
+	self:assignKeep(true)
 end
 
 function sgs.getCardNumAtCertainPlace(card, player, place)
@@ -336,12 +337,12 @@ function sgs.getDefense(player, gameProcess, update)
 	return defense
 end
 
-function SmartAI:assignKeep(num, start)
-	num = self.player:getHandcardNum()
-	if num <= 0 then return end
+function SmartAI:assignKeep(start)
+	local num = self.player:getHandcardNum()
+	self.keepValue = {}
+	self.kept = {}
+	
 	if start then
-		self.keepValue = {}
-		self.kept = {}
 		--[[
 			通常的保留顺序
 			"peach-1" = 7,
@@ -356,59 +357,11 @@ function SmartAI:assignKeep(num, start)
 			...
 			AmazingGrace-1 = -9 Lightning-1 = -10
 		]]
+		
+		if self.player:getPhase() == sgs.Player_Play then self.player:setFlags("assignKeep_start") end
 		self.keepdata = {}
 		for k, v in pairs(sgs.ai_keep_value) do
 			self.keepdata[k] = v
-		end
-			
-		if not self:isWeak() or num >= 4 then
-			for _, friend in ipairs(self.friends_noself) do
-				if self:willSkipDrawPhase(friend) or self:willSkipPlayPhase(friend) then
-					self.keepdata.Nullification = 5.5
-					break
-				end
-			end
-		end
-		
-		if self:getOverflow(self.player, true) == 1 then
-			self.keepdata.Analeptic = self.keepdata.Jink + 0.1
-			-- 特殊情况下还是要留闪，待补充...
-		end
-		
-		if not self:isWeak() then
-			local needDamaged = false
-			if self.player:getHp() > getBestHp(self.player) then needDamaged = true end
-			if not needDamaged and not sgs.isGoodTarget(self.player, self.friends, self) then needDamaged = true end
-			if not needDamaged then
-				for _, skill in sgs.qlist(self.player:getVisibleSkillList()) do
-					local callback = sgs.ai_need_damaged[skill:objectName()]
-					if type(callback) == "function" and callback(self, nil, self.player) then
-						needDamaged = true
-						break
-					end
-				end
-			end
-			if needDamaged then
-				self.keepdata.ThunderSlash = 5.2
-				self.keepdata.FireSlash = 5.1
-				self.keepdata.Slash = 5
-				self.keepdata.Jink = 4.5
-			end
-		end
-
-		for _, enemy in ipairs(self.enemies) do
-			if enemy:hasSkill("nosqianxi") and enemy:distanceTo(self.player) == 1 then
-				self.keepdata.Jink = 6
-			end
-		end
-		
-		if self:isWeak() then
-			for _, ap in sgs.qlist(self.room:getAlivePlayers()) do
-				if ap:hasSkill("buyi") and self:isFriend(ap) then
-					self.keepdata = { Peach = 10, TrickCard = 8, EquipCard = 7.9 }
-					break
-				end
-			end
 		end
 		
 		for _, askill in sgs.qlist(self.player:getVisibleSkillList()) do
@@ -418,9 +371,64 @@ function SmartAI:assignKeep(num, start)
 					self.keepdata[k] = v
 				end
 			end
+		end	
+	end
+
+	if sgs.turncount <= 1 and #self.enemies == 0 then
+		self.keepdata.Jink = 4.2
+	end
+
+	if not self:isWeak() or num >= 4 then
+		for _, friend in ipairs(self.friends_noself) do
+			if self:willSkipDrawPhase(friend) or self:willSkipPlayPhase(friend) then
+				self.keepdata.Nullification = 5.5
+				break
+			end
+		end
+	end
+
+	if self:getOverflow(self.player, true) == 1 then
+		self.keepdata.Analeptic = self.keepdata.Jink + 0.1
+		-- 特殊情况下还是要留闪，待补充...
+	end
+
+	if not self:isWeak() then
+		local needDamaged = false
+		if self.player:getHp() > getBestHp(self.player) then needDamaged = true end
+		if not needDamaged and not sgs.isGoodTarget(self.player, self.friends, self) then needDamaged = true end
+		if not needDamaged then
+			for _, skill in sgs.qlist(self.player:getVisibleSkillList()) do
+				local callback = sgs.ai_need_damaged[skill:objectName()]
+				if type(callback) == "function" and callback(self, nil, self.player) then
+					needDamaged = true
+					break
+				end
+			end
+		end
+		if needDamaged then
+			self.keepdata.ThunderSlash = 5.2
+			self.keepdata.FireSlash = 5.1
+			self.keepdata.Slash = 5
+			self.keepdata.Jink = 4.5
+		end
+	end
+
+	for _, enemy in ipairs(self.enemies) do
+		if enemy:hasSkill("nosqianxi") and enemy:distanceTo(self.player) == 1 then
+			self.keepdata.Jink = 6
+		end
+	end
+
+	if self:isWeak() then
+		for _, ap in sgs.qlist(self.room:getAlivePlayers()) do
+			if ap:hasSkill("buyi") and self:isFriend(ap) then
+				self.keepdata = { Peach = 10, TrickCard = 8, EquipCard = 7.9 }
+				break
+			end
 		end
 	end
 	
+	if num == 0 then return end
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
 	self:sortByKeepValue(cards, true, self.kept, true)
@@ -1387,6 +1395,9 @@ function SmartAI:objectiveLevel(player)
 				elseif current_enemy_num + (consider_renegade and current_renegade_num or rebelish and 0 or current_renegade_num)
 					>= rebel_num + (consider_renegade and renegade_num or rebelish and 0 or renegade_num) then
 					return -1
+				elseif self:getOverflow() > -1 and (current_friend_num + ((consider_renegade or disadvantage) and current_renegade_num or 0) + 1
+					== loyal_num + ((disadvantage or consider_renegade) and renegade_num or 0) + 1) then
+					return 1
 				end
 			elseif sgs.explicit_renegade and renegade_num == 1 then return -1 end
 		end
@@ -1499,6 +1510,9 @@ function SmartAI:objectiveLevel(player)
 			elseif current_enemy_num + (consider_renegade and current_renegade_num or loyalish and 0 or current_renegade_num)
 				>= loyal_num + (consider_renegade and renegade_num or loyalish and 0 or renegade_num) + 1 then
 				return -2
+			elseif self:getOverflow() > -1 and (current_friend_num + ((consider_renegade or disadvantage) and current_renegade_num or 0) + 1
+				== rebel_num + ((consider_renegade or disadvantage) and renegade_num or 0)) then
+				return 1
 			else
 				return 0
 			end
@@ -2023,7 +2037,7 @@ function SmartAI:filterEvent(event, player, data)
 	if self.player:objectName() == player:objectName() and player:getPhase() ~= sgs.Player_Play and event == sgs.CardsMoveOneTime then
 		local move = data:toMoveOneTime()
 		if move.to and move.to:objectName() == player:objectName() and move.to_place == sgs.Player_PlaceHand and player:getHandcardNum() > 1 then
-			self:assignKeep(false, true)
+			self:assignKeep()
 		end
 	end
 		
@@ -2475,7 +2489,7 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 	min_num = min_num or discard_num
 	local exchange = self.player:hasFlag("Global_AIDiscardExchanging")
 	local callback = sgs.ai_skill_discard[reason]
-	self:assignKeep(nil, true)
+	self:assignKeep(true)
 	if type(callback) == "function" then
 		local cb = callback(self, discard_num, min_num, optional, include_equip)
 		if cb then
@@ -3997,7 +4011,7 @@ end
 
 function SmartAI:activate(use)
 	self:updatePlayers()
-	self:assignKeep(nil, true)
+	self:assignKeep(not self.player:hasFlag("assignKeep_start"))
 	self.toUse = self:getTurnUse()
 	self:sortByDynamicUsePriority(self.toUse)
 	for _, card in ipairs(self.toUse) do
@@ -4329,6 +4343,7 @@ function SmartAI:getDamagedEffects(to, from, isSlash)
 	from = from or self.room:getCurrent()
 	to = to or self.player
 	if from:hasSkill("jueqing") then return false end
+	if to:hasSkill("sizhan") then return false end
 	
 	if isSlash then
 		if from:hasSkill("nosqianxi") and from:distanceTo(to) == 1 and not self:isFriend(from, to) then

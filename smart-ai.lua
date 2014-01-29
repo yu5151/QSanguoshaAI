@@ -6142,7 +6142,7 @@ function CanUpdateIntention(player)
 	end
 	
 	if sgs.ai_role[player:objectName()] == "rebel" and current_rebel_num >= rebel_num then return false
-	elseif sgs.ai_role[player:objectName()] == "neutral" and current_rebel_num + 1 >= rebel_num then return false end
+	elseif sgs.ai_role[player:objectName()] == "neutral" and current_rebel_num + 2 >= rebel_num then return false end
 	
 	return true
 end

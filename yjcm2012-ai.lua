@@ -413,6 +413,13 @@ sgs.ai_skill_use_func.JiefanCard = function(card, use, self)
 	if target and max_value >= self.player:aliveCount() / 2 then
 		use.card = card
 		if use.to then use.to:append(target) end
+		return
+	end
+	
+	if self:isWeak() then
+		use.card = card
+		if use.to then use.to:append(self.player) end
+		return
 	end
 end
 

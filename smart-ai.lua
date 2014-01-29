@@ -10,7 +10,7 @@ math.randomseed(os.time())
 -- SmartAI is the base class for all other specialized AI classes
 SmartAI = class "SmartAI"
 
-version = "QSanguosha AI 20140126 (V1.23 Alpha)"
+version = "QSanguosha AI 20140129 (V1.24 Alpha)"
 
 -- checkout https://github.com/haveatry823/QSanguoshaAI for details
 
@@ -255,7 +255,7 @@ function sgs.getDefense(player, gameProcess, update)
 	if not player then return 0 end
 	local defenseType = gameProcess and "Process" or "Normal"
 	if not update and global_room:getCurrent() then
-		return sgs.ai_defense[defenseType][player:objectName()]
+		return sgs.ai_defense[defenseType][player:objectName()] or 0
 	end
 	local defense = math.min(player:getHp() * 2 + player:getHandcardNum(), player:getHp() * 3)
 	local attacker = global_room:getCurrent()
@@ -1964,7 +1964,7 @@ function SmartAI:filterEvent(event, player, data)
 		end
 	end
 
-	-- if event ==sgs.AskForPeaches then endlessNiepan(data:toDying().who) end
+	if sgs.DebugMode_Niepan and event == sgs.AskForPeaches then endlessNiepan(data:toDying().who) end
 
 	sgs.lastevent = event
 	sgs.lasteventdata = data
@@ -4457,14 +4457,14 @@ function isCard(class_name, card, player)
 	return false
 end
 
-function SmartAI:getMaxCard(player)
+function SmartAI:getMaxCard(player, cards)
 	player = player or self.player
 
 	if player:isKongcheng() then
 		return nil
 	end
 
-	local cards = player:getHandcards()
+	cards = cards or player:getHandcards()
 	local max_card, max_point = nil, 0
 	for _, card in sgs.qlist(cards) do
 		local flag = string.format("%s_%s_%s", "visible", global_room:getCurrent():objectName(), player:objectName())

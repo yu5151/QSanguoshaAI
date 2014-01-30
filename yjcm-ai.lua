@@ -355,7 +355,7 @@ sgs.ai_skill_cardask["xuanhuo-slash"] = function(self, data, pattern, t1, t2, pr
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if self:isFriend(target2) and not self:isFriend(fazheng) then
 				if (target2:getHp() > 3 or not self:canHit(target2, self.player, self:hasHeavySlashDamage(self.player, slash, target2)))
-					and not target2:getRole() == "lord" then
+					and target2:getRole() ~= "lord" then
 						return slash:toString()
 				end
 				if self:needToLoseHp(target2, self.player) then return slash:toString() end

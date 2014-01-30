@@ -10,7 +10,7 @@ math.randomseed(os.time())
 -- SmartAI is the base class for all other specialized AI classes
 SmartAI = class "SmartAI"
 
-version = "QSanguosha AI 20140129 (V1.24 Alpha)"
+version = "QSanguosha AI 20140130 (V1.25 Alpha)"
 
 -- checkout https://github.com/haveatry823/QSanguoshaAI for details
 
@@ -387,7 +387,7 @@ function SmartAI:assignKeep(start)
 	end
 
 	if self:getOverflow(self.player, true) == 1 then
-		self.keepdata.Analeptic = self.keepdata.Jink + 0.1
+		self.keepdata.Analeptic = (self.keepdata.Jink or 5.2) + 0.1
 		-- 特殊情况下还是要留闪，待补充...
 	end
 
@@ -1780,39 +1780,63 @@ function sgs.evaluateAlivePlayersRole()
 	end
 	table.sort(players, cmp)
 	
-	local l_count, R_count = sgs.current_mode_players["loyalist"], sgs.current_mode_players["renegade"]
+	local l_count, R_count, r_count = sgs.current_mode_players["loyalist"], sgs.current_mode_players["renegade"], sgs.current_mode_players["rebel"]
 	local renegade, loyalist, rebel = sgs.shownrole.loyalist, sgs.shownrole.rebel, sgs.shownrole.renegade
-	for _, p in ipairs(players) do
-		if sgs.ai_role[p:objectName()] == "renegade" then renegade = renegade + 1
-		elseif sgs.ai_role[p:objectName()] == "loyalist" then loyalist = loyalist + 1
-		elseif sgs.ai_role[p:objectName()] == "rebel" then rebel = rebel + 1 end
-	end
 	
 	for i = 1, #players, 1 do
 		local p = players[i]
-		if i <= sgs.current_mode_players["renegade"] and sgs.role_evaluation[p:objectName()]["renegade"] >= 10 and sgs.shownrole.renegade < sgs.current_mode_players["renegade"]
-			and not (renegade == 0 and sgs.ai_role[p:objectName()] == "rebel" and renegade + loyalist == l_count + R_count) then
+		if i <= sgs.current_mode_players["renegade"] and sgs.role_evaluation[p:objectName()]["renegade"] >= 10 and sgs.shownrole.renegade < sgs.current_mode_players["renegade"] then
+			renegade = renegade + 1
 			sgs.ai_role[p:objectName()] = "renegade"
 			sgs.explicit_renegade = sgs.role_evaluation[p:objectName()]["renegade"] >= (sgs.current_mode_players["rebel"] == 0 and 10 or 20)
 		else
 			if (sgs.role_evaluation[p:objectName()]["loyalist"] > 0 and sgs.current_mode_players["loyalist"] > 0 and sgs.shownrole.loyalist < sgs.current_mode_players.loyalist) or p:isLord() then
-				sgs.ai_role[p:objectName()] = "loyalist" 
+				sgs.ai_role[p:objectName()] = "loyalist"
+				loyalist = loyalist + 1
 			elseif sgs.role_evaluation[p:objectName()]["loyalist"] < 0 and sgs.current_mode_players["rebel"] > 0 and sgs.shownrole.rebel < sgs.current_mode_players.rebel then
 				sgs.ai_role[p:objectName()] = "rebel"
+				rebel = rebel + 1
 			else
 				if sgs.shownrole.renegade < sgs.current_mode_players["renegade"] and (sgs.role_evaluation[p:objectName()]["loyalist"] > 0 or sgs.role_evaluation[p:objectName()]["loyalist"] < 0) then
 					sgs.ai_role[p:objectName()] = "renegade"
 					sgs.explicit_renegade = true
+					renegade = renegade + 1
 				else
 					sgs.ai_role[p:objectName()] = "neutral"
 				end
 			end
 		end
 		if sgs.current_mode_players["rebel"] == 0 and sgs.current_mode_players["loyalist"] == 0 and not p:isLord() then
+			renegade = renegade + 1
 			sgs.ai_role[p:objectName()] = "renegade"
 			sgs.explicit_renegade = true
 		end
-	end	
+	end
+	
+	if renegade > 0 and loyalist >= l_count + R_count and rebel < r_count then
+		local lR_players = {}
+		for _, p in ipairs(players) do
+			if sgs.ai_role[p:objectName()] == "loyalist" or sgs.ai_role[p:objectName()] == "renegade" then
+				table.insert(lR_players, p)
+			end
+		end
+		cmp_rebel = function(a, b)
+			return sgs.role_evaluation[a:objectName()]["loyalist"] < sgs.role_evaluation[b:objectName()]["loyalist"]
+		end
+		table.sort(lR_players, cmp_rebel)
+		for _, p in ipairs(lR_players) do
+			local name = p:objectName()
+			if sgs.role_evaluation[name]["loyalist"] < 0 and sgs.role_evaluation[name]["renegade"] > 0 then
+				sgs.role_evaluation[name]["loyalist"] = math.min(-sgs.role_evaluation[name]["renegade"], sgs.role_evaluation[name]["loyalist"])
+				sgs.role_evaluation[name]["renegade"] = 0
+				sgs.ai_role[name] = "rebel"
+				sgs.outputRoleValues(p, 0)
+				global_room:writeToConsole("rebel:" .. p:getGeneralName() .." Modified Success!")
+				rebel = rebel + 1
+				if rebel == r_count then break end
+			end
+		end
+	end
 end
 
 ---查找room内指定objectName的player
@@ -3436,7 +3460,7 @@ function SmartAI:getCardNeedPlayer(cards, include_self)
 		end
 	end
 	-- special move between liubei and xunyu and huatuo
-	for _,player in ipairs(friends) do
+	for _, player in ipairs(friends) do
 		if player:hasSkill("jieming") or player:hasSkill("jijiu") then
 			specialnum = specialnum + 1
 		end
@@ -6224,3 +6248,4 @@ for _, ascenario in ipairs(sgs.Sanguosha:getModScenarioNames()) do
 		dofile("lua/ai/" .. string.lower(ascenario) .. "-ai.lua")
 	end
 end
+

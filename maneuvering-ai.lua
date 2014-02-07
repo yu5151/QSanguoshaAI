@@ -103,7 +103,7 @@ function sgs.ai_armor_value.Vine(player, self)
 	end
 
 	if (#self.enemies < 3 and sgs.turncount > 2) or player:getHp() <= 2 then return 5 end
-	if player:hasSkill("xiansi") then return 3 end
+	if player:hasSkill("xiansi") and player:getPile(counter):length() > 1 then return 3 end
 	return 0
 end
 

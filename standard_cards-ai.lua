@@ -872,6 +872,10 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 				return "."
 			end
 		end
+		if self.player:getHp() > 1 and getKnownCard(target, self.player, "Slash") >= 1 and getKnownCard(target, self.player, "Analeptic") >= 1 and self:getCardsNum("Jink") == 1
+			and (target:getPhase() < sgs.Player_Play or player:canSlash(self.player)) then
+			return "."
+		end
 		if not (target:hasSkill("nosqianxi") and target:distanceTo(self.player) == 1) then
 			if target:hasWeapon("Axe") then
 				if target:hasSkills(sgs.lose_equip_skill) and target:getEquips():length() > 1 and target:getCards("he"):length() > 2 then return not isdummy and "." end
@@ -938,7 +942,7 @@ function SmartAI:canHit(to, from, conservative)
 			or (from:hasSkill("roulin") and to:isFemale()) or (from:isFemale() and to:hasSkill("roulin")))
 	if to:objectName() == self.player:objectName() then
 		if getCardsNum("Jink", to, from) == 0 then return true end
-		if need_double_jink and self:getCardsNum("Jink", to, from) < 2 then return true end
+		if need_double_jink and getCardsNum("Jink", to, from) < 2 then return true end
 	end
 	if getCardsNum("Jink", to, from) == 0 then return true end
 	if need_double_jink and getCardsNum("Jink", to, from) < 2 then return true end

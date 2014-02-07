@@ -1395,7 +1395,7 @@ function SmartAI:objectiveLevel(player)
 					>= rebel_num + (consider_renegade and renegade_num or rebelish and 0 or renegade_num) then
 					return -1
 				elseif self:getOverflow() > -1 and (current_friend_num + ((consider_renegade or disadvantage) and current_renegade_num or 0) + 1
-					== loyal_num + ((disadvantage or consider_renegade) and renegade_num or 0) + 1) then
+					== loyal_num + ((disadvantage or consider_renegade) and renegade_num or 0) + 1) and current_e_num <= 1 then
 					return 1
 				end
 			elseif sgs.explicit_renegade and renegade_num == 1 then return -1 end
@@ -1510,7 +1510,7 @@ function SmartAI:objectiveLevel(player)
 				>= loyal_num + (consider_renegade and renegade_num or loyalish and 0 or renegade_num) + 1 then
 				return -2
 			elseif self:getOverflow() > -1 and (current_friend_num + ((consider_renegade or disadvantage) and current_renegade_num or 0) + 1
-				== rebel_num + ((consider_renegade or disadvantage) and renegade_num or 0)) then
+				== rebel_num + ((consider_renegade or disadvantage) and renegade_num or 0)) and current_e_num <= 1 then
 				return 1
 			else
 				return 0

@@ -234,9 +234,10 @@ function sgs.broadcastRole(role_type)
 	sgs.evaluateAlivePlayersRole()
 end
 
-function sgs.printFEList()
+function sgs.printFEList(player)
 	global_room:writeToConsole("")
 	for _, p in sgs.qlist(global_room:getAlivePlayers()) do
+		if player and p:objectName() ~= player:objectName() then continue end
 		global_room:writeToConsole("====  " .. p:getGeneralName() .. "  Role::" .. p:getRole() .. "  ====")
 		local sgsself = sgs.ais[p:objectName()]
 		sgsself:updatePlayers()

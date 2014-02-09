@@ -1162,6 +1162,7 @@ function sgs.isLordInDanger()
 end
 
 function sgs.gameProcess(room, arg)
+	room = room or global_room
 	local rebel_num = sgs.current_mode_players["rebel"]
 	local loyal_num = sgs.current_mode_players["loyalist"]
 	if rebel_num == 0 and loyal_num > 0 then return "loyalist"
@@ -1331,7 +1332,7 @@ function SmartAI:objectiveLevel(player)
 			end
 			return 3
 		elseif process:match("rebel") then
-			return target_role == "rebel" and 5 and target_role =="neutral" and 0 or -1
+			return target_role == "rebel" and 5 or target_role == "neutral" and 0 or -1
 		elseif process:match("dilemma") then
 			if target_role == "rebel" then return 5
 			elseif target_role == "loyalist" or target_role == "renegade" then return 0

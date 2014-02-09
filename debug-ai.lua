@@ -236,6 +236,7 @@ end
 
 function sgs.printFEList(player)
 	global_room:writeToConsole("")
+	global_room:writeToConsole("gameProcess  -> " .. sgs.gameProcess())
 	for _, p in sgs.qlist(global_room:getAlivePlayers()) do
 		if player and p:objectName() ~= player:objectName() then continue end
 		global_room:writeToConsole("====  " .. p:getGeneralName() .. "  Role::" .. p:getRole() .. "  ====")

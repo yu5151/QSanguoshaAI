@@ -2767,7 +2767,7 @@ function SmartAI:askForNullification(trick, from, to, positive)
 			end
 		end
 		
-		if trick:isKindOf("AmazingGrace") then
+		if trick:isKindOf("AmazingGrace") and self:isEnemy(to) then
 			local NP = to:getNextAlive()
 			if self:isFriend(NP) then
 				local ag_ids = self.room:getTag("AmazingGrace"):toIntList()

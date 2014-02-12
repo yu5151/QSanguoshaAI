@@ -406,7 +406,7 @@ sgs.ai_card_intention.LianliCard = -80
 
 table.insert(sgs.ai_global_flags, "lianlisource")
 
-sgs.ai_skill_invoke["lianli-jink"] = function(self, data)
+sgs.ai_skill_invoke["lianli_jink"] = function(self, data)
 	local tied
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if player:getMark("@tied") > 0 then tied = player break end
@@ -415,7 +415,7 @@ sgs.ai_skill_invoke["lianli-jink"] = function(self, data)
 	return self:getCardsNum("Jink") == 0
 end
 
-sgs.ai_choicemade_filter.skillInvoke["lianli_jink"] = function(self, player, promptlist)
+sgs.ai_choicemade_filter.skillInvoke["lianli-jink"] = function(self, player, promptlist)
 	if promptlist[#promptlist] == "yes" then
 		sgs.lianlisource = player
 	end
@@ -513,7 +513,7 @@ sgs.ai_skill_cardask["@lianli-slash"] = function(self)
 	return self:getCardId("Slash") or "."
 end
 
-sgs.ai_skill_invoke["lianli-slash"] = function(self, data)
+sgs.ai_skill_invoke["lianli_slash"] = function(self, data)
 	local asked = data:toStringList()
 	local prompt = asked[2]
 	if self:askForCard("slash", prompt, 1) == "." then return false end

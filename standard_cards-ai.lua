@@ -873,7 +873,7 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 			end
 		end
 		if self.player:getHp() > 1 and getKnownCard(target, self.player, "Slash") >= 1 and getKnownCard(target, self.player, "Analeptic") >= 1 and self:getCardsNum("Jink") == 1
-			and (target:getPhase() < sgs.Player_Play or target:canSlash(self.player)) then
+			and (target:getPhase() < sgs.Player_Play or self:slashIsAvailable(target) and target:canSlash(self.player)) then
 			return "."
 		end
 		if not (target:hasSkill("nosqianxi") and target:distanceTo(self.player) == 1) then
@@ -2978,7 +2978,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 	end
 	if (not friendneedpeach and peach) or peachnum > 1 then return peach end
 	
-	local exnihilo, jink, analeptic, nullification, snatch, dismantlement
+	local exnihilo, jink, analeptic, nullification, snatch, dismantlement, indulgence
 	for _, card in ipairs(cards) do
 		if isCard("ExNihilo", card, self.player) then
 			if not NextPlayerCanUse or (not self:willSkipPlayPhase() and (self.player:hasSkills("nosjizhi|jizhi|zhiheng|nosrende|rende") or not NextPlayer:hasSkills("nosjizhi|jizhi|zhiheng|nosrende|rende"))) then
@@ -2994,6 +2994,8 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 			snatch = card
 		elseif isCard("Dismantlement", card, self.player) then
 			dismantlement = card
+		elseif isCard("Indulgence", card, self.player) then
+			indulgence = card
 		end
 		
 	end
@@ -3016,6 +3018,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		if (jink or analeptic) and (self:getCardsNum("Jink") == 0 or (self:isWeak() and self:getOverflow() <= 0)) then
 			return jink or analeptic
 		end
+		if indulgence then return indulgence end
 	else
 		local CP = self.room:getCurrent()
 		local possible_attack = 0
@@ -3027,7 +3030,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		if possible_attack > self:getCardsNum("Jink") and self:getCardsNum("Jink") <= 2 and sgs.getDefenseSlash(self.player) <= 2 then
 			if jink or analeptic or exnihilo then return jink or analeptic or exnihilo end
 		else
-			if exnihilo then return exnihilo end
+			if exnihilo or indulgence then return exnihilo or indulgence end
 		end
 	end 
 	

@@ -10,7 +10,7 @@ math.randomseed(os.time())
 -- SmartAI is the base class for all other specialized AI classes
 SmartAI = class "SmartAI"
 
-version = "QSanguosha AI 20140210 (V1.26 Alpha)"
+version = "QSanguosha AI 20140212 (V1.27 Alpha)"
 
 -- checkout https://github.com/haveatry823/QSanguoshaAI for details
 
@@ -1374,7 +1374,9 @@ function SmartAI:objectiveLevel(player)
 					end
 				end
 				if current_friend_num + ((consider_renegade or rebelish) and current_renegade_num or 0) >= loyal_num + ((rebelish or consider_renegade) and renegade_num or 0) + 1 then
-					return 5
+					if self:getOverflow() > -1 then return 5
+					else return 3
+					end
 				elseif current_enemy_num + (consider_renegade and current_renegade_num or rebelish and 0 or current_renegade_num)
 					>= rebel_num + (consider_renegade and renegade_num or rebelish and 0 or renegade_num) then
 					return -1
@@ -1477,7 +1479,9 @@ function SmartAI:objectiveLevel(player)
 			local mode = self.room:getMode()
 			local consider_renegade = mode == "05p" or mode == "07p" or mode == "09p"
 			if current_friend_num + ((consider_renegade or loyalish) and current_renegade_num or 0) >= rebel_num + ((consider_renegade or loyalish) and renegade_num or 0) then
-				return 5
+				if self:getOverflow() > -1 then return 5
+				else return 3
+				end
 			elseif current_enemy_num + (consider_renegade and current_renegade_num or loyalish and 0 or current_renegade_num)
 				>= loyal_num + (consider_renegade and renegade_num or loyalish and 0 or renegade_num) + 1 then
 				return -2
@@ -2763,40 +2767,52 @@ function SmartAI:askForNullification(trick, from, to, positive)
 			end
 		end
 		
-		--五谷：目前只无邪桃子和无中，其他情况待补充
-		if trick:isKindOf("AmazingGrace") and self:isEnemy(to) then
+		if trick:isKindOf("AmazingGrace") then
 			local NP = to:getNextAlive()
 			if self:isFriend(NP) then
-				local ag_ids = self.room:getTag("AmazingGrace"):toStringList()
-				local peach_num, exnihilo_num, snatch_num, analeptic_num, crossbow_num = 0, 0, 0, 0, 0
-				for _, ag_id in ipairs(ag_ids) do
+				local ag_ids = self.room:getTag("AmazingGrace"):toIntList()
+				local peach_num, exnihilo_num, snatch_num, analeptic_num, crossbow_num, indulgence_num = 0, 0, 0, 0, 0, 0
+				local fa_card
+				for _, ag_id in sgs.qlist(ag_ids) do
 					local ag_card = sgs.Sanguosha:getCard(ag_id)
 					if ag_card:isKindOf("Peach") then peach_num = peach_num + 1 end
 					if ag_card:isKindOf("ExNihilo") then exnihilo_num = exnihilo_num + 1 end
 					if ag_card:isKindOf("Snatch") then snatch_num = snatch_num + 1 end
 					if ag_card:isKindOf("Analeptic") then analeptic_num = analeptic_num + 1 end
 					if ag_card:isKindOf("Crossbow") then crossbow_num = crossbow_num + 1 end
+					if ag_card:isKindOf("FireAttack") then fa_card = ag_card end
+					if ag_card:isKindOf("Indulgence") then indulgence_num = indulgence_num + 1 end
 				end
-				if (peach_num == 1 and to:getHp() < getBestHp(to)) or
-					(peach_num > 0 and (self:isWeak(to) or NP:getHp() < getBestHp(NP) and self:getOverflow(NP) < 1)) then
+				if (peach_num == 1 and to:getHp() < getBestHp(to))
+					or (peach_num > 0 and (self:isWeak(to) or (NP:getHp() < getBestHp(NP) and self:getOverflow(NP) <= 0))) then
 					return null_card
 				end
 				if peach_num == 0 and not self:willSkipPlayPhase(NP) then
 					if exnihilo_num > 0 then
-						if NP:hasSkills("nosjizhi|jizhi|nosrende|rende|zhiheng") or NP:hasSkill("jilve") and NP:getMark("@bear") > 0 then return null_card end
+						if NP:hasSkills("nosjizhi|jizhi|nosrende|zhiheng")
+							or (NP:hasSkill("rende") and not NP:hasUsed("RendeCard"))
+							or (NP:hasSkill("jilve") and NP:getMark("@bear") > 0) then return null_card end
 					else
 						for _, enemy in ipairs(self.enemies) do
-							if snatch_num > 0 and to:distanceTo(enemy) == 1 and
-								(self:willSkipPlayPhase(enemy, true) or self:willSkipDrawPhase(enemy, true)) then
+							if indulgence_num > 0 and not self:willSkipPlayPhase(enemy, true) then
+								return null_card
+							elseif snatch_num > 0 and to:distanceTo(enemy) == 1 and (self:willSkipPlayPhase(enemy, true) or self:willSkipDrawPhase(enemy, true)) then
 								return null_card
 							elseif analeptic_num > 0 and (enemy:hasWeapon("Axe") or getCardsNum("Axe", enemy, self.player) > 0) then
 								return null_card
 							elseif crossbow_num > 0 and getCardsNum("Slash", enemy, self.player) >= 3 then
-								local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
+								local slash = sgs.Sanguosha:cloneCard("slash")
 								for _, friend in ipairs(self.friends) do
 									if enemy:distanceTo(friend) == 1 and self:slashIsEffective(slash, friend, enemy) then
 										return null_card
 									end
+								end
+							end
+						end
+						if fa_card then
+							for _, friend in ipairs(self.friends) do
+								if friend:hasArmorEffect("Vien") and self:hasTrickEffective(fa_card, friend, to) and to:getHandcardNum() > 2 then
+									return null_card
 								end
 							end
 						end

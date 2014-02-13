@@ -1182,7 +1182,9 @@ function sgs.ai_skill_choice.huashen(self, choices, data, xiaode_choice)
 			if str:matchOne(askill) then return askill end
 		end
 		
-		for _, askill in ipairs(("gongmou|weiwudi_guixin|wuling|kuangbao"):split("|")) do
+		if str:matchOne("weiwudi_guixin") then return "weiwudi_guixin" end
+		
+		for _, askill in ipairs(("gongmou|wuling|kuangbao"):split("|")) do
 			if str:matchOne(askill) then return askill end
 		end
 	end

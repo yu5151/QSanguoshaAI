@@ -1855,6 +1855,7 @@ function SmartAI:filterEvent(event, player, data)
 	if not sgs.recorder then
 		sgs.recorder = self
 		self.player:speak(version)
+		self:adjustAIRole()
 	end
 	if player:objectName() == self.player:objectName() then
 		if sgs.debugmode and type(sgs.ai_debug_func[event]) == "table" then
@@ -6117,6 +6118,24 @@ end
 
 function hasBuquEffect(player)
 	return (player:hasSkill("buqu") and player:getPile("buqu"):length() <= 4) or (player:hasSkill("nosbuqu") and player:getPile("nosbuqu"):length() <= 4)
+end
+
+function SmartAI:adjustAIRole()
+	sgs.explicit_renegade = false
+	for _, player in sgs.qlist(self.room:getAlivePlayers()) do
+		if player:getRole() == "renegade" then sgs.explicit_renegade = true end
+		if player:getRole() ~= "lord" then
+			sgs.role_evaluation[player:objectName()]["loaylist"] = 0
+			sgs.role_evaluation[player:objectName()]["renegade"] = 0
+			local role = player:getRole()
+			if role == "rebel" then
+				sgs.role_evaluation[player:objectName()]["loaylist"] = -65535
+			else
+				sgs.role_evaluation[player:objectName()][role] = 65535
+			end
+			sgs.ai_role[player:objectName()] = role
+		end
+	end
 end
 
 dofile "lua/ai/debug-ai.lua"

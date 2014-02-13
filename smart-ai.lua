@@ -1855,7 +1855,7 @@ function SmartAI:filterEvent(event, player, data)
 	if not sgs.recorder then
 		sgs.recorder = self
 		self.player:speak(version)
-		self:adjustAIRole()
+		if sgs.isRolePredictable() then self:adjustAIRole() end
 	end
 	if player:objectName() == self.player:objectName() then
 		if sgs.debugmode and type(sgs.ai_debug_func[event]) == "table" then
@@ -6087,7 +6087,10 @@ function SmartAI:AssistTarget()
 			sgs.ai_AssistTarget_off = true
 		end
 	end
-	if player and not player:getAI() and player:isAlive() and self:isFriend(player) and player:objectName() ~= self.player:objectName() then return player end
+	if player and player:isAlive() and self:isFriend(player) and player:objectName() ~= self.player:objectName() and self:getOverflow(player) > 1
+		and not player:hasSkill("nosjuejing") and self:getOverflow(player) < 3 then
+		return player
+	end
 	return
 end
 

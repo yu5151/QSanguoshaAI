@@ -710,6 +710,13 @@ function SmartAI:getDynamicUsePriority(card)
 	local value = self:getUsePriority(card) or 0
 	if card:getTypeId() == sgs.Card_TypeEquip then
 		if self.player:hasSkills(sgs.lose_equip_skill) then value = value + 12 end
+		if card:isKindOf("Weapon") and self.player:getPhase() == sgs.Player_Play and #self.enemies > 0 then
+			self:sort(self.enemies)
+			local enemy = self.enemies[1]
+			local v, inAttackRange = self:evaluateWeapon(card, self.player, enemy) / 20
+			value = value + string.format("%3.2f", v)
+			if inAttackRange then value = value + 0.5 end
+		end
 	end
 
 	if card:isKindOf("AmazingGrace") then
@@ -5481,9 +5488,14 @@ function SmartAI:evaluateWeapon(card, player, target)
 		currentRange = sgs.weapon_range[card:getClassName()] or 0
 	end
 	for _, enemy in ipairs(enemies) do
-		inAttackRange = true
 		if player:distanceTo(enemy) <= currentRange then
-			deltaSelfThreat = deltaSelfThreat + 6 / sgs.getDefense(enemy)
+			inAttackRange = true
+			local def = sgs.getDefenseSlash(enemy, self) / 2
+			if def < 0 then def = 6 - def
+			elseif def <= 1 then def = 6
+			else def = 6 / def
+			end
+			deltaSelfThreat = deltaSelfThreat + def
 		end
 	end
 
@@ -5508,7 +5520,7 @@ function SmartAI:evaluateWeapon(card, player, target)
 		for _, enemy in ipairs(enemies) do
 			if player:distanceTo(enemy) <= currentRange and callback then
 				local added = sgs.ai_slash_weaponfilter[card:objectName()]
-				if added and type(added) == "function" and added(self, enemy, player) then deltaSelfThreat = deltaSelfThreat + 1 end
+				if type(added) == "function" and added(self, enemy, player) then deltaSelfThreat = deltaSelfThreat + 1 end
 				deltaSelfThreat = deltaSelfThreat + (callback(self, enemy, player) or 0)
 			end
 		end
@@ -5517,7 +5529,7 @@ function SmartAI:evaluateWeapon(card, player, target)
 	if player:hasSkill("jijiu") and card:isRed() then deltaSelfThreat = deltaSelfThreat + 0.5 end
 	if player:hasSkills("qixi|guidao") and card:isBlack() then deltaSelfThreat = deltaSelfThreat + 0.5 end
 
-	return deltaSelfThreat
+	return deltaSelfThreat, inAttackRange
 end
 
 sgs.ai_armor_value = {}
@@ -5611,7 +5623,7 @@ function SmartAI:useEquipCard(card, use)
 		end
 		if self:hasSkills("paoxiao|nosfuhun", self.player) and card:isKindOf("Crossbow") then return end
 		if not self:needKongcheng() and not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow() <= 0 and not canUseSlash then return end
-		if (not use.to) and self.player:getWeapon() and not self:hasSkills(sgs.lose_equip_skill) then return end
+		-- if (not use.to) and self.player:getWeapon() and not self:hasSkills(sgs.lose_equip_skill) then return end
 		if (self.player:hasSkill("zhiheng") or self.player:hasSkill("jilve") and self.player:getMark("@bear") > 0)
 			and not self.player:hasUsed("ZhihengCard") and self.player:getWeapon() and not card:isKindOf("Crossbow") then return end
 		if not self:needKongcheng() and self.player:getHandcardNum() <= self.player:getHp() - 2 then return end

@@ -1328,7 +1328,8 @@ function SmartAI:objectiveLevel(player)
 		local process = sgs.gameProcess(self.room)
 		if process == "neutral" or (sgs.turncount <= 1 and sgs.isLordHealthy()) then
 			if sgs.turncount <= 1 and sgs.isLordHealthy() then
-				if self:getOverflow() <= -1 then return 0 end
+				if renegade_num > 1 then return 0
+				elseif self:getOverflow() <= -1 then return 0 end
 				local rebelish = (loyal_num + 1 < rebel_num)
 				if player:isLord() then return rebelish and -1 or 0 end
 				if target_role == "loyalist" then return rebelish and 0 or 3.5
@@ -6152,6 +6153,7 @@ function SmartAI:AssistTarget()
 			sgs.ai_AssistTarget_off = true
 		end
 	end
+	player = sgs.ai_AssistTarget
 	if player and player:isAlive() and self:isFriend(player) and player:objectName() ~= self.player:objectName() and self:getOverflow(player) > 1
 		and not player:hasSkill("nosjuejing") and self:getOverflow(player) < 3 then
 		return player

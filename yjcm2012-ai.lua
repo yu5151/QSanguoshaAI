@@ -698,6 +698,7 @@ function sgs.ai_cardneed.lihuo(to, card, self)
 end
 
 sgs.ai_skill_invoke.lihuo = function(self, data)
+	if self.player:hasWeapon("Fan") then return false end
 	if not sgs.ai_skill_invoke.Fan(self, data) then return false end
 	local use = data:toCardUse()
 	for _, player in sgs.qlist(use.to) do

@@ -131,16 +131,10 @@ function sgs.getDefenseSlash(player, self)
 		if player:hasSkill("hongyan") then defense = defense + 0.2 end
 	end
 	
-	if player:hasSkill("mingzhe") and getCardsNum("Jink", player) >= 1 then
-		defense = defense + 0.2	
-	end
-
-	if player:hasSkill("gushou") and getCardsNum("Jink", player) >= 1 then
-		defense = defense + 0.2	
-	end
-
-	if player:hasSkill("tuntian") and player:hasSkill("zaoxian") and getCardsNum("Jink", player) >= 1 then
-		defense = defense + 1.5	
+	if getCardsNum("Jink", player, global_room:getCurrent()) >= 1 then
+		if player:hasSkill("mingzhe") then defense = defense + 0.2 end
+		if player:hasSkill("gushou") then defense = defense + 0.2 end
+		if player:hasSkills("tuntian+zaoxian") then defense = defense + 1.5 end
 	end
 	
 	if player:hasSkill("aocai") and player:getPhase() == sgs.Player_NotActive then defense = defense + 0.5 end
@@ -148,10 +142,10 @@ function sgs.getDefenseSlash(player, self)
 
 	local hujiaJink = 0
 	if player:hasLordSkill("hujia") then
-		local lieges = global_room:getLieges("wei", player)
+		local lieges = global_room:getLieges("wei", player, global_room:getCurrent())
 		for _, liege in sgs.qlist(lieges) do
 			if sgs.compareRoleEvaluation(liege,"rebel","loyalist") == sgs.compareRoleEvaluation(player,"rebel","loyalist") then
-				hujiaJink = hujiaJink + getCardsNum("Jink",liege)
+				hujiaJink = hujiaJink + getCardsNum("Jink", liege)
 				if liege:hasArmorEffect("EightDiagram") then hujiaJink = hujiaJink + 0.8 end
 			end
 		end
@@ -227,7 +221,7 @@ function sgs.getDefenseSlash(player, self)
 	if player:getHp() <= 2 then defense = defense - 0.4 end
 	
 	local playernum = global_room:alivePlayerCount()
-	if (player:getSeat()-attacker:getSeat()) % playernum >= playernum-2 and playernum>3 and player:getHandcardNum()<=2 and player:getHp()<=2 then
+	if (player:getSeat() - attacker:getSeat()) % playernum >= playernum - 2 and playernum > 3 and player:getHandcardNum() <= 2 and player:getHp() <= 2 then
 		defense = defense - 0.4
 	end
 
@@ -259,10 +253,6 @@ function sgs.getDefenseSlash(player, self)
 	if isLord(player) then 
 		defense = defense - 0.4
 		if sgs.isLordInDanger() then defense = defense - 0.7 end
-	end
-
-	if (sgs.ai_chaofeng[player:getGeneralName()] or 0) >=3 then
-		defense = defense - math.max(6, (sgs.ai_chaofeng[player:getGeneralName()] or 0)) * 0.035
 	end
 
 	if not player:faceUp() then defense = defense - 0.35 end
@@ -1588,8 +1578,8 @@ sgs.ai_use_priority.Blade = 2.675
 sgs.ai_use_priority.GudingBlade = 2.67
 sgs.ai_use_priority.DoubleSword =2.665
 sgs.ai_use_priority.Spear = 2.66
-sgs.ai_use_priority.IceSword = 2.65
 -- sgs.ai_use_priority.Fan = 2.655
+sgs.ai_use_priority.IceSword = 2.65
 sgs.ai_use_priority.QinggangSword = 2.645
 sgs.ai_use_priority.Crossbow = 2.63
 
@@ -3062,12 +3052,12 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		elseif card:isKindOf("DefensiveHorse") and not self:getSameEquip(card) then DefHorse = card:getEffectiveId()
 		elseif card:isKindOf("OffensiveHorse") and not self:getSameEquip(card) then OffHorse = card:getEffectiveId()
 		elseif card:isKindOf("Crossbow") then crossbow = card
+		elseif card:isKindOf("Halberd") then halberd = card:getEffectiveId()
 		elseif card:isKindOf("DoubleSword") then double = card:getEffectiveId()
 		elseif card:isKindOf("QinggangSword") then qinggang = card:getEffectiveId()
-		elseif card:isKindOf("Axe") then axe = card:getEffectiveId()
 		elseif card:isKindOf("GudingBlade") then gudingdao = card:getEffectiveId()
-		elseif card:isKindOf("Halberd") then halberd = card:getEffectiveId()
-		elseif card:isKindOf("Weapon") then weapon = card:getEffectiveId() end
+		elseif card:isKindOf("Axe") then axe = card:getEffectiveId() end
+		if card:isKindOf("Weapon") then weapon = card:getEffectiveId() end
 	end
 	
 	if eightdiagram then

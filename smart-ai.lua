@@ -1058,6 +1058,10 @@ sgs.ai_card_intention.general = function(from, to, level)
 	if sgs.isRolePredictable() then return end
 	if not to then global_room:writeToConsole(debug.traceback()) return end
 	if from:isLord() or level == 0 then return end
+	if sgs.ai_doNotUpdateIntenion then
+		sgs.ai_doNotUpdateIntenion = nil
+		level = 0
+	end
 
 	-- 将level固定为 10或者-10，目的是由原来的忠反值的变化 更改为 统计AI跳身份的行为次数，因为感觉具体的level值不太好把握，容易出现忠反值不合理飙涨的情况
 	level = level > 0 and 10 or -10
@@ -3876,6 +3880,54 @@ function SmartAI:willUsePeachTo(dying)
 				end
 			end
 		end
+		
+		-- 鞭尸...
+		if not dying:hasSkills(sgs.masochism_skill) and not hasBuquEffect(dying)
+			and not sgs.GetConfig("EnableHegemony", false)
+			and not (dying:hasSkill("niepan") and dying:getMark("@nirvana") > 0)
+			and not (dying:hasSkill("fuli") and dying:getMark("@laoji") > 0) then
+			local mode = string.lower(self.room:getMode())
+			if mode == "couple" or mode == "fangcheng" or mode == "fancheng" or mode == "guandu" or mode == "custom_scenario"
+				or string.find(mode, "mini") or mode == "04_1v3" then
+			elseif mode == "06_3v3" or "06_XMode" then
+				if #self.enemies == 1 and self.enemies[1]:isNude() and #self.friends == 3 then
+					local hasWeakfriend
+					for _, friend in ipairs(self.friends) do
+						if self:isWeak(friend) then hasWeakfriend = true break end
+					end
+					if not hasWeakfriend then
+						card_str = self:getCardId("Peach")
+						if card_str then
+							self:speak("bianshi", dying:isFemale())
+							sgs.ai_doNotUpdateIntenion = true
+						end
+					end
+				end
+			elseif string.find(mode, "p") and mode >= "03p" and sgs.current_mode_players.renegade == 0 then
+				if (self.role == "lord" or self.role == "loyalist") and sgs.current_mode_players.rebel == 1 and #self.enemeis == 1 and self.enemies[1]:isNude() and
+					self.room:getCurrent():getNextAlive():objectName() ~= self.enemeis[1]:objectName() and #self.friends >= 3 then
+					card_str = self:getCardId("Peach")
+					if card_str then
+						self:speak("bianshi", dying:isFemale())
+						sgs.ai_doNotUpdateIntenion = true
+					end
+				elseif self.role == "rebel" and sgs.current_mode_players.loyalist == 0 and #self.enemeis == 1 and self.enemies[1]:isNude() and
+					self.room:getCurrent():getNextAlive():objectName() ~= self.enemeis[1]:objectName() and #self.friends >= 3 then
+					local hasWeakfriend
+					for _, friend in ipairs(self.friends) do
+						if self:isWeak(friend) then hasWeakfriend = true break end
+					end
+					if not hasWeakfriend then
+						card_str = self:getCardId("Peach")
+						if card_str then
+							self:speak("bianshi", dying:isFemale())
+							sgs.ai_doNotUpdateIntenion = true
+						end
+					end
+				end
+			end
+		end
+
 	end
 	if not card_str then return nil end
 	return card_str

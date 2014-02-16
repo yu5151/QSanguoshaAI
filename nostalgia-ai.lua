@@ -559,7 +559,6 @@ sgs.ai_skill_use_func.NosRendeCard = function(card, use, self)
 
 		if friend:hasSkill("enyuan") and #cards >= 1 and not (self.room:getMode() == "04_1v3" and self.player:getMark("nosrende") == 1) then
 			use.card = sgs.Card_Parse("@NosRendeCard=" .. card:getId() .. "+" .. cards[1]:getId())
-			break
 		else
 			use.card = sgs.Card_Parse("@NosRendeCard=" .. card:getId())
 		end

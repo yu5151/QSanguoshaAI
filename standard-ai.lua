@@ -2670,3 +2670,10 @@ sgs.ai_skill_invoke.wangzun = function(self, data)
 	end
 	return false
 end
+
+sgs.ai_choicemade_filter.skillInvoke.wangzun = function(self, player, promptlist)
+	local lord = self.room:getLord()
+	if lord and promptlist[#promptlist] == "yes" then
+		sgs.updateIntention(player, lord, 10)
+	end
+end

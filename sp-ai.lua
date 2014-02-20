@@ -113,7 +113,7 @@ sgs.ai_skill_discard.yongsi = function(self, discard_num, min_num, optional, inc
 	return to_discard
 end
 
-sgs.ai_chaofeng.yuanshu = 3
+
 
 sgs.ai_skill_invoke.danlao = function(self, data)
 	local effect = data:toCardUse()
@@ -1306,7 +1306,7 @@ sgs.ai_skill_invoke.cv_sunshangxiang = function(self, data)
 	return lord:getKingdom() == "shu"
 end
 
-sgs.ai_chaofeng.sp_sunshangxiang = sgs.ai_chaofeng.sunshangxiang
+
 
 sgs.ai_skill_invoke.cv_caiwenji = function(self, data)
 	local lord = self.room:getLord()
@@ -1316,7 +1316,7 @@ sgs.ai_skill_invoke.cv_caiwenji = function(self, data)
 	return lord:getKingdom() == "wei"
 end
 
-sgs.ai_chaofeng.sp_caiwenji = sgs.ai_chaofeng.caiwenji
+
 
 sgs.ai_skill_invoke.cv_machao = function(self, data)
 	local lord = self.room:getLord()
@@ -1338,7 +1338,7 @@ sgs.ai_skill_invoke.cv_machao = function(self, data)
 	end
 end
 
-sgs.ai_chaofeng.sp_machao = sgs.ai_chaofeng.machao
+
 
 sgs.ai_skill_invoke.cv_diaochan = function(self, data)
 	if math.random(0, 2) == 0 then return false
@@ -1347,7 +1347,7 @@ sgs.ai_skill_invoke.cv_diaochan = function(self, data)
 	else sgs.ai_skill_choice.cv_diaochan = "sp_diaochan" return true end
 end
 
-sgs.ai_chaofeng.sp_diaochan = sgs.ai_chaofeng.diaochan
+
 
 sgs.ai_skill_invoke.cv_pangde = sgs.ai_skill_invoke.cv_caiwenji
 sgs.ai_skill_invoke.cv_jiaxu = sgs.ai_skill_invoke.cv_caiwenji

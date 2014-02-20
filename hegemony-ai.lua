@@ -99,7 +99,7 @@ sgs.ai_cardneed.xiaoguo = function(to, card)
 	return getKnownCard(to, global_room:getCurrent(), "BasicCard", true) == 0 and card:getTypeId() == sgs.Card_Basic
 end
 
-sgs.ai_chaofeng.yuejin = 2
+
 
 sgs.ai_skill_playerchosen.shushen = function(self, targets)
 	if #self.friends_noself == 0 then return nil end
@@ -441,7 +441,7 @@ function sgs.ai_skill_pindian.shuangren(minusecard, self, requestor)
 	return self:isFriend(requestor) and self:getMinCard() or (maxcard:getNumber() < 6 and minusecard or maxcard)
 end
 
-sgs.ai_chaofeng.jiling = 2
+
 sgs.ai_skill_playerchosen.shuangren = sgs.ai_skill_playerchosen.zero_card_as_slash
 sgs.ai_card_intention.ShuangrenCard = sgs.ai_card_intention.TianyiCard
 sgs.ai_cardneed.shuangren = sgs.ai_cardneed.bignumber
@@ -635,7 +635,7 @@ sgs.ai_skill_choice.qingcheng = function(self, choices, data)
 	end
 end
 
-sgs.ai_chaofeng.zoushi = 3
+
 sgs.ai_use_value.QingchengCard = 2
 sgs.ai_use_priority.QingchengCard = 7.2
 sgs.ai_card_intention.QingchengCard = 0

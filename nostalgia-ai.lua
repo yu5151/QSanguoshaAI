@@ -318,7 +318,7 @@ sgs.nosxuanhuo_suit_value = {
 	heart = 3.9
 }
 
-sgs.ai_chaofeng.nos_fazheng = -3
+
 
 sgs.ai_cardneed.nosxuanhuo = function(to, card)
 	return card:getSuit() == sgs.Card_Heart
@@ -562,7 +562,8 @@ sgs.ai_skill_use_func.NosRendeCard = function(card, use, self)
 		else
 			use.card = sgs.Card_Parse("@NosRendeCard=" .. card:getId())
 		end
-		if use.to then use.to:append(friend) return end
+		if use.to then use.to:append(friend) end
+		return
 	end
 
 	if notFound then
@@ -598,7 +599,7 @@ end
 
 sgs.nosjizhi_keep_value = sgs.jizhi_keep_value
 
-sgs.ai_chaofeng.nos_huangyueying = sgs.ai_chaofeng.huangyueying
+
 
 function sgs.ai_skill_invoke.nosjushou(self, data)
 	local sbdiaochan = self.room:findPlayerBySkillName("lihun")
@@ -637,7 +638,7 @@ function sgs.ai_skill_invoke.nosbuqu(self, data)
 	end
 end
 
-sgs.ai_chaofeng.nos_zhoutai = -4
+
 
 sgs.ai_skill_playerchosen.nosleiji = function(self, targets)
 	local mode = self.room:getMode()

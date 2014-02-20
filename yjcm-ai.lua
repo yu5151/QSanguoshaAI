@@ -130,7 +130,7 @@ function sgs.ai_slash_prohibit.huilei(self, from, to)
 	return #(self:getEnemies(from)) > 1 and self:isWeak(to) and from:getHandcardNum() > 3
 end
 
-sgs.ai_chaofeng.masu = -4
+
 
 sgs.ai_skill_invoke.enyuan = function(self, data)
 	local move = data:toMoveOneTime()
@@ -370,7 +370,7 @@ sgs.ai_skill_cardask["xuanhuo-slash"] = function(self, data, pattern, t1, t2, pr
 	return "."
 end
 
-sgs.ai_chaofeng.fazheng = -3
+
 
 sgs.ai_skill_use["@@xuanfeng"] = function(self, prompt)
 	local erzhang = self.room:findPlayerBySkillName("guzheng")

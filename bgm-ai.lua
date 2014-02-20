@@ -246,8 +246,6 @@ sgs.ai_view_as.yanzheng = function(card, player, card_place)
 	end
 end
 
-sgs.ai_chaofeng.bgm_pangtong = 10
-
 sgs.ai_skill_invoke.manjuan = true
 sgs.ai_skill_invoke.zuixiang = true
 
@@ -1329,7 +1327,6 @@ end
 sgs.ai_use_value.HantongCard = sgs.ai_use_value.JijiangCard
 sgs.ai_use_priority.HantongCard = sgs.ai_use_priority.JijiangCard
 sgs.ai_card_intention.HantongCard = sgs.ai_card_intention.JijiangCard
-sgs.ai_chaofeng.diy_liuxie = 3
 
 function sgs.ai_cardsview_valuable.hantong(self, class_name, player)
 	if class_name == "Slash" and player:getPile("edict"):length() > 0 and not player:hasSkill("jijiang") then

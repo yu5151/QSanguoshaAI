@@ -982,13 +982,16 @@ end
 local yisheask_skill = {name = "yisheask"}
 table.insert(sgs.ai_skills, yisheask_skill)
 yisheask_skill.getTurnUseCard = function(self)
+	if self.player:usedTimes("YisheAskCard") > 1 then return end
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 		if player:hasSkill("yishe") and not player:getPile("rice"):isEmpty() then return sgs.Card_Parse("@YisheAskCard=.") end
 	end
 end
 
 sgs.ai_skill_use_func.YisheAskCard = function(card, use, self)
-	if self.player:usedTimes("YisheAskCard")>1 then return end
+	sgs.ai_use_priority.YisheAskCard = 9.1
+	if sgs.evaluatePlayerRole(self.player) == "neutral" then sgs.ai_use_priority.YisheAskCard = 0 end
+	if self.player:usedTimes("YisheAskCard") > 1 then return end
 	local zhanglu
 	local cards
 	for _, player in sgs.qlist(self.room:getOtherPlayers(self.player)) do
@@ -1009,6 +1012,8 @@ sgs.ai_event_callback[sgs.ChoiceMade].yisheask = function(self, player, data)
 	end
 end
 
+sgs.ai_use_priority.YisheAskCard = 9.1
+
 --[[
 	技能：惜粮
 	描述：你可将其他角色弃牌阶段弃置的红牌收为“米”或加入手牌。
@@ -1024,8 +1029,6 @@ sgs.ai_skill_choice.xiliang = function(self, choices)
 	return "obtain"
 end
 
-sgs.ai_chaofeng.zhanggongqi = 4
-sgs.ai_use_priority.YisheAskCard = 9.1
 --[[
 	技能：镇威
 	描述：你的【杀】被手牌中的【闪】抵消时，可立即获得该【闪】。

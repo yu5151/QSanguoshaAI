@@ -130,7 +130,7 @@ sgs.ai_need_damaged.fangzhu = function (self, attacker, player)
 	return false
 end
 
-sgs.ai_chaofeng.caopi = -3
+
 
 duanliang_skill={}
 duanliang_skill.name="duanliang"
@@ -171,7 +171,7 @@ sgs.duanliang_suit_value = {
 	club = 3.9
 }
 
-sgs.ai_chaofeng.xuhuang = 4
+
 
 sgs.ai_skill_invoke.zaiqi = function(self, data)
 	local lostHp = self.player:hasSkills("rende|nosrende") and 3 or 2
@@ -692,7 +692,7 @@ sgs.ai_use_priority.DimengCard = 2.8
 
 sgs.dynamic_value.control_card.DimengCard = true
 
-sgs.ai_chaofeng.lusu = 4
+
 
 luanwu_skill = {}
 luanwu_skill.name = "luanwu"

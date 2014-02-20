@@ -791,6 +791,7 @@ sgs.ai_card_intention.Slash = function(self, card, from, tos)
 	end
 	if sgs.ai_collateral then sgs.ai_collateral = false return end
 	if card:hasFlag("nosjiefan-slash") then return end
+	if card:getSkillName() == "mizhao" then return end
 	for _, to in ipairs(tos) do
 		local value = 80
 		speakTrigger(card, from, to)
@@ -2985,7 +2986,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 		elseif isCard("Dismantlement", card, self.player) then
 			dismantlement = card
 		elseif isCard("Indulgence", card, self.player) then
-			indulgence = card
+			indulgence = card:getEffectiveId()
 		end
 
 	end

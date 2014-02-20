@@ -235,7 +235,7 @@ sgs.guicai_suit_value = {
 	spade = 3.5
 }
 
-sgs.ai_chaofeng.simayi = -2
+
 
 sgs.ai_skill_invoke.ganglie = function(self, data)
 	local mode = self.room:getMode()
@@ -321,7 +321,7 @@ sgs.ai_choicemade_filter.skillInvoke.ganglie = function(self, player, promptlist
 	end
 end
 
-sgs.ai_chaofeng.xiahoudun = -3
+
 
 sgs.ai_skill_use["@@tuxi"] = function(self, prompt)
 	self:sort(self.enemies, "handcard_defense")
@@ -484,7 +484,7 @@ sgs.ai_card_intention.TuxiCard = function(self, card, from, tos)
 	end
 end
 
-sgs.ai_chaofeng.zhangliao = 4
+
 
 sgs.ai_skill_invoke.luoyi = function(self,data)
 	if self.player:isSkipped(sgs.Player_Play) then return false end
@@ -569,7 +569,7 @@ sgs.luoyi_keep_value = {
 	DefensiveHorse 	= 4
 }
 
-sgs.ai_chaofeng.xuchu = 3
+
 
 sgs.ai_skill_invoke.tiandu = sgs.ai_skill_invoke.jianxiong
 
@@ -701,7 +701,7 @@ sgs.ai_need_damaged.yiji = function (self, attacker, player)
 	return player:getHp() > 2 and sgs.turncount > 2 and #friends > 1
 end
 
-sgs.ai_chaofeng.guojia = -4
+
 
 sgs.ai_view_as.qingguo = function(card, player, card_place)
 	local suit = card:getSuitString()
@@ -1186,7 +1186,7 @@ function sgs.ai_cardsview_valuable.jijiang(self, class_name, player, need_lord)
 	end
 end
 
-sgs.ai_chaofeng.liubei = -2
+
 
 function SmartAI:getJijiangSlashNum(player)
 	if not player then self.room:writeToConsole(debug.traceback()) return 0 end
@@ -1274,7 +1274,7 @@ sgs.paoxiao_keep_value = {
 	ExNihilo = 4.7
 }
 
-sgs.ai_chaofeng.zhangfei = 3
+
 
 dofile "lua/ai/guanxing-ai.lua"
 
@@ -1353,7 +1353,7 @@ sgs.ai_skill_invoke.tieji = function(self, data)
 end
 
 
-sgs.ai_chaofeng.machao = 1
+
 
 function SmartAI:isValuableCard(card, player)
 	player = player or self.player
@@ -1414,7 +1414,7 @@ sgs.jizhi_keep_value = {
 	FireAttack	=4.9
 }
 
-sgs.ai_chaofeng.huangyueying = 4
+
 
 local zhiheng_skill = {}
 zhiheng_skill.name = "zhiheng"
@@ -1554,7 +1554,7 @@ end
 sgs.ai_use_value.ZhihengCard = 9
 sgs.ai_use_priority.ZhihengCard = 2.61
 sgs.dynamic_value.benefit.ZhihengCard = true
-sgs.ai_chaofeng.sunquan = 2
+
 
 function sgs.ai_cardneed.zhiheng(to, card)
 	return not card:isKindOf("Jink")
@@ -1637,7 +1637,7 @@ function sgs.ai_cardneed.qixi(to, card)
 	return card:isBlack()
 end
 
-sgs.ai_chaofeng.ganning = 2
+
 
 local kurou_skill={}
 kurou_skill.name="kurou"
@@ -1729,7 +1729,7 @@ end
 
 sgs.ai_use_priority.KurouCard = 6.8
 
-sgs.ai_chaofeng.huanggai = 3
+
 
 sgs.ai_skill_invoke.yingzi = function(self, data)
 	if self.player:hasSkill("haoshi") then
@@ -1834,7 +1834,7 @@ end
 
 sgs.dynamic_value.damage_card.FanjianCard = true
 
-sgs.ai_chaofeng.zhouyu = 3
+
 
 sgs.ai_skill_invoke.lianying = function(self, data)
 	if self:needKongcheng(self.player, true) then
@@ -2032,9 +2032,9 @@ sgs.guose_suit_value = {
 	diamond = 3.9
 }
 
-sgs.ai_chaofeng.daqiao = 2
 
-sgs.ai_chaofeng.luxun = -1
+
+
 
 local jieyin_skill={}
 jieyin_skill.name = "jieyin"
@@ -2151,7 +2151,7 @@ sgs.ai_skill_use_func.JieyinCard = function(card, use, self)
 		local others = self.room:getOtherPlayers(self.player)
 		for _, other in sgs.qlist(others) do
 			if other:isWounded() and other:isMale() then
-				if (sgs.ai_chaofeng[other:getGeneralName()] or 0) <= 2 and not self:hasSkills(sgs.masochism_skill, other) then
+				if not self:hasSkills(sgs.masochism_skill, other) then
 					target = other
 					self.player:setFlags("jieyin_isenemy_"..other:objectName())
 					break
@@ -2186,7 +2186,7 @@ sgs.xiaoji_keep_value = {
 	DefensiveHorse = 5
 }
 
-sgs.ai_chaofeng.sunshangxiang = 6
+
 
 local qingnang_skill = {}
 qingnang_skill.name = "qingnang"
@@ -2245,7 +2245,7 @@ sgs.ai_cardneed.jijiu = function(to, card)
 	return card:isRed()
 end
 
-sgs.ai_chaofeng.huatuo = 6
+
 
 sgs.ai_skill_cardask["@wushuang-slash-1"] = function(self, data, pattern, target)
 	if sgs.ai_skill_cardask.nullfilter(self, data, pattern, target) then return "." end
@@ -2269,7 +2269,7 @@ end
 
 sgs.ai_skill_cardask["@multi-jink"] = sgs.ai_skill_cardask["@multi-jink-start"]
 
-sgs.ai_chaofeng.lvbu = 1
+
 
 function SmartAI:getLijianCard()
 	local card_id
@@ -2628,7 +2628,7 @@ sgs.ai_skill_invoke.biyue = function(self, data)
 end
 
 
-sgs.ai_chaofeng.diaochan = 4
+
 
 sgs.ai_suit_priority.jijiu= "club|spade|diamond|heart"
 sgs.ai_suit_priority.guose= "club|spade|heart|diamond"

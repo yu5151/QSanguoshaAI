@@ -672,7 +672,7 @@ end
 
 sgs.ai_card_intention.AnxuCard = 0
 sgs.ai_use_priority.AnxuCard = 9.6
-sgs.ai_chaofeng.bulianshi = 4
+
 
 sgs.ai_skill_playerchosen.zhuiyi = function(self, targets)
 	local first, second
@@ -976,4 +976,3 @@ sgs.ai_skill_use_func.QiceCard = function(card, use, self)
 end
 
 sgs.ai_use_priority.QiceCard = 1.5
-sgs.ai_chaofeng.xunyou = 2

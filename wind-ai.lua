@@ -209,8 +209,8 @@ function SmartAI:canLiegong(to, from)
 	return false
 end
 
-sgs.ai_chaofeng.huangzhong = 1
-sgs.ai_chaofeng.weiyan = -2
+
+
 
 sgs.ai_skill_cardask["@guidao-card"]=function(self, data)
 	local judge = data:toJudge()
@@ -486,7 +486,7 @@ sgs.guidao_suit_value = {
 	club = 2.7
 }
 
-sgs.ai_chaofeng.zhangjiao = 4
+
 
 sgs.ai_skill_invoke.fenji = function(self, data)
 	local move = data:toMoveOneTime()

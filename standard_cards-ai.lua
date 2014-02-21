@@ -2601,7 +2601,7 @@ sgs.ai_use_priority.Collateral = 2.75
 sgs.ai_keep_value.Collateral = 3.40
 
 sgs.ai_card_intention.Collateral = function(self,card, from, tos)
-	assert(#tos == 1)
+	-- assert(#tos == 1)
 	sgs.ai_collateral = true
 end
 

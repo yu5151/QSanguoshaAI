@@ -170,6 +170,7 @@ function SmartAI:searchForAnaleptic(use, enemy, slash)
 	for _, p in sgs.qlist(use.to) do
 		if not p:hasSkill("zhenlie")then return end
 		if p:hasSkill("anxian") and not p:isKongcheng() and self:getOverflow() < 0 then return end
+	end
 
 	local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)

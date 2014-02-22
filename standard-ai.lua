@@ -540,7 +540,7 @@ function sgs.ai_cardneed.luoyi(to, card, self)
 
 	self:sort(self.enemies, "defenseSlash")
 	for _, enemy in ipairs(self.enemies) do
-		if to:canSlash(enemy) and not self:slashProhibit(slash ,enemy) and self:slashIsEffective(slash, enemy) and sgs.getDefenseSlash(enemy) <= 2 then
+		if to:canSlash(enemy) and not self:slashProhibit(slash ,enemy) and self:slashIsEffective(slash, enemy) and sgs.getDefenseSlash(enemy, self) <= 2 then
 			target = enemy
 			break
 		end
@@ -1675,7 +1675,7 @@ kurou_skill.getTurnUseCard=function(self,inclusive)
 		local to_death = false
 		if self:isFriend(nextplayer) then
 			for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-				if p:hasSkills("gzxiaoguo|xiaoguo") and not self:isFriend(p) and not p:isKongcheng()
+				if p:hasSkill("xiaoguo") and not self:isFriend(p) and not p:isKongcheng()
 					and self.role == "rebel" and self.player:getEquips():isEmpty() then
 					to_death = true
 					break
@@ -2099,9 +2099,9 @@ function SmartAI:getWoundedFriend(maleOnly)
 	end
 
 
-	local cmp = function (a ,b)
+	local cmp = function (a, b, self)
 		if getCmpHp(a) == getCmpHp(b) then
-			return sgs.getDefenseSlash(a) < sgs.getDefenseSlash(b)
+			return sgs.getDefenseSlash(a, self) < sgs.getDefenseSlash(b, self)
 		else
 			return getCmpHp(a) < getCmpHp(b)
 		end
@@ -2218,6 +2218,15 @@ sgs.ai_skill_use_func.QingnangCard = function(card, use, self)
 		use.card = card
 		if use.to then use.to:append(target) end
 		return
+	end
+	if self:getOverflow() > 0 and #arr2 > 0 then
+		for _, friend in ipairs(arr2) do
+			if not friend:hasSkills("hunzi|longhun") then
+				use.card = card
+				if use.to then use.to:append(friend) end
+				return
+			end
+		end
 	end
 end
 

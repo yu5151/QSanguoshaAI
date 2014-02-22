@@ -10,7 +10,7 @@ math.randomseed(os.time())
 -- SmartAI is the base class for all other specialized AI classes
 SmartAI = class "SmartAI"
 
-version = "QSanguosha AI 20140217 (V1.28 Alpha)"
+version = "QSanguosha AI 20140222 (V1.29 Alpha)"
 
 -- checkout https://github.com/haveatry823/QSanguoshaAI for details
 
@@ -82,11 +82,9 @@ sgs.ai_chat_func =			{}
 sgs.ai_event_callback =		{}
 sgs.explicit_renegade = 	false
 sgs.ai_NeedPeach =			{}
-sgs.ai_defense = 			{
-	Normal = {},
-	Process = {}
-}
+sgs.ai_defense = 			{}
 sgs.ai_damage_effect = 		{}
+sgs.ai_current_judge = 		{}
 
 
 for i=sgs.NonTrigger, sgs.NumOfEvents, 1 do
@@ -237,89 +235,100 @@ function sgs.getValue(player)
 	return player:getHp() * 2 + player:getHandcardNum()
 end
 
-function sgs.getDefense(player, gameProcess, update)
-	if not player then return 0 end
-	local defenseType = gameProcess and "Process" or "Normal"
+function sgs.getDefense(player, update)
+	if not player then global_room:writeToConsole(debug.traceback()) return 0 end
 	if not update and global_room:getCurrent() then
-		return sgs.ai_defense[defenseType][player:objectName()] or 0
+		return sgs.ai_defense[player:objectName()] or sgs.getValue(player)
 	end
-	local defense = math.min(player:getHp() * 2 + player:getHandcardNum(), player:getHp() * 3)
-	local attacker = global_room:getCurrent()
-	if not attacker then return 0 end
+	local current_player = global_room:getCurrent()
+	if not current_player then return sgs.getValue(player) end
+
+	local defense = player:getHp() * 2 + player:getHandcardNum()
+
+	if player:getArmor() and player:hasArmorEffect(player:getArmor():objectName()) then defense = defense + 2 end
+	if player:getDefensiveHorse() then defense = defense + 1 end
+
 	local hasEightDiagram = false
-	if player:hasArmorEffect("EightDiagram") or player:hasArmorEffect("bazhen") then
+	if player:hasArmorEffect("EightDiagram") or player:hasSkill("bazhen") and not player:getArmor() then
 		hasEightDiagram = true
 	end
-
-	if player:getArmor() then defense = defense + 2 end
-	if not player:getArmor() and player:hasSkill("yizhong") then defense = defense + 2 end
-
 	if hasEightDiagram then
-		defense = defense + 1.3
-		if player:hasSkill("tiandu") then defense = defense + 0.6 end
-		if player:hasSkill("gushou") then defense = defense + 0.4 end
-		if player:hasSkill("leiji") then defense = defense + 0.4 end
-		if player:hasSkill("nosleiji") then defense = defense + 0.4 end
-		if player:hasSkill("noszhenlie") then defense = defense + 0.2 end
-		if player:hasSkill("hongyan") then defense = defense + 0.2 end
+		if player:hasSkill("tiandu") then defense = defense + 1 end
+		if player:hasSkill("gushou") then defense = defense + 1 end
+		if player:hasSkill("leiji") then defense = defense + 2 end
+		if player:hasSkill("noszhenlie") then defense = defense + 1 end
+		if player:hasSkill("hongyan") then defense = defense + 1 end
 	end
 
-	if player:hasSkills("tuntian+zaoxian") then defense = defense + player:getHandcardNum() * 0.4 end
-	if player:hasSkill("aocai") and player:getPhase() == sgs.Player_NotActive then defense = defense + 0.3 end
-	if (attacker and not attacker:hasSkill("jueqing")) or gameProcess then
-		local m = sgs.masochism_skill:split("|")
-		for _, masochism in ipairs(m) do
-			if player:hasSkill(masochism) and sgs.isGoodHp(player) then
-				defense = defense + 1
+	local m = sgs.masochism_skill:split("|")
+	for _, masochism in ipairs(m) do
+		if player:hasSkill(masochism) and sgs.isGoodHp(player) then
+			defense = defense + 1
+		end
+	end
+	if player:hasSkill("jieming") then defense = defense + 3 end
+	if player:hasSkill("yiji") then defense = defense + 1 end
+	if player:hasSkill("guixin") then defense = defense + player:aliveCount() - 1 end
+	if player:hasSkill("yuce") then defense = defense + 2 end
+	if player:getMark("@tied") > 0 then defense = defense + 1 end
+	if player:hasSkill("chengxiang") then defense = defense + 2 end
+
+	if player:hasLordSkill("shichou") and player:getMark("xhate") == 1 then
+		for _, p in sgs.qlist(global_room:getOtherPlayers(player)) do
+			if p:getMark("hate_" .. player:objectName()) > 0 and p:getMark("@hate_to") > 0 then
+				defense = defense + p:getHp()
+				break
 			end
 		end
-		if player:getMark("@tied") > 0 then defense = defense + 1 end
-		if player:hasSkill("jieming") then defense = defense + 3 end
-		if player:hasSkill("yiji") then defense = defense + 3 end
-		if player:hasSkill("guixin") then defense = defense + 4 end
-		if player:hasSkill("yuce") then defense = defense + 2 end
 	end
 
-	if not gameProcess and not sgs.isGoodTarget(player) then defense = defense + 10 end
-	if player:hasSkills("rende|nosrende") and player:getHp() > 2 then defense = defense + 1 end
-	if player:hasSkill("kuanggu") and player:getHp() > 1 then defense = defense + 0.2 end
-	if player:hasSkill("kofkuanggu") and player:getHp() > 1 then defense = defense + 0.25 end
-	if player:hasSkill("zaiqi") and player:getHp() > 1 then defense = defense + 0.35 end
-	if player:hasSkill("tianming") then defense = defense + 0.1 end
+	if player:hasSkills("nosrende|rende") and player:getHp() > 2 and player:getHandcardNum() > 1 then defense = defense + 1 end
+	if player:hasSkill("kuanggu") and player:getHp() > 1 then defense = defense + 0.5 end
+	if player:hasSkill("kofkuanggu") and player:getHp() > 1 then defense = defense + 1 end
+	if player:hasSkill("zaiqi") and player:getHp() > 1 then defense = defense + player:getLostHp() * 0.5 end
+	if player:hasSkill("tianming") then defense = defense + 0.5 end
+	if player:hasSkill("nosmiji") then defense = defense + player:getLostHp() * 0.5 end
+	if player:hasSkill("keji") then defense = defense + player:getHandcardNum() * 0.25 end
+	if player:hasSkill("aocai") and player:getPhase() == sgs.Player_NotActive then defense = defense + 0.5 end
+	if player:hasSkill("wanrong") and not hasManjuanEffect(player) then defense = defense + 0.5 end
+	if player:hasSkill("tianxiang") then defense = defense + player:getHandcardNum() * 0.5 end
 
 	if player:getHp() > getBestHp(player) then defense = defense + 0.8 end
 	if player:getHp() <= 2 then defense = defense - 0.4 end
-
-	if player:hasSkill("tianxiang") then defense = defense + player:getHandcardNum() * 0.5 end
-
-	if not gameProcess and player:getHandcardNum() == 0 then
-		if player:getHp() <= 1 then defense = defense - 2.5 end
-		if player:getHp() == 2 then defense = defense - 1.5 end
-		if not hasEightDiagram then defense = defense - 2 end
-	end
+	if player:hasSkill("benghuai") and player:getMaxHp() <= 5 then defense = defense - 1 end
 
 	if isLord(player) then
 		defense = defense - 0.4
 		if sgs.isLordInDanger() then defense = defense - 0.7 end
 	end
 
-	if not player:faceUp() then defense = defense - 0.35 end
-	if player:containsTrick("indulgence") and not player:containsTrick("YanxiaoCard") then defense = defense - 0.15 end
-	if player:containsTrick("supply_shortage") and not player:containsTrick("YanxiaoCard") then defense = defense - 0.15 end
+	if not player:faceUp() then defense = defense - 1 end
 
-	if not gameProcess and not hasEightDiagram then
-		if player:hasSkill("jijiu") then defense = defense - 3 end
-		if player:hasSkill("dimeng") then defense = defense - 2.5 end
-		if player:hasSkill("guzheng") and getKnownCard(player, attacker, "Jink", true) == 0 then defense = defense - 2.5 end
-		if player:hasSkill("qiaobian") then defense = defense - 2.4 end
-		if player:hasSkill("jieyin") then defense = defense - 2.3 end
-		if player:hasSkills("noslijian|lijian") then defense = defense - 2.2 end
-		if player:hasSkill("nosmiji") and player:isWounded() then defense = defense - 1.5 end
-		if player:hasSkill("xiliang") and getKnownCard(player, attacker, "Jink", true) == 0 then defense = defense - 2 end
-		if player:hasSkill("shouye") then defense = defense - 2 end
+	if player:containsTrick("indulgence") and not player:containsTrick("YanxiaoCard") then defense = defense - 0.5 end
+	if player:containsTrick("supply_shortage") and not player:containsTrick("YanxiaoCard") then defense = defense - 0.5 end
+
+	if player:hasSkill("jijiu") then defense = defense + 3 end
+	if player:hasSkill("dimeng") then defense = defense + 2.5 end
+	if player:hasSkill("guzheng") then defense = defense + 2.5 end
+	if player:hasSkill("qiaobian") then defense = defense + 2.4 end
+	if player:hasSkill("jieyin") then defense = defense + 2.3 end
+	if player:hasSkills("noslijian|lijian") then defense = defense + 2.2 end
+	if player:hasSkill("nosmiji") and player:isWounded() then defense = defense + 1.5 end
+	if player:hasSkill("xiliang") then defense = defense + 2 end
+	if player:hasSkill("shouye") then defense = defense + 2 end
+	if player:hasSkill("guhuo") then
+		for _, p in sgs.qlist(global_room:getOtherPlayers(player)) do
+			if p:hasSkill("chanyuan") then defense = defense + 1 end
+		end
 	end
+	if player:hasSkill("huashen+xinsheng") then defense = defense + (player:getState() == "online" and 4 or 2) end
+	if player:hasSkill("yishe") then defense = defense + 2 end
 
-	sgs.ai_defense[defenseType][player:objectName()] = defense
+	defense = defense + (player:aliveCount() - (player:getSeat() - current_player:getSeat()) % player:aliveCount()) / 4
+
+	defense = defense + player:getVisibleSkillList():length() * 0.25
+
+	sgs.ai_defense[player:objectName()] = defense
 	return defense
 end
 
@@ -825,14 +834,7 @@ sgs.ai_compare_funcs = {
 	end,
 
 	chaofeng = function(a, b)
-		local c1 = 0
-		local c2 = 0
-
-		if c1 == c2 then
-			return sgs.ai_compare_funcs.value(a, b)
-		else
-			return c1 > c2
-		end
+		return sgs.getDefense(a) > sgs.getDefense(b)
 	end,
 
 	defense = function(a, b)
@@ -855,18 +857,55 @@ sgs.ai_compare_funcs = {
 			end
 		end
 
-		local c1 = 0
-		local c2 = 0
-
-		return d1 + c1 / 2 > d2 + c2 / 2
+		return d1 > d2
 	end,
 }
 
 function SmartAI:sort(players, key)
 	if not players then self.room:writeToConsole(debug.traceback()) end
 	if #players == 0 then return end
+	local func
+	if not key or key == "defense" or key == "defenseSlash" then
+		func = function(a, b)
+			return sgs.getDefenseSlash(a, self) < sgs.getDefenseSlash(b, self)
+		end
+	elseif key == "hp" then
+		func = function(a, b)
+			local c1 = a:getHp()
+			local c2 = b:getHp()
+			if c1 == c2 then
+				return sgs.getDefenseSlash(a, self) < sgs.getDefenseSlash(b, self)
+			else
+				return c1 < c2
+			end
+		end
+	elseif key == "handcard" then
+		func = function(a, b)
+			local c1 = a:getHandcardNum()
+			local c2 = b:getHandcardNum()
+			if c1 == c2 then
+				return sgs.getDefenseSlash(a, self) < sgs.getDefenseSlash(b, self)
+			else
+				return c1 < c2
+			end
+		end
+	elseif key == "handcard_defense" then
+		func = function(a, b, self)
+			local c1 = a:getHandcardNum()
+			local c2 = b:getHandcardNum()
+			if c1 == c2 then
+				return sgs.getDefenseSlash(a, self) < sgs.getDefenseSlash(b, self)
+			else
+				return c1 < c2
+			end
+		end
+	else
+		func = sgs.ai_compare_funcs[key]
+	end
+
+	if not func then self.room:writeToConsole(debug.traceback()) return end
+
 	function _sort(players, key)
-		local func = sgs.ai_compare_funcs[key or "defense"]
 		table.sort(players, func)
 	end
 	if not pcall(_sort, players, key) then self.room:writeToConsole(debug.traceback()) end
@@ -1068,34 +1107,42 @@ sgs.ai_card_intention.general = function(from, to, level)
 	local loyalist_value = sgs.role_evaluation[from:objectName()]["loyalist"]
 	local renegade_value = sgs.role_evaluation[from:objectName()]["renegade"]
 
+	local hasRebel = sgs.current_mode_players["rebel"] > 0
+	local hasRenegade = sgs.current_mode_players["renegade"] > 0
+	local hasLoyalist = sgs.current_mode_players["loyalist"] > 0
 
 	if sgs.evaluatePlayerRole(to) == "loyalist" then
-		if not isLord(to) and (sgs.UnknownRebel or (sgs.role_evaluation[to:objectName()]["renegade"] > 0 or sgs.current_mode_players["rebel"] == 0) and not sgs.explicit_renegade) then
-		else
+
+		if not to:isLord() and (sgs.UnknownRebel or sgs.role_evaluation[to:objectName()]["renegade"] > 0 and not sgs.explicit_renegade) then
+		elseif (hasRebel and level > 0) or ((hasRenegade or hasLoyalist) and level < 0) then
 			sgs.role_evaluation[from:objectName()]["loyalist"] = sgs.role_evaluation[from:objectName()]["loyalist"] - level
 		end
 
-		if sgs.current_mode_players["rebel"] > 0 and sgs.current_mode_players["renegade"] == 0 and
-			sgs.current_mode_players["loyalist"] > 0 and level > 0 and sgs.UnknownRebel then
-				--反装忠
-		elseif sgs.current_mode_players["rebel"] == 0 and sgs.current_mode_players["renegade"] > 0 and not to:isLord()
-				and sgs.current_mode_players["loyalist"] > 0 and level > 0 and sgs.explicit_renegade == false then
-				-- 进入主忠内, 但是没人跳过内，这个时候忠臣之间的相互攻击，不更新内奸值
-		elseif (sgs.ai_role[from:objectName()] == "loyalist" and level > 0) or (sgs.ai_role[from:objectName()] == "rebel" and level < 0) then
-			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level)
-		elseif sgs.ai_role[from:objectName()] ~= "rebel" and sgs.ai_role[from:objectName()] ~= "neutral" and level > 0 and to:isLord() then
-			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level)
+		if hasRenegade then
+			if sgs.UnknownRebel and not hasRenegade and hasLoyalist and level > 0 then
+					--反装忠
+			elseif not hasRebel and not to:isLord() and hasLoyalist and level > 0 and sgs.explicit_renegade == false then
+					-- 进入主忠内, 但是没人跳过内，这个时候忠臣之间的相互攻击，不更新内奸值
+			elseif hasRenegade and (sgs.ai_role[from:objectName()] == "loyalist" and level > 0
+									or sgs.ai_role[from:objectName()] == "renegade" and level > 0
+									or sgs.ai_role[from:objectName()] == "rebel" and level < 0) then
+				sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level)
+			elseif level > 0 and to:isLord() and hasRenegade and (sgs.ai_role[from:objectName()] == "loyalist" or sgs.ai_role[from:objectName()] == "renegade") then
+				sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level)
+			end
 		end
-	end
 
-	if sgs.evaluatePlayerRole(to) == "rebel" then
+	elseif sgs.evaluatePlayerRole(to) == "rebel" then
 		sgs.role_evaluation[from:objectName()]["loyalist"] = sgs.role_evaluation[from:objectName()]["loyalist"] + level
-		if (sgs.ai_role[from:objectName()] == "rebel" and level > 0) or (sgs.ai_role[from:objectName()] == "loyalist" and level < 0) then
+
+		if hasRenegade and (sgs.ai_role[from:objectName()] == "loyalist" and level < 0
+				or sgs.ai_role[from:objectName()] == "renegade" and level < 0
+				or sgs.ai_role[from:objectName()] == "rebel" and level > 0) then
 			sgs.role_evaluation[from:objectName()]["renegade"] = sgs.role_evaluation[from:objectName()]["renegade"] + math.abs(level)
 		end
 	end
 
-	for _, p in sgs.qlist(global_room:getAllPlayers()) do
+	for _, p in sgs.qlist(global_room:getAlivePlayers()) do
 		sgs.ais[p:objectName()]:updatePlayers(true, p:isLord())
 	end
 	--[[
@@ -1171,7 +1218,6 @@ function sgs.isLordInDanger()
 end
 
 function sgs.gameProcess(room, arg)
-	room = room or global_room
 	local rebel_num = sgs.current_mode_players["rebel"]
 	local loyal_num = sgs.current_mode_players["loyalist"]
 	if rebel_num == 0 and loyal_num > 0 then return "loyalist"
@@ -1182,36 +1228,17 @@ function sgs.gameProcess(room, arg)
 	local lord = room:getLord()
 	local currentplayer = room:getCurrent()
 	for _, aplayer in sgs.qlist(room:getAlivePlayers()) do
-		local role=aplayer:getRole()
+		local role = aplayer:getRole()
+		local hp = aplayer:getHp()
+		if aplayer:hasSkill("benghuai") and aplayer:getHp() > 4 then hp = 4 end
 		if role == "rebel" then
-			local rebel_hp
-			if aplayer:hasSkill("benghuai") and aplayer:getHp() > 4 then rebel_hp = 4
-			else rebel_hp = aplayer:getHp() end
-			if aplayer:getMaxHp() == 3 then rebel_value = rebel_value + 0.5 end
-			rebel_value = rebel_value + rebel_hp + math.max(sgs.getDefense(aplayer, true) - rebel_hp * 2, 0) * 0.7
-			if aplayer:getDefensiveHorse() then
-				rebel_value = rebel_value + 0.3
-			end
-			if lord and aplayer:inMyAttackRange(lord) then
-				rebel_value = rebel_value + 0.4
-			end
-			if aplayer:getMark("@duanchang") > 0 and aplayer:getMaxHp() <= 3 then rebel_value = rebel_value - 1 end
+			rebel_value = rebel_value + hp + math.max(sgs.getDefense(aplayer) - hp * 2, 0) * 0.5
+			if lord and aplayer:inMyAttackRange(lord) then rebel_value = rebel_value + 0.4 end
 		elseif role == "loyalist" or role == "lord" then
-			local loyal_hp
-			if aplayer:hasSkill("benghuai") and aplayer:getHp() > 4 then loyal_hp = 4
-			else loyal_hp = aplayer:getHp() end
-			if aplayer:getMaxHp() == 3 then loyal_value = loyal_value + 0.5 end
-			loyal_value = loyal_value + (loyal_hp + math.max(sgs.getDefense(aplayer, true) - loyal_hp * 2, 0) * 0.7)
-			if aplayer:getArmor() or (not aplayer:getArmor() and aplayer:hasSkills("bazhen|yizhong")) then
-				loyal_value = loyal_value + 0.5
-			end
-			if aplayer:getDefensiveHorse() then
-				loyal_value = loyal_value + 0.5
-			end
-			if aplayer:getMark("@duanchang")==1 and aplayer:getMaxHp() <=3 then loyal_value = loyal_value - 1 end
+			loyal_value = loyal_value + hp + math.max(sgs.getDefense(aplayer) - hp * 2, 0) * 0.5
 		end
 	end
-	local diff = loyal_value - rebel_value + (loyal_num + 1 - rebel_num) * 2
+	local diff = loyal_value - rebel_value + (loyal_num + 1 - rebel_num) * 3
 	if arg and arg == 1 then return diff end
 
 	if diff >= 2 then
@@ -1609,8 +1636,7 @@ function SmartAI:updatePlayers(clear_flags, update)
 
 	if update then
 		for _, p in sgs.qlist(self.room:getAlivePlayers()) do
-			sgs.getDefense(p, true, true)
-			sgs.getDefense(p, false, true)
+			sgs.getDefense(p, true)
 		end
 	end
 
@@ -1907,19 +1933,11 @@ function SmartAI:filterEvent(event, player, data)
 				local index = 2
 				if promptlist[1] == "cardResponded" then
 
-					if promptlist[#promptlist] == "_nil_" then
-						if promptlist[2]:match("jink") then sgs.card_lack[player:objectName()]["Jink"] = 1
-						elseif promptlist[2]:match("slash") then sgs.card_lack[player:objectName()]["Slash"] = 1
-						elseif promptlist[2]:match("peach") then sgs.card_lack[player:objectName()]["Peach"] = 1 end
+					if promptlist[2]:match("jink") then sgs.card_lack[player:objectName()]["Jink"] = promptlist[#promptlist] == "_nil_" and 1 or 0
+					elseif promptlist[2]:match("slash") then sgs.card_lack[player:objectName()]["Slash"] = promptlist[#promptlist] == "_nil_" and 1 or 0
+					elseif promptlist[2]:match("peach") then sgs.card_lack[player:objectName()]["Peach"] = promptlist[#promptlist] == "_nil_" and 1 or 0
 					end
 
-					if promptlist[3] == "@guicai-card" or promptlist[3] == "@guidao-card" or promptlist[3] == "@huanshi-card" then
-						if promptlist[#promptlist] == "_nil_" then
-							sgs.RetrialPlayer = nil
-						else
-							sgs.RetrialPlayer = player
-						end
-					end
 					index = 3
 				end
 				local callback = callbacktable[promptlist[index]] or callbacktable.general
@@ -2315,28 +2333,29 @@ function SmartAI:filterEvent(event, player, data)
 			if player:objectName() == caiwenji:objectName() then intention = 0 end
 			sgs.updateIntention(caiwenji, player, intention)
 		end
-		sgs.JudgeResult = judge:isGood()
+		local judgex = { who = judge.who, reason = judge.reason, good = judge:isGood() }
+		table.insert(sgs.ai_current_judge, judgex)
 	elseif event == sgs.AskForRetrial then
 		local judge = data:toJudge()
-		if sgs.JudgeResult ~= judge:isGood() and sgs.RetrialPlayer and judge.who then
-			if sgs.judge_reason:match(judge.reason) then
-				if judge:isGood() then
-					sgs.updateIntention(sgs.RetrialPlayer, judge.who, -10)
-				else
-					sgs.updateIntention(sgs.RetrialPlayer, judge.who, 10)
-				end
-			end
-			sgs.RetrialPlayer = nil
-			sgs.JudgeResult = judge:isGood()
+		local judge_len = #sgs.ai_current_judge
+		local last_judge = sgs.ai_current_judge[judge_len]
+		table.remove(sgs.ai_current_judge, judge_len)
+		if not last_judge.good and judge:isGood() then
+			sgs.updateIntention(player, last_judge.who, -30)
+		elseif last_judge.good and not judge:isGood() then
+			sgs.updateIntention(player, last_judge.who, 30)
 		end
-	elseif event == sgs.EventPhaseEnd and player:getPhase() ==  sgs.Player_Play then
+		last_judge.good = judge:isGood()
+		table.insert(sgs.ai_current_judge, last_judge)
+	elseif event == sgs.FinishJudge then
+		table.remove(sgs.ai_current_judge, #sgs.ai_current_judge)
+	elseif event == sgs.EventPhaseEnd and player:getPhase() == sgs.Player_Play then
 		player:setFlags("AI_Playing")
-	elseif event == sgs.EventPhaseStart and player:getPhase() ==  sgs.Player_NotActive then
+	elseif event == sgs.EventPhaseStart and player:getPhase() == sgs.Player_NotActive then
 		if player:isLord() then sgs.turncount = sgs.turncount + 1 end
 
 		sgs.debugmode = io.open("lua/ai/debug")
 		if sgs.debugmode then sgs.debugmode:close() end
-
 
 		if sgs.turncount == 1 and player:isLord() then
 			local msg = ""
@@ -5815,7 +5834,7 @@ function SmartAI:needToLoseHp(to, from, isSlash, passive, recover)
 	if not passive then
 		if to:getMaxHp() > 2 then
 			if to:hasSkills("longluo|miji") and self:findFriendsByType(sgs.Friend_Draw, to) then n = math.min(n, to:getMaxHp() - 1) end
-			if to:hasSkill("rende") and not self:willSkipPlayPhase(to) and self:findFriendsByType(sgs.Friend_Draw, to) then n = math.min(n, to:getMaxHp() - 1) end
+			if to:hasSkills("nosrende|rende") and not self:willSkipPlayPhase(to) and self:findFriendsByType(sgs.Friend_Draw, to) then n = math.min(n, to:getMaxHp() - 1) end
 		end
 	end
 

@@ -680,7 +680,7 @@ sgs.ai_skill_use_func.MingceCard = function(card, use, self)
 	for _, friend in ipairs(friends) do
 		if canMingceTo(friend) then
 			for _, enemy in ipairs(self.enemies) do
-				if friend:canSlash(enemy) and not self:slashProhibit(slash, enemy) and sgs.getDefenseSlash(enemy) <= 2
+				if friend:canSlash(enemy) and not self:slashProhibit(slash, enemy) and sgs.getDefenseSlash(enemy, self) <= 2
 						and self:slashIsEffective(slash, enemy) and sgs.isGoodTarget(enemy, self.enemies, self)
 						and enemy:objectName() ~= self.player:objectName() then
 					target = friend

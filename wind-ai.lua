@@ -298,8 +298,8 @@ function SmartAI:findLeijiTarget(player, leiji_value, slasher, latest_version)
 			if not self:hasSuit("black", true, player) and player:getHandcardNum() < 2 then return nil end
 		end
 		if not (getKnownCard(player, self.player, "Jink", true) > 0
-				or (getCardsNum("Jink", player, self.player) >= 1 and sgs.card_lack[player:objectName()]["Jink"] ~= 1 and player:getHandcardNum() >= 3)
-				or (not self:isWeak(player) and self:hasEightDiagramEffect(player) and not slasher:hasWeapon("QinggangSword"))) then
+				or (getCardsNum("Jink", player, self.player) >= 1 and sgs.card_lack[player:objectName()]["Jink"] ~= 1 and player:getHandcardNum() >= 4)
+				or (not self:isWeak(player) and self:hasEightDiagramEffect(player) and not slasher:hasWeapon("QinggangSword") and sgs.card_lack[player:objectName()]["Jink"] ~= 1)) then
 			return nil
 		end
 	end
@@ -377,7 +377,7 @@ function sgs.ai_slash_prohibit.leiji(self, from, to, card) -- @todo: Qianxi flag
 
 	if sgs.card_lack[to:objectName()]["Jink"] == 2 then return true end
 	if getKnownCard(to, self.player, "Jink", true) >= 1 or (self:hasSuit("spade", true, to) and hcard >= 2) or hcard >= 4 then return true end
-	if not from then --倚天包连理AI（452行）并未给出from和card，会导致下文中IgnoreArmor出错，在此进行补充。
+	if not from then
 		from = self.room:getCurrent()
 	end
 	if self:hasEightDiagramEffect(to) and not IgnoreArmor(from, to) then return true end

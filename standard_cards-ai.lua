@@ -2002,7 +2002,7 @@ function SmartAI:getDangerousCard(who)
 		end
 	end
 	if (weapon and weapon:isKindOf("Spear") and who:hasSkill("paoxiao") and who:getHandcardNum() >=1 ) then return weapon:getEffectiveId() end
-	if weapon and weapon:isKindOf("Axe") and self:hasSkills("luoyi|pojun|jiushi|jiuchi|jie|wenjiu|shenli|jieyuan", who) then
+	if weapon and weapon:isKindOf("Axe") and (who:hasSkills("luoyi|pojun|jiushi|jiuchi|jie|wenjiu|shenli|jieyuan") or self:getOverflow(who) > 0 or who:getCardCount() >= 4) then
 		return weapon:getEffectiveId()
 	end
 	if armor and armor:isKindOf("EightDiagram") and who:hasSkill("leiji") then return armor:getEffectiveId() end
@@ -2016,6 +2016,12 @@ function SmartAI:getDangerousCard(who)
 		return weapon:getEffectiveId()
 	end
 	if (weapon and who:hasSkill("liegong")) then return weapon:getEffectiveId() end
+	
+	if weapon then
+		for _, friend in ipairs(self.friends) do
+			if who:distanceTo(friend) < who:getAttackRange(false) and self:isWeak(friend) and not self:doNotDiscard(who, "e", true) then return weapon:getEffectiveId() end
+		end
+	end
 end
 
 function SmartAI:getValuableCard(who)
@@ -2026,8 +2032,8 @@ function SmartAI:getValuableCard(who)
 	self:sort(self.friends, "hp")
 	local friend
 	if #self.friends > 0 then friend = self.friends[1] end
-	if friend and self:isWeak(friend) and who:distanceTo(friend) <= who:getAttackRange() and not self:doNotDiscard(who, "e", true) then
-		if weapon and (who:distanceTo(friend) > 1) then
+	if friend and self:isWeak(friend) and who:distanceTo(friend) <= who:getAttackRange(false) and not self:doNotDiscard(who, "e", true) then
+		if weapon and who:distanceTo(friend) > 1 then
 			return weapon:getEffectiveId()
 		end
 		if offhorse and who:distanceTo(friend) > 1 then
@@ -2164,6 +2170,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 		enemies = self:exclude(enemies, card)
 		local temp = {}
 		for _, enemy in ipairs(enemies) do
+			if enemy:hasSkill("tuntian+guidao") and enemy:hasSkills("zaoxian|jixi|zhiliang|leiji|nosleiji") then continue end
 			if self:hasTrickEffective(card, enemy) or isYinling then
 				table.insert(temp, enemy)
 			end
@@ -2175,6 +2182,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 		enemies = self:exclude(self.enemies, card)
 		local temp = {}
 		for _, enemy in ipairs(enemies) do
+			if enemy:hasSkill("tuntian+guidao") and enemy:hasSkills("zaoxian|jixi|zhiliang|leiji|nosleiji") then continue end
 			if self:hasTrickEffective(card, enemy) or isYinling then
 				table.insert(temp, enemy)
 			end
@@ -2190,7 +2198,7 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 			for _, to in sgs.qlist(dummyuse.to) do
 				if to:getHandcardNum() == 1 and to:getHp() <= 2 and self:hasLoseHandcardEffective(to) and not to:hasSkills("kongcheng|tianming")
 					and (not self:hasEightDiagramEffect(to) or IgnoreArmor(self.player, to)) then
-					return to:getRandomHandCardId()
+					if addTarget(to, to:getRandomHandCardId()) then return end
 				end
 			end
 		end

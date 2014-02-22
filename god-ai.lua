@@ -773,10 +773,10 @@ sgs.ai_skill_use_func.WuqianCard = function(wuqiancard, use, self)
 	if self:getCardsNum("Slash") > 0 and not self.player:hasSkill("wushuang") then
 		for _, card in sgs.qlist(self.player:getHandcards()) do
 			if isCard("Duel", card, self.player) then
-				local dummy_use = { isDummy = true, isWuqian = true, to = sgs.SPlayetList() }
+				local dummy_use = { isDummy = true, isWuqian = true, to = sgs.SPlayerList() }
 				local duel = sgs.Sanguosha:cloneCard("duel", card:getSuit(), card:getNumber())
 				self:useCardDuel(duel, dummy_use)
-				if dummy_use.card and dummy_use.to:length() > 0 and (self:isWeak(dummy_use.to:first()) or dummy_use.to:length() > 1) then
+				if dummy_use.card and dummy_use.to:length() > 0 and (self:isWeak(dummy_use.to:first()) and dummy_use.to:first():getHp() == 1 or dummy_use.to:length() > 1) then
 					use.card = wuqiancard
 					if use.to then use.to:append(dummy_use.to:first()) end
 					return

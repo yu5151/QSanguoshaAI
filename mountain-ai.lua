@@ -197,7 +197,6 @@ sgs.ai_skill_discard.qiaobian = function(self, discard_num, min_num, optional, i
 
 		for _, friend in ipairs(self.friends) do
 			if not friend:getCards("j"):isEmpty() and not friend:containsTrick("YanxiaoCard") and card_for_qiaobian(self, friend, ".") then
-				-- return "@QiaobianCard=" .. card:getEffectiveId() .."->".. friend:objectName()
 				return to_discard
 			end
 		end
@@ -231,16 +230,13 @@ sgs.ai_skill_discard.qiaobian = function(self, discard_num, min_num, optional, i
 
 		if #targets > 0 then
 			self:sort(targets, "defense")
-			-- return "@QiaobianCard=" .. card:getEffectiveId() .."->".. targets[#targets]:objectName()
 			return to_discard
 		end
 	elseif current_phase == sgs.Player_Discard and not self.player:isSkipped(sgs.Player_Discard) then
 		self:sortByKeepValue(cards)
-		table.remove(to_discard)
-		table.insert(to_discard, cards[1]:getEffectiveId())
 		if self:needBear() then return {} end
-		if self.player:getHandcardNum()-1 > self.player:getHp() then
-			return to_discard
+		if self.player:getHandcardNum() > self:getOverflow(self.player, true) then
+			return { cards[1]:getEffectiveId() }
 		end
 	end
 
@@ -443,9 +439,7 @@ function sgs.ai_slash_prohibit.xiangle(self, from, to)
 end
 
 sgs.ai_skill_invoke.fangquan = function(self, data)
-	if #self.friends == 1 then
-		return false
-	end
+	if #self.friends == 1 then return false end
 
 	-- First we'll judge whether it's worth skipping the Play Phase
 	local cards = sgs.QList2Table(self.player:getHandcards())
@@ -513,46 +507,40 @@ sgs.ai_skill_invoke.fangquan = function(self, data)
 end
 
 sgs.ai_skill_use["@@fangquan"] = function(self, prompt)
-	local to_discard = nil
 	local cards = sgs.QList2Table(self.player:getHandcards())
-	local index = 0
-	local all_peaches = 0
-	for _, card in ipairs(cards) do
-		if card:isKindOf("Peach") then
-			all_peaches = all_peaches + 1
-		end
-	end
-	if all_peaches >= 2 and self:getOverflow() <= 0 then return "." end
 	self:sortByKeepValue(cards)
-	cards = sgs.reverse(cards)
-
-	for i = #cards, 1, -1 do
-		local card = cards[i]
-		if not card:isKindOf("Peach") and not self.player:isJilei(card) then
-			to_discard = card:getEffectiveId()
-			break
+	if sgs.current_mode_players.rebel == 0 then
+		local lord = self.room:getLord()
+		if lord and self:isFriend(lord) then
+			return "@FangquanCard=" .. cards[1]:getEffectiveId() .. "->" .. lord:objectName()
 		end
 	end
-	if not to_discard then return "." end
+
+	local AssistTarget = self:AssistTarget()
+	if AssistTarget and not self:willSkipPlayPhase(AssistTarget) then
+		return "@FangquanCard=" .. cards[1]:getEffectiveId() .. "->" .. AssistTarget:objectName()
+	end
 
 	self:sort(self.friends_noself, "handcard")
 	self.friends_noself = sgs.reverse(self.friends_noself)
 	for _, target in ipairs(self.friends_noself) do
-		if not target:hasSkill("dawu") and self:hasSkills("yongsi|zhiheng|" .. sgs.priority_skill .. "|shensu", target)
+		if not target:hasSkill("dawu") and target:hasSkills("yongsi|zhiheng|" .. sgs.priority_skill .. "|shensu")
 			and (not self:willSkipPlayPhase(target) or target:hasSkill("shensu")) then
-			return "@FangquanCard=" .. to_discard .. "->" .. target:objectName()
+			return "@FangquanCard=" .. cards[1]:getEffectiveId() .. "->" .. target:objectName()
 		end
 	end
+
 	for _, target in ipairs(self.friends_noself) do
 		if target:hasSkill("dawu") then
 			local use = true
 			for _, p in ipairs(self.friends_noself) do
 				if p:getMark("@fog") > 0 then use = false break end
 			end
-			if use then return "@FangquanCard=" .. to_discard .. "->" .. target:objectName() end
+			if use then
+				return "@FangquanCard=" .. cards[1]:getEffectiveId() .. "->" .. target:objectName()
+			end
 		end
 	end
-	if #self.friends_noself > 0 then return "@FangquanCard=" .. to_discard .. "->" .. self.friends_noself[1]:objectName() end
 	return "."
 end
 

@@ -46,8 +46,8 @@ sgs.ai_skill_askforag.huanshi = function(self, card_ids)
 
 	local cmp = function(a, b)
 		local a_keep_value, b_keep_value = sgs.ai_keep_value[a:getClassName()], sgs.ai_keep_value[b:getClassName()]
-		a_keep_value = a_keep_value + a:getNumber() / 100
-		b_keep_value = b_keep_value + b:getNumber() / 100
+		a_keep_value = (a_keep_value or 0) + a:getNumber() / 100
+		b_keep_value = (b_keep_value or 0) + b:getNumber() / 100
 		if zhugejin and zhugejin:hasSkill("mingzhe") then
 			if a:isRed() then a_keep_value = a_keep_value - 0.3 end
 			if b:isRed() then b_keep_value = b_keep_value - 0.3 end

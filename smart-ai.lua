@@ -307,7 +307,9 @@ function sgs.getDefense(player, update)
 	if player:containsTrick("indulgence") and not player:containsTrick("YanxiaoCard") then defense = defense - 0.5 end
 	if player:containsTrick("supply_shortage") and not player:containsTrick("YanxiaoCard") then defense = defense - 0.5 end
 
-	if player:hasSkill("jijiu") then defense = defense + 3 end
+	if player:hasSkill("qianhuan") then defense = defense + 2 + player:getPile("sorcery"):length() end
+	if player:hasSkill("jijiu") then defense = defense + 2 end
+	if player:hasSkill("qingnang") then defense = defense + 2 end
 	if player:hasSkill("dimeng") then defense = defense + 2.5 end
 	if player:hasSkill("guzheng") then defense = defense + 2.5 end
 	if player:hasSkill("qiaobian") then defense = defense + 2.4 end
@@ -1281,6 +1283,10 @@ function SmartAI:objectiveLevel(player)
 		if player:isLord() and not sgs.GetConfig("EnableHegemony", false) and self.room:getMode() ~= "couple"
 			and player:getHp() <= 0 and player:hasFlag("Global_Dying") then return -2 end
 
+		if target_role == "rebel" and player:getHp() <= 1 and not hasBuquEffect(player) and not player:hasSkill("kongcheng")
+			and (player:isKongcheng() or sgs.card_lack[player:objectName()]["Jink"] == 1 and player:getHandcardNum() <= 1)
+			and getCardsNum("Peach", player, self.player) < 1 and getCardsNum("Analeptic", player, self.player) < 1 then return 5 end
+
 		if rebel_num == 0 or loyal_num == 0 then
 			if rebel_num > 0 then
 				if rebel_num > 1 then
@@ -1410,14 +1416,12 @@ function SmartAI:objectiveLevel(player)
 					end
 				end
 				if current_friend_num + ((consider_renegade or rebelish) and current_renegade_num or 0) >= loyal_num + ((rebelish or consider_renegade) and renegade_num or 0) + 1 then
-					if self:getOverflow() > -1 then return 5
-					else return 3
-					end
+					return self:getOverflow() > -1 and 5 or 3
 				elseif current_enemy_num + (consider_renegade and current_renegade_num or rebelish and 0 or current_renegade_num)
 					>= rebel_num + (consider_renegade and renegade_num or rebelish and 0 or renegade_num) then
 					return -1
 				elseif self:getOverflow() > -1 and (current_friend_num + ((consider_renegade or rebelish) and current_renegade_num or 0) + 1
-					== loyal_num + ((rebelish or consider_renegade) and renegade_num or 0) + 1) and current_enemy_num <= 1 then
+					== loyal_num + ((rebelish or consider_renegade) and renegade_num or 0) + 1) and current_enemy_num <= 1 and current_enemy_num / rebel_num < 0.35 then
 					return 1
 				end
 			elseif sgs.explicit_renegade and renegade_num == 1 then return -1 end
@@ -1515,14 +1519,12 @@ function SmartAI:objectiveLevel(player)
 			local mode = self.room:getMode()
 			local consider_renegade = mode == "05p" or mode == "07p" or mode == "09p"
 			if current_friend_num + ((consider_renegade or loyalish) and current_renegade_num or 0) >= rebel_num + ((consider_renegade or loyalish) and renegade_num or 0) then
-				if self:getOverflow() > -1 then return 5
-				else return 3
-				end
+				return self:getOverflow() > -1 and 5 or 3
 			elseif current_enemy_num + (consider_renegade and current_renegade_num or loyalish and 0 or current_renegade_num)
 				>= loyal_num + (consider_renegade and renegade_num or loyalish and 0 or renegade_num) + 1 then
-				return -2
-			elseif self:getOverflow() > -1 and (current_friend_num + ((consider_renegade or loyalish) and current_renegade_num or 0) + 1
-				== rebel_num + ((consider_renegade or loyalish) and renegade_num or 0)) and current_enemy_num <= 1 then
+				return -1
+			elseif loyal_num + renegade_num > 0 and self:getOverflow() > -1 and (current_friend_num + ((consider_renegade or loyalish) and current_renegade_num or 0) + 1
+				== rebel_num + ((consider_renegade or loyalish) and renegade_num or 0)) and current_enemy_num <= 1 and current_enemy_num / (loyal_num + renegade_num) < 0.35 then
 				return 1
 			else
 				return 0

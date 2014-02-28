@@ -1180,7 +1180,7 @@ function sgs.outputRoleValues(player, level)
 	global_room:writeToConsole(player:getGeneralName() .. " " .. level .. " " .. sgs.evaluatePlayerRole(player)
 								.. " L:" .. math.ceil(sgs.role_evaluation[player:objectName()]["loyalist"])
 								.. " R:" .. math.ceil(sgs.role_evaluation[player:objectName()]["renegade"])
-								.. " " .. sgs.gameProcess(player:getRoom())
+								.. " " .. sgs.gameProcess(player:getRoom()) .. "," .. string.format("%3.3f", sgs.gameProcess(player:getRoom(), 1))
 								.. " " .. sgs.current_mode_players["loyalist"] .. sgs.current_mode_players["rebel"]	.. sgs.current_mode_players["renegade"])
 end
 

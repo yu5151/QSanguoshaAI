@@ -82,7 +82,6 @@ sgs.ai_chat_func =			{}
 sgs.ai_event_callback =		{}
 sgs.explicit_renegade = 	false
 sgs.ai_NeedPeach =			{}
-sgs.ai_defense = 			{}
 sgs.ai_damage_effect = 		{}
 sgs.ai_current_judge = 		{}
 
@@ -235,11 +234,8 @@ function sgs.getValue(player)
 	return player:getHp() * 2 + player:getHandcardNum()
 end
 
-function sgs.getDefense(player, update)
+function sgs.getDefense(player)
 	if not player then global_room:writeToConsole(debug.traceback()) return 0 end
-	if not update and global_room:getCurrent() then
-		return sgs.ai_defense[player:objectName()] or sgs.getValue(player)
-	end
 	local current_player = global_room:getCurrent()
 	if not current_player then return sgs.getValue(player) end
 
@@ -325,12 +321,12 @@ function sgs.getDefense(player, update)
 	end
 	if player:hasSkill("huashen+xinsheng") then defense = defense + (player:getState() == "online" and 4 or 2) end
 	if player:hasSkill("yishe") then defense = defense + 2 end
+	if player:hasSkill("paiyi") then defense = defense + 1.5 end
 
 	defense = defense + (player:aliveCount() - (player:getSeat() - current_player:getSeat()) % player:aliveCount()) / 4
 
 	defense = defense + player:getVisibleSkillList():length() * 0.25
 
-	sgs.ai_defense[player:objectName()] = defense
 	return defense
 end
 
@@ -1219,7 +1215,14 @@ function sgs.isLordInDanger()
 	return lord_hp < 3
 end
 
-function sgs.gameProcess(room, arg)
+function sgs.gameProcess(room, arg, update)
+	if not update then
+		if arg and arg == 1 then
+			return sgs.ai_gameProcess_arg
+		else
+			return sgs.ai_gameProcess
+		end
+	end
 	local rebel_num = sgs.current_mode_players["rebel"]
 	local loyal_num = sgs.current_mode_players["loyalist"]
 	if rebel_num == 0 and loyal_num > 0 then return "loyalist"
@@ -1241,21 +1244,25 @@ function sgs.gameProcess(room, arg)
 		end
 	end
 	local diff = loyal_value - rebel_value + (loyal_num + 1 - rebel_num) * 3
-	if arg and arg == 1 then return diff end
+	if arg and arg == 1 then sgs.ai_gameProcess_arg = diff end
 
-	if diff >= 2 then
-		if health then return "loyalist"
-		else return "dilemma" end
-	elseif diff >= 1 then
-		if health then return "loyalish"
-		elseif danger then return "dilemma"
-		else return "rebelish" end
-	elseif diff <= -2 then return "rebel"
-	elseif diff <= -1 then
-		if health then return "rebelish"
-		else return "rebel" end
-	elseif not health then return "rebelish"
-	else return "neutral" end
+	local process = "neutral"
+	if diff >= 4 then
+		if health then process = "loyalist"
+		else process = "dilemma" end
+	elseif diff >= 2 then
+		if health then process = "loyalish"
+		elseif danger then process = "dilemma"
+		else process = "rebelish" end
+	elseif diff <= -4 then process = "rebel"
+	elseif diff <= -2 then
+		if health then process = "rebelish"
+		else process = "rebel" end
+	elseif not health then process = "rebelish"
+	else process = "neutral" end
+	sgs.ai_gameProcess = process
+	if arg and arg == 1 then return diff end
+	return process
 end
 
 function SmartAI:objectiveLevel(player)
@@ -1283,9 +1290,8 @@ function SmartAI:objectiveLevel(player)
 		if player:isLord() and not sgs.GetConfig("EnableHegemony", false) and self.room:getMode() ~= "couple"
 			and player:getHp() <= 0 and player:hasFlag("Global_Dying") then return -2 end
 
-		if target_role == "rebel" and player:getHp() <= 1 and not hasBuquEffect(player) and not player:hasSkill("kongcheng")
-			and (player:isKongcheng() or sgs.card_lack[player:objectName()]["Jink"] == 1 and player:getHandcardNum() <= 1)
-			and getCardsNum("Peach", player, self.player) < 1 and getCardsNum("Analeptic", player, self.player) < 1 then return 5 end
+		if target_role == "rebel" and player:getHp() <= 1 and not hasBuquEffect(player) and not player:hasSkills("kongcheng|tianming") and player:isKongcheng()
+			and getCardsNum("Peach", player, self.player) == 0 and getCardsNum("Analepic", player, self.player) == 0 then return 5 end
 
 		if rebel_num == 0 or loyal_num == 0 then
 			if rebel_num > 0 then
@@ -1370,9 +1376,9 @@ function SmartAI:objectiveLevel(player)
 			if player:isLord() then return -1 end
 			local renegade_attack_skill = string.format("buqu|nosbuqu|%s|%s|%s|%s", sgs.priority_skill, sgs.save_skill, sgs.recover_skill, sgs.drawpeach_skill)
 			for i = 1, #players, 1 do
-				if not players[i]:isLord() and self:hasSkills(renegade_attack_skill, players[i]) then return 5 end
+				if not players[i]:isLord() and players[i]:hasSkills(renegade_attack_skill) then return 5 end
 			end
-			return 3
+			return self:getOverflow() > 0 and 3 or 0
 		elseif process:match("rebel") then
 			return target_role == "rebel" and 5 or target_role == "neutral" and 0 or -1
 		elseif process:match("dilemma") then
@@ -1637,9 +1643,8 @@ function SmartAI:updatePlayers(clear_flags, update)
 	sgs.updateAlivePlayerRoles()
 
 	if update then
-		for _, p in sgs.qlist(self.room:getAlivePlayers()) do
-			sgs.getDefense(p, true)
-		end
+		sgs.updateAlivePlayerRoles()
+		sgs.gameProcess(self.room, 1, true)
 	end
 
 	if sgs.isRolePredictable(true) then
@@ -1711,7 +1716,8 @@ function sgs.evaluateAlivePlayersRole()
 
 	for i = 1, #players, 1 do
 		local p = players[i]
-		if i <= sgs.current_mode_players["renegade"] and sgs.role_evaluation[p:objectName()]["renegade"] >= 10  then
+		if i <= sgs.current_mode_players["renegade"] and sgs.role_evaluation[p:objectName()]["renegade"] >= 10
+			and not (sgs.role_evaluation[p:objectName()]["renegade"] <= 10 and sgs.role_evaluation[p:objectName()]["loyalist"] <= -50) then
 			renegade = renegade + 1
 			sgs.ai_role[p:objectName()] = "renegade"
 			sgs.explicit_renegade = sgs.role_evaluation[p:objectName()]["renegade"] >= (sgs.current_mode_players["rebel"] == 0 and 10 or 20)
@@ -5696,7 +5702,8 @@ function SmartAI:useEquipCard(card, use)
 			end
 		end
 		if self:hasSkills("paoxiao|nosfuhun", self.player) and card:isKindOf("Crossbow") then return end
-		if not self:needKongcheng() and not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow() <= 0 and not canUseSlash then return end
+		if not use.to and not self:needKongcheng() and not self:hasSkills(sgs.lose_equip_skill) and self:getOverflow() <= (canUseSlash and self.slashAvail or 0)
+			and not canUseSlash and not card:isKindOf("Crossbow") and not card:isKindOf("VSCrossbow") then return end
 		-- if (not use.to) and self.player:getWeapon() and not self:hasSkills(sgs.lose_equip_skill) then return end
 		if (self.player:hasSkill("zhiheng") or self.player:hasSkill("jilve") and self.player:getMark("@bear") > 0)
 			and not self.player:hasUsed("ZhihengCard") and self.player:getWeapon() and not card:isKindOf("Crossbow") then return end

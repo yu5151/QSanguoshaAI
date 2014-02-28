@@ -251,9 +251,10 @@ function sgs.getDefense(player)
 	if hasEightDiagram then
 		if player:hasSkill("tiandu") then defense = defense + 1 end
 		if player:hasSkill("gushou") then defense = defense + 1 end
+		if player:hasSkill("nosleiji") then defense = defense + 2 end
 		if player:hasSkill("leiji") then defense = defense + 2 end
 		if player:hasSkill("noszhenlie") then defense = defense + 1 end
-		if player:hasSkill("hongyan") then defense = defense + 1 end
+		if player:hasSkill("hongyan") then defense = defense + 2 end
 	end
 
 	local m = sgs.masochism_skill:split("|")
@@ -263,7 +264,7 @@ function sgs.getDefense(player)
 		end
 	end
 	if player:hasSkill("jieming") then defense = defense + 3 end
-	if player:hasSkill("yiji") then defense = defense + 1 end
+	if player:hasSkill("yiji") then defense = defense + 3 end
 	if player:hasSkill("guixin") then defense = defense + player:aliveCount() - 1 end
 	if player:hasSkill("yuce") then defense = defense + 2 end
 	if player:getMark("@tied") > 0 then defense = defense + 1 end
@@ -278,7 +279,8 @@ function sgs.getDefense(player)
 		end
 	end
 
-	if player:hasSkills("nosrende|rende") and player:getHp() > 2 and player:getHandcardNum() > 1 then defense = defense + 1 end
+	if player:hasSkill("nosrende") and player:getHp() > 2 and player:getHandcardNum() > 1 then defense = defense + 1 end
+	if player:hasSkill("rende") and player:getHp() > 2 and player:getHandcardNum() > 1 then defense = defense + 1 end
 	if player:hasSkill("kuanggu") and player:getHp() > 1 then defense = defense + 0.5 end
 	if player:hasSkill("kofkuanggu") and player:getHp() > 1 then defense = defense + 1 end
 	if player:hasSkill("zaiqi") and player:getHp() > 1 then defense = defense + player:getLostHp() * 0.5 end
@@ -310,7 +312,8 @@ function sgs.getDefense(player)
 	if player:hasSkill("guzheng") then defense = defense + 2.5 end
 	if player:hasSkill("qiaobian") then defense = defense + 2.4 end
 	if player:hasSkill("jieyin") then defense = defense + 2.3 end
-	if player:hasSkills("noslijian|lijian") then defense = defense + 2.2 end
+	if player:hasSkill("noslijian") then defense = defense + 2.2 end
+	if player:hasSkill("lijian") then defense = defense + 2.1 end
 	if player:hasSkill("nosmiji") and player:isWounded() then defense = defense + 1.5 end
 	if player:hasSkill("xiliang") then defense = defense + 2 end
 	if player:hasSkill("shouye") then defense = defense + 2 end
@@ -322,6 +325,7 @@ function sgs.getDefense(player)
 	if player:hasSkill("huashen+xinsheng") then defense = defense + (player:getState() == "online" and 4 or 2) end
 	if player:hasSkill("yishe") then defense = defense + 2 end
 	if player:hasSkill("paiyi") then defense = defense + 1.5 end
+	if player:hasSkill("yongsi") then defense = defense + 2 end
 
 	defense = defense + (player:aliveCount() - (player:getSeat() - current_player:getSeat()) % player:aliveCount()) / 4
 

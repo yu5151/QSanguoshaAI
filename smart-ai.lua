@@ -653,7 +653,21 @@ function SmartAI:adjustUsePriority(card, v)
 			end
 			v = v - 0.05
 		end
-		if card:isKindOf("NatureSlash") then v = v + (self.slashAvail == 1 and 0.05 or -0.05) end
+		if card:isKindOf("NatureSlash") then
+			if self.slashAvail == 1 then
+				v = v + 0.05
+				if card:isKindOf("FireSlash") then
+					for _, enemy in ipairs(self.enemies) do
+						if enemy:hasArmorEffect("Vine") then v = v + 0.07 break end
+					end
+				elseif card:isKindOf("ThunderSlash") then
+					for _, enemy in ipairs(self.enemies) do
+						if enemy:getMark("@fog") then v = v + 0.06 break end
+					end
+				end
+			else v = v - 0.05
+			end
+		end
 		if card:getSkillName() == "longdan" and self.player:hasSkill("chongzhen") then v = v + 0.08 end
 		if card:getSkillName() == "fuhun" then v = v + (self.player:getPhase() == sgs.Player_Play and 0.06 or -0.05) end
 		if self.player:hasSkill("jiang") and card:isRed() then v = v + 0.05 end
@@ -3936,15 +3950,15 @@ function SmartAI:willUsePeachTo(dying)
 					end
 				end
 			elseif string.find(mode, "p") and mode >= "03p" and sgs.current_mode_players.renegade == 0 then
-				if (self.role == "lord" or self.role == "loyalist") and sgs.current_mode_players.rebel == 1 and #self.enemeis == 1 and self.enemies[1]:isNude() and
-					self.room:getCurrent():getNextAlive():objectName() ~= self.enemeis[1]:objectName() and #self.friends >= 3 then
+				if (self.role == "lord" or self.role == "loyalist") and sgs.current_mode_players.rebel == 1 and #self.enemies == 1 and self.enemies[1]:isNude() and
+					self.room:getCurrent():getNextAlive():objectName() ~= self.enemies[1]:objectName() and #self.friends >= 3 then
 					card_str = self:getCardId("Peach")
 					if card_str then
 						self:speak("bianshi", dying:isFemale())
 						sgs.ai_doNotUpdateIntenion = true
 					end
-				elseif self.role == "rebel" and sgs.current_mode_players.loyalist == 0 and #self.enemeis == 1 and self.enemies[1]:isNude() and
-					self.room:getCurrent():getNextAlive():objectName() ~= self.enemeis[1]:objectName() and #self.friends >= 3 then
+				elseif self.role == "rebel" and sgs.current_mode_players.loyalist == 0 and #self.enemies == 1 and self.enemies[1]:isNude() and
+					self.room:getCurrent():getNextAlive():objectName() ~= self.enemies[1]:objectName() and #self.friends >= 3 then
 					local hasWeakfriend
 					for _, friend in ipairs(self.friends) do
 						if self:isWeak(friend) then hasWeakfriend = true break end
@@ -4437,6 +4451,14 @@ local function cardsView(self, class_name, player)
 			end
 		end
 	end
+	for _, equip in sgs.qlist(player:getEquips()) do
+		local name = equip:objectName()
+		local callback = sgs.ai_cardsview[name]
+		if type(callback) == "function" then
+			local ret = callback(self, class_name, player)
+			if ret then return ret end
+		end
+	end
 end
 
 local function getSkillViewCard(card, class_name, player, card_place)
@@ -4581,13 +4603,17 @@ function getKnownCard(player, from, class_name, viewas, flags)
 	if not player or (flags and type(flags) ~= "string") then global_room:writeToConsole(debug.traceback()) return 0 end
 	flags = flags or "h"
 	player = findPlayerByObjectName(global_room, player:objectName())
+	local forbid = false
+	if not from and global_room:getCurrent() and player:objectName() == global_room:getCurrent():objectName() then
+		forbid = true
+	end
 	from = from or global_room:getCurrent()
 	local cards = player:getCards(flags)
 	local known = 0
 	local suits = {["club"] = 1, ["spade"] = 1, ["diamond"] = 1, ["heart"] = 1}
 	for _, card in sgs.qlist(cards) do
 		local flag = string.format("%s_%s_%s", "visible", from:objectName(), player:objectName())
-		if card:hasFlag("visible") or card:hasFlag(flag) or player:objectName() == from:objectName() then
+		if card:hasFlag("visible") or card:hasFlag(flag) or not forbid and player:objectName() == from:objectName() then
 			if (viewas and isCard(class_name, card, player)) or card:isKindOf(class_name)
 				or (suits[class_name] and card:getSuitString() == class_name)
 				or (class_name == "red" and card:isRed()) or (class_name == "black" and card:isBlack()) then
@@ -4719,6 +4745,11 @@ function getCardsNum(class_name, player, from)
 	local clubcard = 0
 	local slashjink = 0
 
+	local forbid = false
+	if not from and global_room:getCurrent() and player:objectName() == global_room:getCurrent():objectName() then
+		forbid = true
+	end
+
 	from = from or global_room:getCurrent()
 
 	if not player then
@@ -4726,7 +4757,7 @@ function getCardsNum(class_name, player, from)
 	else
 		for _, card in ipairs(cards) do
 			local flag = string.format("%s_%s_%s", "visible", from:objectName(), player:objectName())
-			if card:hasFlag("visible") or card:hasFlag(flag) or from:objectName() == player:objectName() then
+			if card:hasFlag("visible") or card:hasFlag(flag) or not forbid and from:objectName() == player:objectName() then
 				shownum = shownum + 1
 				if card:isKindOf(class_name) then
 					num = num + 1
@@ -6238,6 +6269,14 @@ function SmartAI:adjustAIRole()
 			sgs.ai_role[player:objectName()] = role
 		end
 	end
+end
+
+function hasWulingEffect(element)
+	if not element:startsWith("@") then element = "@" .. element end
+	for _, p in sgs.qlist(global_room:getAlivePlayers()) do
+		if p:hasSkill("wuling") and p:getMark(element) > 0 then return true end
+	end
+	return
 end
 
 dofile "lua/ai/debug-ai.lua"

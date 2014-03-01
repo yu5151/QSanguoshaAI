@@ -168,7 +168,7 @@ function SmartAI:searchForAnaleptic(use, enemy, slash)
 	if analepticAvail > 1 and analepticAvail < slashAvail then return nil end
 	if not sgs.Analeptic_IsAvailable(self.player) then return nil end
 	for _, p in sgs.qlist(use.to) do
-		if not p:hasSkill("zhenlie")then return end
+		if p:hasSkill("zhenlie") then return end
 		if p:hasSkill("anxian") and not p:isKongcheng() and self:getOverflow() < 0 then return end
 	end
 
@@ -325,12 +325,11 @@ function SmartAI:isGoodChainPartner(player)
 end
 
 function SmartAI:isGoodChainTarget(who, source, nature, damagecount, card)
-	if not who:isChained() then return false end
 	source = source or self.player
-	nature = nature or sgs.DamageStruct_Fire
 
 	if source:hasSkill("jueqing") then return not self:isFriend(who) end
-
+	if not who:isChained() then return not self:isFriend(who) end
+	nature = nature or sgs.DamageStruct_Fire
 	damagecount = damagecount or 1
 	if card and card:isKindOf("Slash") then
 		nature = card:isKindOf("FireSlash") and sgs.DamageStruct_Fire
@@ -342,29 +341,32 @@ function SmartAI:isGoodChainTarget(who, source, nature, damagecount, card)
 		if who:getMark("@gale") > 0 and self.room:findPlayerBySkillName("kuangfeng") then damagecount = damagecount + 1 end
 	end
 
-
-	local jxd = self.room:findPlayerBySkillName("wuling")
-	if jxd then
-		if jxd:getMark("@fire") > 0 then nature = sgs.DamageStruct_Fire
-		elseif not card and jxd:getMark("@thunder") > 0 and nature == sgs.DamageStruct_Thunder then damagecount = damagecount + 1
-		elseif not card and jxd:getMark("@wind") > 0 and nature == sgs.DamageStruct_Fire then damagecount = damagecount + 1 end
+	if hasWulingEffect("@fire") then nature = sgs.DamageStruct_Fire
+	elseif not (card and card:isKindOf("Slash")) and hasWulingEffect("@thunder") and nature == sgs.DamageStruct_Thunder then damagecount = damagecount + 1
+	elseif not (card and card:isKindOf("Slash")) and hasWulingEffect("@wind") and nature == sgs.DamageStruct_Fire then damagecount = damagecount + 1
 	end
+
 	if not self:damageIsEffective(who, nature, source) then return end
-	if card and card:isKindOf("FireAttack") and not self:hasTrickEffective(card, who, self.player) then return end
+	if card and card:isKindOf("TrickCard") and not self:hasTrickEffective(card, who, self.player) then return end
 
 	if who:hasArmorEffect("SilverLion") then damagecount = 1 end
 
 	local kills, killlord, the_enemy = 0
 	local good, bad, F_count, E_count = 0, 0, 0, 0
-	local peach_num = self.player:objectName() == source:objectName() and self:getCardsNum("Peach") or getCardsNum("Peach", source)
+	local peach_num = self.player:objectName() == source:objectName() and self:getCardsNum("Peach") or getCardsNum("Peach", source, self.player)
 
 	local function getChainedPlayerValue(target, dmg)
 		local newvalue = 0
 		if self:isGoodChainPartner(target) then newvalue = newvalue + 1 end
 		if self:isWeak(target) then newvalue = newvalue - 1 end
-		if dmg and nature == sgs.DamageStruct_Fire then
-			if target:hasArmorEffect("Vine") then dmg = dmg + 1 end
-			if target:getMark("@gale") > 0 then dmg = dmg + 1 end
+		if dmg then
+			if nature == sgs.DamageStruct_Fire then
+				if target:hasArmorEffect("Vine") then dmg = dmg + 1 end
+				if target:getMark("@gale") > 0 then dmg = dmg + 1 end
+				if hasWulingEffect("wind") then dmg = dmg + 1 end
+			elseif nature == sgs.DamageStruct_Thunder then
+				if hasWulingEffect("@thunder") then dmg = dmg + 1 end
+			end
 		end
 		if self:cantbeHurt(target, source, damagecount) then newvalue = newvalue - 100 end
 		if damagecount + (dmg or 0) >= target:getHp() then

@@ -287,6 +287,7 @@ function SmartAI:slashProhibit(card, enemy, from)
 	if mode:find("_mini_36") then return self.player:hasSkill("keji") end
 	card = card or sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	from = from or self.player
+	if self.room:isProhibited(from, enemy, card) then return true end
 	local nature = card:isKindOf("FireSlash") and sgs.DamageStruct_Fire
 					or card:isKindOf("ThunderSlash") and sgs.DamageStruct_Thunder
 	for _, askill in sgs.qlist(enemy:getVisibleSkillList()) do
@@ -310,7 +311,7 @@ function SmartAI:slashProhibit(card, enemy, from)
 		end
 	end
 
-	return self.room:isProhibited(from, enemy, card) or not self:slashIsEffective(card, enemy, from) -- @todo: param of slashIsEffective
+	return not self:slashIsEffective(card, enemy, from) -- @todo: param of slashIsEffective
 end
 
 function SmartAI:canLiuli(other, another)
@@ -348,9 +349,16 @@ function SmartAI:slashIsEffective(slash, to, from, ignore_armor)
 		ThunderSlash = sgs.DamageStruct_Thunder,
 	}
 
+	local nature = natures[slash:getClassName()]
+	self.equipsToDec = sgs.getCardNumAtCertainPlace(slash, from, sgs.Player_PlaceEquip)
+	if from:hasSkill("zonghuo") then nature = sgs.DamageStruct_Fire end
+	local eff = self:damageIsEffective(to, nature, from)
+	self.equipsToDec = 0
+	if not eff then return false end
+
 	if not ignore_armor and from:objectName() == self.player:objectName() then
 		if to:getArmor() and from:hasSkill("moukui") then
-			if not self:isFriend(to) or (to:getArmor() and self:needToThrowArmor(to)) then
+			if not self:isFriend(to) or self:needToThrowArmor(to) then
 				if not (self:isEnemy(to) and self:doNotDiscard(to)) then
 					local id = self:askForCardChosen(to, "he", "moukui")
 					if id == to:getArmor():getEffectiveId() then ignore_armor = true end
@@ -359,37 +367,36 @@ function SmartAI:slashIsEffective(slash, to, from, ignore_armor)
 		end
 	end
 
-	local nature = natures[slash:getClassName()]
-	self.equipsToDec = sgs.getCardNumAtCertainPlace(slash, from, sgs.Player_PlaceEquip)
-	if from:hasSkill("zonghuo") then nature = sgs.DamageStruct_Fire end
-	local eff = self:damageIsEffective(to, nature, from)
-	self.equipsToDec = 0
-	if not eff then return false end
-
-	if (to:hasArmorEffect("Vine") or to:getMark("@gale") > 0) and self:getCardId("FireSlash") and slash:isKindOf("ThunderSlash") and self:objectiveLevel(to) >= 3 then
-		 return false
-	end
-
 	if IgnoreArmor(from, to) or ignore_armor then
 		return true
 	end
 
-	local armor = to:getArmor()
-	if armor then
-		if armor:objectName() == "RenwangShield" then
-			return not slash:isBlack()
-		elseif armor:objectName() == "Vine" then
-			local skill_name = slash:getSkillName() or ""
-			local can_convert = false
-			if skill_name == "guhuo" then
+	if to:hasArmorEffect("RenwangShield") and slash:isBlack() then return false end
+	if to:hasArmorEffect("Vine") and not slash:isKindOf("NatureSlash") then
+		local skill_name = slash:getSkillName() or ""
+		local can_convert = false
+		if skill_name == "guhuo" then
+			can_convert = true
+		else
+			local skill = sgs.Sanguosha:getSkill(skill_name)
+			if not skill or skill:inherits("FilterSkill") then
 				can_convert = true
-			else
-				local skill = sgs.Sanguosha:getSkill(skill_name)
-				if not skill or skill:inherits("FilterSkill") then
-					can_convert = true
-				end
 			end
-			return nature ~= sgs.DamageStruct_Normal or (can_convert and (from:hasWeapon("Fan") or (from:hasSkill("lihuo") and not self:isWeak(from))))
+		end
+		return can_convert and (from:hasWeapon("Fan") or from:hasSkill("zonghuo") or (from:hasSkill("lihuo") and not self:isWeak(from)))
+	end
+
+	if slash:isKindOf("ThunderSlash") then
+		local f_slash = self:getCard("FireSlash")
+		if f_slash and self:hasHeavySlashDamage(from, f_slash, to, true) > self:hasHeavySlashDamage(from, slash, to, true)
+			and (not to:isChained() or self:isGoodChainTarget(to, from, sgs.DamageStruct_Fire, nil, f_slash)) then
+			return self:slashProhibit(f_slash, to, from)
+		end
+	elseif slash:isKindOf("FireSlash") then
+		local t_slash = self:getCard("ThunderSlash")
+		if t_slash and self:hasHeavySlashDamage(from, t_slash, to, true) > self:hasHeavySlashDamage(from, slash, to, true)
+			and (not to:isChained() or self:isGoodChainTarget(to, from, sgs.DamageStruct_Thunder, nil, t_slash)) then
+			return self:slashProhibit(t_slash, to, from)
 		end
 	end
 
@@ -2016,7 +2023,7 @@ function SmartAI:getDangerousCard(who)
 		return weapon:getEffectiveId()
 	end
 	if (weapon and who:hasSkill("liegong")) then return weapon:getEffectiveId() end
-	
+
 	if weapon then
 		for _, friend in ipairs(self.friends) do
 			if who:distanceTo(friend) < who:getAttackRange(false) and self:isWeak(friend) and not self:doNotDiscard(who, "e", true) then return weapon:getEffectiveId() end
@@ -3284,7 +3291,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 			elseif card:isKindOf("Collateral") and self:hasTrickEffective(card, enemy, self.player) and enemy:getWeapon() then
 				collateral = card:getEffectiveId()
 			elseif card:isKindOf("Duel") and self:hasTrickEffective(card, enemy, self.player) and
-					(self:getCardsNum("Slash") >= getCardsNum("Slash", enemy) or self.player:getHandcardNum() > 4) then
+					(self:getCardsNum("Slash") >= getCardsNum("Slash", enemy, self.player) or self.player:getHandcardNum() > 4) then
 				duel = card:getEffectiveId()
 			elseif card:isKindOf("AOE") then
 				local dummy_use = {isDummy = true}

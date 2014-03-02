@@ -234,7 +234,7 @@ function SmartAI:useCardSupplyShortage(card, use)
 	local sb_daqiao = self.room:findPlayerBySkillName("yanxiao")
 	local yanxiao = sb_daqiao and not self:isFriend(sb_daqiao) and sb_daqiao:faceUp() and
 					(getKnownCard(sb_daqiao, self.player, "diamond", nil, "he") > 0
-					or sb_daqiao:getHandcardNum() + self:ImitateResult_DrawNCards(sb_daqiao, sb_daqiao:getVisibleSkillList()) > 3
+					or sb_daqiao:getHandcardNum() + self:ImitateResult_DrawNCards(sb_daqiao, sb_daqiao:getVisibleSkillList(true)) > 3
 					or sb_daqiao:containsTrick("YanxiaoCard"))
 
 	if #enemies == 0 then return end

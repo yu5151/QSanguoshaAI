@@ -329,7 +329,7 @@ function sgs.getDefense(player)
 
 	defense = defense + (player:aliveCount() - (player:getSeat() - current_player:getSeat()) % player:aliveCount()) / 4
 
-	defense = defense + player:getVisibleSkillList():length() * 0.25
+	defense = defense + player:getVisibleSkillList(true):length() * 0.25
 
 	return defense
 end
@@ -360,7 +360,7 @@ function SmartAI:assignKeep(start)
 			self.keepdata[k] = v
 		end
 
-		for _, askill in sgs.qlist(self.player:getVisibleSkillList()) do
+		for _, askill in sgs.qlist(self.player:getVisibleSkillList(true)) do
 			local skilltable = sgs[askill:objectName() .. "_keep_value"]
 			if skilltable then
 				for k, v in pairs(skilltable) do
@@ -393,7 +393,7 @@ function SmartAI:assignKeep(start)
 		if self.player:getHp() > getBestHp(self.player) then needDamaged = true end
 		if not needDamaged and not sgs.isGoodTarget(self.player, self.friends, self) then needDamaged = true end
 		if not needDamaged then
-			for _, skill in sgs.qlist(self.player:getVisibleSkillList()) do
+			for _, skill in sgs.qlist(self.player:getVisibleSkillList(true)) do
 				local callback = sgs.ai_need_damaged[skill:objectName()]
 				if type(callback) == "function" and callback(self, nil, self.player) then
 					needDamaged = true
@@ -487,7 +487,7 @@ function SmartAI:getKeepValue(card, kept, Write)
 		local number = card:getNumber()
 		local i = 0
 
-		for _, askill in sgs.qlist(self.player:getVisibleSkillList()) do
+		for _, askill in sgs.qlist(self.player:getVisibleSkillList(true)) do
 			if sgs[askill:objectName() .. "_suit_value"] then
 				local v = sgs[askill:objectName() .. "_suit_value"][suit_string]
 				if v then
@@ -499,7 +499,7 @@ function SmartAI:getKeepValue(card, kept, Write)
 		if i > 0 then value_suit = value_suit / i end
 
 		i = 0
-		for _, askill in sgs.qlist(self.player:getVisibleSkillList()) do
+		for _, askill in sgs.qlist(self.player:getVisibleSkillList(true)) do
 			if sgs[askill:objectName() .. "_number_value"] then
 				local v = sgs[askill:objectName() .. "_number_value"][tostring(number)]
 				if v then
@@ -629,7 +629,7 @@ function SmartAI:adjustUsePriority(card, v)
 
 	if card:getTypeId() == sgs.Card_Skill then return v end
 
-	for _, askill in sgs.qlist(self.player:getVisibleSkillList()) do
+	for _, askill in sgs.qlist(self.player:getVisibleSkillList(true)) do
 		local callback = sgs.ai_suit_priority[askill:objectName()]
 		if type(callback) == "function" then
 			suits = callback(self, card):split("|")
@@ -662,7 +662,7 @@ function SmartAI:adjustUsePriority(card, v)
 					end
 				elseif card:isKindOf("ThunderSlash") then
 					for _, enemy in ipairs(self.enemies) do
-						if enemy:getMark("@fog") then v = v + 0.06 break end
+						if enemy:getMark("@fog") > 0 then v = v + 0.06 break end
 					end
 				end
 			else v = v - 0.05
@@ -773,7 +773,7 @@ function SmartAI:cardNeed(card)
 	if self:isWeak() and card:isKindOf("Jink") and self:getCardsNum("Jink") < 1 then return 12 end
 
 	local i = 0
-	for _, askill in sgs.qlist(self.player:getVisibleSkillList()) do
+	for _, askill in sgs.qlist(self.player:getVisibleSkillList(true)) do
 		if sgs[askill:objectName() .. "_keep_value"] then
 			local v = sgs[askill:objectName() .. "_keep_value"][class_name]
 			if v then
@@ -784,7 +784,7 @@ function SmartAI:cardNeed(card)
 	end
 	if value then return value / i + 4 end
 	i = 0
-	for _, askill in sgs.qlist(self.player:getVisibleSkillList()) do
+	for _, askill in sgs.qlist(self.player:getVisibleSkillList(true)) do
 		if sgs[askill:objectName() .. "_suit_value"] then
 			local v = sgs[askill:objectName() .. "_suit_value"][suit_string]
 			if v then
@@ -931,7 +931,7 @@ function SmartAI:sortByKeepValue(cards, inverse, kept, Write)
 
 	local function adjustkeepvalue(card, v)
 		local suits = {"club", "spade", "diamond", "heart"}
-		for _, askill in sgs.qlist(self.player:getVisibleSkillList()) do
+		for _, askill in sgs.qlist(self.player:getVisibleSkillList(true)) do
 			local callback = sgs.ai_suit_priority[askill:objectName()]
 			if type(callback) == "function" then
 				suits = callback(self, card):split("|")
@@ -2288,7 +2288,7 @@ function SmartAI:filterEvent(event, player, data)
 				if isCard("Slash", card, player) and not player:hasFlag("hasUsedSlash") or player:hasFlag("JiangchiInvoke") then
 					for _, target in sgs.qlist(self.room:getOtherPlayers(player)) do
 						local has_slash_prohibit_skill = false
-						for _, askill in sgs.qlist(target:getVisibleSkillList()) do
+						for _, askill in sgs.qlist(target:getVisibleSkillList(true)) do
 							local s_name = askill:objectName()
 							local filter = sgs.ai_slash_prohibit[s_name]
 							if filter and type(filter) == "function" and not (s_name == "tiandu" or s_name == "hujia" or s_name == "huilei" or s_name == "weidi") then
@@ -3582,7 +3582,7 @@ function SmartAI:getCardNeedPlayer(cards, include_self)
 	for _, friend in ipairs(friends) do
 		if not self:needKongcheng(friend, true) and friend:faceUp() then
 			for _, hcard in ipairs(cardtogive) do
-				for _, askill in sgs.qlist(friend:getVisibleSkillList()) do
+				for _, askill in sgs.qlist(friend:getVisibleSkillList(true)) do
 					local callback = sgs.ai_cardneed[askill:objectName()]
 					if type(callback)=="function" and callback(friend, hcard, self) then
 						return hcard, friend
@@ -4204,7 +4204,7 @@ function SmartAI:needRetrial(judge)
 			end
 		end
 		if self:isFriend(who) then
-			local drawcardnum = self:ImitateResult_DrawNCards(who, who:getVisibleSkillList())
+			local drawcardnum = self:ImitateResult_DrawNCards(who, who:getVisibleSkillList(true))
 			if who:getHp() - who:getHandcardNum() >= drawcardnum and self:getOverflow() < 0 then return false end
 			if who:hasSkill("tuxi") and who:getHp() > 2 and self:getOverflow() < 0 then return false end
 			return not judge:isGood()
@@ -4390,7 +4390,7 @@ function SmartAI:getDamagedEffects(to, from, isSlash)
 	if from:objectName() ~= to:objectName() and self:hasHeavySlashDamage(from, nil, to) then return false end
 
 	if sgs.isGoodHp(to) then
-		for _, askill in sgs.qlist(to:getVisibleSkillList()) do
+		for _, askill in sgs.qlist(to:getVisibleSkillList(true)) do
 			local callback = sgs.ai_need_damaged[askill:objectName()]
 			if type(callback) == "function" and callback(self, from, to) then return true end
 		end
@@ -4405,11 +4405,11 @@ local function prohibitUseDirectly(card, player)
 end
 
 local function getPlayerSkillList(player)
-	local skills = sgs.QList2Table(player:getVisibleSkillList())
+	local skills = sgs.QList2Table(player:getVisibleSkillList(true))
 	if player:hasSkill("weidi") and not player:isLord() then
 		local lord = player:getRoom():getLord()
 		if lord then
-			for _, skill in sgs.qlist(lord:getVisibleSkillList()) do
+			for _, skill in sgs.qlist(lord:getVisibleSkillList(true)) do
 				if skill:isLordSkill() then table.insert(skills, skill) end
 			end
 		end
@@ -4449,14 +4449,6 @@ local function cardsView(self, class_name, player)
 				local ret = callback(self, class_name, player)
 				if ret then return ret end
 			end
-		end
-	end
-	for _, equip in sgs.qlist(player:getEquips()) do
-		local name = equip:objectName()
-		local callback = sgs.ai_cardsview[name]
-		if type(callback) == "function" then
-			local ret = callback(self, class_name, player)
-			if ret then return ret end
 		end
 	end
 end
@@ -5657,7 +5649,7 @@ function SmartAI:evaluateArmor(card, player)
 	local value = 0
 	if player:hasSkill("jijiu") and ecard:isRed() then value = value + 0.5 end
 	if player:hasSkills("qixi|guidao") and ecard:isBlack() then value = value + 0.5 end
-	for _, askill in sgs.qlist(player:getVisibleSkillList()) do
+	for _, askill in sgs.qlist(player:getVisibleSkillList(true)) do
 		local callback = sgs.ai_armor_value[askill:objectName()]
 		if type(callback) == "function" then
 			return value + (callback(ecard, player, self) or 0)

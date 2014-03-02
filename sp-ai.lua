@@ -17,7 +17,7 @@ function sgs.ai_slash_prohibit.weidi(self, from, to, card)
 	local lord = self.room:getLord()
 	if not lord then return false end
 	if to:isLord() then return false end
-	for _, askill in sgs.qlist(lord:getVisibleSkillList()) do
+	for _, askill in sgs.qlist(lord:getVisibleSkillList(true)) do
 		if askill:objectName() ~= "weidi" and askill:isLordSkill() then
 			local filter = sgs.ai_slash_prohibit[askill:objectName()]
 			if type(filter) == "function" and filter(self, from, to, card) then return true end

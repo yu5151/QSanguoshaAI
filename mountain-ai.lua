@@ -903,7 +903,7 @@ sgs.ai_skill_askforag.guzheng = function(self, card_ids)
 
 		for _, card in ipairs(cards) do
 			if not card:isKindOf("EquipCard") then
-				for _, askill in sgs.qlist(who:getVisibleSkillList()) do
+				for _, askill in sgs.qlist(who:getVisibleSkillList(true)) do
 					local callback = sgs.ai_cardneed[askill:objectName()]
 					if type(callback)=="function" and callback(who, card, self) then
 						return card:getEffectiveId()
@@ -958,7 +958,7 @@ sgs.ai_skill_askforag.guzheng = function(self, card_ids)
 			if card:isKindOf("Slash") then slash = card:getEffectiveId() end
 
 			if not valueless and not card:isKindOf("Peach") then
-				for _, askill in sgs.qlist(who:getVisibleSkillList()) do
+				for _, askill in sgs.qlist(who:getVisibleSkillList(true)) do
 					local callback = sgs.ai_cardneed[askill:objectName()]
 					if (type(callback)=="function" and not callback(who, card, self)) or not callback then
 						valueless = card:getEffectiveId()

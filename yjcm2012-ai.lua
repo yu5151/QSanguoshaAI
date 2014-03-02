@@ -89,7 +89,7 @@ sgs.ai_skill_invoke.zishou = function(self, data)
 		end
 	end
 
-	return self:ImitateResult_DrawNCards(self.player, self.player:getVisibleSkillList()) - can_save_card_num + peach_num  <= chance_value
+	return self:ImitateResult_DrawNCards(self.player, self.player:getVisibleSkillList(true)) - can_save_card_num + peach_num  <= chance_value
 end
 
 sgs.ai_skill_invoke.fuli = true

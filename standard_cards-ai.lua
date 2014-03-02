@@ -290,7 +290,7 @@ function SmartAI:slashProhibit(card, enemy, from)
 	if self.room:isProhibited(from, enemy, card) then return true end
 	local nature = card:isKindOf("FireSlash") and sgs.DamageStruct_Fire
 					or card:isKindOf("ThunderSlash") and sgs.DamageStruct_Thunder
-	for _, askill in sgs.qlist(enemy:getVisibleSkillList()) do
+	for _, askill in sgs.qlist(enemy:getVisibleSkillList(true)) do
 		local filter = sgs.ai_slash_prohibit[askill:objectName()]
 		if filter and type(filter) == "function" and filter(self, from, enemy, card) then return true end
 	end
@@ -2793,7 +2793,7 @@ function SmartAI:useCardIndulgence(card, use)
 	local sb_daqiao = self.room:findPlayerBySkillName("yanxiao")
 	local yanxiao = sb_daqiao and not self:isFriend(sb_daqiao) and sb_daqiao:faceUp() and
 					(getKnownCard(sb_daqiao, self.player, "diamond", nil, "he") > 0
-					or sb_daqiao:getHandcardNum() + self:ImitateResult_DrawNCards(sb_daqiao, sb_daqiao:getVisibleSkillList()) > 3
+					or sb_daqiao:getHandcardNum() + self:ImitateResult_DrawNCards(sb_daqiao, sb_daqiao:getVisibleSkillList(true)) > 3
 					or sb_daqiao:containsTrick("YanxiaoCard"))
 
 	if #enemies == 0 then return end
@@ -3068,7 +3068,7 @@ sgs.ai_skill_askforag.amazing_grace = function(self, card_ids)
 
 	self:sortByUseValue(cards)
 	for _, card in ipairs(cards) do
-		for _, skill in sgs.qlist(self.player:getVisibleSkillList()) do
+		for _, skill in sgs.qlist(self.player:getVisibleSkillList(true)) do
 			local callback = sgs.ai_cardneed[skill:objectName()]
 			if type(callback) == "function" and callback(self.player, card, self) then
 				return card:getEffectiveId()

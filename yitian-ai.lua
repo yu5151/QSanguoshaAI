@@ -75,7 +75,7 @@ sgs.ai_skill_choice.weiwudi_guixin = function(self, choices)
 	local lord = self.room:getLord()
 	if not lord then return "obtain" end
 
-	local skills = lord:getVisibleSkillList()
+	local skills = lord:getVisibleSkillList(true)
 	local hasLordSkill = false
 	for _, skill in sgs.qlist(skills) do
 		if skill:isLordSkill() then

@@ -1236,9 +1236,8 @@ end
 function sgs.gameProcess(room, arg, update)
 	if not update then
 		if arg and arg == 1 then
-			return sgs.ai_gameProcess_arg
-		else
-			return sgs.ai_gameProcess
+			if sgs.ai_gameProcess_arg then return sgs.ai_gameProcess_arg end
+		elseif sgs.ai_gameProcess then return sgs.ai_gameProcess
 		end
 	end
 	local rebel_num = sgs.current_mode_players["rebel"]

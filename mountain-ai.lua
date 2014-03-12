@@ -8,7 +8,7 @@ local function card_for_qiaobian(self, who, return_prompt)
 				if not judge:isKindOf("YanxiaoCard") then
 					for _, enemy in ipairs(self.enemies) do
 						if not enemy:containsTrick(judge:objectName()) and not enemy:containsTrick("YanxiaoCard")
-							and not self.room:isProhibited(self.player, enemy, judge) then
+							and not self.room:isProhibited(self.player, enemy, judge) and not (enemy:hasSkill("hongyan") or judge:isKindOf("Lightning")) then
 							target = enemy
 							break
 						end

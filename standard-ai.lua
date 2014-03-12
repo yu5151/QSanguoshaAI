@@ -782,9 +782,14 @@ function SmartAI:willSkipDrawPhase(player, NotContains_Null)
 end
 
 sgs.ai_skill_invoke.luoshen = function(self, data)
+	if self.player:hasFlag("AI_doNotInvoke_luoshen") then
+		self.player:setFlags("-AI_doNotInvoke_luoshen")
+		return
+	end
+	if self.player:hasFlag("AI_Luoshen_Conflict_With_Guanxing") and self.player:getMark("AI_loushen_times") == 0 then return end
  	if self:willSkipPlayPhase() then
 		local erzhang = self.room:findPlayerBySkillName("guzheng")
-		if erzhang and self:isEnemy(erzhang) then return false end
+		if erzhang and self:isEnemy(erzhang) and self:getOverflow() > 1 then return false end
 		if self.player:getPile("incantation"):length() > 0 then
 			local card = sgs.Sanguosha:getCard(self.player:getPile("incantation"):first())
 			if not self.player:getJudgingArea():isEmpty() and not self.player:containsTrick("YanxiaoCard") and not self:hasWizard(self.enemies, true) then
@@ -801,6 +806,17 @@ sgs.ai_skill_invoke.luoshen = function(self, data)
 		end
  	end
  	return true
+end
+
+sgs.ai_choicemade_filter.skillInvoke.luoshen = function(self, player, promptlist)
+	if self.player:hasFlag("AI_Luoshen_Conflict_With_Guanxing") then
+		if promptlist[#promptlist] == "yes" then
+			player:removeMark("AI_loushen_times")
+		else
+			self.player:setFlags("-AI_Luoshen_Conflict_With_Guanxing")
+			self.player:setMark("AI_loushen_times", 0)
+		end
+	end
 end
 
 sgs.qingguo_suit_value = {
@@ -2186,7 +2202,7 @@ sgs.xiaoji_keep_value = {
 	DefensiveHorse = 5
 }
 
-
+sgs.ai_cardneed.xiaoji = sgs.ai_cardneed.equip
 
 local qingnang_skill = {}
 qingnang_skill.name = "qingnang"

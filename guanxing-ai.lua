@@ -43,49 +43,50 @@ local function ShowGuanxingResult(self, up, bottom)
 	self.room:writeToConsole("----GuanxingEnd----")
 end
 --end--
-local function getOwnCards(self, up, bottom, next_judge)
+local function getOwnCards(self, up, bottom, next_judge, drawCards)
 	self:sortByUseValue(bottom)
 	local has_slash = self:getCardsNum("Slash") > 0
-	local hasNext = false
-	local fuhun1, fuhun2
+	local hasNext = drawCards == 0
+	local nosfuhun1, nosfuhun2
 	local shuangxiong
 	local has_big
 	for index, gcard in ipairs(bottom) do
-		if index == 3 then break end
+		if drawCards == 0 then break end
+		if index - 1 >= drawCards then break end
 		if #next_judge > 0 then
 			table.insert(up, gcard)
 			table.remove(bottom, index)
 			hasNext = true
 		else
 			if self.player:hasSkill("nosfuhun") then
-				if not fuhun1 and gcard:isRed() then
+				if not nosfuhun1 and gcard:isRed() then
 					table.insert(up, gcard)
 					table.remove(bottom, index)
-					fuhun1 = true
+					nosfuhun1 = true
 				end
-				if not fuhun2 and gcard:isBlack() and isCard("Slash", gcard, self.player) then
+				if not nosfuhun2 and gcard:isBlack() and isCard("Slash", gcard, self.player) then
 					table.insert(up, gcard)
 					table.remove(bottom, index)
-					fuhun2 = true
+					nosfuhun2 = true
 				end
-				if not fuhun2 and gcard:isBlack() and gcard:getTypeId() == sgs.Card_Equip then
+				if not nosfuhun2 and gcard:isBlack() and gcard:getTypeId() == sgs.Card_TypeEquip then
 					table.insert(up, gcard)
 					table.remove(bottom, index)
-					fuhun2 = true
+					nosfuhun2 = true
 				end
-				if not fuhun2 and gcard:isBlack() then
+				if not nosfuhun2 and gcard:isBlack() then
 					table.insert(up, gcard)
 					table.remove(bottom, index)
-					fuhun2 = true
+					nosfuhun2 = true
 				end
 			elseif self.player:hasSkill("shuangxiong") and self.player:getHandcardNum() >= 3 then
 				local rednum, blacknum = 0, 0
 				local cards = sgs.QList2Table(self.player:getHandcards())
 				for _, card in ipairs(cards) do
-					if card:isRed() then rednum = rednum +1 else blacknum = blacknum +1 end
+					if card:isRed() then rednum = rednum + 1 else blacknum = blacknum + 1 end
 				end
 				if not shuangxiong and ((rednum > blacknum and gcard:isBlack()) or (blacknum > rednum and gcard:isRed()))
-						and (isCard("Slash", gcard, self.player) or isCard("Duel", gcard, self.player)) then
+					and (isCard("Slash", gcard, self.player) or isCard("Duel", gcard, self.player)) then
 					table.insert(up, gcard)
 					table.remove(bottom, index)
 					shuangxiong = true
@@ -95,7 +96,7 @@ local function getOwnCards(self, up, bottom, next_judge)
 					table.remove(bottom, index)
 					shuangxiong = true
 				end
-			elseif self:hasSkills("xianzhen|tianyi|dahe") then
+			elseif self.player:hasSkills("xianzhen|tianyi|dahe") then
 				local maxcard = self:getMaxCard(self.player)
 				has_big = maxcard and maxcard:getNumber() > 10
 				if not has_big and gcard:getNumber() > 10 then
@@ -108,17 +109,21 @@ local function getOwnCards(self, up, bottom, next_judge)
 					table.remove(bottom, index)
 				end
 			else
-				if has_slash then
-					if not gcard:isKindOf("Slash") then
+				for _, skill in sgs.qlist(self.player:getVisibleSkillList(true)) do
+					local callback = sgs.ai_cardneed[skill:objectName()]
+						if type(callback) == "function" and sgs.ai_cardneed[skill:objectName()](self.player, gcard, self) then
 						table.insert(up, gcard)
 						table.remove(bottom, index)
+						continue
 					end
-				else
-					if isCard("Slash", gcard, self.player) then
-						table.insert(up, gcard)
-						table.remove(bottom, index)
-						has_slash = true
-					end
+				end
+				if has_slash and not gcard:isKindOf("Slash") then
+					table.insert(up, gcard)
+					table.remove(bottom, index)
+				elseif not has_slash and isCard("Slash", gcard, self.player) then
+					table.insert(up, gcard)
+					table.remove(bottom, index)
+					has_slash = true
 				end
 			end
 		end
@@ -137,129 +142,194 @@ local function GuanXing(self, cards)
 	local up, bottom = {}, {}
 	local has_lightning, has_judged
 	local judged_list = {}
+	local willSkipDrawPhase
 
 	bottom = getIdToCard(self, cards)
 	self:sortByUseValue(bottom, true)
 
-	local judge = self.player:getCards("j")
-	judge = sgs.QList2Table(judge)
+	local judge = sgs.QList2Table(self.player:getJudgingArea())
 	judge = sgs.reverse(judge)
 
-	for judge_count, need_judge in ipairs(judge) do
-		local index = 1
-		local lightning_flag = false
-		local judge_str = sgs.ai_judgestring[need_judge:objectName()] or sgs.ai_judgestring[need_judge:getSuitString()]
+	if not self.player:containsTrick("YanxiaoCard") then
+		for judge_count, need_judge in ipairs(judge) do
+			judged_list[judge_count] = 0
+			if need_judge:isKindOf("Indulgence") and self.player:isSkipped(sgs.Player_Play) then continue end
+			if need_judge:isKindOf("SupplyShortage") then
+				willSkipDrawPhase = true
+				if self.player:isSkipped(sgs.Player_Draw) then continue end
+			end
+			local lightning_flag = need_judge:isKindOf("Lightning")
+			local judge_str = sgs.ai_judgestring[need_judge:objectName()]
+			if not judge_str then
+				self.room:writeToConsole(debug.traceback())
+				judge_str = sgs.ai_judgestring[need_judge:getSuitString()]
+			end
 
-		for _, for_judge in ipairs(bottom) do
-			if judge_str == "spade" and not lightning_flag then
-				has_lightning = need_judge
-				if for_judge:getNumber() >= 2 and for_judge:getNumber() <= 9 then lightning_flag = true end
+			for index, for_judge in ipairs(bottom) do
+				if lightning_flag and not (for_judge:getNumber() >= 2 and for_judge:getNumber() <= 9 and for_judge:getSuit() == sgs.Card_Spade) then
+					has_lightning = need_judge
+				end
+				if (judge_str == for_judge:getSuitString() and not lightning_flag)
+					or (lightning_flag and not (for_judge:getNumber() >= 2 and for_judge:getNumber() <= 9 and for_judge:getSuit() == sgs.Card_Spade)) then
+					table.insert(up, for_judge)
+					table.remove(bottom, index)
+					judged_list[judge_count] = 1
+					has_judged = true
+					if need_judge:isKindOf("SupplyShortage") then willSkipDrawPhase = false end
+					break
+				end
 			end
-			if (judge_str == for_judge:getSuitString() and not lightning_flag) or
-				(lightning_flag and judge_str ~= for_judge:getSuitString()) then
-				table.insert(up, for_judge)
-				table.remove(bottom, index)
-				judged_list[judge_count] = 1
-				has_judged = true
-				break
-			end
-			index = index + 1
 		end
-		if not judged_list[judge_count] then judged_list[judge_count] = 0 end
+
+		for index = 1, #judged_list do
+			if judged_list[index] == 0 then
+				table.insert(up, index, table.remove(bottom, 1))
+			end
+		end
+
 	end
 
-	--if has_judged then
-		for index=1, #judged_list do
-			if judged_list[index] == 0 then
-				table.insert(up, index, table.remove(bottom))
+	local conflict, AI_doNotInvoke_luoshen
+	for _, skill in sgs.qlist(self.player:getVisibleSkillList()) do
+		local sname = skill:objectName()
+		if sname == "guanxing" or sname == "super_guanxing" then conflict = true continue end
+		if conflict then
+			if sname == "tuqi" then
+				if self.player:getPile("retinue"):length() > 0 and self.player:getPile("retinue"):length() <= 2 then
+					if #bottom > 0 then
+						table.insert(up, 1, table.remove(bottom))
+					else
+						table.insert(up, 1, table.remove(up))
+					end
+				end
+			elseif sname == "luoshen" then
+				self.player:setFlags("AI_Luoshen_Conflict_With_Guanxing")
+				if #bottom == 0 then
+					self.player:setFlags("AI_doNotInvoke_luoshen")
+				else
+					local count = 0
+					if not has_judged then up = {} end
+					for i = 1, #bottom do
+						if bottom[i - count]:isBlack() then
+							table.insert(up, 1, bottom[i - count])
+							table.remove(bottom, i - count)
+							count = count + 1
+						end
+					end
+					if count == 0 then
+						AI_doNotInvoke_luoshen = true
+					else self.player:setMark("AI_loushen_times", count)
+					end
+				end
+			else
+				local x = 0
+				local reverse
+				if sname == "zuixiang" and self.player:getMark("@sleep") > 0 then
+					x = 3
+				elseif sname == "guixiu" and sgs.ai_skill_invoke.guixiu then
+					x = 2
+				elseif sname == "qianxi" and sgs.ai_skill_invoke.qianxi then
+					x = 1
+					reverse = true
+				elseif sname == "yinghun" then
+					sgs.ai_skill_playerchosen.yinghun(self)
+					if self.yinghunchoice == "dxt1" then x = self.player:getLostHp()
+					elseif self.yinghunchoice == "d1tx" then x = 1
+					end
+					reverse = true
+				end
+				if x > 0 then
+					if #bottom < x then
+						self.player:setFlags("AI_doNotInvoke_" .. sname)
+					else
+						for i = 1, x do
+							local index = reverse and 1 or #bottom
+							table.insert(up, 1, table.remove(bottom, index))
+						end
+					end
+				end
 			end
 		end
-	--end
+	end
 
-	--昭烈START--
-	local count = #bottom
-	if count > 0 then
-		local zhaolieFlag = false
+	local drawCards = self:ImitateResult_DrawNCards(self.player, self.player:getVisibleSkillList(true))
+	if willSkipDrawPhase then drawCards = 0 end
+
+	if #bottom > 0 and drawCards > 0 then
 		if self.player:hasSkill("zhaolie") then
 			local targets = sgs.SPlayerList()
 			for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
 				if self.player:inMyAttackRange(p) then targets:append(p) end
 			end
-			if target:length() > 0 then
-				zhaolieFlag = (sgs.ai_skill_playerchosen(self, targets) ~= nil)
-			end
-		end
-		if zhaolieFlag then
-			local drawCount = 1 --自身摸牌数目，待完善
-			local basic = {}
-			local peach = {}
-			local not_basic = {}
-			for index, gcard in ipairs(bottom) do
-				if gcard:isKindOf("Peach") then
-					table.insert(peach, gcard)
-				elseif gcard:isKindOf("BasicCard") then
-					table.insert(basic, gcard)
+			if target:length() > 0 and sgs.ai_skill_playerchosen.zhaolie(self, targets) then
+				local drawCount = drawCards - 1
+				local basic = {}
+				local peach = {}
+				local not_basic = {}
+				for _, gcard in ipairs(bottom) do
+					if gcard:isKindOf("Peach") then
+						table.insert(peach, gcard)
+					elseif gcard:isKindOf("BasicCard") then
+						table.insert(basic, gcard)
+					else
+						table.insert(not_basic, gcard)
+					end
+				end
+				if #not_basic > 0 then
+					bottom = {}
+					for i = 1, drawCount, 1 do
+						if self:isWeak() and #peach > 0 then
+							table.insert(up, peach[1])
+							table.remove(peach, 1)
+						elseif #basic > 0 then
+							table.insert(up, basic[1])
+							table.remove(basic, 1)
+						elseif #not_basic > 0 then
+							table.insert(up, not_basic[1])
+							table.remove(not_basic, 1)
+						end
+					end
+					for index, card in ipairs(not_basic) do
+						table.insert(up, card)
+					end
+					if #peach > 0 then
+						for _, peach in ipairs(peach) do
+							table.insert(bottom, peach)
+						end
+					end
+					if #basic > 0 then
+						for _, card in ipairs(basic) do
+							table.insert(bottom, card)
+						end
+					end
+					up = getBackToId(self, up)
+					bottom = getBackToId(self, bottom)
+					if AI_doNotInvoke_luoshen then self.player:setFlags("AI_doNotInvoke_luoshen") end
+					return up, bottom
 				else
-					table.insert(not_basic, gcard)
+					self.player:setFlags("AI_doNotInvoke_zhaolie")
 				end
 			end
-			bottom = {}
-			for i=1, drawCount, 1 do
-				if self:isWeak() and #peach > 0 then
-					table.insert(up, peach[1])
-					table.remove(peach, 1)
-				elseif #basic > 0 then
-					table.insert(up, basic[1])
-					table.remove(basic, 1)
-				elseif #not_basic > 0 then
-					table.insert(up, not_basic[1])
-					table.remove(not_basic, 1)
-				end
-			end
-			if #not_basic > 0 then
-				for index, card in ipairs(not_basic) do
-					table.insert(up, card)
-				end
-			end
-			if #peach > 0 then
-				for _,peach in ipairs(peach) do
-					table.insert(bottom, peach)
-				end
-			end
-			if #basic > 0 then
-				for _,card in ipairs(basic) do
-					table.insert(bottom, card)
-				end
-			end
-			up = getBackToId(self, up)
-			bottom = getBackToId(self, bottom)
-			return up, bottom
 		end
 	end
-	--昭烈END--
+
 	local pos = 1
 	local luoshen_flag = false
 	local next_judge = {}
 	local next_player = self.player:getNextAlive()
-	judge = next_player:getCards("j")
-	judge = sgs.QList2Table(judge)
+	judge = sgs.QList2Table(next_player:getJudgingArea())
 	judge = sgs.reverse(judge)
 	if has_lightning then table.insert(judge, 1, has_lightning) end
 
 	has_judged = false
 	judged_list = {}
 
-	while(#bottom >= 3) do
-		local index = 1
+	while (#bottom > drawCards) do
 		local lightning_flag = false
 		if pos > #judge then break end
 		local judge_str = sgs.ai_judgestring[judge[pos]:objectName()] or sgs.ai_judgestring[judge[pos]:getSuitString()]
 
-		for _, for_judge in ipairs(bottom) do
-			if judge_str == "spade" and not lightning_flag then
-				if for_judge:getNumber() >= 2 and for_judge:getNumber() <= 9 then lightning_flag = true end
-			end
-
+		for index, for_judge in ipairs(bottom) do
 			if self:isFriend(next_player) then
 				if next_player:hasSkill("luoshen") then
 					if for_judge:isBlack() then
@@ -269,16 +339,18 @@ local function GuanXing(self, cards)
 						judged_list[pos] = 1
 						break
 					end
-				else
-					if judge_str == for_judge:getSuitString() then
-						if not lightning_flag then
-							table.insert(next_judge, for_judge)
-							table.remove(bottom, index)
-							has_judged = true
-							judged_list[pos] = 1
-							break
-						end
-					end
+				elseif judge_str == for_judge:getSuitString() and not lightning_flag then
+					table.insert(next_judge, for_judge)
+					table.remove(bottom, index)
+					has_judged = true
+					judged_list[pos] = 1
+					break
+				elseif lightning_flag and not (for_judge:getNumber() >= 2 and for_judge:getNumber() <= 9 and for_judge:getSuit() == sgs.Card_Spade) then
+					table.insert(next_judge, for_judge)
+					table.remove(bottom, index)
+					has_judged = true
+					judged_list[pos] = 1
+					break
 				end
 			else
 				if next_player:hasSkill("luoshen") and for_judge:isRed() and not luoshen_flag then
@@ -288,34 +360,33 @@ local function GuanXing(self, cards)
 					judged_list[pos] = 1
 					luoshen_flag = true
 					break
-				else
-					if (judge_str == for_judge:getSuitString() and judge_str == "spade" and lightning_flag)
-						or judge_str ~= for_judge:getSuitString() then
-						table.insert(next_judge, for_judge)
-						table.remove(bottom, index)
-						has_judged = true
-						judged_list[pos] = 1
-					end
+				elseif (judge_str == for_judge:getSuitString() and judge_str == "spade" and lightning_flag)
+					or judge_str ~= for_judge:getSuitString() then
+					table.insert(next_judge, for_judge)
+					table.remove(bottom, index)
+					has_judged = true
+					judged_list[pos] = 1
+					break
 				end
 			end
-			index = index + 1
 		end
 		if not judged_list[pos] then judged_list[pos] = 0 end
 		pos = pos + 1
 	end
 
 	if has_judged then
-		for index=1, #judged_list do
+		for index = 1, #judged_list do
 			if judged_list[index] == 0 then
 				table.insert(next_judge, index, table.remove(bottom))
 			end
 		end
 	end
 
-	up, bottom = getOwnCards(self, up, bottom, next_judge)
+	up, bottom = getOwnCards(self, up, bottom, next_judge, drawCards)
 
 	up = getBackToId(self, up)
 	bottom = getBackToId(self, bottom)
+	if #up > 0 and AI_doNotInvoke_luoshen then self.player:setFlags("AI_doNotInvoke_luoshen") end
 	return up, bottom
 end
 

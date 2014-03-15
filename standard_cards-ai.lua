@@ -2202,7 +2202,8 @@ function SmartAI:useCardSnatchOrDismantlement(card, use)
 		local dummyuse = { isDummy = true, to = sgs.SPlayerList() }
 		self:useCardSlash(sgs.Sanguosha:cloneCard("slash"), dummyuse)
 		if not dummyuse.to:isEmpty() then
-			for _, to in sgs.qlist(dummyuse.to) do
+			local tos = self:exclude(dummyuse.to, card)
+			for _, to in ipairs(tos) do
 				if to:getHandcardNum() == 1 and to:getHp() <= 2 and self:hasLoseHandcardEffective(to) and not to:hasSkills("kongcheng|tianming")
 					and (not self:hasEightDiagramEffect(to) or IgnoreArmor(self.player, to)) then
 					if addTarget(to, to:getRandomHandCardId()) then return end

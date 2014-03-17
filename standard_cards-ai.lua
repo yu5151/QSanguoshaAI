@@ -2824,6 +2824,8 @@ function SmartAI:useCardIndulgence(card, use)
 		if enemy:hasSkill("conghui") then value = value - 20 end
 		if self:needBear(enemy) then value = value - 20 end
 		if not sgs.isGoodTarget(enemy, self.enemies, self) then value = value - 1 end
+		if getKnownCard(enemy, self.player, "Dismantlement", true) > 0 then value = value + 2 end
+		value = value + (self.room:alivePlayerCount() - self:playerGetRound(enemy)) / 2
 		return value
 	end
 

@@ -538,6 +538,37 @@ function SmartAI:getKeepValue(card, kept, Write)
 	return newvalue
 end
 
+function SmartAI:adjustkeepvalue(card, v)
+	local suits = {"club", "spade", "diamond", "heart"}
+	for _, askill in sgs.qlist(self.player:getVisibleSkillList(true)) do
+		local callback = sgs.ai_suit_priority[askill:objectName()]
+		if type(callback) == "function" then
+			suits = callback(self, card):split("|")
+			break
+		elseif type(callback) == "string" then
+			suits = callback:split("|")
+			break
+		end
+	end
+
+	table.insert(suits, "no_suit")
+	if card:isKindOf("Slash") then
+		if card:isRed() then v = v + 0.002 end
+		if card:isKindOf("NatureSlash") then v = v + 0.003 end
+		if self.player:hasSkill("jiang") and card:isRed() then v = v + 0.004 end
+		if self.player:hasSkill("wushen") and card:getSuit() == sgs.Card_Heart then v = v + 0.003 end
+		if self.player:hasSkill("jinjiu") and card:getEffectiveId() >= 0 and sgs.Sanguosha:getEngineCard(card:getEffectiveId()):isKindOf("Analeptic") then v = v - 0.002 end
+	end
+
+	local suits_value = {}
+	for index,suit in ipairs(suits) do
+		suits_value[suit] = index
+	end
+	v = v + (suits_value[card:getSuitString()] or 0) / 1000
+	v = v + card:getNumber() / 1000
+	return v
+end
+
 function SmartAI:getUseValue(card)
 	local class_name = card:getClassName()
 	local v = sgs.ai_use_value[class_name] or 0
@@ -928,52 +959,18 @@ function SmartAI:sort(players, key)
 	if not pcall(_sort, players, key) then self.room:writeToConsole(debug.traceback()) end
 end
 
-function SmartAI:sortByKeepValue(cards, inverse, kept, Write)
-
-	local function adjustkeepvalue(card, v)
-		local suits = {"club", "spade", "diamond", "heart"}
-		for _, askill in sgs.qlist(self.player:getVisibleSkillList(true)) do
-			local callback = sgs.ai_suit_priority[askill:objectName()]
-			if type(callback) == "function" then
-				suits = callback(self, card):split("|")
-				break
-			elseif type(callback) == "string" then
-				suits = callback:split("|")
-				break
-			end
+function SmartAI:sortByKeepValue(cards, inverse, kept, writeMode)
+	if writeMode then
+		for _, card in ipairs(cards) do
+			local value1 = self:getKeepValue(card, kept, true)
+			local value2 = self:adjustkeepvalue(card, value1)
+			self.keepValue[card:getId()] = value2
 		end
-		table.insert(suits, "no_suit")
-
-		if card:isKindOf("Slash") then
-			if card:isRed() then v = v + 0.02 end
-			if card:isKindOf("NatureSlash") then v = v + 0.03 end
-			if self.player:hasSkill("jiang") and card:isRed() then v = v + 0.04 end
-			if self.player:hasSkill("wushen") and card:getSuit() == sgs.Card_Heart then v = v + 0.03 end
-			if self.player:hasSkill("jinjiu") and card:getEffectiveId() >= 0 and
-				sgs.Sanguosha:getEngineCard(card:getEffectiveId()):isKindOf("Analeptic") then v = v - 0.1 end
-		end
-		if self.player:hasSkill("mingzhe") and card:isRed() then v = v + 0.05 end
-
-		local suits_value = {}
-		for index,suit in ipairs(suits) do
-			suits_value[suit] = index * 2
-		end
-		v = v + (suits_value[card:getSuitString()] or 0) / 100
-		v = v + card:getNumber() / 500
-		return v
 	end
 
-	local compare_func = function(a,b)
-		local value1 = self:getKeepValue(a, kept, Write)
-		local value2 = self:getKeepValue(b, kept, Write)
-
-		local v1 = adjustkeepvalue(a, value1)
-		local v2 = adjustkeepvalue(b, value2)
-
-		if Write then
-			self.keepValue[a:getId()] = v1
-			self.keepValue[b:getId()] = v2
-		end
+	local compare_func = function(a, b)
+		local v1 = self:getKeepValue(a)
+		local v2 = self:getKeepValue(b)
 
 		if v1 ~= v2 then
 			if inverse then return v1 > v2 end

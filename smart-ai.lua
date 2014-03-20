@@ -3694,7 +3694,12 @@ function SmartAI:askForPindian(requestor, reason)
 	local passive = { "mizhao", "lieren" }
 	if self.player:objectName() == requestor:objectName() and not table.contains(passive, reason) then
 		if self[reason .. "_card"] then
-			return sgs.Sanguosha:getCard(self[reason .. "_card"])
+			local id = self[reason .. "_card"]
+			self[reason .. "_card"] = nil
+			if not self.room:getCardOwner(id) or self.room:getCardOwner(id):objectName() ~= self.player:objectName() or self.room:getCardPlace(id) ~= sgs.Player_PlaceHand then
+				id = nil
+			end
+			if id then return id end
 		else
 			self.room:writeToConsole("Pindian card for " .. reason .. " not found!!")
 			return self:getMaxCard(self.player):getId()

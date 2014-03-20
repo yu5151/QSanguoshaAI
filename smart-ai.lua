@@ -1233,15 +1233,24 @@ end
 
 function sgs.gameProcess(room, arg, update)
 	if not update then
-		if arg and arg == 1 then
+		if arg then
 			if sgs.ai_gameProcess_arg then return sgs.ai_gameProcess_arg end
 		elseif sgs.ai_gameProcess then return sgs.ai_gameProcess
 		end
 	end
 	local rebel_num = sgs.current_mode_players["rebel"]
 	local loyal_num = sgs.current_mode_players["loyalist"]
-	if rebel_num == 0 and loyal_num > 0 then return "loyalist"
-	elseif loyal_num == 0 and rebel_num > 1 then return "rebel" end
+
+	if rebel_num == 0 and loyal_num > 0 then
+		if arg then sgs.ai_gameProcess_arg = 99 return 99
+		else sgs.ai_gameProcess = "loyalist" return "loyalist"
+		end
+	elseif loyal_num == 0 and rebel_num > 1 then
+		if arg then sgs.ai_gameProcess_arg = -99 return -99
+		else sgs.ai_gameProcess = "rebel" return "rebel"
+		end
+	end
+
 	local loyal_value, rebel_value = 0, 0, 0
 	local health = sgs.isLordHealthy()
 	local danger = sgs.isLordInDanger()
@@ -1259,7 +1268,7 @@ function sgs.gameProcess(room, arg, update)
 		end
 	end
 	local diff = loyal_value - rebel_value + (loyal_num + 1 - rebel_num) * 3
-	if arg and arg == 1 then sgs.ai_gameProcess_arg = diff end
+	if arg then sgs.ai_gameProcess_arg = diff end
 
 	local process = "neutral"
 	if diff >= 4 then
@@ -1274,9 +1283,10 @@ function sgs.gameProcess(room, arg, update)
 		if health then process = "rebelish"
 		else process = "rebel" end
 	elseif not health then process = "rebelish"
-	else process = "neutral" end
+	else process = "neutral"
+	end
 	sgs.ai_gameProcess = process
-	if arg and arg == 1 then return diff end
+	if arg then return diff end
 	return process
 end
 

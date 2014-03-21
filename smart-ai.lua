@@ -10,7 +10,7 @@ math.randomseed(os.time())
 -- SmartAI is the base class for all other specialized AI classes
 SmartAI = class "SmartAI"
 
-version = "QSanguosha AI 20140313 (V1.31 Alpha)"
+version = "QSanguosha AI 20140321 (V1.311 Alpha)"
 
 -- checkout https://github.com/haveatry823/QSanguoshaAI for details
 
@@ -2489,7 +2489,7 @@ function SmartAI:askForDiscard(reason, discard_num, min_num, optional, include_e
 	local cards = self.player:getCards(flag)
 	cards = sgs.QList2Table(cards)
 	self:sortByKeepValue(cards)
-	local to_discard = {}
+	local to_discard, temp = {}, {}
 
 	local least = min_num
 	if discard_num - min_num > 1 then

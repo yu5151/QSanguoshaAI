@@ -6297,8 +6297,13 @@ local loaded = "standard|standard_cards|maneuvering|sp"
 local files = table.concat(sgs.GetFileNames("lua/ai"), " ")
 
 for _, aextension in ipairs(sgs.Sanguosha:getExtensions()) do
-	if not loaded:match(aextension) and files:match(string.lower(aextension)) then
-		dofile("lua/ai/" .. string.lower(aextension) .. "-ai.lua")
+	if not loaded:match(aextension) then
+		for _, ai_file in ipairs(ai_files) do
+			if string.lower(aextension) .. "-ai.lua" == string.lower(ai_file) then
+				dofile("lua/ai/" .. string.lower(aextension) .. "-ai.lua")
+				break
+			end
+		end
 	end
 end
 
@@ -6306,8 +6311,13 @@ dofile "lua/ai/sp-ai.lua"
 dofile "lua/ai/special3v3-ai.lua"
 
 for _, ascenario in ipairs(sgs.Sanguosha:getModScenarioNames()) do
-	if not loaded:match(ascenario) and files:match(string.lower(ascenario)) then
-		dofile("lua/ai/" .. string.lower(ascenario) .. "-ai.lua")
+	if not loaded:match(ascenario) then
+		for _, ai_file in ipairs(ai_files) do
+			if string.lower(ascenario) .. "-ai.lua" == string.lower(ai_file) then
+				dofile("lua/ai/" .. string.lower(ascenario) .. "-ai.lua")
+				break
+			end
+		end
 	end
 end
 

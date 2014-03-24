@@ -10,7 +10,7 @@ math.randomseed(os.time())
 -- SmartAI is the base class for all other specialized AI classes
 SmartAI = class "SmartAI"
 
-version = "QSanguosha AI 20140321 (V1.311 Alpha)"
+version = "QSanguosha AI 20140324 (V1.312 Alpha)"
 
 -- checkout https://github.com/haveatry823/QSanguoshaAI for details
 
@@ -6294,7 +6294,7 @@ dofile "lua/ai/hulaoguan-ai.lua"
 
 local loaded = "standard|standard_cards|maneuvering|sp"
 
-local files = table.concat(sgs.GetFileNames("lua/ai"), " ")
+local ai_files = sgs.GetFileNames("lua/ai")
 
 for _, aextension in ipairs(sgs.Sanguosha:getExtensions()) do
 	if not loaded:match(aextension) then

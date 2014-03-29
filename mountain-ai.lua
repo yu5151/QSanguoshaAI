@@ -503,7 +503,44 @@ sgs.ai_skill_invoke.fangquan = function(self, data)
 			break
 		end
 	end
-	return to_discard ~= nil
+
+	if to_discard then
+		if sgs.current_mode_players.rebel == 0 then
+			local lord = self.room:getLord()
+			if lord and self:isFriend(lord) then
+				return true
+			end
+		end
+
+		local AssistTarget = self:AssistTarget()
+		if AssistTarget and not self:willSkipPlayPhase(AssistTarget) then
+			return true
+		end
+
+		self:sort(self.friends_noself, "handcard")
+		self.friends_noself = sgs.reverse(self.friends_noself)
+		for _, target in ipairs(self.friends_noself) do
+			if not target:hasSkill("dawu") and target:hasSkills("yongsi|zhiheng|" .. sgs.priority_skill .. "|shensu")
+				and (not self:willSkipPlayPhase(target) or target:hasSkill("shensu")) then
+				return true
+			end
+		end
+
+		for _, target in ipairs(self.friends_noself) do
+			if target:hasSkill("dawu") then
+				local use = true
+				for _, p in ipairs(self.friends_noself) do
+					if p:getMark("@fog") > 0 then use = false break end
+				end
+				if use then
+					return true
+				end
+			else
+				return true
+			end
+		end
+	end
+	return false
 end
 
 sgs.ai_skill_use["@@fangquan"] = function(self, prompt)
@@ -521,8 +558,7 @@ sgs.ai_skill_use["@@fangquan"] = function(self, prompt)
 		return "@FangquanCard=" .. cards[1]:getEffectiveId() .. "->" .. AssistTarget:objectName()
 	end
 
-	self:sort(self.friends_noself, "handcard")
-	self.friends_noself = sgs.reverse(self.friends_noself)
+	self:sort(self.friends_noself, "chaofeng")
 	for _, target in ipairs(self.friends_noself) do
 		if not target:hasSkill("dawu") and target:hasSkills("yongsi|zhiheng|" .. sgs.priority_skill .. "|shensu")
 			and (not self:willSkipPlayPhase(target) or target:hasSkill("shensu")) then
@@ -539,6 +575,8 @@ sgs.ai_skill_use["@@fangquan"] = function(self, prompt)
 			if use then
 				return "@FangquanCard=" .. cards[1]:getEffectiveId() .. "->" .. target:objectName()
 			end
+		else
+			return "@FangquanCard=" .. cards[1]:getEffectiveId() .. "->" .. target:objectName()
 		end
 	end
 	return "."

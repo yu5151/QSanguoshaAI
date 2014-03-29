@@ -323,7 +323,7 @@ function sgs.getDefense(player)
 			if p:hasSkill("chanyuan") then defense = defense + 1 end
 		end
 	end
-	if player:hasSkill("huashen+xinsheng") then defense = defense + (player:getState() == "online" and 4 or 2) end
+	if player:hasSkills("huashen+xinsheng") then defense = defense + (player:getState() == "online" and 4 or 2) end
 	if player:hasSkill("yishe") then defense = defense + 2 end
 	if player:hasSkill("paiyi") then defense = defense + 1.5 end
 	if player:hasSkill("yongsi") then defense = defense + 2 end

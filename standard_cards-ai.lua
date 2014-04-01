@@ -1813,7 +1813,9 @@ function SmartAI:useCardDuel(duel, use)
 
 	local enemies = self:exclude(self.enemies, duel)
 	local friends = self:exclude(self.friends_noself, duel)
+	self.room:setCardFlag(duel, "AI_Using")
 	local n1 = self:getCardsNum("Slash")
+	self.room:setCardFlag(duel, "-AI_Using")
 	if self.player:hasSkill("wushuang") or use.isWuqian then
 		n1 = n1 * 2
 	end

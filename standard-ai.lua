@@ -2696,8 +2696,9 @@ sgs.ai_skill_invoke.wangzun = function(self, data)
 end
 
 sgs.ai_choicemade_filter.skillInvoke.wangzun = function(self, player, promptlist)
-	local lord = self.room:getLord()
-	if lord and promptlist[#promptlist] == "yes" then
+	if promptlist[#promptlist] == "yes" then
+		local lord = self.room:getCurrent()
+		if not self:isWeak(lord) and (self:getOverflow(lord) < -2 or (self:willSkipDrawPhase(lord) and self:getOverflow(lord) < 0)) then return end
 		sgs.updateIntention(player, lord, 10)
 	end
 end

@@ -1082,7 +1082,7 @@ function sgs.ai_slash_prohibit.qiuyuan(self, from, to)
 	end
 end
 
-function sgs.ai_need_damaged.qiuyuan(self, from, to)
+function SmartAI:hasQiuyuanEffect(from, to)
 	if not from or not to:hasSkill("qiuyuan") then return false end
 	if getKnownCard(to, self.player, "Jink", true, "he") >= 1 then
 		for _, target in ipairs(self:getEnemies(to)) do

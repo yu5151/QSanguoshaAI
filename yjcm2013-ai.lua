@@ -1090,6 +1090,12 @@ function SmartAI:hasQiuyuanEffect(from, to)
 				return true
 			end
 		end
+		for _, friend in ipairs(self:getFriends(to)) do
+			if (friend:getHandcardNum() == 1 and self:needKongcheng(friend, true))
+					and not (friend:isKongcheng() and to and from) then
+				return true
+			end
+		end
 	end
 	return
 end

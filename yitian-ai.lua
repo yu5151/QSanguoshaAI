@@ -681,11 +681,12 @@ function sgs.ai_skill_choice.shenjun(self, choices)
 	if self.player:getSeat() < self.room:alivePlayerCount()/2 then gender = not gender end
 	if gender then return "male" else return "female" end
 end
+
 function sgs.ai_slash_prohibit.shenjun(self, from, to, card)
-	if from:getGender() == to:getGender() then return true end --性别相同返回true
-	if not card:isKindOf("ThunderSlash") then return true end --不是雷杀的返回true
 	if from:hasSkill("jueqing") then return false end --绝情返回false
 	if from:hasSkill("nosqianxi") and from:distanceTo(to) == 1 then return false end --潜袭返回false
+	if from:getGender() == to:getGender() then return true end --性别相同返回true
+	if not card:isKindOf("ThunderSlash") then return true end --不是雷杀的返回true
 	return false --统一返回false
 end
 --[[

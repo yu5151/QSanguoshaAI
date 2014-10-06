@@ -126,6 +126,7 @@ function setInitialTables()
 	sgs.Friend_Wounded = 4
 	sgs.Friend_MaleWounded = 5
 	sgs.Friend_FemaleWounded = 6
+	sgs.Friend_Weak = 7
 
 	for _, aplayer in sgs.qlist(global_room:getAllPlayers()) do
 		table.insert(sgs.role_evaluation, aplayer:objectName())
@@ -336,7 +337,6 @@ function sgs.getDefense(player)
 end
 
 function SmartAI:assignKeep(start)
-	local num = self.player:getHandcardNum()
 	self.keepValue = {}
 	self.kept = {}
 
@@ -375,7 +375,7 @@ function SmartAI:assignKeep(start)
 		self.keepdata.Jink = 4.2
 	end
 
-	if not self:isWeak() or num >= 4 then
+	if not self:isWeak() or self.player:getHandcardNum() >= 4 then
 		for _, friend in ipairs(self.friends_noself) do
 			if self:willSkipDrawPhase(friend) or self:willSkipPlayPhase(friend) then
 				self.keepdata.Nullification = 5.5
@@ -745,7 +745,9 @@ function SmartAI:getDynamicUsePriority(card)
 	if not card then return 0 end
 
 	if card:hasFlag("AIGlobal_KillOff") then return 15 end
-	local class_name = card:getClassName()
+	if self.player:getMark("JianyingSuit") == card:getSuit() + 1 and self.player:getMark("JianyingNumber") == card:getNumber() then
+		return self:getUsePriority(card) + 50
+	end
 	local dynamic_value
 
 	-- direct control
@@ -2030,7 +2032,7 @@ function SmartAI:filterEvent(event, player, data)
 		local struct = data:toCardUse()
 		local from  = struct.from
 		local card = struct.card
-		if from and from:objectName() == player:objectName() then
+		if from and from:objectName() == player:objectName() and not from:hasFlag("ZenhuiUser_" .. card:toString()) then
 			if card:isKindOf("SingleTargetTrick") then sgs.TrickUsefrom = from end
 			local to = sgs.QList2Table(struct.to)
 			local callback = sgs.ai_card_intention[card:getClassName()]
@@ -3032,7 +3034,7 @@ function SmartAI:askForCardChosen(who, flags, reason, method)
 		if flags:match("e") and dangerous and (not isDiscard or self.player:canDiscard(who, dangerous)) then return dangerous end
 		if flags:match("e") and who:hasArmorEffect("EightDiagram") and not self:needToThrowArmor(who, reason == "moukui")
 			and (not isDiscard or self.player:canDiscard(who, who:getArmor():getId())) then return who:getArmor():getId() end
-		if flags:match("e") and self:hasSkills("jijiu|beige|mingce|weimu|qingcheng", who) and not self:doNotDiscard(who, "e", false, 1, reason) then
+		if flags:match("e") and who:hasSkills("jijiu|beige|mingce|weimu|qingcheng") and not self:doNotDiscard(who, "e", false, 1, reason) then
 			if who:getDefensiveHorse() and (not isDiscard or self.player:canDiscard(who, who:getDefensiveHorse():getEffectiveId())) then return who:getDefensiveHorse():getEffectiveId() end
 			if who:getArmor() and not self:needToThrowArmor(who, reason == "moukui") and (not isDiscard or self.player:canDiscard(who, who:getArmor():getEffectiveId())) then return who:getArmor():getEffectiveId() end
 			if who:getOffensiveHorse() and (not who:hasSkill("jijiu") or who:getOffensiveHorse():isRed()) and (not isDiscard or self.player:canDiscard(who, who:getOffensiveHorse():getEffectiveId())) then
@@ -3091,6 +3093,7 @@ function SmartAI:askForCardChosen(who, flags, reason, method)
 		if flags:match("e") and not self:doNotDiscard(who, "e") then
 			if who:getDefensiveHorse() and (not isDiscard or self.player:canDiscard(who, who:getDefensiveHorse():getEffectiveId())) then return who:getDefensiveHorse():getEffectiveId() end
 			if who:getArmor() and not self:needToThrowArmor(who, reason == "moukui") and (not isDiscard or self.player:canDiscard(who, who:getArmor():getEffectiveId())) then return who:getArmor():getEffectiveId() end
+			if who:getTreasure() and (not isDiscard or self.player:canDiscard(who, who:getTreasure():getEffectiveId())) then return who:getTreasure():getEffectiveId() end
 			if who:getOffensiveHorse() and (not isDiscard or self.player:canDiscard(who, who:getOffensiveHorse():getEffectiveId())) then return who:getOffensiveHorse():getEffectiveId() end
 			if who:getWeapon() and (not isDiscard or self.player:canDiscard(who, who:getWeapon():getEffectiveId())) then return who:getWeapon():getEffectiveId() end
 		end
@@ -6271,6 +6274,10 @@ function SmartAI:findFriendsByType(prompt, player)
 		end
 	elseif prompt == sgs.Friend_All then
 		return true
+	elseif prompt == sgs.Friend_Weak then
+		for _, friend in ipairs(friends) do
+			if self:isWeak(friend) then return true end
+		end
 	else
 		global_room:writeToConsole(debug.traceback())
 		return

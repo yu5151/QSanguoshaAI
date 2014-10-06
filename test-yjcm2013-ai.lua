@@ -3,13 +3,13 @@ sgs.ai_skill_cardask["@renxin-card"] = function(self, data, pattern)
 	local dmg = data:toDamage()
 	local invoke
 	if self:isFriend(dmg.to) then
-		if self:damageIsEffective(dmg.to, dmg.nature, dmg.from) and not self:getDamagedEffects(dmg.to, dmg.from, dmg.card and dmg.card:isKindOf("Slash"))
+		if self:damageIsEffective_(dmg) and not self:getDamagedEffects(dmg.to, dmg.from, dmg.card and dmg.card:isKindOf("Slash"))
 			and not self:needToLoseHp(dmg.to, dmg.from, dmg.card and dmg.card:isKindOf("Slash")) then
 			invoke = true
-		elseif self:toTurnOver() then
+		elseif not self:toTurnOver(self.player) then
 			invoke = true
 		end
-	elseif self:objectiveLevel(dmg.to) == 0 and self:toTurnOver() then
+	elseif self:objectiveLevel(dmg.to) == 0 and not self:toTurnOver(self.player) then
 		invoke = true
 	end
 	if invoke then
@@ -383,7 +383,7 @@ sgs.ai_skill_invoke.zhuikong = function(self, data)
 	if not (current:hasSkill("zhiji") and current:getMark("zhiji") == 0 and current:getHandcardNum() == 1) then
 		local enemy_max_card = self:getMaxCard(current)
 		local enemy_max_point = enemy_max_card and enemy_max_card:getNumber() or 100
-		if enemy_max_card and enemy:hasSkill("yingyang") then enemy_max_point = math.min(enemy_max_point + 3, 13) end
+		if enemy_max_card and current:hasSkill("yingyang") then enemy_max_point = math.min(enemy_max_point + 3, 13) end
 		if max_point > enemy_max_point or max_point > 10 then
 			self.zhuikong_card = max_card:getEffectiveId()
 			return true
@@ -410,13 +410,13 @@ function sgs.ai_slash_prohibit.qiuyuan(self, from, to)
 end
 
 function SmartAI:hasQiuyuanEffect(from, to)
-  	if not from or not to or not to:hasSkill("qiuyuan") then return false end
-  	if getKnownCard(to, self.player, "Jink", true, "he") >= 1 then
-  		for _, target in ipairs(self:getEnemies(to)) do
-  			if target:getHandcardNum() ~= 1 or not self:needKongcheng(target, true) then
-  				return true
-  			end
-  		end
+	if not from or not to or not to:hasSkill("qiuyuan") then return false end
+	if getKnownCard(to, self.player, "Jink", true, "he") >= 1 then
+		for _, target in ipairs(self:getEnemies(to)) do
+			if target:getHandcardNum() ~= 1 or not self:needKongcheng(target, true) then
+				return true
+			end
+		end
 		for _, friend in ipairs(self:getFriends(to)) do
 			if friend:getHandcardNum() == 1 and self:needKongcheng(friend, true) and not friend:isKongcheng() then
 				return true

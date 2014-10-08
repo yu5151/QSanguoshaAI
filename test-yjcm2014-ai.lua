@@ -462,8 +462,6 @@ sgs.ai_skill_playerchosen.zenhui = function(self, targetlist)
 			if friend and targetlist:contains(friend) and self:hasTrickEffective(use.card, target, friend) then
 				return friend
 			end
-		elseif card:isKindOf("EXCard_ZJZB") then
-		elseif card:isKindOf("EXCard_YJJG") then
 		else
 			self.room:writeToConsole("playerchosen.zenhui->" .. use.card:getClassName() .. "?")
 		end
@@ -484,7 +482,7 @@ sgs.ai_skill_cardask["@zenhui-give"] = function(self, data)
 	self:sortByKeepValue(cards)
 	local id = cards[1]:getEffectiveId()
 
-	if card:isKindOf("Snatch") then
+	if use.card:isKindOf("Snatch") then
 		if self:isFriend(use.from) then
 			if self:askForCardChosen(self.player, "ej", "dummyReason") or not use.from:getAI() then
 				return "."
@@ -496,7 +494,7 @@ sgs.ai_skill_cardask["@zenhui-give"] = function(self, data)
 			return "."
 		end
 		return id
-	elseif card:isKindOf("Slash") then
+	elseif use.card:isKindOf("Slash") then
 		if self:slashProhibit(use.card, self.player, use.from)
 			or not self:hasHeavySlashDamage(use.from, use.card, self.player) and (self:getDamagedEffects(self.player, use.from, true) or self:needToLoseHp(self.player, use.from)) then
 			return "."
@@ -508,14 +506,14 @@ sgs.ai_skill_cardask["@zenhui-give"] = function(self, data)
 			return id
 		end
 		return "."
-	elseif card:isKindOf("Dismantlement") then
+	elseif use.card:isKindOf("Dismantlement") then
 		if not self:hasTrickEffective(use.card, self.player, use.from) then
 			return "."
 		elseif self:isFriend(use.from) and self:askForCardChosen(self.player, "ej", "dummyReason") then
 			return "."
 		end
 		return id
-	elseif card:isKindOf("Duel") then
+	elseif use.card:isKindOf("Duel") then
 		if self:getDamagedEffects(self.player, use.from) or self:needToLoseHp(self.player, use.from) then
 			return "."
 		elseif not self:hasTrickEffective(use.card, self.player, use.from) then
@@ -531,29 +529,25 @@ sgs.ai_skill_cardask["@zenhui-give"] = function(self, data)
 			end
 		end
 		return id
-	elseif card:isKindOf("FireAttack") then
+	elseif use.card:isKindOf("FireAttack") then
 		if self:getDamagedEffects(self.player, use.from) or self:needToLoseHp(self.player, use.from) then
 			return "."
 		end
 		return id
-	elseif card:isKindOf("Collateral") then
+	elseif use.card:isKindOf("Collateral") then
 		local victim = self.player:getTag("collateralVictim"):toPlayer()
 		if sgs.ai_skill_cardask["collateral-slash"](self, nil, nil, victim, use.from) ~= "."
 			and self:isFriend(use.from) or not self:isValuableCard(cards[1]) then
 			return "."
 		end
 		return id
-	elseif card:isKindOf("Drowning") then
+	elseif use.card:isKindOf("Drowning") then
 		if self:getDamagedEffects(self.player, use.from) or self:needToLoseHp(self.player, use.from) or self:needToThrowArmor() then
 			return "."
 		elseif self:isValuableCard(cards[1]) and self:isEnemy(use.from) then
 			return "."
 		end
 		return id
-	elseif card:isKindOf("EXCard_ZJZB") then
-		return "."
-	elseif card:isKindOf("EXCard_YJJG") then
-		return "."
 	else
 		self.room:writeToConsole("@zenhui-give->" .. use.card:getClassName() .. "?")
 	end

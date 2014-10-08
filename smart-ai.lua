@@ -3323,6 +3323,7 @@ function SmartAI:hasHeavySlashDamage(from, slash, to, getValue)
 		then
 			dmg = dmg - 1
 		end
+		if to:hasSkill("jiaojin") and from:isMale() and to:getEquips():length() > 0 then dmg = dmg - 1 end
 		if (fireSlash or thunderSlash) and jinxuandi and jinxuandi:getMark("@earth") > 0 and dmg > 1 then dmg = 1 end
 	end
 	if getValue then return dmg end

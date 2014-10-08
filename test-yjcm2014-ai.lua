@@ -490,7 +490,7 @@ sgs.ai_skill_cardask["@zenhui-give"] = function(self, data)
 				self:sortByUseValue(cards)
 				return cards[1]:getEffectiveId()
 			end
-		elseif not self:hasTrickEffective(card, self.player, use.from) then
+		elseif not self:hasTrickEffective(use.card, self.player, use.from) then
 			return "."
 		end
 		return id

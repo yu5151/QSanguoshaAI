@@ -2671,9 +2671,6 @@ end
 ---询问无懈可击--
 function SmartAI:askForNullification(trick, from, to, positive)
 	if self.player:isDead() then return nil end
-	local cards = self.player:getCards("he")
-	cards = sgs.QList2Table(cards)
-	self:sortByUseValue(cards, true)
 	local null_card
 	null_card = self:getCardId("Nullification") --无懈可击
 	local null_num = self:getCardsNum("Nullification")

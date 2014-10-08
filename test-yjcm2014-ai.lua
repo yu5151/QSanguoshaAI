@@ -158,11 +158,30 @@ sgs.ai_skill_playerchosen.qiangzhi = function(self, targetlist)
 	end
 
 	local max_value = math.max(cardType.trick * max_trick, cardType.basic * max_basic, cardType.equip * max_equip)
-	if max_value == 0 then return end
-	for cardype, value in pairs(cardType) do
-		if max_value == value then return target[cardype] end
+	if max_value > 0 then
+		for cardype, value in pairs(cardType) do
+			if max_value == value then return target[cardype] end
+		end
 	end
 
+	self:sort(self.enemies)
+	for _, enemy in ipairs(self.enemies) do
+		if targetlist:contains(enemy) then return enemy end
+	end
+
+	local players = sgs.QList2Table(self.room:getOtherPlayers(self.player))
+	self:sort(players)
+	for _, p in ipairs(players) do
+		if not self:isFriend(p) and targetlist:contains(p) then return p end
+	end
+
+	self:sort(self.friends_noself, "handcard")
+	self.friends_noself = sgs.reverse(self.friends_noself)
+	for _, friend in ipairs(self.friends_noself) do
+		if targetlist:contains(friend) then return friend end
+	end
+
+	return fasle
 end
 
 sgs.ai_skill_invoke.xiantu = function(self)
@@ -502,7 +521,7 @@ sgs.ai_skill_cardask["@zenhui-give"] = function(self, data)
 			if not self:slashIsEffective(use.card, target, self.player) then
 				return id
 			end
-		elseif not self:isValuableCard(cards[1]) or self:isWeak() or self:getCardsNum("Jink") == 0 and not sgs.isJinkAvailable(use.from, self.player, use.card) then
+		elseif not self:isValuableCard(cards[1]) or self:isWeak() or self:getCardsNum("Jink") == 0 or not sgs.isJinkAvailable(use.from, self.player, use.card) then
 			return id
 		end
 		return "."

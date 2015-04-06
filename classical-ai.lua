@@ -2,6 +2,11 @@
 	文件：classical-ai.lua
 	主题：经典战术
 ]]--
+
+--[[
+	文件：classical-ai.lua
+	主题：经典战术
+]]--
 --[[
 	PART 00：常用工具函数
 ]]--
